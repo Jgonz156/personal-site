@@ -1,10 +1,25 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import React from "react"
+import ReactDOM from "react-dom/client"
+import { RouterProvider, createBrowserRouter } from "react-router-dom"
+import "./index.css"
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+import Home from "./pages/home.tsx"
+import About from "./pages/about.tsx"
+import CurriculumVitae from "./pages/cv.tsx"
+import { CssVarsProvider } from "@mui/joy"
+import CMSI2820 from "./pages/courses/cmsi-2820-discrete-mathematics-for-cs.tsx"
+
+const router = createBrowserRouter([
+  { path: "/", element: <Home /> },
+  { path: "/about", element: <About /> },
+  { path: "/cv", element: <CurriculumVitae /> },
+  { path: "/cmsi-2820", element: <CMSI2820 /> },
+])
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+    <CssVarsProvider>
+      <RouterProvider router={router} />
+    </CssVarsProvider>
+  </React.StrictMode>
 )
