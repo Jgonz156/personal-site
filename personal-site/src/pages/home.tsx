@@ -35,13 +35,13 @@ export default function Home() {
   const [index, setIndex] = React.useState(0)
   const colors = ["primary", "danger", "success", "warning"] as const
   return (
-    <>
+    <Box sx={{ width: "100vw" }}>
       <Box
         sx={{
           zIndex: 1,
           flexGrow: 1,
           height: "40vh",
-          width: "100vw",
+          //width: "100vw",
           //minHeight: "100vh",
           position: "relative",
           backgroundImage: `url(/lmu-identity/LMU-Campus-Ariel.jpg)`,
@@ -134,6 +134,6 @@ export default function Home() {
         </Sheet>
       </Sheet>
       <Footer />
-    </>
+    </Box>
   )
 }
