@@ -8,7 +8,7 @@ import Button from "@mui/joy/Button"
 import Link from "@mui/joy/Link"
 import { CssVarsProvider, useColorScheme } from "@mui/joy/styles"
 
-function ModeToggle() {
+export function ModeToggle() {
   const { mode, setMode } = useColorScheme()
   const [mounted, setMounted] = React.useState(false)
 

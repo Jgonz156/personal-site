@@ -16,6 +16,7 @@ import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import SchoolIcon from "@mui/icons-material/School"
 import Person from "@mui/icons-material/Person"
 import Footer from "../components/footer"
+import { ModeToggle } from "../App"
 
 const tabs = [
   { title: "Home", icon: <HomeRoundedIcon /> },
@@ -149,7 +150,9 @@ export default function Home() {
                     display: "flex",
                     flexDirection: "column",
                   }}
-                ></Sheet>
+                >
+                  <ModeToggle />
+                </Sheet>
               ) : index === 1 ? (
                 <Sheet
                   sx={{
