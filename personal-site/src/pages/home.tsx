@@ -2,11 +2,14 @@ import * as React from "react"
 import Sheet from "@mui/joy/Sheet"
 import {
   Box,
+  Divider,
   ListItemDecorator,
+  Stack,
   Tab,
   tabClasses,
   TabList,
   Tabs,
+  Typography,
 } from "@mui/joy"
 import CourseCard from "../components/course-card"
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded"
@@ -23,6 +26,36 @@ const tabs = [
 ]
 
 const courses = [
+  {
+    title: "Discrete Mathematics for CS",
+    code: "2820",
+    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+    slug: "/cmsi-2820",
+  },
+  {
+    title: "Discrete Mathematics for CS",
+    code: "2820",
+    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+    slug: "/cmsi-2820",
+  },
+  {
+    title: "Discrete Mathematics for CS",
+    code: "2820",
+    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+    slug: "/cmsi-2820",
+  },
+  {
+    title: "Discrete Mathematics for CS",
+    code: "2820",
+    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+    slug: "/cmsi-2820",
+  },
+  {
+    title: "Discrete Mathematics for CS",
+    code: "2820",
+    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+    slug: "/cmsi-2820",
+  },
   {
     title: "Discrete Mathematics for CS",
     code: "2820",
@@ -108,26 +141,53 @@ export default function Home() {
                 ))}
               </TabList>
             </Tabs>
-            <Sheet sx={{ marginTop: 4, p: 1, borderRadius: 12 }}>
+            <Sheet sx={{ marginTop: 4, p: 4, borderRadius: 12 }}>
               {index === 0 ? (
-                <></>
+                <Sheet
+                  sx={{
+                    height: 1000,
+                    gap: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                ></Sheet>
               ) : index === 1 ? (
-                <>
-                  {courses.map(({ title, code, imageUrl, slug }) => (
-                    <CourseCard
-                      Title={title}
-                      Code={code}
-                      ImageUrl={imageUrl}
-                      slug={slug}
-                    />
-                  ))}
-                </>
+                <Sheet
+                  sx={{
+                    height: 1000,
+                    gap: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Typography level="h1">Courses</Typography>
+                  <Divider />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      justifyContent: "space-evenly",
+                      gap: 4,
+                    }}
+                  >
+                    {courses.map(({ title, code, imageUrl, slug }) => (
+                      <CourseCard
+                        Title={title}
+                        Code={code}
+                        ImageUrl={imageUrl}
+                        slug={slug}
+                      />
+                    ))}
+                  </Box>
+                  <Divider />
+                </Sheet>
               ) : index === 2 ? (
-                <></>
+                <Sheet sx={{ height: 1000 }}></Sheet>
               ) : index === 3 ? (
-                <></>
+                <Sheet sx={{ height: 1000 }}></Sheet>
               ) : (
-                <></>
+                <Sheet sx={{ height: 1000 }}></Sheet>
               )}
             </Sheet>
           </Box>

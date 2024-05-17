@@ -36,12 +36,21 @@ const personalInfo = [
 
 export default function Footer({ children }: { children?: React.ReactNode }) {
   return (
-    <Sheet sx={{ p: 4, display: "flex", justifyContent: "space-evenly" }}>
+    <Sheet
+      sx={{
+        p: 4,
+        gap: 4,
+        display: "flex",
+        justifyContent: "space-evenly",
+        flexDirection: "row",
+        flexWrap: "wrap",
+      }}
+    >
       <Sheet sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <img
           src="/lmu-identity/LMU-University-Logo.png"
           alt="LMU Logo"
-          width={400}
+          width={"400px"}
         />
         <Typography level="body-sm">
           Some cool copyright information idk
