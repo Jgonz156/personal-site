@@ -4,7 +4,6 @@ import {
   Box,
   Divider,
   ListItemDecorator,
-  Stack,
   Tab,
   tabClasses,
   TabList,
