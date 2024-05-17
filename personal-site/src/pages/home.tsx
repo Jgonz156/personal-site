@@ -2,7 +2,6 @@ import * as React from "react"
 import Sheet from "@mui/joy/Sheet"
 import {
   Box,
-  Grid,
   ListItemDecorator,
   Tab,
   tabClasses,
@@ -14,6 +13,7 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import SchoolIcon from "@mui/icons-material/School"
 import Person from "@mui/icons-material/Person"
+import Footer from "../components/footer"
 
 const tabs = [
   { title: "Home", icon: <HomeRoundedIcon /> },
@@ -48,6 +48,7 @@ export default function Home() {
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
           backgroundAttachment: "fixed",
+          backgroundPosition: "center",
         }}
       />
       <Sheet>
@@ -132,7 +133,7 @@ export default function Home() {
           </Box>
         </Sheet>
       </Sheet>
-      <Sheet>footer</Sheet>
+      <Footer />
     </>
   )
 }
