@@ -1,14 +1,15 @@
 import * as React from "react"
 import Sheet from "@mui/joy/Sheet"
 import {
+  Badge,
   Box,
+  Chip,
   Divider,
   ListItemDecorator,
   Tab,
   tabClasses,
   TabList,
   Tabs,
-  Typography,
 } from "@mui/joy"
 import CourseCard from "../components/course-card"
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded"
@@ -16,57 +17,59 @@ import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import SchoolIcon from "@mui/icons-material/School"
 import Person from "@mui/icons-material/Person"
 import Footer from "../components/footer"
-import { ModeToggle } from "../App"
+import {
+  CourseStatusBadge,
+  HomeNavBarState,
+  SiteContext,
+} from "../components/site-context"
 
 const tabs = [
   { title: "Home", icon: <HomeRoundedIcon /> },
-  { title: "Courses", icon: <AutoStoriesIcon /> },
   { title: "About Me", icon: <Person /> },
   { title: "CV", icon: <SchoolIcon /> },
 ]
 
-const courses = [
-  {
-    title: "Discrete Mathematics for CS",
-    code: "2820",
-    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
-    slug: "/cmsi-2820",
-  },
-  {
-    title: "Discrete Mathematics for CS",
-    code: "2820",
-    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
-    slug: "/cmsi-2820",
-  },
-  {
-    title: "Discrete Mathematics for CS",
-    code: "2820",
-    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
-    slug: "/cmsi-2820",
-  },
-  {
-    title: "Discrete Mathematics for CS",
-    code: "2820",
-    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
-    slug: "/cmsi-2820",
-  },
-  {
-    title: "Discrete Mathematics for CS",
-    code: "2820",
-    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
-    slug: "/cmsi-2820",
-  },
-  {
-    title: "Discrete Mathematics for CS",
-    code: "2820",
-    imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
-    slug: "/cmsi-2820",
-  },
-]
-
 export default function Home() {
-  const [index, setIndex] = React.useState(0)
-  const colors = ["primary", "danger", "success", "warning"] as const
+  const { settings, dispatch } = React.useContext(SiteContext)
+  const colors = ["primary", "success", "danger"] as const
+  const courses = [
+    {
+      title: "Discrete Mathematics for CS",
+      code: "2820",
+      imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+      slug: "/cmsi-2820",
+      status: settings.Home.Courses.CMSI2820.StatusBadge,
+      openModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSI2820: {
+                ...settings.Home.Courses.CMSI2820,
+                ModalVisible: true,
+              },
+            },
+          },
+        }),
+      closeModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSI2820: {
+                ...settings.Home.Courses.CMSI2820,
+                ModalVisible: false,
+              },
+            },
+          },
+        }),
+      modalState: settings.Home.Courses.CMSI2820.ModalVisible,
+    },
+  ]
   return (
     <Box sx={{ width: "100vw" }}>
       <Box
@@ -95,14 +98,19 @@ export default function Home() {
               p: 4,
               borderTopLeftRadius: "12px",
               borderTopRightRadius: "12px",
-              bgcolor: `${colors[index]}.500`,
+              bgcolor: `${colors[settings.Home.NavBarState]}.500`,
             }}
           >
             <Tabs
               size="lg"
               aria-label="Bottom Navigation"
-              value={index}
-              onChange={(_event, value) => setIndex(value as number)}
+              value={settings.Home.NavBarState}
+              onChange={(_event, value) =>
+                dispatch({
+                  field: "Home",
+                  value: { ...settings.Home, NavBarState: value },
+                })
+              }
               sx={(theme) => ({
                 p: 1,
                 borderRadius: 16,
@@ -110,7 +118,8 @@ export default function Home() {
                 mx: "auto",
                 boxShadow: theme.shadow.sm,
                 "--joy-shadowChannel":
-                  theme.vars.palette[colors[index]].darkChannel,
+                  theme.vars.palette[colors[settings.Home.NavBarState]]
+                    .darkChannel,
                 [`& .${tabClasses.root}`]: {
                   py: 1,
                   flex: 1,
@@ -133,7 +142,9 @@ export default function Home() {
                   <Tab
                     disableIndicator
                     orientation="vertical"
-                    {...(index === 0 && { color: colors[0] })}
+                    {...(settings.Home.NavBarState === 0 && {
+                      color: colors[0],
+                    })}
                   >
                     <ListItemDecorator>{icon}</ListItemDecorator>
                     {title}
@@ -142,7 +153,7 @@ export default function Home() {
               </TabList>
             </Tabs>
             <Sheet sx={{ marginTop: 4, p: 4, borderRadius: 12 }}>
-              {index === 0 ? (
+              {settings.Home.NavBarState === HomeNavBarState.Home ? (
                 <Sheet
                   sx={{
                     height: 1000,
@@ -151,19 +162,15 @@ export default function Home() {
                     flexDirection: "column",
                   }}
                 >
-                  <ModeToggle />
-                </Sheet>
-              ) : index === 1 ? (
-                <Sheet
-                  sx={{
-                    height: 1000,
-                    gap: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Typography level="h1">Courses</Typography>
-                  <Divider />
+                  <Divider>
+                    <Chip
+                      variant="soft"
+                      startDecorator={<AutoStoriesIcon />}
+                      size="lg"
+                    >
+                      Courses
+                    </Chip>
+                  </Divider>
                   <Box
                     sx={{
                       display: "flex",
@@ -173,20 +180,47 @@ export default function Home() {
                       gap: 4,
                     }}
                   >
-                    {courses.map(({ title, code, imageUrl, slug }) => (
-                      <CourseCard
-                        Title={title}
-                        Code={code}
-                        ImageUrl={imageUrl}
-                        slug={slug}
-                      />
-                    ))}
+                    {courses.map(
+                      ({
+                        title,
+                        code,
+                        imageUrl,
+                        //slug,
+                        status,
+                        openModal,
+                        closeModal,
+                        modalState,
+                      }) => (
+                        <Badge
+                          size="sm"
+                          variant="solid"
+                          color={
+                            status === CourseStatusBadge.InProgress
+                              ? "success"
+                              : status === CourseStatusBadge.UnderConstruction
+                              ? "danger"
+                              : "neutral"
+                          }
+                          badgeContent={status as string}
+                        >
+                          <CourseCard
+                            Title={title}
+                            Code={code}
+                            ImageUrl={imageUrl}
+                            //slug={slug}
+                            openModal={openModal}
+                            closeModal={closeModal}
+                            modalState={modalState}
+                          />
+                        </Badge>
+                      )
+                    )}
                   </Box>
                   <Divider />
                 </Sheet>
-              ) : index === 2 ? (
+              ) : settings.Home.NavBarState === HomeNavBarState.AboutMe ? (
                 <Sheet sx={{ height: 1000 }}></Sheet>
-              ) : index === 3 ? (
+              ) : settings.Home.NavBarState === HomeNavBarState.CV ? (
                 <Sheet sx={{ height: 1000 }}></Sheet>
               ) : (
                 <Sheet sx={{ height: 1000 }}></Sheet>

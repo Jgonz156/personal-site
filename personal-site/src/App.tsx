@@ -1,4 +1,3 @@
-import * as React from "react"
 import Sheet from "@mui/joy/Sheet"
 import Typography from "@mui/joy/Typography"
 import FormControl from "@mui/joy/FormControl"
@@ -6,32 +5,8 @@ import FormLabel from "@mui/joy/FormLabel"
 import Input from "@mui/joy/Input"
 import Button from "@mui/joy/Button"
 import Link from "@mui/joy/Link"
-import { CssVarsProvider, useColorScheme } from "@mui/joy/styles"
-
-export function ModeToggle() {
-  const { mode, setMode } = useColorScheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  // necessary for server-side rendering
-  // because mode is undefined on the server
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-  if (!mounted) {
-    return null
-  }
-
-  return (
-    <Button
-      variant="outlined"
-      onClick={() => {
-        setMode(mode === "light" ? "dark" : "light")
-      }}
-    >
-      {mode === "light" ? "Turn dark" : "Turn light"}
-    </Button>
-  )
-}
+import { CssVarsProvider } from "@mui/joy/styles"
+import { ModeToggle } from "./components/site-mode"
 
 export default function App() {
   return (

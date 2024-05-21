@@ -6,6 +6,7 @@ import EmailIcon from "@mui/icons-material/Email"
 import PhoneIcon from "@mui/icons-material/Phone"
 import SmartphoneIcon from "@mui/icons-material/Smartphone"
 import GitHubIcon from "@mui/icons-material/GitHub"
+import SettingsMenu from "./settings-menu"
 
 const personalInfo = [
   {
@@ -55,6 +56,7 @@ export default function Footer({ children }: { children?: React.ReactNode }) {
         <Typography level="body-sm">
           Some cool copyright information idk
         </Typography>
+        <SettingsMenu />
       </Sheet>
       <Stack
         direction="column"
