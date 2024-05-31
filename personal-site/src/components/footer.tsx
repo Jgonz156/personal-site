@@ -1,4 +1,11 @@
-import { Chip, Divider, Sheet, Stack, Typography } from "@mui/joy"
+import {
+  Chip,
+  Divider,
+  Sheet,
+  Stack,
+  Typography,
+  useColorScheme,
+} from "@mui/joy"
 
 import PlaceIcon from "@mui/icons-material/Place"
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom"
@@ -36,6 +43,8 @@ const personalInfo = [
 ]
 
 export default function Footer({ children }: { children?: React.ReactNode }) {
+  const { mode } = useColorScheme()
+
   return (
     <Sheet
       sx={{
@@ -49,7 +58,9 @@ export default function Footer({ children }: { children?: React.ReactNode }) {
     >
       <Sheet sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <img
-          src="/lmu-identity/LMU-University-Logo.png"
+          src={`/lmu-identity/LMU-University-Logo-${
+            mode === "light" ? "LM" : "DM"
+          }.png`}
           alt="LMU Logo"
           width={"400px"}
         />
