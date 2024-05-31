@@ -6,13 +6,17 @@ import DialogActions from "@mui/joy/DialogActions"
 import Modal from "@mui/joy/Modal"
 import ModalDialog from "@mui/joy/ModalDialog"
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks"
+import { Link } from "@mui/joy"
+import { Link as RouterLink } from "react-router-dom"
 
 export default function CourseModal({
   dispatchClose,
   visible,
+  slug,
 }: {
   dispatchClose: () => void
   visible: boolean
+  slug: string
 }) {
   return (
     <>
@@ -25,9 +29,11 @@ export default function CourseModal({
           <Divider />
           <DialogContent>Description</DialogContent>
           <DialogActions>
-            <Button variant="solid" color="primary" onClick={dispatchClose}>
-              Head To Class!
-            </Button>
+            <Link component={RouterLink} to={slug}>
+              <Button variant="solid" color="primary">
+                Head To Class!
+              </Button>
+            </Link>
             <Button variant="plain" color="neutral" onClick={dispatchClose}>
               Cancel
             </Button>

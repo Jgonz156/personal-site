@@ -11,7 +11,7 @@ export default function CourseCard({
   Title,
   Code,
   ImageUrl,
-  //slug,
+  slug,
   openModal,
   closeModal,
   modalState,
@@ -19,7 +19,7 @@ export default function CourseCard({
   Title: string
   Code: string
   ImageUrl: string
-  //slug: string
+  slug: string
   openModal: () => void
   closeModal: () => void
   modalState: boolean
@@ -57,16 +57,11 @@ export default function CourseCard({
           CMSI {Code}
         </CardOverflow>
       </Card>
-      <CourseModal dispatchClose={closeModal} visible={modalState} />
+      <CourseModal
+        dispatchClose={closeModal}
+        visible={modalState}
+        slug={slug}
+      />
     </>
   )
 }
-/*
-<Link
-            overlay
-            underline="none"
-            component={RouterLink}
-            to={slug}
-            sx={{ color: "text.tertiary" }}
-          ></Link>
-*/

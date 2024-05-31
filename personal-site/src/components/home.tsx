@@ -117,7 +117,7 @@ export default function Home() {
             title,
             code,
             imageUrl,
-            //slug,
+            slug,
             status,
             openModal,
             closeModal,
@@ -138,7 +138,7 @@ export default function Home() {
                 Title={title}
                 Code={code}
                 ImageUrl={imageUrl}
-                //slug={slug}
+                slug={slug}
                 openModal={openModal}
                 closeModal={closeModal}
                 modalState={modalState}
