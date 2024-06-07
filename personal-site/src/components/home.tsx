@@ -1,13 +1,4 @@
-import {
-  Badge,
-  Box,
-  Chip,
-  Divider,
-  List,
-  ListDivider,
-  ListItem,
-  Sheet,
-} from "@mui/joy"
+import { Badge, Box, Chip, Divider, List, ListItem, Sheet } from "@mui/joy"
 import CourseCard from "./course-card"
 import { CourseStatusBadge, SiteContext } from "./site-context"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
@@ -86,19 +77,17 @@ export default function Home() {
         >
           <ListItem>
             <Badge size="lg" variant="solid" color={"success"}>
-              <Chip size="lg">This means the course is Active</Chip>
+              <Chip size="lg">Active</Chip>
             </Badge>
           </ListItem>
-          <ListDivider />
           <ListItem>
             <Badge size="lg" variant="solid" color={"danger"}>
-              <Chip size="lg">This means the course is Under Construction</Chip>
+              <Chip size="lg">Under Construction</Chip>
             </Badge>
           </ListItem>
-          <ListDivider />
           <ListItem>
             <Badge size="lg" variant="solid" color={"neutral"}>
-              <Chip size="lg">This means the course is Inactive</Chip>
+              <Chip size="lg">Inactive</Chip>
             </Badge>
           </ListItem>
         </List>
