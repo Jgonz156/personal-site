@@ -26,7 +26,12 @@ export default function CourseCard({
 }) {
   return (
     <>
-      <Card orientation="horizontal" variant="outlined" sx={{ width: 350 }}>
+      <Card
+        color="neutral"
+        orientation="horizontal"
+        variant="soft"
+        sx={{ width: 350 }}
+      >
         <CardOverflow>
           <AspectRatio ratio="1" sx={{ width: 110 }}>
             <img src={ImageUrl} loading="lazy" alt="" />

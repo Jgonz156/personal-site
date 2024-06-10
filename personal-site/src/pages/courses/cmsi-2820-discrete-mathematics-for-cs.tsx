@@ -1,6 +1,8 @@
 import {
   Button,
   Card,
+  CardActions,
+  CardContent,
   Chip,
   Divider,
   IconButton,
@@ -76,8 +78,8 @@ export default function CMSI2820() {
           <Table>
             <thead>
               <tr>
-                <th style={{ width: "5%" }}></th>
-                <th style={{ width: "5%" }}>#</th>
+                <th style={{ width: "10%" }}></th>
+                <th style={{ width: "10%" }}>#</th>
                 <th>Standard</th>
                 <th style={{ width: "70%" }}>Description</th>
               </tr>
@@ -112,7 +114,7 @@ export default function CMSI2820() {
                         display: "flex",
                         flexDirection: "row",
                         flexWrap: "wrap",
-                        justifyContent: "space-evenly",
+                        justifyContent: "space-around",
                         gap: 2,
                         marginTop: 2,
                         marginBottom: 2,
@@ -123,44 +125,82 @@ export default function CMSI2820() {
                         orientation="vertical"
                         size="md"
                         variant="soft"
+                        sx={{ maxWidth: "40%", minWidth: "2in" }}
                       >
-                        <Typography level="title-sm">
-                          LN 1: Reading Course Material!
-                        </Typography>
-                        <Typography level="body-sm">
-                          Here is a sample of what the lecture notes will look
-                          like! This one just explains the color coding I use
-                          for information and displays the small interactive
-                          modules I might have throughout the notes.
-                        </Typography>
+                        <CardContent>
+                          <Typography level="title-sm">
+                            LN 1: Reading Course Material!
+                          </Typography>
+                          <Typography level="body-sm">
+                            Here is a sample of what the lecture notes will look
+                            like! This one just explains the color coding I use
+                            for information and displays the small interactive
+                            modules I might have throughout the notes.
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          <Button
+                            color="primary"
+                            variant="solid"
+                            sx={{ maxWidth: "1in" }}
+                          >
+                            Open
+                          </Button>
+                        </CardActions>
                       </Card>
                       <Card
                         color="success"
                         orientation="vertical"
                         size="md"
                         variant="soft"
+                        sx={{ maxWidth: "40%", minWidth: "2in" }}
                       >
-                        <Typography level="title-sm">
-                          HW 0: Practicing Homework
-                        </Typography>
-                        <Typography level="body-sm">
-                          This is a small assignment to get you familiar with
-                          the process of recieving and submitting assignments!
-                        </Typography>
+                        <CardContent>
+                          <Typography level="title-sm">
+                            HW 0: Practicing Homework
+                          </Typography>
+                          <Typography level="body-sm">
+                            This is a small assignment to get you familiar with
+                            the process of recieving and submitting assignments!
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          <Button
+                            color="success"
+                            variant="solid"
+                            sx={{ maxWidth: "1in" }}
+                          >
+                            Open
+                          </Button>
+                        </CardActions>
                       </Card>
                       <Card
                         color="danger"
                         orientation="vertical"
                         size="md"
                         variant="soft"
+                        sx={{ maxWidth: "40%", minWidth: "2in" }}
                       >
-                        <Typography level="title-sm">EX 0: </Typography>
-                        <Typography level="body-sm">
-                          Exams are an important part of how you communicate
-                          your understanding of the material! Here you will take
-                          one on the most vital parts of the course syllabus! I
-                          promise its not hard.
-                        </Typography>
+                        <CardContent>
+                          <Typography level="title-sm">
+                            EX 0: Syllabus
+                          </Typography>
+                          <Typography level="body-sm">
+                            Exams are an important part of how you communicate
+                            your understanding of the material! Here you will
+                            take one on the most vital parts of the course
+                            syllabus! I promise its not hard.
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          <Button
+                            color="danger"
+                            variant="solid"
+                            sx={{ maxWidth: "1in" }}
+                          >
+                            Open
+                          </Button>
+                        </CardActions>
                       </Card>
                     </Sheet>
                   </td>
