@@ -56,17 +56,17 @@ export default function Footer({ children }: { children?: React.ReactNode }) {
         flexWrap: "wrap",
       }}
     >
-      <Sheet sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <Sheet
+        sx={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 400 }}
+      >
         <img
           src={`/lmu-identity/LMU-University-Logo-${
             mode === "light" ? "LM" : "DM"
           }.png`}
           alt="LMU Logo"
-          width={"400px"}
+          width={"100%"}
         />
-        <Typography level="body-sm">
-          Some cool copyright information idk
-        </Typography>
+        {/*<Typography level="body-sm"> Some cool copyright information idk</Typography>*/}
         <SettingsMenu />
       </Sheet>
       <Stack
