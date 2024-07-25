@@ -66,7 +66,10 @@ export default function Footer({ children }: { children?: React.ReactNode }) {
           alt="LMU Logo"
           width={"100%"}
         />
-        {/*<Typography level="body-sm"> Some cool copyright information idk</Typography>*/}
+        <Typography level="body-sm">
+          {" "}
+          Some cool copyright information idk
+        </Typography>
         <SettingsMenu />
       </Sheet>
       <Stack

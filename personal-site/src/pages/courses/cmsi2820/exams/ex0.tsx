@@ -1,25 +1,9 @@
-import { Sheet } from "@mui/joy"
-import Footer from "../../../../components/footer"
-import CourseNavBar from "../../components/course-nav-bar"
+import CoursePage from "../../components/course-page"
 
 export default function Exam0() {
   return (
     <>
-      <Sheet
-        color="danger"
-        variant="solid"
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          minHeight: "100vh",
-          p: 4,
-          gap: 4,
-        }}
-      >
-        <CourseNavBar />
-      </Sheet>
-      <Footer />
+      <CoursePage type="exam">bob</CoursePage>
     </>
   )
 }
