@@ -1,9 +1,6 @@
-import { Chip, Divider, IconButton, Sheet, Table, Typography } from "@mui/joy"
+import { Chip, Divider, Sheet, Table, Typography } from "@mui/joy"
 import Footer from "../../../components/footer"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import React from "react"
 import CourseNavBar from "../components/course-nav-bar"
 import AssignmentCard from "../components/assignment-card"
 import ExamCard from "../components/exam-card"
@@ -11,7 +8,7 @@ import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 
 export default function CMSI2820() {
-  const [open, setOpen] = React.useState(false)
+  //const [open, setOpen] = React.useState(false)
   return (
     <>
       <Sheet

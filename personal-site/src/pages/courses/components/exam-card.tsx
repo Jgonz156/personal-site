@@ -5,11 +5,11 @@ export default function ExamCard({
   title,
   description,
   examSlug,
-}: {
+}: Readonly<{
   title: string
   description: string
   examSlug: string
-}) {
+}>) {
   return (
     <Card
       color="danger"

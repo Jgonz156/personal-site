@@ -5,11 +5,11 @@ export default function NotesCard({
   title,
   description,
   notesSlug,
-}: {
+}: Readonly<{
   title: string
   description: string
   notesSlug: string
-}) {
+}>) {
   return (
     <Card
       color="primary"
