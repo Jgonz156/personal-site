@@ -45,10 +45,10 @@ export default function CMSI2820() {
           <Table>
             <thead>
               <tr>
-                <th style={{ width: "10%" }}></th>
+                <th style={{ width: "5%" }}></th>
                 <th style={{ width: "10%" }}>#</th>
-                <th>Standard</th>
-                <th style={{ width: "70%" }}>Description</th>
+                <th style={{ width: "15%" }}>Standard</th>
+                <th style={{ width: "50%" }}>Description</th>
               </tr>
             </thead>
             <tbody>

@@ -4,7 +4,6 @@ import Card from "@mui/joy/Card"
 import CardContent from "@mui/joy/CardContent"
 import CardOverflow from "@mui/joy/CardOverflow"
 import Typography from "@mui/joy/Typography"
-//import { Link as RouterLink } from "react-router-dom"
 import CourseModal from "./course-modal"
 
 export default function CourseCard({
@@ -15,6 +14,7 @@ export default function CourseCard({
   openModal,
   closeModal,
   modalState,
+  children,
 }: {
   Title: string
   Code: string
@@ -23,6 +23,7 @@ export default function CourseCard({
   openModal: () => void
   closeModal: () => void
   modalState: boolean
+  children: React.ReactNode
 }) {
   return (
     <>
@@ -62,11 +63,9 @@ export default function CourseCard({
           CMSI {Code}
         </CardOverflow>
       </Card>
-      <CourseModal
-        dispatchClose={closeModal}
-        visible={modalState}
-        slug={slug}
-      />
+      <CourseModal dispatchClose={closeModal} visible={modalState} slug={slug}>
+        {children}
+      </CourseModal>
     </>
   )
 }

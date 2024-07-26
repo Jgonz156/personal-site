@@ -52,7 +52,7 @@ const initialContext: SettingsContextType = {
 
 export const SiteContext = React.createContext(initialContext)
 
-export function SiteContextProvider({ children }: { children: any }) {
+export function SiteContextProvider({ children }: Readonly<{ children: any }>) {
   const [settings, dispatch] = React.useReducer(reducer, initialSettingsState)
 
   return (

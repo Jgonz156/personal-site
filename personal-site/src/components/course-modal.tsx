@@ -13,10 +13,12 @@ export default function CourseModal({
   dispatchClose,
   visible,
   slug,
+  children,
 }: {
   dispatchClose: () => void
   visible: boolean
   slug: string
+  children: React.ReactNode
 }) {
   return (
     <>
@@ -27,7 +29,7 @@ export default function CourseModal({
             Course Information
           </DialogTitle>
           <Divider />
-          <DialogContent>Description</DialogContent>
+          <DialogContent>{children}</DialogContent>
           <DialogActions>
             <Link component={RouterLink} to={slug}>
               <Button variant="solid" color="primary">

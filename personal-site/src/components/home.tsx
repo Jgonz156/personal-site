@@ -3,6 +3,7 @@ import CourseCard from "./course-card"
 import { CourseStatusBadge, SiteContext } from "./site-context"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import React from "react"
+import CourseInfoDump from "./course-info-dump"
 
 export default function Home() {
   const { settings, dispatch } = React.useContext(SiteContext)
@@ -42,6 +43,55 @@ export default function Home() {
           },
         }),
       modalState: settings.Home.Courses.CMSI2820.ModalVisible,
+      courseCardDescription: (
+        <Sheet
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "wrap",
+            gap: 4,
+            alignItems: "center",
+          }}
+        >
+          <Sheet>
+            Discrete Mathematics for CS is a hands on course that infuses the
+            learning of Discrete theory topics into direct application in
+            Python. These topics include Intuitionistic Propositional and
+            Predicate Logic, Number Theory, Type Theory, Combinatorics, Graph
+            Theory, Set Theory, and a few more topic extensions to broaden the
+            application of these topics in Computer Science.
+          </Sheet>
+          <Divider>
+            <Chip>Prerequisities</Chip>
+          </Divider>
+          <Sheet> CMSI 1010 or ENGR 160 or ENGR 1200</Sheet>
+
+          <CourseInfoDump
+            sectionNumber={1}
+            daysOfWeek={["Tuesday", "Thursday"]}
+            timeStart="9:55AM"
+            timeEnd="11:35AM"
+            building="Pereira"
+            roomNumber={206}
+          />
+          <CourseInfoDump
+            sectionNumber={2}
+            daysOfWeek={["Tuesday", "Thursday"]}
+            timeStart="1:45PM"
+            timeEnd="3:25AM"
+            building="Pereira"
+            roomNumber={109}
+          />
+          <CourseInfoDump
+            sectionNumber={3}
+            daysOfWeek={["Tuesday", "Thursday"]}
+            timeStart="6:00PM"
+            timeEnd="7:40PM"
+            building="Seaver"
+            roomNumber={304}
+          />
+        </Sheet>
+      ),
     },
   ]
   return (
@@ -111,6 +161,7 @@ export default function Home() {
             openModal,
             closeModal,
             modalState,
+            courseCardDescription,
           }) => (
             <Badge
               size="lg"
@@ -131,7 +182,9 @@ export default function Home() {
                 openModal={openModal}
                 closeModal={closeModal}
                 modalState={modalState}
-              />
+              >
+                {courseCardDescription}
+              </CourseCard>
             </Badge>
           )
         )}
