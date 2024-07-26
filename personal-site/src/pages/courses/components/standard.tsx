@@ -8,12 +8,12 @@ export default function Standard({
   title,
   description,
   children,
-}: {
-  number: number
+}: Readonly<{
+  number: number | string
   title: string
   description: string
   children: React.ReactNode
-}) {
+}>) {
   const [open, setOpen] = React.useState(false)
   return (
     <>
@@ -25,7 +25,7 @@ export default function Standard({
             size="sm"
             onClick={() => setOpen(!open)}
           >
-            {open ? <KeyboardArrowDownIcon /> : <KeyboardArrowUpIcon />}
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </td>
         <td>{number}</td>

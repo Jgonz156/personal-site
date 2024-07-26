@@ -8,7 +8,6 @@ import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 
 export default function CMSI2820() {
-  //const [open, setOpen] = React.useState(false)
   return (
     <>
       <Sheet
@@ -87,13 +86,273 @@ export default function CMSI2820() {
               </Standard>
               <Standard
                 number={1}
-                title="Boolean Algebra"
-                description="insert here"
+                title="Logic"
+                description="In this standard we will investigate the mathematical
+                  underpinnings of logical argumentation, deductive reasoning,
+                  and the symbollogy that is used to represent these ideas. This
+                  means taking a brief look at different systems of logic, a deeper
+                  dive into intuitionistic logic, and what that means for
+                  propositional and predicate reasoning"
               >
+                <NotesCard
+                  title="LN 1: Information and It's Consequences..."
+                  description="This lecture will cover the basics of many different 
+                  systems of logic, where they came from, how they were used, and 
+                  what it even means to craft a valid line of reasoning."
+                  notesSlug="/cmsi-2820/ln1"
+                />
+                <NotesCard
+                  title="LN 2: Assumptions Make an Argument out of You and Me"
+                  description="This lecture will be an introduction to 
+                  intuitionistic logic. We will cover propositions, their 
+                  variables, compound formulas, logical connectives, natural 
+                  deductive inference rules, and proofs."
+                  notesSlug="/cmsi-2820/ln2"
+                />
+                <NotesCard
+                  title="LN 3: Properties are Predicated... Predicated on What?"
+                  description="This lecture expands on propositional logic by 
+                  extending it to objects and statements about their properties, 
+                  what is formalized as predicate logic. We will cover new 
+                  forms of equality, predicated statements, their variables, 
+                  their constants, and their composites, new exsistential and 
+                  universal quantifiers, and their natural deductive inference rules."
+                  notesSlug="/cmsi-2820/ln3"
+                />
                 <AssignmentCard
-                  title="hw1"
-                  description="bob"
+                  title="HW 1: Think Class! Think!"
+                  description="In this homework you will get practice with logical 
+                  terminology, creating propositional and predicate logic statements, 
+                  translating natural language into logic, and natural deduction proofs!"
                   assignmentSlug="/cmsi-2820/hw1"
+                />
+              </Standard>
+              <Standard
+                number={2}
+                title="Numbers"
+                description="In this standard we will investigate the mathematical
+                  underpinnings of numbers! Yep, you heard me right! We will be 
+                  going over the arithmetic of the Booleans and the Integers."
+              >
+                <NotesCard
+                  title="LN 5: Primitive Beginnings"
+                  description=""
+                  notesSlug="/cmsi-2820/ln5"
+                />
+                <NotesCard
+                  title="LN 6: Meet The Booleans, Don't Worry There's only Two of Them"
+                  description=""
+                  notesSlug="/cmsi-2820/ln6"
+                />
+                <NotesCard
+                  title="LN 7: The Integers, The Booleans' Infinite Inlaws"
+                  description=""
+                  notesSlug="/cmsi-2820/ln7"
+                />
+                <NotesCard
+                  title="LN 8: Division without Decimals? Positive Numbers that Add 
+                  to Zero? What is this Place?!?"
+                  description=""
+                  notesSlug="/cmsi-2820/ln8"
+                />
+                <AssignmentCard
+                  title="HW 2: Numbers"
+                  description=""
+                  assignmentSlug="/cmsi-2820/hw2"
+                />
+              </Standard>
+              <Standard
+                number={3}
+                title="Collections"
+                description="In this standard we will investigate the mathematical
+                  underpinnings of mathematical structures that hold other primitives! 
+                  This includes working with tuples, sets, and their many operations."
+              >
+                <NotesCard
+                  title="LN 9: Tuples"
+                  description=""
+                  notesSlug="/cmsi-2820/ln9"
+                />
+                <NotesCard
+                  title="LN 10: Sets"
+                  description=""
+                  notesSlug="/cmsi-2820/ln10"
+                />
+                <NotesCard
+                  title="LN 11: More Sets"
+                  description=""
+                  notesSlug="/cmsi-2820/ln11"
+                />
+                <NotesCard
+                  title="LN 12: Relations"
+                  description=""
+                  notesSlug="/cmsi-2820/ln12"
+                />
+                <AssignmentCard
+                  title="HW 3: Collections Agency"
+                  description=""
+                  assignmentSlug="/cmsi-2820/hw3"
+                />
+              </Standard>
+              <Standard
+                number={"MIDTERM"}
+                title="Standards 1-3"
+                description="This is the optional midterm exam that covers the first 
+                three standards."
+              >
+                <ExamCard
+                  title="EX 1: Midterm Exam"
+                  description=""
+                  examSlug="/cmsi-2820/ex1"
+                />
+              </Standard>
+              <Standard
+                number={4}
+                title="Functions"
+                description="In this standard we will investigate functions. This 
+                includes their formalized mathematical definition in the lamda 
+                calculus, their reductions, their properties, and how they are 
+                used inconjuction with logic to formalize Type Theory."
+              >
+                <NotesCard
+                  title="LN 13: This Lamb Don't Baa"
+                  description=""
+                  notesSlug="/cmsi-2820/ln13"
+                />
+                <NotesCard
+                  title="LN 14: Functions 2"
+                  description=""
+                  notesSlug="/cmsi-2820/ln14"
+                />
+                <NotesCard
+                  title="LN 15: Functions 3"
+                  description=""
+                  notesSlug="/cmsi-2820/ln15"
+                />
+                <NotesCard
+                  title="LN 16: Programs are Proofs too!"
+                  description=""
+                  notesSlug="/cmsi-2820/ln16"
+                />
+                <AssignmentCard
+                  title="HW 4: Input an Inch and They'll Output a Mile!"
+                  description=""
+                  assignmentSlug="/cmsi-2820/hw4"
+                />
+              </Standard>
+              <Standard
+                number={5}
+                title="Combinatorics"
+                description="In this standard we will investigate combinations and 
+                permutations."
+              >
+                <NotesCard
+                  title="LN 17: Combinatorics 1"
+                  description=""
+                  notesSlug="/cmsi-2820/ln17"
+                />
+                <NotesCard
+                  title="LN 18: Combinatorics 2"
+                  description=""
+                  notesSlug="/cmsi-2820/ln18"
+                />
+                <NotesCard
+                  title="LN 19: Combinatorics 3"
+                  description=""
+                  notesSlug="/cmsi-2820/ln19"
+                />
+                <NotesCard
+                  title="LN 20: Combinatorics 4"
+                  description=""
+                  notesSlug="/cmsi-2820/ln20"
+                />
+                <AssignmentCard
+                  title="HW 5: Combinatorics!"
+                  description=""
+                  assignmentSlug="/cmsi-2820/hw5"
+                />
+              </Standard>
+              <Standard
+                number={6}
+                title="Graph Theory"
+                description="In this standard we will investigate the mathematical 
+                underpinnings of graph theory."
+              >
+                <NotesCard
+                  title="LN 21: Graph Theory 1"
+                  description=""
+                  notesSlug="/cmsi-2820/ln21"
+                />
+                <NotesCard
+                  title="LN 22: Graph Theory 2"
+                  description=""
+                  notesSlug="/cmsi-2820/ln22"
+                />
+                <NotesCard
+                  title="LN 23: Graph Theory 3"
+                  description=""
+                  notesSlug="/cmsi-2820/ln23"
+                />
+                <NotesCard
+                  title="LN 24: Graph Theory 4"
+                  description=""
+                  notesSlug="/cmsi-2820/ln24"
+                />
+                <AssignmentCard
+                  title="HW 6: Graph Theory!"
+                  description=""
+                  assignmentSlug="/cmsi-2820/hw5"
+                />
+              </Standard>
+              <Standard
+                number={7}
+                title="Set Theory"
+                description="In this standard we will investigate the mathematical 
+                underpinnings of Set theory."
+              >
+                <NotesCard
+                  title="LN 25: Set Theory 1"
+                  description=""
+                  notesSlug="/cmsi-2820/ln25"
+                />
+                <NotesCard
+                  title="LN 26: Set Theory 2"
+                  description=""
+                  notesSlug="/cmsi-2820/ln26"
+                />
+                <AssignmentCard
+                  title="HW 7: Set Theory!"
+                  description=""
+                  assignmentSlug="/cmsi-2820/hw5"
+                />
+              </Standard>
+              <Standard
+                number={"SPECIAL"}
+                title="Extensions"
+                description="Not a true standard, this section houses the notes for 
+                the special non-graded topics that are covered in class."
+              >
+                <NotesCard
+                  title="LN 27: Pure Discrete Mathematics and Artificial Intelligence"
+                  description=""
+                  notesSlug="/cmsi-2820/ln25"
+                />
+                <NotesCard
+                  title="LN 28: Games and Systems Architecture Pipelines"
+                  description=""
+                  notesSlug="/cmsi-2820/ln26"
+                />
+              </Standard>
+              <Standard
+                number={"FINAL"}
+                title="Standards 4-7"
+                description="This is the optional final exam that covers the last 
+                four standards."
+              >
+                <ExamCard
+                  title="EX 2: FINAL Exam"
+                  description=""
+                  examSlug="/cmsi-2820/ex2"
                 />
               </Standard>
             </tbody>
