@@ -25,7 +25,7 @@ const personalInfo = [
     icon: <MeetingRoomIcon />,
   },
   {
-    value: "jgonz156@lion.lmu.edu",
+    value: "Julian.Gonzalez@lmu.edu",
     icon: <EmailIcon />,
   },
   {
