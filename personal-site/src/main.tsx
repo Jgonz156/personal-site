@@ -11,6 +11,7 @@ import Syllabus from "./pages/courses/cmsi2820/syllabus.tsx"
 import LectureNotes0 from "./pages/courses/cmsi2820/notes/ln0.tsx"
 import Assignment0 from "./pages/courses/cmsi2820/assignments/assignment0.tsx"
 import Exam0 from "./pages/courses/cmsi2820/exams/ex0.tsx"
+import LectureNotes1 from "./pages/courses/cmsi2820/notes/ln1.tsx"
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
   { path: "/cmsi-2820/cheat-sheet", element: <CheatSheet /> },
   { path: "/cmsi-2820/syllabus", element: <Syllabus /> },
   { path: "/cmsi-2820/ln0", element: <LectureNotes0 /> },
+  { path: "/cmsi-2820/ln1", element: <LectureNotes1 /> },
   { path: "/cmsi-2820/hw0", element: <Assignment0 /> },
   { path: "/cmsi-2820/ex0", element: <Exam0 /> },
 ])
