@@ -138,6 +138,262 @@ export default function LectureNotes1() {
           course will use going forward, but lets introduce a few more systems
           to help us out.
         </Sheet>
+        <Sheet>
+          First we make the distinction between formal and informal logics. We
+          are very used to informal logics as they are the ones we use in
+          everyday conversation. There are "rules" to how they function but can
+          be mired in ambiguity due to natural language. The meaning of a
+          statement, and wether it is "percieved" (another key point since
+          listeners can interperet statements differently) as true or not, is
+          highly dependent on context. Due to the midly obtuse nature of
+          informal logic we will be avoiding it, but it is valuable to know
+          research is being done in this portion of logic to support endevours
+          like natural language processing.
+        </Sheet>
+        <Sheet>
+          Formal logics on the other hand are purpose built to remove ambiguity
+          and enforce purpose-built rules to breakdown the logic in statements
+          mechanically. These rules vary from system to system, but they all
+          attempt to create a way to converse about truth in a mathematically
+          rigourous manner. Rather than beginning formal logics with a very high
+          level overview, it seems pertinent to actually dive into how to use
+          these systems first. This will give a greater appreciation for the
+          differences between formal systems which we will overview later.
+        </Sheet>
+        <Sheet>
+          Lets just dive straight into the most widely known and well-formed
+          system called Classical Logic. This logic referes to declaritive
+          statements as propositions and attempts to decode the propositions
+          ideas as True or False. As a brief reminder, there are four main types
+          of sentences, Declarative, Interrogative, Imperative, and Exclamatory.
+          Declarative are those that make direct statements, Interrogative are
+          those that question, Imperative are those that command, and
+          Exclamatory are those that express great emotion. Since attempting to
+          say wether exclamations of emotion, questioning of the world, or
+          commands to do something are true or false is a bit odd, we will be
+          focusing on declarative statements. as a brief clarification, since we
+          are attempting to evaluate the truth of an entire sentence, if a
+          sentence is not declarative in nature it doesn't really follow to
+          evaluate in this manner. Within these propositions includes
+          first-order logic, but these specific only currently serve to
+          complicate things so we will proceed with just the propositional
+          portion.
+        </Sheet>
+        <Sheet>
+          Propositions are said to be "truth bearers" or "False bearers" and to
+          create a concrete system of logic we need to collect as many of them
+          as possible and label them as such. This is the first step in creating
+          a larger picture of what is objectively true (The earlier stated
+          purpose for such a system). So what do these propositions look like?
+          and how do we evaluate them? Well, lets start with the basics.
+          Propositions can be simple or complex, simple propositions are those
+          that convey a singular idea to be evaluated. Complex propositions are
+          simply the compounding of multiple simple propositions via logical
+          connectives. Depending on which connective you use, instructs how you
+          evluate the more complex truth value. Lets take this simple
+          proposition, "Cats are animals". One idea is being conveyed and as
+          such only this one idea needs to be evaluated. In this case it is
+          True. Now lets take this complex proposition, "Cats are animals and
+          Dogs are not animals". This is a compound of two simple propositions
+          with the connective "and". The connective "and" instructs that both
+          simple propositions must be true for the complex proposition to be
+          true. In this case, the first simple proposition is true, but the
+          second is false, so the complex proposition is false. Easy enough
+          right? Well, unfortunately it gets a bit more complicated...
+        </Sheet>
+        <Sheet>
+          Even with such a simple system thus far we have to point out a few key
+          distinctions. Before even delving into all the different logical
+          connectives, we need to talk about an issue that comes up with the
+          proposition, "cats are animals or cats are not animals". This poses a
+          unique situation in our system. One might quickly come to the answer
+          that this is True, which is correct don't worry. But why is it True?
+          Is it simply due to cats being animals? Well something interesting
+          arises here, since our propositions can only be True or False
+          exclusively, and we can contruct propositions that either produce True
+          or False only, we can construct propositions that are actually True no
+          matter what, because no matter the idea being evaluated we always
+          produce True upon evaluation. As another example, "This lesson is good
+          or this lesson is bad". These are propositions are called "Logically
+          True".
+        </Sheet>
+        <Sheet>
+          Now we have a system that can help instruct us on how to evaluate the
+          "truth-ity" or "false-ity" of statements. However, one of the major
+          goals of a system of logic is not just evaluation, but argumentation.
+          Being able to tell if "reasoning" being made from statements is valid
+          or not. An Argument is not just a statement, but a collection of
+          Premises and a Conclusion they point to. The idea is to use a
+          collection of truths to inform the truth of another. This process of
+          building from your premises to your conclusion is called Inference.
+          Since argument and inference can be used interchangeably in this
+          context, I will use the term inference going forward since it has a
+          more individualistic sense to it then argument which has a more debate
+          feel. An inference can be correct or incorrect. A correct inference is
+          one whose premises support its conclusion and an incorrect inference
+          is one that does not support its conclusion. The way in which you
+          generate this support is made one of multiple ways, but to simplify
+          the conversation I will divide them into deductive and non-deductive.
+        </Sheet>
+        <Sheet>
+          A Deductive inference is the most powerful form of inference, as it
+          guarantees the truth of the conclusion. This is because the premises
+          truth value doesn't actually matter! (Very similar to the logical
+          truths from before) To display this lets form a deductive argument:
+          "all planets are round, no asteriods are round, therefore no planets
+          are asteriods". The inference being made that "no planets are
+          asteriods" is a logical conclusion due to the premises requiring no
+          overlap between the ideas being expressed. Since this inference is one
+          that follows from the premises, it is a called a Valid inference. Note
+          that this being a Valid inference is not guaranteeing the truth of the
+          conclusion, just that it logically follows. To clarify this idea
+          further, look at this Valid inference within a new deductive argument:
+          "Humans are featherless bipeds, a plucked chicken is a featherless
+          biped, therefore plucked chickens are humans." Now it should be more
+          clear why validity is a seperate notion. If the propositions that make
+          up the premises are all True and the inference is Valid, then it is
+          called a Sound inference. This is the highest level of inference that
+          can be made and does guarentee the conclusion's truth value is True.
+          The previous example about plucked chickens is called Unsound, since
+          it is valid but its premises aren't all correct. However the first
+          example is Sound since its premises are true (to a certain extent of
+          course, I'm a computer scientist not an astrophysicist).
+        </Sheet>
+        <Sheet>
+          Non-deductive reasoning is a bit more complicated, as technically
+          cannot guarantee the conclusion, only provide that it may be more
+          likely than not. Referred to by many terms and different inference
+          types, such as ampliative, inductive, conductive, and abductive, these
+          forms of inference are more complicated and less clear. These forms of
+          reasoning are usually associated to a greater degree with informal
+          logics and are used more naturally in language and scientific
+          reasoning in gerneral. The only one of these forms of reasoning that
+          we will see come back later is inductive reasoning so a brief look
+          will be provided here.
+        </Sheet>
+        <Sheet>
+          Inductive reasoning is a form of inference that draws its strength
+          from statistics and probability. The idea is that if the premises
+          display a pattern that is relatively consistent, then the conclusion
+          is more likely to be true is it seems to line up with it. Take this
+          inductive inference for example: "Every time I have dropped a ball it
+          has fallen, therefore the next time I drop a ball it will fall." While
+          this line of reasoning seems as ironclad as what we were doing before
+          with deductive reasoning, it technically cannot guarantee its
+          conclusion. Gravity explains why this is a good line of reasoning but
+          its one, not in in our premises, and two, still technically not a
+          guarantee since a gust of wind could come by and overcome it. However,
+          we still want a way to say this is a "valid" line of reasoning, but
+          due to it being inductive we say it is "strong" instead. Once again,
+          like validity, strength is not about the truth of the conclusion, only
+          that the inference is a good one. If the premises are true and the
+          inductive reasoning strong, then the inference is called Cogent.
+        </Sheet>
+        <Sheet>
+          Before taking a small tour around how all of what we talked about gets
+          altered in different systems of logic, it helps to talk about one of
+          the oldest and most well known form of deductive inference making,
+          Modes Ponens. This form of inference is a simple one, but it is
+          incontrivertibly valid. An example of this form of the inference is as
+          follows: "If it rains the ground becomes wet, It is raining, therefore
+          the ground is wet". Straightforwardly the inferences that come from
+          following this line of reasoning are always valid since they are the
+          combination of a conditional statement and the antecedent of that
+          statement. However once again this does not bring soundness as the
+          premises must be shown to be True.
+        </Sheet>
+        <Sheet>
+          To round off this disscussion, lets end with a brief look at how much
+          of this changes in different systems of logic. Originally there was
+          traditional, or aristotelian logic. Rather than evaluating any
+          declarative statements, this form of logic required the formation of
+          syllogisms, which are a form of deductive reasoning that requires the
+          formation of a major premise, a minor premise, and a conclusion. An
+          example would be "All men are mortal, Socrates is a man, therefore
+          Socrates is mortal"
+        </Sheet>
+        <Sheet>
+          Then along came the propositional logic we talked about earlier, which
+          in addition to first order logic formed Classical logic. First order
+          logic seeks to help breakdown the inside of propositions into symbolic
+          representations of the same ideas. It seeks to help breakdown the
+          connections between objects and their properties. For example, the
+          previous example of "Planets are round" would be broken down into a
+          singular term (used for objects) "p" for planets and "R(x)" a
+          predicate (used to display properties) for round, turning the sentence
+          into "R(p)". This helps condense the information into clear parts to
+          help evaluate the truth of the statement. Getting to classical logic
+          from here is straightforward as compound propositions are formed with
+          symbols for the logical connectives. For "Cats are animals and Dogs
+          are not animals" the sentence would be broken down into "A(x)" the
+          property of being an animal, "d" for dogs, "c" for cats, and "&" for
+          the connective to form "A(c)&!A(d)". However classical logic also
+          comes with some intuitive additions for making inferences. This
+          includes the law of the excluded middle, which states that for all
+          propositions either it or its negation (opposite) is true, and the
+          principle of bivalence, which states that all propositions be true or
+          false, double negation elimination, which states that if a proposition
+          is not False then it is True and vice versa, and the principle of
+          explosion, which states that if a contradiction is found then any
+          proposition can be proven. The last one is a bit odd, but it is the
+          mathematical way of stating that if your gonna contradict yourself
+          while arguing, you might as well say anything you want since being
+          valid wasn't a concern for your argument.
+        </Sheet>
+        <Sheet>
+          However, this form of classical logic on its own is still not strong
+          enough to cover even many of the situtations we find daily, and thus
+          gives rise to what are called "Extended" logics, where the classical
+          system is appended with new rules and symbology to capture new
+          meaning. These extensions take one of two forms, they can be about
+          adding "qualifying" information or "quantifying" information. When
+          quantifying additional information is added, the system is called
+          Higher-order, as it allows you to disscuss either singular
+          "existential" cases or plural "universal" cases for properties and the
+          objects. For instance, "There exists a cat that is black" or "All cats
+          are black" becomes "E.B(c)" and "A.B(c)" respectively. When adding
+          qualifying information, the system is called Modal. Since there are
+          many different "modes" that come up there are many different modal
+          logics to relfect them. There's Alethic, which is about necessity and
+          possibility, Deontic, which is about obligation and permission,
+          Temporal, which is about time, Epistemic, which is about knowing,
+          Doxastic which is about believing, Dynamic which is about the order of
+          events, and more.
+        </Sheet>
+        <Sheet>
+          The next family of logics are sometimes reffered to as "Deviant"
+          because they seperate themselves in some way from classical logic.
+          Interestingly, each of those previously disscussed laws in Classical
+          Logic can be removed to produce these new deviant ones! The first
+          deviant logics reject the principle of bivalence, and they are called
+          multi-valued logics. This is because they allow for more than just
+          true or false, they allow for a third option, "undetermined". This can
+          be taken as far as desired to have n-ary truth values for the logic!
+          When you allow for all real numbers between 0 and 1 then you get a
+          fuzzy logic since its truth value begins to take on a more "fuzzy"
+          probabalistic state. The next deviant logics reject the principle of
+          explosion, and they are called paraconsistent logics. This is because
+          they allow for contradictions to exist in the system without causing
+          the system to break down. This is a bit odd, but it is useful in
+          certain contexts where contradictions are unavoidable. The last
+          deviant logics reject the law of the excluded middle (and by extension
+          double negation elimination), and they are called intuitionistic
+          logics. This is because they reject the idea that all propositions
+          must be true or its negation true (This removes that goofy situation
+          where a proposition or'ed with its negation is always true!). Instead
+          this system emphasizes "proof by construction" where everything that
+          is true should be shown directly. This is the system we will be using
+          going forward in the course as it lends itself well to a field called
+          constructive mathematics which gives the rigourous mathematical
+          underpinnings for some very cool computer systems!
+        </Sheet>
+        <Sheet>
+          Well that was a lot about logic! With this disscussion ended we can
+          now say this course will feature Higher Order Intuitionistic Logic!
+          Now as a brief summary of what we talked about today, enjoy this
+          knowledge tree that displays the topics learned!
+        </Sheet>
+        <Sheet>vis.js or react-flow graph of the topics disscussed today</Sheet>
       </CoursePage>
     </>
   )
