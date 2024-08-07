@@ -1,4 +1,4 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
+import { Chip, Divider } from "@mui/joy"
 
 export default function TopicBreak({ title }: { title: string }) {
   return (

@@ -1,12 +1,4 @@
-import {
-  Button,
-  Checkbox,
-  List,
-  ListItem,
-  Sheet,
-  Switch,
-  Typography,
-} from "@mui/joy"
+import { Checkbox, List, ListItem, Sheet, Switch, Typography } from "@mui/joy"
 import { useState } from "react"
 import ChecklistIcon from "@mui/icons-material/Checklist"
 
