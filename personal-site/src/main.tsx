@@ -12,6 +12,7 @@ import LectureNotes0 from "./pages/courses/cmsi2820/notes/ln0.tsx"
 import Assignment0 from "./pages/courses/cmsi2820/assignments/assignment0.tsx"
 import Exam0 from "./pages/courses/cmsi2820/exams/ex0.tsx"
 import LectureNotes1 from "./pages/courses/cmsi2820/notes/ln1.tsx"
+import { MathJaxContext } from "better-react-mathjax"
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
@@ -27,9 +28,11 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <SiteContextProvider>
-      <CssVarsProvider defaultMode="dark">
-        <RouterProvider router={router} />
-      </CssVarsProvider>
+      <MathJaxContext>
+        <CssVarsProvider defaultMode="dark">
+          <RouterProvider router={router} />
+        </CssVarsProvider>
+      </MathJaxContext>
     </SiteContextProvider>
   </React.StrictMode>
 )
