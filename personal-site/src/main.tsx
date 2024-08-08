@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 import App from "./pages/App.tsx"
 import { CssVarsProvider } from "@mui/joy"
 import CMSI2820 from "./pages/courses/cmsi2820/cmsi-2820-discrete-mathematics-for-cs.tsx"
@@ -30,13 +30,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <SiteContextProvider>
       <MathJaxContext>
         <CssVarsProvider defaultMode="dark">
-          <BrowserRouter>
+          <Router>
             <Routes>
               {router.map(({ path, element }, i) => (
                 <Route key={i} path={path} element={element} />
               ))}
             </Routes>
-          </BrowserRouter>
+          </Router>
         </CssVarsProvider>
       </MathJaxContext>
     </SiteContextProvider>
