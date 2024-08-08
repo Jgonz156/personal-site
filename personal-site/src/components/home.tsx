@@ -62,7 +62,7 @@ export default function Home() {
             application of these topics in Computer Science.
           </Sheet>
           <Divider>
-            <Chip>Prerequisities</Chip>
+            <Chip>Prerequisites</Chip>
           </Divider>
           <Sheet> CMSI 1010 or ENGR 160 or ENGR 1200</Sheet>
 
@@ -152,18 +152,22 @@ export default function Home() {
         }}
       >
         {courses.map(
-          ({
-            title,
-            code,
-            imageUrl,
-            slug,
-            status,
-            openModal,
-            closeModal,
-            modalState,
-            courseCardDescription,
-          }) => (
+          (
+            {
+              title,
+              code,
+              imageUrl,
+              slug,
+              status,
+              openModal,
+              closeModal,
+              modalState,
+              courseCardDescription,
+            },
+            i
+          ) => (
             <Badge
+              key={i}
               size="lg"
               variant="solid"
               color={

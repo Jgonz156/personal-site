@@ -41,7 +41,7 @@ export default function MultiSelectQuestion({
       <>{image}</>
       <List wrap orientation="horizontal">
         {choices.map((a, i) => (
-          <ListItem>
+          <ListItem key={i}>
             <Checkbox
               value={userSelections[i][0]}
               onChange={() =>

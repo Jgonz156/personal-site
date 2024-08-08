@@ -36,7 +36,7 @@ export default function PhilosophicalBox({
         sx={{ borderRadius: 12 }}
       >
         {qa.map(({ question, answer }) => (
-          <Accordion>
+          <Accordion key={question}>
             <AccordionSummary>{question}</AccordionSummary>
             <AccordionDetails>{answer}</AccordionDetails>
           </Accordion>

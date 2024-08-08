@@ -31,8 +31,11 @@ export default function CourseInfoDump({
         }}
       >
         <Sheet style={{ display: "flex" }}>
-          {days.map((day) => (
-            <Avatar color={daysOfWeek.includes(day) ? "primary" : "neutral"}>
+          {days.map((day, i) => (
+            <Avatar
+              key={i}
+              color={daysOfWeek.includes(day) ? "primary" : "neutral"}
+            >
               {day.substring(0, 2)}
             </Avatar>
           ))}

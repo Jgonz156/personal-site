@@ -43,6 +43,7 @@ export default function CoursePage({
         >
           {children}
         </Sheet>
+        <CourseNavBar />
       </Sheet>
       <Footer />
     </>

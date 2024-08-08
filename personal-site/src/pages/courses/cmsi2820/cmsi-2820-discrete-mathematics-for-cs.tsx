@@ -58,7 +58,7 @@ export default function CMSI2820() {
                 description="This standard is here to familiarize yourself with the layout
                   of course information! It is not graded for quality but
                   demonstrates where and how information is accessed! Clicking
-                  on this row in the table will dropdown the relevent
+                  on this row in the table will dropdown the relevant
                   information for the standard that is being covered in class."
               >
                 <NotesCard
@@ -72,7 +72,7 @@ export default function CMSI2820() {
                 <AssignmentCard
                   title="HW 0: Practicing Homework"
                   description="This is a small assignment to get you familiar with
-                            the process of recieving and submitting assignments!"
+                            the process of receiving and submitting assignments!"
                   assignmentSlug="/cmsi-2820/hw0"
                 />
                 <ExamCard
@@ -89,7 +89,7 @@ export default function CMSI2820() {
                 title="Logic"
                 description="In this standard we will investigate the mathematical
                   underpinnings of logical argumentation, deductive reasoning,
-                  and the symbollogy that is used to represent these ideas. This
+                  and the symbology that is used to represent these ideas. This
                   means taking a brief look at different systems of logic, a deeper
                   dive into intuitionistic logic, and what that means for
                   propositional and predicate reasoning"
@@ -115,7 +115,7 @@ export default function CMSI2820() {
                   extending it to objects and statements about their properties, 
                   what is formalized as predicate logic. We will cover new 
                   forms of equality, predicated statements, their variables, 
-                  their constants, and their composites, new exsistential and 
+                  their constants, and their composites, new existential and 
                   universal quantifiers, and their natural deductive inference rules."
                   notesSlug="/cmsi-2820/ln3"
                 />
@@ -145,7 +145,7 @@ export default function CMSI2820() {
                   notesSlug="/cmsi-2820/ln6"
                 />
                 <NotesCard
-                  title="LN 7: The Integers, The Booleans' Infinite Inlaws"
+                  title="LN 7: The Integers, The Booleans' Infinite In-laws"
                   description=""
                   notesSlug="/cmsi-2820/ln7"
                 />
@@ -210,9 +210,9 @@ export default function CMSI2820() {
                 number={4}
                 title="Functions"
                 description="In this standard we will investigate functions. This 
-                includes their formalized mathematical definition in the lamda 
+                includes their formalized mathematical definition in the lambda 
                 calculus, their reductions, their properties, and how they are 
-                used inconjuction with logic to formalize Type Theory."
+                used in conjunction with logic to formalize Type Theory."
               >
                 <NotesCard
                   title="LN 13: This Lamb Don't Baa"

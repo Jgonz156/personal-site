@@ -78,8 +78,9 @@ export default function Footer({ children }: { children?: React.ReactNode }) {
         spacing={2}
         justifyContent="center"
       >
-        {personalInfo.map(({ value, icon }) => (
+        {personalInfo.map(({ value, icon }, i) => (
           <Chip
+            key={i}
             variant="outlined"
             color="neutral"
             size="lg"

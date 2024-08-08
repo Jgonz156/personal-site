@@ -102,12 +102,12 @@ export default function LectureNotes1() {
           answers={[1, 0, 0, 1]}
           correctMessage={
             <>
-              Correct! The answers are <MathJax>{`\\[\\top,F\\]`}</MathJax>!
-              This is because something can only be false in reality! This
-              statement is opposed to the true statement "1 + 1 is 2" which is a
-              fact about the world around us! However, make sure to remember
-              that this statement is not absurd (we can comprehend it just
-              fine), it's just false!
+              Correct! The answers are
+              <MathJax>{`\\[\\top,F\\]`}</MathJax>! This is because something
+              can only be false in reality! This statement is opposed to the
+              true statement "1 + 1 is 2" which is a fact about the world around
+              us! However, make sure to remember that this statement is not
+              absurd (we can comprehend it just fine), it's just false!
             </>
           }
           incorrectMessage={
@@ -195,9 +195,6 @@ export default function LectureNotes1() {
             },
           ]}
         ></PhilosophicalBox>
-        <Speak>
-          Multipe Select Question Box: A) True B) False C) Absurd D) Reality
-        </Speak>
         <MultiSelectQuestion
           question={`Evaluate the following statement: "I am
           something that is unknowable" (Select all that apply)`}

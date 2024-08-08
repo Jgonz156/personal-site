@@ -95,8 +95,9 @@ export default function App() {
             disableUnderline
             sx={{ borderRadius: "lg", p: 0 }}
           >
-            {tabs.map(({ title, icon }) => (
+            {tabs.map(({ title, icon }, i) => (
               <Tab
+                key={i}
                 disableIndicator
                 orientation="vertical"
                 {...(settings.Home.NavBarState === 0 && {
