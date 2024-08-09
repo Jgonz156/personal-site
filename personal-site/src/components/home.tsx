@@ -271,7 +271,7 @@ export default function Home() {
           gap: 4,
         }}
       >
-        {books.map(({}, i) => (
+        {projects.map(({}, i) => (
           <ProjectCard key={i} />
         ))}
       </Sheet>
