@@ -1,13 +1,13 @@
-import { Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import CourseNavBar from "./course-nav-bar"
+import { Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import CourseNavBar from "./course-nav-bar";
 
 export default function CoursePage({
   type,
   children,
 }: {
-  type: "notes" | "assignment" | "exam" | "syllabus" | "cheat-sheet"
-  children: React.ReactNode
+  type: "notes" | "assignment" | "exam" | "syllabus" | "cheat-sheet";
+  children: React.ReactNode;
 }) {
   return (
     <>
@@ -43,9 +43,8 @@ export default function CoursePage({
         >
           {children}
         </Sheet>
-        <CourseNavBar />
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }

@@ -1,12 +1,26 @@
-import { Badge, Box, Chip, Divider, List, ListItem, Sheet } from "@mui/joy"
-import CourseCard from "./course-card"
-import { CourseStatusBadge, SiteContext } from "./site-context"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import React from "react"
-import CourseInfoDump from "./course-info-dump"
+import {
+  Badge,
+  Chip,
+  Divider,
+  List,
+  ListItem,
+  Sheet,
+  Typography,
+} from "@mui/joy";
+import CourseCard from "./course-card";
+import { CourseStatusBadge, SiteContext } from "./site-context";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import FeedIcon from "@mui/icons-material/Feed";
+import SchoolIcon from "@mui/icons-material/School";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import React from "react";
+import CourseInfoDump from "./course-info-dump";
+import PaperCard from "./paper-card";
+import BookCard from "./book-card";
+import ProjectCard from "./project-card";
 
 export default function Home() {
-  const { settings, dispatch } = React.useContext(SiteContext)
+  const { settings, dispatch } = React.useContext(SiteContext);
   const courses = [
     {
       title: "Discrete Mathematics for CS",
@@ -69,46 +83,48 @@ export default function Home() {
           <CourseInfoDump
             sectionNumber={1}
             daysOfWeek={["Tuesday", "Thursday"]}
-            timeStart="9:55AM"
-            timeEnd="11:35AM"
+            timeStart="9:55 AM"
+            timeEnd="11:35 AM"
             building="Pereira"
             roomNumber={206}
           />
           <CourseInfoDump
             sectionNumber={2}
             daysOfWeek={["Tuesday", "Thursday"]}
-            timeStart="1:45PM"
-            timeEnd="3:25AM"
+            timeStart="1:45 PM"
+            timeEnd="3:25 PM"
             building="Pereira"
             roomNumber={109}
           />
           <CourseInfoDump
             sectionNumber={3}
             daysOfWeek={["Tuesday", "Thursday"]}
-            timeStart="6:00PM"
-            timeEnd="7:40PM"
+            timeStart="6:00 PM"
+            timeEnd="7:40 PM"
             building="Seaver"
             roomNumber={304}
           />
         </Sheet>
       ),
     },
-  ]
+  ];
+  const papers = [{}, {}, {}, {}, {}, {}];
+  const books = [{}, {}, {}, {}, {}, {}];
+  const projects = [{}, {}, {}, {}, {}, {}];
   return (
     <Sheet
       sx={{
-        height: 1000,
         gap: 2,
         display: "flex",
         flexDirection: "column",
       }}
     >
       <Divider>
-        <Chip variant="soft" startDecorator={<AutoStoriesIcon />} size="lg">
+        <Chip variant="soft" startDecorator={<SchoolIcon />} size="lg">
           Courses
         </Chip>
       </Divider>
-      <Box
+      <Sheet
         sx={{
           display: "flex",
           flexDirection: "row",
@@ -141,8 +157,8 @@ export default function Home() {
             </Badge>
           </ListItem>
         </List>
-      </Box>
-      <Box
+      </Sheet>
+      <Sheet
         sx={{
           display: "flex",
           flexDirection: "row",
@@ -192,8 +208,73 @@ export default function Home() {
             </Badge>
           )
         )}
-      </Box>
-      <Divider />
+      </Sheet>
+      <Divider>
+        <Chip variant="soft" startDecorator={<FeedIcon />} size="lg">
+          Papers
+        </Chip>
+      </Divider>
+      <Typography>Here are some papers I have written...</Typography>
+      <Sheet
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+          gap: 4,
+        }}
+      >
+        {papers.map(({}, i) => (
+          <PaperCard key={i} />
+        ))}
+      </Sheet>
+      <Typography>
+        And here are some ones I've read that I find interesting!
+      </Typography>
+      <Divider>
+        <Chip variant="soft" startDecorator={<AutoStoriesIcon />} size="lg">
+          Books
+        </Chip>
+      </Divider>
+      <Typography>
+        I haven't written any books but here are some great ones that I highly
+        reccomend!
+      </Typography>
+      <Sheet
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+          gap: 4,
+        }}
+      >
+        {books.map(({}, i) => (
+          <BookCard key={i} />
+        ))}
+      </Sheet>
+      <Divider>
+        <Chip variant="soft" startDecorator={<AccountTreeIcon />} size="lg">
+          Open Source Projects
+        </Chip>
+      </Divider>
+      <Typography>
+        Here are some of the projects I have worked on, am working on currently,
+        or just want to show off!
+      </Typography>
+      <Sheet
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+          gap: 4,
+        }}
+      >
+        {books.map(({}, i) => (
+          <ProjectCard key={i} />
+        ))}
+      </Sheet>
     </Sheet>
-  )
+  );
 }

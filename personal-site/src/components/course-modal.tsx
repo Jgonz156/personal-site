@@ -1,13 +1,13 @@
-import Button from "@mui/joy/Button"
-import Divider from "@mui/joy/Divider"
-import DialogTitle from "@mui/joy/DialogTitle"
-import DialogContent from "@mui/joy/DialogContent"
-import DialogActions from "@mui/joy/DialogActions"
-import Modal from "@mui/joy/Modal"
-import ModalDialog from "@mui/joy/ModalDialog"
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks"
-import { Link } from "@mui/joy"
-import { Link as RouterLink } from "react-router-dom"
+import Button from "@mui/joy/Button";
+import Divider from "@mui/joy/Divider";
+import DialogTitle from "@mui/joy/DialogTitle";
+import DialogContent from "@mui/joy/DialogContent";
+import DialogActions from "@mui/joy/DialogActions";
+import Modal from "@mui/joy/Modal";
+import ModalDialog from "@mui/joy/ModalDialog";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import { Link } from "@mui/joy";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function CourseModal({
   dispatchClose,
@@ -15,10 +15,10 @@ export default function CourseModal({
   slug,
   children,
 }: {
-  dispatchClose: () => void
-  visible: boolean
-  slug: string
-  children: React.ReactNode
+  dispatchClose: () => void;
+  visible: boolean;
+  slug: string;
+  children: React.ReactNode;
 }) {
   return (
     <>
@@ -43,5 +43,5 @@ export default function CourseModal({
         </ModalDialog>
       </Modal>
     </>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import { Sheet } from "@mui/joy"
+import { Sheet } from "@mui/joy";
 
 export default function CurriculumVitae() {
-  return <Sheet sx={{ height: 1000 }}></Sheet>
+  return <Sheet sx={{}}></Sheet>;
 }
