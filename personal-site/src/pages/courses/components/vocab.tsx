@@ -4,7 +4,7 @@ export default function Vocab({
   definition,
   children,
 }: {
-  definition: string
+  definition: any
   children: any
 }) {
   return (

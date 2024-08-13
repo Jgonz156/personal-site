@@ -1,23 +1,49 @@
 import { Sheet, Typography } from "@mui/joy"
 import CoursePage from "../../components/course-page"
-import PhilosophicalBox from "../../components/philosophical-box"
+import PhilosophyBreak from "../../components/philosophy-break"
 import TopicBreak from "../../components/topic-break"
 import Speak from "../../components/speak"
 import Vocab from "../../components/vocab"
 import { MathJax } from "better-react-mathjax"
 import MultiSelectQuestion from "../../components/multi-select-question"
+import TitleBox from "../../components/title-box"
 
 export default function LectureNotes1() {
   return (
     <>
-      <CoursePage type="notes">
-        <Speak>Title Box: Information and it's consequences</Speak>
+      <CoursePage
+        type="notes"
+        stepperInfo={{
+          left: {
+            lectureId: "LN0",
+            buttonColor: "primary",
+            buttonName: "Learning to Learn",
+            buttonSlug: "/cmsi-2820/ln0",
+          },
+          middle: {
+            lectureId: "HW1",
+            buttonColor: "success",
+            buttonName: "Think Class, Think!",
+            buttonSlug: "/cmsi-2820/hw1",
+          },
+          right: {
+            lectureId: "LN2",
+            buttonColor: "primary",
+            buttonName: "Assumptions Make an Argument out of You and Me",
+            buttonSlug: "/cmsi-2820/ln2",
+          },
+        }}
+      >
+        <TitleBox
+          title="Information and Its Consequences..."
+          quote="Insert nice quote here"
+        />
         <TopicBreak title="Starting From Nothing" />
         <Speak>
           Let's start from the very beginning, no math, no knowledge, just the
           world around us and our senses...
         </Speak>
-        <PhilosophicalBox
+        <PhilosophyBreak
           qa={[
             {
               question: "What can we find? What can we begin to know?",
@@ -45,7 +71,7 @@ export default function LectureNotes1() {
               ),
             },
           ]}
-        ></PhilosophicalBox>
+        />
         <Speak>
           This investigation leads to the collection of
           <Vocab definition="In this case I am referring to...">
@@ -170,7 +196,7 @@ export default function LectureNotes1() {
             </>
           }
         />
-        <PhilosophicalBox
+        <PhilosophyBreak
           qa={[
             {
               question: `The last question brings up an interesting idea,
@@ -194,7 +220,7 @@ export default function LectureNotes1() {
           of anything. More can be said, but we must continue....`,
             },
           ]}
-        ></PhilosophicalBox>
+        />
         <MultiSelectQuestion
           question={`Evaluate the following statement: "I am
           something that is unknowable" (Select all that apply)`}

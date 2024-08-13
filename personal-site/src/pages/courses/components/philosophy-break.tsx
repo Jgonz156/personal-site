@@ -8,7 +8,7 @@ import {
 } from "@mui/joy"
 import EmojiObjectsIcon from "@mui/icons-material/EmojiObjects"
 
-export default function PhilosophicalBox({
+export default function PhilosophyBreak({
   qa,
 }: {
   qa: { question: string; answer: any }[]

@@ -1,6 +1,6 @@
 import CoursePage from "../../components/course-page"
 
-export default function Exam0() {
+export default function Exam1() {
   return (
     <>
       <CoursePage type="exam">

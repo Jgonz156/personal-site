@@ -1,13 +1,35 @@
-import { Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import CourseNavBar from "./course-nav-bar";
+import { Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import CourseNavBar from "./course-nav-bar"
+import CourseNavStepper from "./course-nav-stepper"
 
 export default function CoursePage({
   type,
   children,
+  stepperInfo,
 }: {
-  type: "notes" | "assignment" | "exam" | "syllabus" | "cheat-sheet";
-  children: React.ReactNode;
+  type: "notes" | "homework" | "exam" | "syllabus" | "cheat-sheet"
+  children: React.ReactNode
+  stepperInfo?: {
+    left?: {
+      lectureId: string | number
+      buttonName: any
+      buttonSlug: string
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
+    }
+    middle?: {
+      lectureId: string | number
+      buttonName: any
+      buttonSlug: string
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
+    }
+    right?: {
+      lectureId: string | number
+      buttonName: any
+      buttonSlug: string
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
+    }
+  }
 }) {
   return (
     <>
@@ -15,7 +37,7 @@ export default function CoursePage({
         color={
           type === "notes"
             ? "primary"
-            : type === "assignment" || type === "cheat-sheet"
+            : type === "homework" || type === "cheat-sheet"
             ? "success"
             : type === "syllabus"
             ? "warning"
@@ -32,6 +54,7 @@ export default function CoursePage({
         }}
       >
         <CourseNavBar />
+
         <Sheet
           sx={{
             display: "flex",
@@ -43,8 +66,9 @@ export default function CoursePage({
         >
           {children}
         </Sheet>
+        {stepperInfo ? <CourseNavStepper stepperInfo={stepperInfo} /> : <></>}
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }

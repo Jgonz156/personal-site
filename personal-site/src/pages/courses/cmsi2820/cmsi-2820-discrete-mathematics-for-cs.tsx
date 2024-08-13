@@ -95,7 +95,7 @@ export default function CMSI2820() {
                   propositional and predicate reasoning"
               >
                 <NotesCard
-                  title="LN 1: Information and It's Consequences..."
+                  title="LN 1: Information and Its Consequences..."
                   description="This lecture will cover the basics of many different 
                   systems of logic, where they came from, how they were used, and 
                   what it even means to craft a valid line of reasoning."
