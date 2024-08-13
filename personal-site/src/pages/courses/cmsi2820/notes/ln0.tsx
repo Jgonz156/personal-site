@@ -17,13 +17,13 @@ export default function LectureNotes0() {
             lectureId: "HW0",
             buttonColor: "success",
             buttonName: "Practicing Homework",
-            buttonSlug: "cmsi2820/hw0",
+            buttonSlug: "/cmsi-2820/hw0",
           },
           right: {
             lectureId: "LN1",
             buttonColor: "primary",
             buttonName: "Information and Its Consequences...",
-            buttonSlug: "cmsi2820/ln1",
+            buttonSlug: "/cmsi-2820/ln1",
           },
         }}
       >
