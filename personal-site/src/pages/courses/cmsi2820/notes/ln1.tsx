@@ -74,7 +74,7 @@ export default function LectureNotes1() {
         />
         <Speak>
           This investigation leads to the collection of
-          <Vocab definition="In this case I am referring to...">
+          <Vocab definition="A discrete (indivisible) truth-functional statement about the world">
             information
           </Vocab>
           , discrete pieces of truth in the world around us. With this we can
@@ -142,9 +142,8 @@ export default function LectureNotes1() {
               absurd it must necessarily be beyond comprehension, can you
               comprehend what is being asked? And if you can then it must be
               realistic in some manner. And if that's the case, we should be
-              able to evaluate whether its true or not! Also Also remember where
-              True and False fit in the grand scheme of things! where do they
-              exist?
+              able to evaluate whether its true or not! Also remember where True
+              and False fit in the grand scheme of things! where do they exist?
             </>
           }
         />
@@ -275,6 +274,7 @@ export default function LectureNotes1() {
           course will use going forward, but lets introduce a few more systems
           to help us out.
         </Speak>
+        <TopicBreak title="Formal vs Informal" />
         <Speak>
           First we make the distinction between formal and informal logics. We
           are very used to informal logics as they are the ones we use in
@@ -297,6 +297,7 @@ export default function LectureNotes1() {
           these systems first. This will give a greater appreciation for the
           differences between formal systems which we will overview later.
         </Speak>
+        <TopicBreak title="Classical Logic" />
         <Speak>
           Lets just dive straight into the most widely known and well-formed
           system called Classical Logic. This logic refers to declarative
@@ -354,6 +355,7 @@ export default function LectureNotes1() {
           is good or this lesson is bad". These are propositions are called
           "Logically True".
         </Speak>
+        <TopicBreak title="Argumentation" />
         <Speak>
           Now we have a system that can help instruct us on how to evaluate the
           "truth-ity" or "false-ity" of statements. However, one of the major
@@ -373,7 +375,7 @@ export default function LectureNotes1() {
           the conversation I will divide them into deductive and non-deductive.
         </Speak>
         <Speak>
-          A Deductive inference is the most powerful form of inference, as it
+          A deductive inference is the most powerful form of inference, as it
           guarantees the truth of the conclusion. This is because the premises
           truth value doesn't actually matter! (Very similar to the logical
           truths from before) To display this lets form a deductive argument:
@@ -397,7 +399,7 @@ export default function LectureNotes1() {
           course, I'm a computer scientist not an astrophysicist).
         </Speak>
         <Speak>
-          Non-deductive reasoning is a bit more complicated, as technically
+          Non-deductive reasoning is a bit more complicated, as it technically
           cannot guarantee the conclusion, only provide that it may be more
           likely than not. Referred to by many terms and different inference
           types, such as ampliative, inductive, conductive, and abductive, these
@@ -439,6 +441,7 @@ export default function LectureNotes1() {
           statement. However once again this does not bring soundness as the
           premises must be shown to be True.
         </Speak>
+        <TopicBreak title="A Tour of Logics" />
         <Speak>
           To round off this discussion, lets end with a brief look at how much
           of this changes in different systems of logic. Originally there was
@@ -516,7 +519,7 @@ export default function LectureNotes1() {
           deviant logics reject the law of the excluded middle (and by extension
           double negation elimination), and they are called intuitionistic
           logics. This is because they reject the idea that all propositions
-          must be true or its negation true (This removes that goofy situation
+          must be true or its negation true (This removes that odd situation
           where a proposition or'ed with its negation is always true!). Instead
           this system emphasizes "proof by construction" where everything that
           is true should be shown directly. This is the system we will be using
