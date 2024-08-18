@@ -121,7 +121,7 @@ export default function Home() {
         "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
     },
   ];
-  const otherPapers = [{}];
+  //const otherPapers = [{}];
   const books = [{}];
   const projects = [{}];
   return (
