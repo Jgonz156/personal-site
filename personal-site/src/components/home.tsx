@@ -108,15 +108,29 @@ export default function Home() {
       ),
     },
   ];
-  const papers = [{}, {}, {}, {}, {}, {}];
-  const books = [{}, {}, {}, {}, {}, {}];
-  const projects = [{}, {}, {}, {}, {}, {}];
+  const selfPapers = [
+    {
+      title:
+        "Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures",
+      authors: ["Gonzalez, Julian"],
+      pages: 66,
+      abstract:
+        "Heterogeneous computing architectures offer performance gains but introduce complexities in scheduling for optimal efficiency. This thesis explores persistent data structures to address these challenges. Investigations revealed runtime overheads associated with the naive persistence implementations, highlighting need for targeted use. A theoretical analysis of the 'Doppler' problem demonstrated how persistence mitigates cache synchronization bottlenecks, particularly in workloads with compute-modify-write patterns on shared data. This research suggests that persistence is most beneficial in heterogeneous systems with significant core-speed disparities. These findings open paths for developing novel scheduling strategies, enhancing resilience, and improving debugging capabilities.",
+      link: undefined,
+      imageSlug:
+        "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
+    },
+  ];
+  const otherPapers = [{}];
+  const books = [{}];
+  const projects = [{}];
   return (
     <Sheet
       sx={{
         gap: 2,
         display: "flex",
         flexDirection: "column",
+        width: "100%",
       }}
     >
       <Divider>
@@ -224,13 +238,32 @@ export default function Home() {
           gap: 4,
         }}
       >
-        {papers.map(({}, i) => (
-          <PaperCard key={i} />
-        ))}
+        {selfPapers.map(
+          ({ title, authors, pages, abstract, link, imageSlug }, i) => (
+            <PaperCard
+              key={i}
+              title={title}
+              authors={authors}
+              pages={pages}
+              abstract={abstract}
+              link={link}
+              imageSlug={imageSlug}
+            />
+          )
+        )}
       </Sheet>
       <Typography>
         And here are some ones I've read that I find interesting!
       </Typography>
+      <Sheet
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+          gap: 4,
+        }}
+      ></Sheet>
       <Divider>
         <Chip variant="soft" startDecorator={<AutoStoriesIcon />} size="lg">
           Books
@@ -238,7 +271,7 @@ export default function Home() {
       </Divider>
       <Typography>
         I haven't written any books but here are some great ones that I highly
-        reccomend!
+        recommend!
       </Typography>
       <Sheet
         sx={{

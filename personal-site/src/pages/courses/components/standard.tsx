@@ -1,7 +1,7 @@
-import { IconButton, Sheet } from "@mui/joy"
-import React from "react"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import { IconButton, Sheet } from "@mui/joy";
+import React from "react";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 export default function Standard({
   number,
@@ -9,12 +9,12 @@ export default function Standard({
   description,
   children,
 }: Readonly<{
-  number: number | string
-  title: string
-  description: string
-  children: React.ReactNode
+  number: number | string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
 }>) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
   return (
     <>
       <tr>
@@ -52,5 +52,5 @@ export default function Standard({
         ) : null}
       </tr>
     </>
-  )
+  );
 }

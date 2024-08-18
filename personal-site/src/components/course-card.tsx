@@ -1,10 +1,10 @@
-import { Link } from "@mui/joy"
-import AspectRatio from "@mui/joy/AspectRatio"
-import Card from "@mui/joy/Card"
-import CardContent from "@mui/joy/CardContent"
-import CardOverflow from "@mui/joy/CardOverflow"
-import Typography from "@mui/joy/Typography"
-import CourseModal from "./course-modal"
+import { Link } from "@mui/joy";
+import AspectRatio from "@mui/joy/AspectRatio";
+import Card from "@mui/joy/Card";
+import CardContent from "@mui/joy/CardContent";
+import CardOverflow from "@mui/joy/CardOverflow";
+import Typography from "@mui/joy/Typography";
+import CourseModal from "./course-modal";
 
 export default function CourseCard({
   Title,
@@ -16,23 +16,18 @@ export default function CourseCard({
   modalState,
   children,
 }: {
-  Title: string
-  Code: string
-  ImageUrl: string
-  slug: string
-  openModal: () => void
-  closeModal: () => void
-  modalState: boolean
-  children: React.ReactNode
+  Title: string;
+  Code: string;
+  ImageUrl: string;
+  slug: string;
+  openModal: () => void;
+  closeModal: () => void;
+  modalState: boolean;
+  children: React.ReactNode;
 }) {
   return (
     <>
-      <Card
-        color="neutral"
-        orientation="horizontal"
-        variant="soft"
-        sx={{ width: 350 }}
-      >
+      <Card orientation="horizontal" variant="soft" sx={{ width: 350 }}>
         <CardOverflow>
           <AspectRatio ratio="1" sx={{ width: 110 }}>
             <img src={ImageUrl} loading="lazy" alt="" />
@@ -67,5 +62,5 @@ export default function CourseCard({
         {children}
       </CourseModal>
     </>
-  )
+  );
 }
