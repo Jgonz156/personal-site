@@ -1,20 +1,25 @@
 import {
+  Button,
   Chip,
   Divider,
   Link,
   Sheet,
   Stack,
+  Tooltip,
   Typography,
   useColorScheme,
-} from "@mui/joy";
+} from "@mui/joy"
 
-import PlaceIcon from "@mui/icons-material/Place";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
-import SmartphoneIcon from "@mui/icons-material/Smartphone";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import SettingsMenu from "./settings-menu";
+import { Link as RouterLink } from "react-router-dom"
+
+import PlaceIcon from "@mui/icons-material/Place"
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom"
+import EmailIcon from "@mui/icons-material/Email"
+import PhoneIcon from "@mui/icons-material/Phone"
+import SmartphoneIcon from "@mui/icons-material/Smartphone"
+import GitHubIcon from "@mui/icons-material/GitHub"
+import HomeIcon from "@mui/icons-material/Home"
+import SettingsMenu from "./settings-menu"
 
 const personalInfo = [
   {
@@ -23,7 +28,7 @@ const personalInfo = [
     link: "https://www.bing.com/maps?q=lmu&FORM=HDRSC7&cp=33.968972%7E-118.418584&lvl=16.0",
   },
   {
-    value: "To be determined",
+    value: "Foley Annex 139",
     icon: <MeetingRoomIcon />,
   },
   {
@@ -34,19 +39,19 @@ const personalInfo = [
     value: "To be determined",
     icon: <PhoneIcon />,
   },
-  {
-    value: "+1 (310) 606-9557",
-    icon: <SmartphoneIcon />,
-  },
+  //{
+  //  value: "+1 (310) 606-9557",
+  //  icon: <SmartphoneIcon />,
+  //},
   {
     value: "jgonz156",
     icon: <GitHubIcon />,
     link: "https://github.com/Jgonz156",
   },
-];
+]
 
 export default function Footer({ children }: { children?: React.ReactNode }) {
-  const { mode } = useColorScheme();
+  const { mode } = useColorScheme()
 
   return (
     <Sheet
@@ -72,7 +77,25 @@ export default function Footer({ children }: { children?: React.ReactNode }) {
           />
         </Link>
         <Typography level="body-sm"></Typography>
-        <SettingsMenu />
+        <Stack
+          direction="row"
+          divider={<Divider orientation="vertical" />}
+          spacing={2}
+          justifyContent="space-evenly"
+        >
+          <SettingsMenu />
+
+          <Button
+            component={RouterLink}
+            variant="plain"
+            color="neutral"
+            to={"/"}
+          >
+            <Tooltip title="Homepage">
+              <HomeIcon />
+            </Tooltip>
+          </Button>
+        </Stack>
       </Sheet>
       <Stack
         direction="column"
@@ -116,5 +139,5 @@ export default function Footer({ children }: { children?: React.ReactNode }) {
       </Stack>
       {children ? <Sheet>{children}</Sheet> : <></>}
     </Sheet>
-  );
+  )
 }

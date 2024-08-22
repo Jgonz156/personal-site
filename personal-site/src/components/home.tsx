@@ -6,21 +6,21 @@ import {
   ListItem,
   Sheet,
   Typography,
-} from "@mui/joy";
-import CourseCard from "./course-card";
-import { CourseStatusBadge, SiteContext } from "./site-context";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import FeedIcon from "@mui/icons-material/Feed";
-import SchoolIcon from "@mui/icons-material/School";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import React from "react";
-import CourseInfoDump from "./course-info-dump";
-import PaperCard from "./paper-card";
-import BookCard from "./book-card";
-import ProjectCard from "./project-card";
+} from "@mui/joy"
+import CourseCard from "./course-card"
+import { CourseStatusBadge, SiteContext } from "./site-context"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import FeedIcon from "@mui/icons-material/Feed"
+import SchoolIcon from "@mui/icons-material/School"
+import AccountTreeIcon from "@mui/icons-material/AccountTree"
+import React from "react"
+import CourseInfoDump from "./course-info-dump"
+import PaperCard from "./paper-card"
+import BookCard from "./book-card"
+import ProjectCard from "./project-card"
 
 export default function Home() {
-  const { settings, dispatch } = React.useContext(SiteContext);
+  const { settings, dispatch } = React.useContext(SiteContext)
   const courses = [
     {
       title: "Discrete Mathematics for CS",
@@ -68,12 +68,13 @@ export default function Home() {
           }}
         >
           <Sheet>
-            Discrete Mathematics for CS is a hands on course that infuses the
-            learning of Discrete theory topics into direct application in
-            Python. These topics include Intuitionistic Propositional and
-            Predicate Logic, Number Theory, Type Theory, Combinatorics, Graph
-            Theory, Set Theory, and a few more topic extensions to broaden the
-            application of these topics in Computer Science.
+            Discrete Mathematics for CS is a 4-unit/credit hour hands on course
+            that infuses the learning of Discrete theory topics into direct
+            application in Python. These topics include Intuitionistic
+            Propositional and Predicate Logic, Number Theory, Type Theory,
+            Combinatorics, Graph Theory, Set Theory, and a few more topic
+            extensions to broaden the application of these topics in Computer
+            Science.
           </Sheet>
           <Divider>
             <Chip>Prerequisites</Chip>
@@ -107,7 +108,7 @@ export default function Home() {
         </Sheet>
       ),
     },
-  ];
+  ]
   const selfPapers = [
     {
       title:
@@ -120,10 +121,10 @@ export default function Home() {
       imageSlug:
         "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
     },
-  ];
+  ]
   //const otherPapers = [{}];
-  const books = [{}];
-  const projects = [{}];
+  const books = [{}]
+  const projects = [{}]
   return (
     <Sheet
       sx={{
@@ -271,7 +272,8 @@ export default function Home() {
       </Divider>
       <Typography>
         I haven't written any books but here are some great ones that I highly
-        recommend!
+        recommend! As a clarification for my students: These are NOT your
+        textbooks! Those will be found in the course itself!
       </Typography>
       <Sheet
         sx={{
@@ -309,5 +311,5 @@ export default function Home() {
         ))}
       </Sheet>
     </Sheet>
-  );
+  )
 }

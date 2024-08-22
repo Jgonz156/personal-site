@@ -2,7 +2,7 @@ import React from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 import App from "./pages/App.tsx"
-import { CssVarsProvider } from "@mui/joy"
+import { CssVarsProvider, extendTheme } from "@mui/joy"
 import CMSI2820 from "./pages/courses/cmsi2820/cmsi-2820-discrete-mathematics-for-cs.tsx"
 import { SiteContextProvider } from "./components/site-context.tsx"
 import "./index.css"
@@ -43,11 +43,18 @@ const router = [
   { path: "/cmsi-2820/ex2", element: <EX2 /> },
 ]
 
+const adjustedMUIDefault = extendTheme({
+  colorSchemes: {
+    light: { palette: { warning: { 500: "#c46d0a" } } },
+    dark: { palette: { warning: { 500: "#c46d0a" } } },
+  },
+})
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <SiteContextProvider>
       <MathJaxContext>
-        <CssVarsProvider defaultMode="dark">
+        <CssVarsProvider theme={adjustedMUIDefault} defaultMode="dark">
           <Router>
             <Routes>
               {router.map(({ path, element }, i) => (

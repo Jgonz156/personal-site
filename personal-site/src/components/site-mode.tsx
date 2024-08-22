@@ -21,7 +21,7 @@ export function ModeToggle() {
         setMode(mode === "light" ? "dark" : "light")
       }}
     >
-      {mode === "light" ? "Turn dark" : "Turn light"}
+      {mode === "light" ? "Activate Dark Mode" : "Activate Light Mode"}
     </Button>
   )
 }
