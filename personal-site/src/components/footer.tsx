@@ -50,7 +50,9 @@ const personalInfo = [
   },
 ]
 
-export default function Footer({ children }: { children?: React.ReactNode }) {
+export default function Footer({
+  children,
+}: Readonly<{ children?: React.ReactNode }>) {
   const { mode } = useColorScheme()
 
   return (
