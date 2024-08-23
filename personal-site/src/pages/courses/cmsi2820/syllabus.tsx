@@ -246,9 +246,7 @@ export default function Syllabus() {
           />
         </>
       ) : tabState === "Schedule" ? (
-        <>
-          <Speak>r</Speak>
-        </>
+        <></>
       ) : tabState === "Student Rights and Responsibilities" ? (
         <></>
       ) : tabState === "FAQ" ? (

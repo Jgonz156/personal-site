@@ -22,6 +22,8 @@ import EX0 from "./pages/courses/cmsi2820/exams/ex0.tsx"
 import EX1 from "./pages/courses/cmsi2820/exams/ex1.tsx"
 import EX2 from "./pages/courses/cmsi2820/exams/ex2.tsx"
 import { MathJaxContext } from "better-react-mathjax"
+import { LocalizationProvider } from "@mui/x-date-pickers"
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 
 const router = [
   { path: "/", element: <App /> },

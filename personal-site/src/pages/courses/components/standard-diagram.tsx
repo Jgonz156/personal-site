@@ -39,6 +39,7 @@ export default function StandardsDiagram({
             }}
           >
             <Typography>{standardID}</Typography>
+
             {assignments ? (
               assignments.map((name, j) => (
                 <Sheet
