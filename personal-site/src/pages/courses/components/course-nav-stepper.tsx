@@ -56,7 +56,10 @@ export default function CourseNavStepper({
             </Button>
           </Step>
         ) : (
-          <></>
+          <Step
+            orientation="vertical"
+            indicator={<StepIndicator variant="solid">#</StepIndicator>}
+          ></Step>
         )}
         {stepperInfo.middle ? (
           <Step
@@ -76,7 +79,10 @@ export default function CourseNavStepper({
             </Button>
           </Step>
         ) : (
-          <></>
+          <Step
+            orientation="vertical"
+            indicator={<StepIndicator variant="solid">#</StepIndicator>}
+          ></Step>
         )}
         {stepperInfo.right ? (
           <Step
@@ -96,7 +102,10 @@ export default function CourseNavStepper({
             </Button>
           </Step>
         ) : (
-          <></>
+          <Step
+            orientation="vertical"
+            indicator={<StepIndicator variant="solid">#</StepIndicator>}
+          ></Step>
         )}
       </Stepper>
     </Sheet>
