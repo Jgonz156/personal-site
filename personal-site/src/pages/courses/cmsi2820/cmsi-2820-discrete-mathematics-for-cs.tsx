@@ -1,4 +1,4 @@
-import { Chip, Divider, Sheet, Table, Typography } from "@mui/joy"
+import { Chip, Divider, Sheet, Table } from "@mui/joy"
 import Footer from "../../../components/footer"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import CourseNavBar from "../components/course-nav-bar"
