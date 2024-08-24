@@ -6,6 +6,7 @@ import AssignmentCard from "../components/assignment-card"
 import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
+import Speak from "../components/speak"
 
 export default function CMSI2820() {
   return (
@@ -37,11 +38,12 @@ export default function CMSI2820() {
               Course Information
             </Chip>
           </Divider>
-          <Typography level="body-md">
+          <Speak>
             Below is a large table the represents a "one stop shop" for
             everything in this course from notes, lecture recordings,
-            assignments, dates, etc.
-          </Typography>
+            assignments, dates, etc. This is a "living" page. It will continue
+            to expand as we move forward into the semester!
+          </Speak>
           <Table>
             <thead>
               <tr>
@@ -84,6 +86,7 @@ export default function CMSI2820() {
                   examSlug="/cmsi-2820/ex0"
                 />
               </Standard>
+              {/*
               <Standard
                 number={1}
                 title="Logic"
@@ -127,6 +130,7 @@ export default function CMSI2820() {
                   assignmentSlug="/cmsi-2820/hw1"
                 />
               </Standard>
+              
               <Standard
                 number={2}
                 title="Numbers"
@@ -355,6 +359,7 @@ export default function CMSI2820() {
                   examSlug="/cmsi-2820/ex2"
                 />
               </Standard>
+               */}
             </tbody>
           </Table>
         </Sheet>
