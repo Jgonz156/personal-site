@@ -115,15 +115,74 @@ export default function Home() {
         "Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures",
       authors: ["Gonzalez, Julian"],
       pages: 66,
-      abstract:
-        "Heterogeneous computing architectures offer performance gains but introduce complexities in scheduling for optimal efficiency. This thesis explores persistent data structures to address these challenges. Investigations revealed runtime overheads associated with the naive persistence implementations, highlighting need for targeted use. A theoretical analysis of the 'Doppler' problem demonstrated how persistence mitigates cache synchronization bottlenecks, particularly in workloads with compute-modify-write patterns on shared data. This research suggests that persistence is most beneficial in heterogeneous systems with significant core-speed disparities. These findings open paths for developing novel scheduling strategies, enhancing resilience, and improving debugging capabilities.",
+      abstract: (
+        <>
+          <Typography>
+            Heterogeneous computing architectures offer performance gains but
+            introduce complexities in scheduling for optimal efficiency. This
+            thesis explores persistent data structures to address these
+            challenges. Investigations revealed runtime overheads associated
+            with the naive persistence implementations, highlighting need for
+            targeted use. A theoretical analysis of the 'Doppler' problem
+            demonstrated how persistence mitigates cache synchronization
+            bottlenecks, particularly in workloads with compute-modify-write
+            patterns on shared data. This research suggests that persistence is
+            most beneficial in heterogeneous systems with significant core-speed
+            disparities. These findings open paths for developing novel
+            scheduling strategies, enhancing resilience, and improving debugging
+            capabilities.
+          </Typography>
+        </>
+      ),
       link: undefined,
       imageSlug:
         "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
     },
   ]
   //const otherPapers = [{}];
-  const books = [{}]
+  const books = [
+    {
+      title:
+        "Concurrency Theory: Calculi and Automata for Modelling Untimed and Timed Concurrent Systems",
+      authors: ["Bowman, Howard", "Gomez, Rodolfo"],
+      pages: 422,
+      abstract: (
+        <>
+          <Typography>
+            Concurrency Theory is a synthesis of one of the major threads of
+            theoretical computer science research focusing on languages and
+            graphical notions for describing collections of simultaneously
+            evolving components that interact through synchronous communication.
+            The main specification notation focused on in this book is LOTOS. An
+            extensive introduction to this particular process calculus is given,
+            highlighting how the approach differs from competitor techniques,
+            such as CCS and CSP.
+          </Typography>
+          <Typography>
+            The book covers linear-time semantics, based on traces;
+            branching-time semantics, using both labeled transition systems and
+            refusals; and true concurrency semantics, using (bundle) event
+            structures. In addition, the book discusses communicating automata
+            approaches (both finite and infinite state); how the theory can be
+            generalized to the timed setting; and, finally, the authors
+            generalize the (finite and infinite state) communicating automata
+            notations to yield timed automata and discrete timed automata.
+          </Typography>
+          <Typography>
+            This book represents a comprehensive pass through the spectrum of
+            concurrency theory research: From untimed to timed syntax and
+            semantics and process calculi to automata. Researchers and
+            practitioners in the field of concurrency theory, as well as MSc and
+            PhD students, will find the comprehensive coverage in this book
+            essential reading.
+          </Typography>
+        </>
+      ),
+      link: "https://link.springer.com/book/10.1007/1-84628-336-1",
+      imageSlug:
+        "/book-covers/ConcurrencyTheory-CalculiAndAutomataForModellingUntimedAndTimedConcurrentSystems.png",
+    },
+  ]
   const projects = [{}]
   return (
     <Sheet
@@ -182,47 +241,22 @@ export default function Home() {
           gap: 4,
         }}
       >
-        {courses.map(
-          (
-            {
-              title,
-              code,
-              imageUrl,
-              slug,
-              status,
-              openModal,
-              closeModal,
-              modalState,
-              courseCardDescription,
-            },
-            i
-          ) => (
-            <Badge
-              key={i}
-              size="lg"
-              variant="solid"
-              color={
-                status === CourseStatusBadge.InProgress
-                  ? "success"
-                  : status === CourseStatusBadge.UnderConstruction
-                  ? "danger"
-                  : "neutral"
-              }
-            >
-              <CourseCard
-                Title={title}
-                Code={code}
-                ImageUrl={imageUrl}
-                slug={slug}
-                openModal={openModal}
-                closeModal={closeModal}
-                modalState={modalState}
-              >
-                {courseCardDescription}
-              </CourseCard>
-            </Badge>
-          )
-        )}
+        {courses.map((info, i) => (
+          <Badge
+            key={i}
+            size="lg"
+            variant="solid"
+            color={
+              info.status === CourseStatusBadge.InProgress
+                ? "success"
+                : info.status === CourseStatusBadge.UnderConstruction
+                ? "danger"
+                : "neutral"
+            }
+          >
+            <CourseCard {...info}>{info.courseCardDescription}</CourseCard>
+          </Badge>
+        ))}
       </Sheet>
       <Divider>
         <Chip variant="soft" startDecorator={<FeedIcon />} size="lg">
@@ -239,19 +273,9 @@ export default function Home() {
           gap: 4,
         }}
       >
-        {selfPapers.map(
-          ({ title, authors, pages, abstract, link, imageSlug }, i) => (
-            <PaperCard
-              key={i}
-              title={title}
-              authors={authors}
-              pages={pages}
-              abstract={abstract}
-              link={link}
-              imageSlug={imageSlug}
-            />
-          )
-        )}
+        {selfPapers.map((info, i) => (
+          <PaperCard {...info} key={i} />
+        ))}
       </Sheet>
       <Typography>
         And here are some ones I've read that I find interesting!
@@ -284,8 +308,8 @@ export default function Home() {
           gap: 4,
         }}
       >
-        {books.map(({}, i) => (
-          <BookCard key={i} />
+        {books.map((info, i) => (
+          <BookCard {...info} key={i} />
         ))}
       </Sheet>
       <Divider>

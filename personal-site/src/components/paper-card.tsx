@@ -14,10 +14,10 @@ import {
   ModalDialog,
   Sheet,
   Typography,
-} from "@mui/joy";
-import { useState } from "react";
-import FeedIcon from "@mui/icons-material/Feed";
-import { Link as RouterLink } from "react-router-dom";
+} from "@mui/joy"
+import { useState } from "react"
+import FeedIcon from "@mui/icons-material/Feed"
+import { Link as RouterLink } from "react-router-dom"
 
 export default function PaperCard({
   title,
@@ -27,14 +27,14 @@ export default function PaperCard({
   link,
   imageSlug,
 }: {
-  title: string;
-  authors: string[];
-  pages: string | number;
-  abstract: string;
-  link?: string;
-  imageSlug: string;
+  title: string
+  authors: string[]
+  pages: string | number
+  abstract: any
+  link?: string
+  imageSlug: string
 }) {
-  const [modalVisibility, setModalVisibility] = useState(false);
+  const [modalVisibility, setModalVisibility] = useState(false)
   return (
     <>
       <Card orientation="horizontal" variant="soft" sx={{ width: 600 }}>
@@ -111,5 +111,5 @@ export default function PaperCard({
         </ModalDialog>
       </Modal>
     </>
-  );
+  )
 }

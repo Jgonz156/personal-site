@@ -60,7 +60,7 @@ export default function CMSI2820() {
                 description="This standard is here to familiarize yourself with the layout
                   of course information! It is not graded for quality but
                   demonstrates where and how information is accessed! Clicking
-                  on this row in the table will dropdown the relevant
+                  on the chevron in this row will dropdown the relevant
                   information for the standard that is being covered in class."
               >
                 <NotesCard

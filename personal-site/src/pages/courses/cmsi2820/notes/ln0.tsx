@@ -22,7 +22,7 @@ export default function LectureNotes0() {
     >
       <TitleBox
         title="Reading Course Material"
-        quote="Insert nice quote here"
+        quote={`"Tell me and I forget. Teach me and I remember. Involve me and I learn." - Benjamin Franklin`}
       />
       <TopicBreak title="Speak Component" />
       <Speak>

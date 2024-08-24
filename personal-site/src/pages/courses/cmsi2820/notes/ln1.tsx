@@ -35,7 +35,7 @@ export default function LectureNotes1() {
     >
       <TitleBox
         title="Information and Its Consequences..."
-        quote="Insert nice quote here"
+        quote={`"Education is the kindling of a flame, not the filling of a vessel" - Socrates`}
       />
       <TopicBreak title="Starting From Nothing" />
       <Speak>

@@ -1,42 +1,42 @@
-import { Link } from "@mui/joy";
-import AspectRatio from "@mui/joy/AspectRatio";
-import Card from "@mui/joy/Card";
-import CardContent from "@mui/joy/CardContent";
-import CardOverflow from "@mui/joy/CardOverflow";
-import Typography from "@mui/joy/Typography";
-import CourseModal from "./course-modal";
+import { Link } from "@mui/joy"
+import AspectRatio from "@mui/joy/AspectRatio"
+import Card from "@mui/joy/Card"
+import CardContent from "@mui/joy/CardContent"
+import CardOverflow from "@mui/joy/CardOverflow"
+import Typography from "@mui/joy/Typography"
+import CourseModal from "./course-modal"
 
 export default function CourseCard({
-  Title,
-  Code,
-  ImageUrl,
+  title,
+  code,
+  imageUrl,
   slug,
   openModal,
   closeModal,
   modalState,
   children,
 }: {
-  Title: string;
-  Code: string;
-  ImageUrl: string;
-  slug: string;
-  openModal: () => void;
-  closeModal: () => void;
-  modalState: boolean;
-  children: React.ReactNode;
+  title: string
+  code: string
+  imageUrl: string
+  slug: string
+  openModal: () => void
+  closeModal: () => void
+  modalState: boolean
+  children: React.ReactNode
 }) {
   return (
     <>
       <Card orientation="horizontal" variant="soft" sx={{ width: 350 }}>
         <CardOverflow>
           <AspectRatio ratio="1" sx={{ width: 110 }}>
-            <img src={ImageUrl} loading="lazy" alt="" />
+            <img src={imageUrl} loading="lazy" alt="" />
           </AspectRatio>
         </CardOverflow>
         <CardContent>
           <Link overlay onClick={openModal} />
           <Typography fontWeight="md" textColor="neutral">
-            {Title}
+            {title}
           </Typography>
           <Typography level="body-sm">California, USA</Typography>
         </CardContent>
@@ -55,12 +55,12 @@ export default function CourseCard({
             borderColor: "divider",
           }}
         >
-          CMSI {Code}
+          CMSI {code}
         </CardOverflow>
       </Card>
       <CourseModal dispatchClose={closeModal} visible={modalState} slug={slug}>
         {children}
       </CourseModal>
     </>
-  );
+  )
 }

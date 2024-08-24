@@ -1,18 +1,88 @@
-import { AspectRatio, Card, Divider } from "@mui/joy";
+import {
+  Button,
+  Card,
+  Chip,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Link,
+  Modal,
+  ModalDialog,
+  Sheet,
+} from "@mui/joy"
+import { useState } from "react"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import { Link as RouterLink } from "react-router-dom"
 
-export default function BookCard() {
+export default function BookCard({
+  title,
+  authors,
+  pages,
+  abstract,
+  link,
+  imageSlug,
+}: {
+  title: string
+  authors: string[]
+  pages: string | number
+  abstract: any
+  link?: string
+  imageSlug: string
+}) {
+  const [modalVisibility, setModalVisibility] = useState(false)
   return (
     <>
       <Card variant="soft" sx={{ width: 300 }}>
-        <AspectRatio ratio="8.5/11">
-          <img
-            src={"/lmu-identity/LMU-Campus-Ariel.jpg"}
-            loading="lazy"
-            alt=""
-          />
-        </AspectRatio>
-        <Divider orientation="horizontal" />
+        <img src={imageSlug} loading="lazy" alt="" />
+        <Link overlay onClick={() => setModalVisibility(true)} />
       </Card>
+      <Modal open={modalVisibility} onClose={() => setModalVisibility(false)}>
+        <ModalDialog variant="outlined" role="alertdialog">
+          <DialogTitle>
+            <AutoStoriesIcon />
+            Book Information
+          </DialogTitle>
+          <Divider />
+          <DialogContent>
+            {title}
+            <Divider>
+              <Chip>Abstract</Chip>
+            </Divider>
+            {abstract}
+            <Divider />
+            <Sheet
+              sx={{ display: "flex", gap: 1, justifyContent: "space-between" }}
+            >
+              {authors.map((author, i) => (
+                <Chip color="primary" key={i}>
+                  {author}
+                </Chip>
+              ))}
+              <Chip color="success">Pages: {pages}</Chip>
+            </Sheet>
+          </DialogContent>
+          <DialogActions>
+            {link ? (
+              <Link component={RouterLink} to={link}>
+                <Button variant="solid" color="primary">
+                  Head To Source!
+                </Button>
+              </Link>
+            ) : (
+              <></>
+            )}
+
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => setModalVisibility(false)}
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
     </>
-  );
+  )
 }
