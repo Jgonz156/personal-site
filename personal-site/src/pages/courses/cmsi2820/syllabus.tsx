@@ -1,14 +1,17 @@
-import { Button, Chip, Divider, Sheet } from "@mui/joy"
-import CoursePage from "../components/course-page"
-import { useState } from "react"
-import Speak from "../components/speak"
-import CourseInfoDump from "../../../components/course-info-dump"
-import StandardsDiagram from "../components/standard-diagram"
-import Vocab from "../components/vocab"
-import TopicBreak from "../components/topic-break"
+import { Button, Chip, Divider, Sheet } from "@mui/joy";
+import CoursePage from "../components/course-page";
+import { useState } from "react";
+import Speak from "../components/speak";
+import CourseInfoDump from "../../../components/course-info-dump";
+import StandardsDiagram from "../components/standard-diagram";
+import Vocab from "../components/vocab";
+import TopicBreak from "../components/topic-break";
+import TitleBox from "../components/title-box";
+import { Link } from "@mui/joy";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function Syllabus() {
-  const [tabState, setTabState] = useState("Introduction")
+  const [tabState, setTabState] = useState("Introduction");
   return (
     <CoursePage type="syllabus">
       <Sheet
@@ -107,11 +110,22 @@ export default function Syllabus() {
             Science.
           </Speak>
           <Speak>
-            This course is an in-person, lecture style course. However, all my
-            lectures for all sections will be uploaded for access to this site
-            at anytime at least 2 days after initial recording. I will do my
-            best to upload directly after class, however I cannot always
-            guarantee this due to other obligations.
+            This course is a fully synchronous, in-person, lecture style course.
+            However, all my lectures for all sections will be uploaded for
+            asynchronous access to this site after class. I will do my best to
+            upload directly after class, however I cannot always guarantee this
+            due to other obligations. During these lectures you are free to ask
+            questions or interrupt with inquiry at any time!
+          </Speak>
+          <Speak>
+            Course work takes the form of 2-part homeworks (written and
+            programming) and optional creative endeavors to help raise your
+            grade. It also includes an optional midterm and final to do the
+            same. Collaboration is encouraged! However, please turn in your own
+            homework (It makes the grading simpler). If you worked with others
+            or used outside sources for help you are not in trouble, just link
+            what you needed to succeed so that I have an accurate idea of where
+            you everyone is in the course.
           </Speak>
           <Speak>
             This syllabus was specifically designed to group relevant
@@ -440,17 +454,19 @@ export default function Syllabus() {
             find a small paragraph of the mission statement from each of these
             services.
           </Speak>
-          <Speak>
-            (COC) Community of Care: "The mission of the Loyola Marymount
+          <TitleBox
+            title="(COC) Community of Care:"
+            quote={`"The mission of the Loyola Marymount
             University Community of Care (COC) — a collaborative case-management
             program — is to enhance community safety and student well-being. The
             Community of Care provides prevention, assessment, and intervention
             for and with students as they navigate the challenges that stand in
-            their way of academic and personal success.""
-            https://studentaffairs.lmu.edu/wellness/coc/learnmoreaboutus/
-          </Speak>
-          <Speak>
-            LION Connect: "LionConnect is a comprehensive portal designed to
+            their way of academic and personal success."`}
+            link="https://studentaffairs.lmu.edu/wellness/coc/learnmoreaboutus/"
+          />
+          <TitleBox
+            title="LION Connect:"
+            quote={`"LionConnect is a comprehensive portal designed to
             empower students to take control of their academic journey to
             achieve their goals. By offering a personalized dashboard, seamless
             scheduling, and direct access to dedicated support staff,
@@ -458,11 +474,12 @@ export default function Syllabus() {
             students and the Web of Support staff. This innovative approach
             leverages technology and real-time data to provide personalized and
             timely interventions, ensuring students receive the support they
-            need to succeed."
-            https://www.lmu.edu/academics/provost/resources/lionconnect/#:~:text=By%20offering%20a%20personalized%20dashboard,%20seamless%20scheduling,%20and%20direct%20access
-          </Speak>
-          <Speak>
-            (EIS) Ethnic and Intercultural Services: "The mission of the
+            need to succeed."`}
+            link="https://www.lmu.edu/academics/provost/resources/lionconnect/"
+          />
+          <TitleBox
+            title="(EIS) Ethnic and Intercultural Services:"
+            quote={`"The mission of the
             department of Ethnic and Intercultural Services (EIS) is to support
             the intercultural learning and development of students, specifically
             those from historically underrepresented backgrounds at LMU. This
@@ -472,11 +489,12 @@ export default function Syllabus() {
             to build upon our mission, there are four primary goals that we will
             work on in three phases to further enhance our department
             operations, programmatically engage with students, and collaborate
-            with campus partners."
-            https://studentaffairs.lmu.edu/community/ethnicandinterculturalservices/
-          </Speak>
-          <Speak>
-            Center for Student Collegiate Recovery: "Loyola Marymount
+            with campus partners."`}
+            link="https://studentaffairs.lmu.edu/community/ethnicandinterculturalservices/"
+          />
+          <TitleBox
+            title="Center for Student Collegiate Recovery:"
+            quote={`"Loyola Marymount
             University's Center for Student Collegiate Recovery, located on the
             first floor of Malone (Malone 113), provides a comfortable space and
             supportive community for students in recovery or seeking to create
@@ -485,31 +503,33 @@ export default function Syllabus() {
             well-being while belonging to a community of support. Staff
             facilitate access to support groups and provide programming for
             students and their allies in recovery. Weekly meetings are held each
-            semester. No sign-up required."
-            https://studentaffairs.lmu.edu/wellness/recovery/
-          </Speak>
-          <Speak>
-            (OISS) Office for International Students and Scholars: "The Office
+            semester. No sign-up required."`}
+            link="https://studentaffairs.lmu.edu/wellness/recovery/"
+          />
+          <TitleBox
+            title="(OISS) Office for International Students and Scholars:"
+            quote={`"The Office
             for International Students and Scholars (OISS) serves as a resource
             to the University by ensuring regulatory compliance. OISS provides
             programs and services that support international students' and
             scholars' social, educational and professional success, thereby,
-            creating an engaged global community."
-            https://studentaffairs.lmu.edu/community/officeforinternationalstudentsandscholars/
-          </Speak>
-          <Speak>
-            (OSCC) Office of Student Conduct and Community Responsibility:
-            "Loyola Marymount University's Office of Student Conduct & Community
+            creating an engaged global community."`}
+            link="https://studentaffairs.lmu.edu/community/officeforinternationalstudentsandscholars/"
+          />
+          <TitleBox
+            title="(OSCCR) Office of Student Conduct and Community Responsibility:"
+            quote={`"Loyola Marymount University's Office of Student Conduct & Community
             Responsibility (OSCCR) is committed to fostering an environment
             conducive to the pursuit of knowledge. Such an environment is based
             upon respect, trust, integrity and accountability. Through education
             and by upholding community standards detailed in the Student Conduct
             Code, OSCCR holds LMU students accountable for their violations and
-            helps them grow into more responsible and community-minded persons."
-            https://studentaffairs.lmu.edu/about/osccr/#:~:text=Loyola%20Marymount%20University's%20Office%20of%20Student%20Conduct%20&%20Community%20Responsibility
-          </Speak>
-          <Speak>
-            (CSA) Pam Rector Center for Service and Action: "The Pam Rector
+            helps them grow into more responsible and community-minded persons."`}
+            link="https://studentaffairs.lmu.edu/about/osccr/"
+          />
+          <TitleBox
+            title="(CSA) Pam Rector Center for Service and Action:"
+            quote={`"The Pam Rector
             Center for Service and Action at LMU offers students and graduates a
             range of opportunities to volunteer their time serving those
             disadvantaged or oppressed. Service opportunities are available on
@@ -522,21 +542,24 @@ export default function Syllabus() {
             student life, while developing personal accountability, good
             judgment and independent thinking towards a balanced life. CSA also
             serves as an on-campus resource for faculty and students working to
-            integrate Community-Based Learning programs into their curriculum."
-            https://studentaffairs.lmu.edu/activities/centerforserviceandaction/#:~:text=Pam%20Rector%20Center%20for%20Service%20and%20Action.%20About%20CSA.%20Programs.
-          </Speak>
-          <Speak>
-            (SES) Student Employment Services: "Student Employment Services
+            integrate Community-Based Learning programs into their curriculum."`}
+            link="https://studentaffairs.lmu.edu/activities/centerforserviceandaction/"
+          />
+          <TitleBox
+            title="(SES) Student Employment Services:"
+            quote={`"Student Employment Services
             (SES) at LMU provides part-time employment opportunities, workshops,
             and services to further students' professional development and
             post-graduate success. More than 3,400 LMU students work in more
             than 5,300 positions across campus. National reports and LMU
             retention statistics indicate that students who work are more
             successful because of the skills and experiences they obtain on the
-            job."
-          </Speak>
-          <Speak>
-            (SHS) Student Health Services: "Student Health Services (SHS)
+            job."`}
+            link="https://studentaffairs.lmu.edu/activities/ses/"
+          />
+          <TitleBox
+            title="(SHS) Student Health Services:"
+            quote={`"Student Health Services (SHS)
             remains committed to the health and safety of our campus community.
             We are a full-service medical office that is accredited by the
             Accreditation Association for Ambulatory Health Care (AAAHC).Our
@@ -544,57 +567,63 @@ export default function Syllabus() {
             registered nurses, and trained support staff. Our services include
             treatment for illnesses and injuries, preventive care, Gynecological
             health services, vaccinations, health education/wellness programs,
-            and much more."
-            https://studentaffairs.lmu.edu/wellness/studenthealthservices/#:~:text=Student%20Health%20Services%20(SHS)%20remains%20committed%20to%20the%20health%20and
-          </Speak>
-          <Speak>
-            (SPS) Student Psychological Services: "Student Psychological
+            and much more."`}
+            link="https://studentaffairs.lmu.edu/wellness/studenthealthservices/"
+          />
+          <TitleBox
+            title="(SPS) Student Psychological Services:"
+            quote={`"Student Psychological
             Services is committed to facilitating student growth and development
             of the whole person by providing high quality, confidential
             psychological services that is social justice oriented, ethical and
             culturally informed, to ensure the inclusivity and safety for
-            students."
-            https://studentaffairs.lmu.edu/wellness/studentpsychologicalservices/about/
-          </Speak>
-          <Speak>
-            Student Housing Services: "In the spirit of Loyola Marymount
+            students."`}
+            link="https://studentaffairs.lmu.edu/wellness/studentpsychologicalservices/about/"
+          />
+          <TitleBox
+            title="Student Housing Services:"
+            quote={`"In the spirit of Loyola Marymount
             University and Student Affairs missions, the Student Housing Office
             creates a living and learning environment by providing programs and
             services that empower students to realize their potential in mind,
             body and spirit within a community that honors human diversity and
             accepts students as individuals; each with rights and
-            responsibilities."
-            https://studentaffairs.lmu.edu/housing/studenthousing/#:~:text=Perched%20atop%20the%20bluff%20overlooking%20Los%20Angeles%20and%20the%20Pacific
-          </Speak>
-          <Speak>
-            Student Media: "The Student Media Department at Loyola Marymount
+            responsibilities."`}
+            link="https://studentaffairs.lmu.edu/housing/studenthousing/"
+          />
+          <TitleBox
+            title="Student Media:"
+            quote={`"The Student Media Department at Loyola Marymount
             University offers unique opportunities to work at a fast-paced
             student-run media outlet in an environment that allows you to
             develop leadership skills that will make you a highly sought-after
             job candidate once you hit the real word. Opportunities to get
             involved include with The Los Angeles Loyolan newspaper, The Tower
-            Yearbook, ROAR Studios and KXLU 88.9FM radio station."
-            https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/studentmedia/#:~:text=The%20Student%20Media%20Department%20at%20Loyola%20Marymount%20University%20offers%20unique
-          </Speak>
-          <Speak>
-            Student Transition and Success: "The Student Success office is home
+            Yearbook, ROAR Studios and KXLU 88.9FM radio station."`}
+            link="https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/studentmedia/"
+          />
+          <TitleBox
+            title="Student Transition and Success:"
+            quote={`"The Student Success office is home
             to departments focused on providing programming and outreach to
             specific student populations to ensure their successful engagement,
-            retention and transition into Loyola Marymount University."
-            https://studentaffairs.lmu.edu/community/studentsuccess/#:~:text=The%20Student%20Success%20office%20is%20home%20to%20departments%20focused%20on
-          </Speak>
-          <Speak>
-            Burns Recreational Center: "Welcome to the Burns Recreation Center!
+            retention and transition into Loyola Marymount University."`}
+            link="https://studentaffairs.lmu.edu/community/studentsuccess/"
+          />
+          <TitleBox
+            title="Burns Recreational Center:"
+            quote={`"Welcome to the Burns Recreation Center!
             The Burns Recreation Center features a fitness center, group fitness
             studios, multi-purpose courts, tennis courts and an Olympic-sized
             outdoor swimming pool. Aquatics programs take place at the pool
             located at Burns Recreation Center. LMU's Burns Recreation Pool also
             has a lawn area as well as folding chairs around the pool deck
-            providing ideal space for sun bathing."
-            https://studentaffairs.lmu.edu/wellness/campusrecreationandstudentfacilities/facilities/burnsrecreationcenter/#:~:text=The%20Burns%20Recreation%20Center%20features%20a%20fitness%20center,%20group%20fitness
-          </Speak>
-          <Speak>
-            The Lion's Den: "Visit LMU's only completely student-run coffee
+            providing ideal space for sun bathing."`}
+            link="https://studentaffairs.lmu.edu/wellness/campusrecreationandstudentfacilities/facilities/burnsrecreationcenter/"
+          />
+          <TitleBox
+            title="The Lion's Den:"
+            quote={`"Visit LMU's only completely student-run coffee
             shop. Located on the first floor of Malone Student Center, the
             Lion's Den serves 100% Fair Trade organic coffee, espresso and tea,
             as well as a wide variety of delicious pastries. In addition, a
@@ -602,43 +631,49 @@ export default function Syllabus() {
             The energetic, friendly student staff of the Lion's Den, which is
             managed by Campus Recreation and Student Facilities, creates a
             unique and inviting atmosphere that makes it one of the most popular
-            places to be on campus."
-            https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/venuesandhangouts/lionsdencoffeeshop/#:~:text=Visit%20LMU's%20only%20completely%20student-run%20coffee%20shop.%20Located%20on%20the
-          </Speak>
-          <Speak>
-            The Loft: "The Loft is LMU's craft beer and wine bar, which is
+            places to be on campus."`}
+            link="https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/venuesandhangouts/lionsdencoffeeshop/"
+          />
+          <TitleBox
+            title="The Loft:"
+            quote={`"The Loft is LMU's craft beer and wine bar, which is
             managed by LMU's Campus Recreation and Student Facilities
             department. Open Monday through Friday, The Loft provides a
             dedicated space for current LMU students, faculty, staff, and alumni
             over the age of 21 to drink responsibly, socialize and learn about
-            the world of craft beer."
-            https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/venuesandhangouts/theloftcraftbeerwine/#:~:text=Open%20Monday%20through%20Friday,%20The%20Loft%20provides%20a%20dedicated%20space
-          </Speak>
-          <Speak>
-            (FERPA) Family Education Rights and Privacy Act: "FERPA stands for
+            the world of craft beer."`}
+            link="https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/venuesandhangouts/theloftcraftbeerwine/"
+          />
+          <TitleBox
+            title="(FERPA) Family Education Rights and Privacy Act:"
+            quote={`"FERPA stands for
             the Family Education Rights and Privacy Act of 1974. This law
             protects the privacy of student education records from kindergarten
             through graduate school. FERPA applies to all schools that receive
             funds through an applicable program of the U.S. Department of
             Education, and thus most postsecondary schools are covered by
-            FERPA." https://registrar.lmu.edu/ferpa-rightsandprivacyact/
-          </Speak>
-          <Speak>
-            (ASLMU) Associated Students of LMU: "ASLMU, in keeping with the
+            FERPA."`}
+            link="https://registrar.lmu.edu/ferpa-rightsandprivacyact/"
+          />
+          <TitleBox
+            title="(ASLMU) Associated Students of LMU:"
+            quote={`"ASLMU, in keeping with the
             Jesuit and Marymount tradition, empowers the voice of the students
             and actively promotes a vibrant campus life. Driven by integrity, we
-            devote ourselves to being persons for and with others."
-            https://www.aslmu.org/
-          </Speak>
-          <Speak>
-            (ARC) Academic Resource Center: "The Academic Resource Center (ARC)
+            devote ourselves to being persons for and with others."`}
+            link="https://www.aslmu.org/"
+          />
+          <TitleBox
+            title="(ARC) Academic Resource Center:"
+            quote={`"The Academic Resource Center (ARC)
             provides Course Tutoring, Writing Tutoring, and Academic Coaching.
             Our services are designed as a compliment to the curriculum with the
-            intentions of fostering academic success."
-            https://academics.lmu.edu/arc/#:~:text=The%20Academic%20Resource%20Center%20(ARC)%20provides%20Course%20Tutoring,%20Writing%20Tutoring,
-          </Speak>
-          <Speak>
-            (ITS) Information Technology Services: "ITS enables
+            intentions of fostering academic success."`}
+            link="https://academics.lmu.edu/arc/"
+          />
+          <TitleBox
+            title="(ITS) Information Technology Services:"
+            quote={`"ITS enables
             technologically-rich learning environments, provides effective
             teaching and scholarship resources and maintains reliable,
             accessible, and integrated information systems. Information
@@ -649,22 +684,41 @@ export default function Syllabus() {
             instructional technology services. ITS provides these services in an
             effort to enhance the intellectual life and experience of students
             and the University community and to provide for efficient technology
-            operations."
-            https://its.lmu.edu/#:~:text=Introducing%20the%20Artificial%20Intelligence%20Hub.%20This%20collaborative%20AI%20hub%20is
-          </Speak>
-          <Speak>
-            ME: This one, surprisingly, is not an acronym! It's literally
+            operations."`}
+            link="https://its.lmu.edu/"
+          />
+          <TitleBox
+            title="(ME):"
+            quote={`This one, surprisingly, is not an acronym! It's literally
             referring to me, Professor Julian Gonzalez. If this is overwhelming
             and you are unsure where to go or what to do, you can talk to me
             personally as a guide through your resources! Feel free to email me
             to make a private appointment with me in my office for a private
-            space to discuss your thoughts.
-          </Speak>
+            space to discuss your thoughts.`}
+          />
           <Speak>
             However, these services are not free (you are paying for them after
             all!). You keep access to these services by maintaining and
             upholding the Lion Code, which can be found below.
           </Speak>
+          <TitleBox
+            title="Lion Code:"
+            quote={`"I am a Lion. Courageous of mind, charitable of heart, I stand in
+            faith. I will own the actions of my mind, hand, and heart, and build
+            the community that sustains us. The respect and support that
+            nurtures me is born of my respect for others. The dignity of the
+            other, the stranger, grants me dignity. The expectations of my
+            community are my own, and I will discover how I may be more fully
+            alive. I will join the discourse of the academy with honesty of
+            voice and integrity of scholarship. Respecting peers, professionals,
+            professors, and students, I will embrace the diverse perspectives,
+            arts, and sciences to discover what it means to be human. I will
+            shelter and support the intellectual adventures of others. In this
+            tradition, within my community, a part of this academy, I stand in
+            faith, prepared to learn to be one for others, ready to take up
+            responsibility in the world."`}
+            link="https://studentaffairs.lmu.edu/about/studentaffairsdeansoffice/lionscode/"
+          />
           <Speak>
             I don't have any rules in particular to provide, however I do have a
             golden rule that everyone should follow: "Don't Disturb the Learning
@@ -677,5 +731,5 @@ export default function Syllabus() {
         <> Hey You're Not Supposed to See This! How Did You Get Back Here?</>
       )}
     </CoursePage>
-  )
+  );
 }

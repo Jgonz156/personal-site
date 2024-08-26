@@ -10,10 +10,10 @@ import {
   Modal,
   ModalDialog,
   Sheet,
-} from "@mui/joy"
-import { useState } from "react"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import { Link as RouterLink } from "react-router-dom"
+} from "@mui/joy";
+import { useState } from "react";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function BookCard({
   title,
@@ -23,14 +23,14 @@ export default function BookCard({
   link,
   imageSlug,
 }: {
-  title: string
-  authors: string[]
-  pages: string | number
-  abstract: any
-  link?: string
-  imageSlug: string
+  title: string;
+  authors: string[];
+  pages: string | number;
+  abstract: any;
+  link?: string;
+  imageSlug: string;
 }) {
-  const [modalVisibility, setModalVisibility] = useState(false)
+  const [modalVisibility, setModalVisibility] = useState(false);
   return (
     <>
       <Card variant="soft" sx={{ width: 300 }}>
@@ -84,5 +84,5 @@ export default function BookCard({
         </ModalDialog>
       </Modal>
     </>
-  )
+  );
 }

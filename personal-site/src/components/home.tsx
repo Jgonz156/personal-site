@@ -6,21 +6,21 @@ import {
   ListItem,
   Sheet,
   Typography,
-} from "@mui/joy"
-import CourseCard from "./course-card"
-import { CourseStatusBadge, SiteContext } from "./site-context"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import FeedIcon from "@mui/icons-material/Feed"
-import SchoolIcon from "@mui/icons-material/School"
-import AccountTreeIcon from "@mui/icons-material/AccountTree"
-import React from "react"
-import CourseInfoDump from "./course-info-dump"
-import PaperCard from "./paper-card"
-import BookCard from "./book-card"
-import ProjectCard from "./project-card"
+} from "@mui/joy";
+import CourseCard from "./course-card";
+import { CourseStatusBadge, SiteContext } from "./site-context";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import FeedIcon from "@mui/icons-material/Feed";
+import SchoolIcon from "@mui/icons-material/School";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import React from "react";
+import CourseInfoDump from "./course-info-dump";
+import PaperCard from "./paper-card";
+import BookCard from "./book-card";
+import ProjectCard from "./project-card";
 
 export default function Home() {
-  const { settings, dispatch } = React.useContext(SiteContext)
+  const { settings, dispatch } = React.useContext(SiteContext);
   const courses = [
     {
       title: "Discrete Mathematics for CS",
@@ -108,7 +108,7 @@ export default function Home() {
         </Sheet>
       ),
     },
-  ]
+  ];
   const selfPapers = [
     {
       title:
@@ -138,7 +138,7 @@ export default function Home() {
       imageSlug:
         "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
     },
-  ]
+  ];
   //const otherPapers = [{}];
   const books = [
     {
@@ -182,8 +182,50 @@ export default function Home() {
       imageSlug:
         "/book-covers/ConcurrencyTheory-CalculiAndAutomataForModellingUntimedAndTimedConcurrentSystems.png",
     },
-  ]
-  const projects = [{}]
+    {
+      title: "Parallel Programming: Concepts and Practice",
+      authors: [
+        "Schmidt, Bertil",
+        "Gonzalez-Martinez, Jorge",
+        "Hundt, Christian",
+        "Schlarb, Moritz",
+      ],
+      pages: 416,
+      abstract: (
+        <>
+          <Typography>
+            Parallel Programming: Concepts and Practice provides an upper level
+            introduction to parallel programming. In addition to covering
+            general parallelism concepts, this text teaches practical
+            programming skills for both shared memory and distributed memory
+            architectures. The authors' open-source system for automated code
+            evaluation provides easy access to parallel computing resources,
+            making the book particularly suitable for classroom settings.
+          </Typography>
+          <Typography>
+            Covers parallel programming approaches for single computer nodes and
+            HPC clusters: OpenMP, multithreading, SIMD vectorization, MPI,
+            UPC++.
+          </Typography>
+          <Typography>
+            Contains numerous practical parallel programming exercises.
+          </Typography>
+          <Typography>
+            Includes access to an automated code evaluation tool that enables
+            students the opportunity to program in a web browser and receive
+            immediate feedback on the result validity of their program.
+          </Typography>
+          <Typography>
+            Features an example-based teaching of concept to enhance learning
+            outcomes.
+          </Typography>
+        </>
+      ),
+      link: undefined,
+      imageSlug: "/book-covers/ParallelProgramming-ConceptsAndPractice.jpg",
+    },
+  ];
+  const projects = [{}];
   return (
     <Sheet
       sx={{
@@ -305,6 +347,7 @@ export default function Home() {
           flexDirection: "row",
           flexWrap: "wrap",
           justifyContent: "space-evenly",
+          alignItems: "center",
           gap: 4,
         }}
       >
@@ -335,5 +378,5 @@ export default function Home() {
         ))}
       </Sheet>
     </Sheet>
-  )
+  );
 }
