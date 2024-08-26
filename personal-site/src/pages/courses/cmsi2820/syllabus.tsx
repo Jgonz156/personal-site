@@ -7,8 +7,6 @@ import StandardsDiagram from "../components/standard-diagram";
 import Vocab from "../components/vocab";
 import TopicBreak from "../components/topic-break";
 import TitleBox from "../components/title-box";
-import { Link } from "@mui/joy";
-import { Link as RouterLink } from "react-router-dom";
 
 export default function Syllabus() {
   const [tabState, setTabState] = useState("Introduction");
