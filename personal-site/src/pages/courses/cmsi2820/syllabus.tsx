@@ -316,7 +316,7 @@ export default function Syllabus() {
             labeled "HW" and "OHW" respectively. The points earnable are labeled
             with "P: ". The homework assignment is worth more than the standard
             on purpose, as I do not believe small mistakes merit failure in the
-            gradebook. Thus, you can "earn a B" on every assignment and still
+            grade book. Thus, you can "earn a B" on every assignment and still
             pass the standard with an A. The "O" portion of the second
             assignment is denoting that it is completely optional. You don't
             need to do that assignment if you are already happy with your point
@@ -432,7 +432,245 @@ export default function Syllabus() {
       ) : tabState === "Schedule" ? (
         <></>
       ) : tabState === "Student Rights and Responsibilities" ? (
-        <></>
+        <>
+          <Speak>
+            As a student at LMU you have access to many services that you may
+            not be aware of! I have linked as many as I can think of here to
+            provide you with an easy way to find these services. You'll also
+            find a small paragraph of the mission statement from each of these
+            services.
+          </Speak>
+          <Speak>
+            (COC) Community of Care: "The mission of the Loyola Marymount
+            University Community of Care (COC) — a collaborative case-management
+            program — is to enhance community safety and student well-being. The
+            Community of Care provides prevention, assessment, and intervention
+            for and with students as they navigate the challenges that stand in
+            their way of academic and personal success.""
+            https://studentaffairs.lmu.edu/wellness/coc/learnmoreaboutus/
+          </Speak>
+          <Speak>
+            LION Connect: "LionConnect is a comprehensive portal designed to
+            empower students to take control of their academic journey to
+            achieve their goals. By offering a personalized dashboard, seamless
+            scheduling, and direct access to dedicated support staff,
+            LionConnect enhances communication and collaboration between
+            students and the Web of Support staff. This innovative approach
+            leverages technology and real-time data to provide personalized and
+            timely interventions, ensuring students receive the support they
+            need to succeed."
+            https://www.lmu.edu/academics/provost/resources/lionconnect/#:~:text=By%20offering%20a%20personalized%20dashboard,%20seamless%20scheduling,%20and%20direct%20access
+          </Speak>
+          <Speak>
+            (EIS) Ethnic and Intercultural Services: "The mission of the
+            department of Ethnic and Intercultural Services (EIS) is to support
+            the intercultural learning and development of students, specifically
+            those from historically underrepresented backgrounds at LMU. This
+            area has played a central role to support the personal and academic
+            success of students through programs and services focused on
+            identity development, community building, and advocacy. In an effort
+            to build upon our mission, there are four primary goals that we will
+            work on in three phases to further enhance our department
+            operations, programmatically engage with students, and collaborate
+            with campus partners."
+            https://studentaffairs.lmu.edu/community/ethnicandinterculturalservices/
+          </Speak>
+          <Speak>
+            Center for Student Collegiate Recovery: "Loyola Marymount
+            University's Center for Student Collegiate Recovery, located on the
+            first floor of Malone (Malone 113), provides a comfortable space and
+            supportive community for students in recovery or seeking to create
+            and sustain improvements in their wellness. Students will be
+            empowered to take individual responsibility for their own health and
+            well-being while belonging to a community of support. Staff
+            facilitate access to support groups and provide programming for
+            students and their allies in recovery. Weekly meetings are held each
+            semester. No sign-up required."
+            https://studentaffairs.lmu.edu/wellness/recovery/
+          </Speak>
+          <Speak>
+            (OISS) Office for International Students and Scholars: "The Office
+            for International Students and Scholars (OISS) serves as a resource
+            to the University by ensuring regulatory compliance. OISS provides
+            programs and services that support international students' and
+            scholars' social, educational and professional success, thereby,
+            creating an engaged global community."
+            https://studentaffairs.lmu.edu/community/officeforinternationalstudentsandscholars/
+          </Speak>
+          <Speak>
+            (OSCC) Office of Student Conduct and Community Responsibility:
+            "Loyola Marymount University's Office of Student Conduct & Community
+            Responsibility (OSCCR) is committed to fostering an environment
+            conducive to the pursuit of knowledge. Such an environment is based
+            upon respect, trust, integrity and accountability. Through education
+            and by upholding community standards detailed in the Student Conduct
+            Code, OSCCR holds LMU students accountable for their violations and
+            helps them grow into more responsible and community-minded persons."
+            https://studentaffairs.lmu.edu/about/osccr/#:~:text=Loyola%20Marymount%20University's%20Office%20of%20Student%20Conduct%20&%20Community%20Responsibility
+          </Speak>
+          <Speak>
+            (CSA) Pam Rector Center for Service and Action: "The Pam Rector
+            Center for Service and Action at LMU offers students and graduates a
+            range of opportunities to volunteer their time serving those
+            disadvantaged or oppressed. Service opportunities are available on
+            campus, locally in the Los Angeles area, and abroad through
+            dedicated service groups or special events. Participating LMU
+            students develop a well-defined sense of self and confidence and
+            they learn to spearhead meaningful contributions in their own
+            community. First-year LMU students, in particular, quickly learn the
+            university resources available to them and become more engaged in
+            student life, while developing personal accountability, good
+            judgment and independent thinking towards a balanced life. CSA also
+            serves as an on-campus resource for faculty and students working to
+            integrate Community-Based Learning programs into their curriculum."
+            https://studentaffairs.lmu.edu/activities/centerforserviceandaction/#:~:text=Pam%20Rector%20Center%20for%20Service%20and%20Action.%20About%20CSA.%20Programs.
+          </Speak>
+          <Speak>
+            (SES) Student Employment Services: "Student Employment Services
+            (SES) at LMU provides part-time employment opportunities, workshops,
+            and services to further students' professional development and
+            post-graduate success. More than 3,400 LMU students work in more
+            than 5,300 positions across campus. National reports and LMU
+            retention statistics indicate that students who work are more
+            successful because of the skills and experiences they obtain on the
+            job."
+          </Speak>
+          <Speak>
+            (SHS) Student Health Services: "Student Health Services (SHS)
+            remains committed to the health and safety of our campus community.
+            We are a full-service medical office that is accredited by the
+            Accreditation Association for Ambulatory Health Care (AAAHC).Our
+            health care team includes physicians, nurse practitioners,
+            registered nurses, and trained support staff. Our services include
+            treatment for illnesses and injuries, preventive care, Gynecological
+            health services, vaccinations, health education/wellness programs,
+            and much more."
+            https://studentaffairs.lmu.edu/wellness/studenthealthservices/#:~:text=Student%20Health%20Services%20(SHS)%20remains%20committed%20to%20the%20health%20and
+          </Speak>
+          <Speak>
+            (SPS) Student Psychological Services: "Student Psychological
+            Services is committed to facilitating student growth and development
+            of the whole person by providing high quality, confidential
+            psychological services that is social justice oriented, ethical and
+            culturally informed, to ensure the inclusivity and safety for
+            students."
+            https://studentaffairs.lmu.edu/wellness/studentpsychologicalservices/about/
+          </Speak>
+          <Speak>
+            Student Housing Services: "In the spirit of Loyola Marymount
+            University and Student Affairs missions, the Student Housing Office
+            creates a living and learning environment by providing programs and
+            services that empower students to realize their potential in mind,
+            body and spirit within a community that honors human diversity and
+            accepts students as individuals; each with rights and
+            responsibilities."
+            https://studentaffairs.lmu.edu/housing/studenthousing/#:~:text=Perched%20atop%20the%20bluff%20overlooking%20Los%20Angeles%20and%20the%20Pacific
+          </Speak>
+          <Speak>
+            Student Media: "The Student Media Department at Loyola Marymount
+            University offers unique opportunities to work at a fast-paced
+            student-run media outlet in an environment that allows you to
+            develop leadership skills that will make you a highly sought-after
+            job candidate once you hit the real word. Opportunities to get
+            involved include with The Los Angeles Loyolan newspaper, The Tower
+            Yearbook, ROAR Studios and KXLU 88.9FM radio station."
+            https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/studentmedia/#:~:text=The%20Student%20Media%20Department%20at%20Loyola%20Marymount%20University%20offers%20unique
+          </Speak>
+          <Speak>
+            Student Transition and Success: "The Student Success office is home
+            to departments focused on providing programming and outreach to
+            specific student populations to ensure their successful engagement,
+            retention and transition into Loyola Marymount University."
+            https://studentaffairs.lmu.edu/community/studentsuccess/#:~:text=The%20Student%20Success%20office%20is%20home%20to%20departments%20focused%20on
+          </Speak>
+          <Speak>
+            Burns Recreational Center: "Welcome to the Burns Recreation Center!
+            The Burns Recreation Center features a fitness center, group fitness
+            studios, multi-purpose courts, tennis courts and an Olympic-sized
+            outdoor swimming pool. Aquatics programs take place at the pool
+            located at Burns Recreation Center. LMU's Burns Recreation Pool also
+            has a lawn area as well as folding chairs around the pool deck
+            providing ideal space for sun bathing."
+            https://studentaffairs.lmu.edu/wellness/campusrecreationandstudentfacilities/facilities/burnsrecreationcenter/#:~:text=The%20Burns%20Recreation%20Center%20features%20a%20fitness%20center,%20group%20fitness
+          </Speak>
+          <Speak>
+            The Lion's Den: "Visit LMU's only completely student-run coffee
+            shop. Located on the first floor of Malone Student Center, the
+            Lion's Den serves 100% Fair Trade organic coffee, espresso and tea,
+            as well as a wide variety of delicious pastries. In addition, a
+            large seating area gives LMU students a space to gather and study.
+            The energetic, friendly student staff of the Lion's Den, which is
+            managed by Campus Recreation and Student Facilities, creates a
+            unique and inviting atmosphere that makes it one of the most popular
+            places to be on campus."
+            https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/venuesandhangouts/lionsdencoffeeshop/#:~:text=Visit%20LMU's%20only%20completely%20student-run%20coffee%20shop.%20Located%20on%20the
+          </Speak>
+          <Speak>
+            The Loft: "The Loft is LMU's craft beer and wine bar, which is
+            managed by LMU's Campus Recreation and Student Facilities
+            department. Open Monday through Friday, The Loft provides a
+            dedicated space for current LMU students, faculty, staff, and alumni
+            over the age of 21 to drink responsibly, socialize and learn about
+            the world of craft beer."
+            https://studentaffairs.lmu.edu/activities/campusactivitiesandentertainment/venuesandhangouts/theloftcraftbeerwine/#:~:text=Open%20Monday%20through%20Friday,%20The%20Loft%20provides%20a%20dedicated%20space
+          </Speak>
+          <Speak>
+            (FERPA) Family Education Rights and Privacy Act: "FERPA stands for
+            the Family Education Rights and Privacy Act of 1974. This law
+            protects the privacy of student education records from kindergarten
+            through graduate school. FERPA applies to all schools that receive
+            funds through an applicable program of the U.S. Department of
+            Education, and thus most postsecondary schools are covered by
+            FERPA." https://registrar.lmu.edu/ferpa-rightsandprivacyact/
+          </Speak>
+          <Speak>
+            (ASLMU) Associated Students of LMU: "ASLMU, in keeping with the
+            Jesuit and Marymount tradition, empowers the voice of the students
+            and actively promotes a vibrant campus life. Driven by integrity, we
+            devote ourselves to being persons for and with others."
+            https://www.aslmu.org/
+          </Speak>
+          <Speak>
+            (ARC) Academic Resource Center: "The Academic Resource Center (ARC)
+            provides Course Tutoring, Writing Tutoring, and Academic Coaching.
+            Our services are designed as a compliment to the curriculum with the
+            intentions of fostering academic success."
+            https://academics.lmu.edu/arc/#:~:text=The%20Academic%20Resource%20Center%20(ARC)%20provides%20Course%20Tutoring,%20Writing%20Tutoring,
+          </Speak>
+          <Speak>
+            (ITS) Information Technology Services: "ITS enables
+            technologically-rich learning environments, provides effective
+            teaching and scholarship resources and maintains reliable,
+            accessible, and integrated information systems. Information
+            Technology Services (ITS) provides management and services in
+            support of the University's information technology resources. These
+            resources include: Network and telecommunications systems, Computer
+            labs, Learning spaces, Administrative information systems, Web and
+            instructional technology services. ITS provides these services in an
+            effort to enhance the intellectual life and experience of students
+            and the University community and to provide for efficient technology
+            operations."
+            https://its.lmu.edu/#:~:text=Introducing%20the%20Artificial%20Intelligence%20Hub.%20This%20collaborative%20AI%20hub%20is
+          </Speak>
+          <Speak>
+            ME: This one, surprisingly, is not an acronym! It's literally
+            referring to me, Professor Julian Gonzalez. If this is overwhelming
+            and you are unsure where to go or what to do, you can talk to me
+            personally as a guide through your resources! Feel free to email me
+            to make a private appointment with me in my office for a private
+            space to discuss your thoughts.
+          </Speak>
+          <Speak>
+            However, these services are not free (you are paying for them after
+            all!). You keep access to these services by maintaining and
+            upholding the Lion Code, which can be found below.
+          </Speak>
+          <Speak>
+            I don't have any rules in particular to provide, however I do have a
+            golden rule that everyone should follow: "Don't Disturb the Learning
+            of Others."
+          </Speak>
+        </>
       ) : tabState === "FAQ" ? (
         <></>
       ) : (
