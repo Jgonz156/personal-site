@@ -7,6 +7,7 @@ export default function CoursePage({
   type,
   children,
   stepperInfo,
+  footerInfo,
 }: {
   type: "notes" | "homework" | "exam" | "syllabus" | "cheat-sheet"
   children: React.ReactNode
@@ -30,6 +31,7 @@ export default function CoursePage({
       buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
     }
   }
+  footerInfo?: any
 }) {
   return (
     <>
@@ -68,7 +70,7 @@ export default function CoursePage({
         </Sheet>
         {stepperInfo ? <CourseNavStepper stepperInfo={stepperInfo} /> : <></>}
       </Sheet>
-      <Footer />
+      <Footer>{footerInfo}</Footer>
     </>
   )
 }

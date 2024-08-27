@@ -6,6 +6,9 @@ import TitleBox from "../../components/title-box"
 import TopicBreak from "../../components/topic-break"
 import Vocab from "../../components/vocab"
 import ImageBox from "../../components/image-box"
+import MultiSelectQuestion from "../../components/multi-select-question"
+import BookCard from "../../../../components/book-card"
+import { Typography } from "@mui/joy"
 
 export default function LectureNotes0() {
   return (
@@ -19,6 +22,57 @@ export default function LectureNotes0() {
           buttonSlug: "/cmsi-2820/hw0",
         },
       }}
+      footerInfo={
+        <>
+          <BookCard
+            {...{
+              title: "Parallel Programming: Concepts and Practice",
+              authors: [
+                "Schmidt, Bertil",
+                "Gonzalez-Martinez, Jorge",
+                "Hundt, Christian",
+                "Schlarb, Moritz",
+              ],
+              pages: 416,
+              abstract: (
+                <>
+                  <Typography>
+                    Parallel Programming: Concepts and Practice provides an
+                    upper level introduction to parallel programming. In
+                    addition to covering general parallelism concepts, this text
+                    teaches practical programming skills for both shared memory
+                    and distributed memory architectures. The authors'
+                    open-source system for automated code evaluation provides
+                    easy access to parallel computing resources, making the book
+                    particularly suitable for classroom settings.
+                  </Typography>
+                  <Typography>
+                    Covers parallel programming approaches for single computer
+                    nodes and HPC clusters: OpenMP, multithreading, SIMD
+                    vectorization, MPI, UPC++.
+                  </Typography>
+                  <Typography>
+                    Contains numerous practical parallel programming exercises.
+                  </Typography>
+                  <Typography>
+                    Includes access to an automated code evaluation tool that
+                    enables students the opportunity to program in a web browser
+                    and receive immediate feedback on the result validity of
+                    their program.
+                  </Typography>
+                  <Typography>
+                    Features an example-based teaching of concept to enhance
+                    learning outcomes.
+                  </Typography>
+                </>
+              ),
+              link: undefined,
+              imageSlug:
+                "/book-covers/ParallelProgramming-ConceptsAndPractice.jpg",
+            }}
+          />
+        </>
+      }
     >
       <TitleBox
         title="Reading Course Material"
@@ -172,9 +226,84 @@ export default function LectureNotes0() {
         ]}
       />
       <TopicBreak title="Multi-select Question Component" />
-      <TopicBreak title="Knowledge Graph Component" />
-      <TopicBreak title="Lecture Stepper" />
+      <Speak>
+        This component is for practicing your conception of the course material
+        as we are making progress! These are important to pay attention to as
+        they represent direct examples of problems you will encounter on
+        homework assignments and exams.
+      </Speak>
+      <Speak>
+        This component is for practicing your conception of the course material
+        as we are making progress! These are important to pay attention to as
+        they represent direct examples of problems you will encounter on
+        homework assignments and exams.
+      </Speak>
+      <MultiSelectQuestion
+        question="Here is the question you are trying to solve! Try and solve the problem! Worst case you get it wrong and the hint can direct you closer to the right one!"
+        choices={["Here is selectable 1", "Here is selectable 2"]}
+        answers={[1, 1]}
+        incorrectMessage={
+          "I am the message that displays when you get the problem wrong! This is a bit unfortunate since it looks like you are wrong, but don't worry, selecting both will pass this question!"
+        }
+        correctMessage={
+          "I am the message that displays if you select all the correct answers and none of the others. If you needed the hint to get here, don't worry, these are always practice! These question boxes are not tracked or managed so feel free to mess around."
+        }
+      />
+      <Speak>
+        They are made of a few parts, the question itself, an optional image to
+        allow for questions from diagrams, the toggle buttons that represents
+        your answer choices, and the check answers toggle for displaying both
+        the correct and incorrect message. There can be any number of
+        multi-select answers to deal with, but these question boxes will always
+        be displayed right in the middle of the area to find all the answers.
+        These aren't made to be tricks, they made to ensure you get a grasp on
+        what I expect you to take away from my notes.
+      </Speak>
+      <TopicBreak title="Lecture Stepper" />.
+      <Speak>
+        This component is simple but does warrant some explanation due to it
+        being dynamic. At the bottom of the screen you will find another black
+        box before the footer with 3 circles. This is the lecture stepper
+        component. Its job is to act as a "Next" and "Previous" page button but
+        for lectures. It will always lead you to the next lecture on the right
+        and the previous on the left if it exists. The middle position is
+        special as it designates what the lectures are helping you with. It
+        might be an exam (In which case it will be red) or it might be a
+        homework assignment (In which case it will be green).
+      </Speak>
+      <Speak>
+        This component will only direct you to sources within a standard. This
+        is to ensure that you don't endlessly scroll all the lectures when they
+        are directed toward specific discrete "modules" of learning. At the
+        moment it just displays the homework for this standard (with blank
+        spaces left and right due to their only being one lecture in this
+        standard).
+      </Speak>
+      <Speak>All in all this component is simply a navigational aid</Speak>
       <TopicBreak title="Footer Sources" />
+      <Speak>
+        The last component of note on the site is the very bottom, which you've
+        most likely become familiar with without be describing it. Its simply
+        the website footer! It displays when, where, and how to contact me. It
+        also displays the university logo (which is a link) and two helpful
+        buttons beneath it. The gear is the settings menu. At the moment it
+        doesn't feature too much, but in the future in will have accessibility
+        settings to alter text size, color, and other site wide aspects to
+        promote a more personal site atmosphere. Next to that is the home button
+        which will take you all the way back to the homepage of the site.
+      </Speak>
+      <Speak>
+        However, you'll notice this footer is slightly different, it features a
+        third section displaying a book! This section won't always look like
+        this, but if you see something here, it means it was a source used for
+        the page you are viewing. In this case the book isn't actually a source
+        otherwise we'd be reading some very different things!
+      </Speak>
+      <TopicBreak title="Conclusion" />
+      <Speak>
+        This is the end of the site component tour. More may be added in the
+        future but you are free to move on now.
+      </Speak>
     </CoursePage>
   )
 }

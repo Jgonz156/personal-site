@@ -1,15 +1,24 @@
-import { Button, Chip, Divider, Sheet } from "@mui/joy";
-import CoursePage from "../components/course-page";
-import { useState } from "react";
-import Speak from "../components/speak";
-import CourseInfoDump from "../../../components/course-info-dump";
-import StandardsDiagram from "../components/standard-diagram";
-import Vocab from "../components/vocab";
-import TopicBreak from "../components/topic-break";
-import TitleBox from "../components/title-box";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionGroup,
+  AccordionSummary,
+  Button,
+  Chip,
+  Divider,
+  Sheet,
+} from "@mui/joy"
+import CoursePage from "../components/course-page"
+import { useState } from "react"
+import Speak from "../components/speak"
+import CourseInfoDump from "../../../components/course-info-dump"
+import StandardsDiagram from "../components/standard-diagram"
+import Vocab from "../components/vocab"
+import TopicBreak from "../components/topic-break"
+import TitleBox from "../components/title-box"
 
 export default function Syllabus() {
-  const [tabState, setTabState] = useState("Introduction");
+  const [tabState, setTabState] = useState("Introduction")
   return (
     <CoursePage type="syllabus">
       <Sheet
@@ -41,11 +50,14 @@ export default function Syllabus() {
         <Button color="neutral" onClick={() => setTabState("Schedule")}>
           Schedule
         </Button>
+        <Button color="neutral" onClick={() => setTabState("Student Services")}>
+          Student Services
+        </Button>
         <Button
           color="neutral"
-          onClick={() => setTabState("Student Rights and Responsibilities")}
+          onClick={() => setTabState("Student Responsibilities")}
         >
-          Student Rights and Responsibilities
+          Student Responsibilities
         </Button>
         <Button color="neutral" onClick={() => setTabState("FAQ")}>
           FAQ
@@ -66,6 +78,19 @@ export default function Syllabus() {
             you are in via prowl, this course's modal popup on this site's
             homepage, or even below this text here in the syllabus.
           </Speak>
+          <Divider>
+            <Chip>Prerequisites</Chip>
+          </Divider>
+          <Sheet
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-evenly",
+            }}
+          >
+            <Speak>CMSI 1010</Speak> or <Speak>ENGR 160</Speak> or
+            <Speak>ENGR 1200</Speak>
+          </Sheet>
           <CourseInfoDump
             sectionNumber={1}
             daysOfWeek={["Tuesday", "Thursday"]}
@@ -126,6 +151,19 @@ export default function Syllabus() {
             you everyone is in the course.
           </Speak>
           <Speak>
+            With that in mind, work-load expectations are in line with the
+            University's credit hour policy. Since this is a 4 unit/credit hour
+            course, it is expected that you spend a minimum of 3 hours of work
+            per credit hour (12 hours per week for us). This course encourages a
+            technique called "chiseling" where a student works in smaller
+            "chunks" of work more often to reduce burn-out caused by
+            procrastination. To ensure that a student is supported with this
+            technique, homeworks have been modified with "checkpoints" so that
+            the student understands where their content is used and where the
+            understanding of material is needed to progress. Greater detail will
+            be provided in the assignments themselves.
+          </Speak>
+          <Speak>
             This syllabus was specifically designed to group relevant
             information together in a more appealing manner than simply a long
             scrolling paper. To that end, this syllabus is designed to focus its
@@ -136,6 +174,13 @@ export default function Syllabus() {
           <Speak>
             The recommended order of reading the topics is from left to right,
             up to down, but feel free to jump around.
+          </Speak>
+          <Speak>
+            Also this syllabus is TENTATIVE in nature. It is subject to
+            alterations. Most changes will be made only to clarify pre-existing
+            policies, but when major changes are made (Such as a mode change to
+            Online or Async due to external circumstances) you will ALWAYS be
+            emailed and informed of ALL changes made.
           </Speak>
         </>
       ) : tabState === "Learning Outcomes" ? (
@@ -172,7 +217,41 @@ export default function Syllabus() {
           </Speak>
           <Speak>
             You will learn about the Boolean numbers and their relevance to
-            logic, .
+            computer logic, Venn Diagrams, The Natural numbers and
+            operationalizing arithmetic operations on them such as addition and
+            multiplication, and new arithmetic operations relating to modular
+            arithmetic and integer division.
+          </Speak>
+          <Speak>
+            You will learn about special collection constructs and their
+            mathematical counterparts, such as arrays as tuples, lists as
+            tuples, sets as sets, functions as sets, operators as relations, and
+            maps as partial functions as well as many of their constituent
+            operations and properties.
+          </Speak>
+          <Speak>
+            You will receive an undergraduate understanding of functions in the
+            context of the Lambda Calculus, the typed lambda calculus, and a
+            comparison to function as sets and how they compare.
+          </Speak>
+          <Speak>
+            You will learn about the study of combinatorics which includes
+            combinations, permutations, factorial algebra, "power
+            towers"/tetration and its higher-order counterparts, the pigeonhole
+            principle, and inductive proof techniques.
+          </Speak>
+          <Speak>
+            You will learn about Graph theory, its representation in
+          </Speak>
+          <Speak>
+            You will briefly see how all previous learning objectives are
+            recontextualized when interpreting it through Set Theory as opposed
+            to Type Theory.
+          </Speak>
+          <Speak>
+            Finally, you will get experience using Python to analyze, solve, and
+            engage with these theories common problems and algorithmic solution
+            techniques.
           </Speak>
         </>
       ) : tabState === "Required Materials" ? (
@@ -443,7 +522,64 @@ export default function Syllabus() {
         </>
       ) : tabState === "Schedule" ? (
         <></>
-      ) : tabState === "Student Rights and Responsibilities" ? (
+      ) : tabState === "Student Responsibilities" ? (
+        <>
+          <Speak>
+            This page is to break down all the University rules that relate to
+            this course and our in-person classroom environment.
+          </Speak>
+          <TopicBreak title="General University Policies" />
+          <TitleBox
+            title="Academic Honesty Policy:"
+            quote={`"Loyola Marymount University is a community dedicated to academic excellence. 
+Academic honesty in scholarship and creative work stands at the center of LMU's 
+academic life, and is essential for true learning and creation of knowledge to take 
+place. As a university in the Jesuit and Marymount traditions, this community expects 
+its members to act in accordance with the highest standards of honesty and ethics at 
+all times. Violations of academic honesty undermine the fundamental educational 
+mission of the University and cannot be tolerated. Students are responsible for 
+understanding the standards of academic honesty and determining how they apply to 
+their academic work and behavior. Students are responsible for contacting their 
+Instructor(s) before assignments are due to proactively resolve any questions they 
+may have."`}
+            link="https://academics.lmu.edu/honesty/"
+          />
+          <TitleBox
+            title="Disability Support Services:"
+            quote={`"The mission of the Disability Support Services (DSS) Office at LMU is to provide equal access and opportunities for students with established disabilities. We are committed to promoting and celebrating the diversity of our students, staff, and faculty and work to eliminate systemic barriers, address individual bias, and maintain a respectful and equitable working environment.
+DSS envisions and aspires to promote a culture of inclusion and equal opportunity through a campus wide responsibility and commitment to access, where all individuals with disabilities at LMU can thrive, participate fully, and are regarded as valued and contributing members of society."`}
+            link="https://academics.lmu.edu/dss/"
+          />
+          <TitleBox
+            title="LMU Expectation For Classroom Behavior:"
+            quote={`"Disruptive behavior which is persistent or significantly interferes
+with classroom activities may be subject to disciplinary action. A student may be referred to the Office of Student Conduct and Community Responsibility if their behavior constitutes a violation of the conduct code.
+"`}
+            link="https://studentaffairs.lmu.edu/about/osccr/studentcodespolicies/"
+          />
+          <TitleBox
+            title="Reporting of Sexual or Interpersonal Misconduct:"
+            quote={`"Loyola Marymount University (“LMU”) recognizes the significant, unacceptable and nationwide
+existence of Sexual and Interpersonal Misconduct on college campuses. LMU is dedicated to
+the prevention of such misconduct and to providing a caring, supportive and effective response
+when such misconduct occurs. Accordingly, LMU encourages Students and University
+Community members to report instances of Sexual and Interpersonal Misconduct so that the
+University can take appropriate responsive action..."`}
+            link="https://lmu.app.box.com/s/n8o56hqp4f7l6qroftzpkz29xs26oo2o"
+          />
+          <TitleBox
+            title="Communication Expectations:"
+            quote={`While the university doesn't have an explicit set of rules about this, what they do have rules on is "Official" communication channels. Ensure that any official communication (Defined roughly as any activity that includes any formal "written" communication between faculty and a student (Where written is non-verbal communication)) is done explicity from LMU approved sources (Your student email, Department Teams or Slacks, or letters on official LMU letterhead). You are also responsible for regularly checking your student email as the university will not contact you any other way. Other than that, understand the official channels of communication can be audited for the purposes of a misconduct case.`}
+          />
+          <TitleBox
+            title="Emergency Preparedness:"
+            quote={`"Building a more resilient LMU is a shared responsibility among all students, faculty, and staff. Emergency Management serves as an all-encompassing tool for campus emergency information, disaster readiness events at LMU, and tips on how to prepare for and respond to various emergencies.
+
+Utilize the resources available through Emergency Management to help ensure that you and LMU are prepared. Together, we strengthen the university's ability to respond to and recover from an emergency."`}
+            link="https://safety.lmu.edu/em/"
+          />
+        </>
+      ) : tabState === "Student Services" ? (
         <>
           <Speak>
             As a student at LMU you have access to many services that you may
@@ -724,10 +860,149 @@ export default function Syllabus() {
           </Speak>
         </>
       ) : tabState === "FAQ" ? (
-        <></>
+        <>
+          <Sheet
+            color="primary"
+            variant="soft"
+            sx={{
+              p: 4,
+              borderRadius: 12,
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <AccordionGroup
+              color="primary"
+              variant="soft"
+              transition="0.4s"
+              sx={{ borderRadius: 12 }}
+            >
+              <Accordion>
+                <AccordionSummary>
+                  What if I miss the exam due date?
+                </AccordionSummary>
+                <AccordionDetails>
+                  Unlike the assignments, which have an optional unexcused
+                  extension you can take for a point-loss, if you miss the due
+                  date for an exam thats just it. I made the exams purposefully
+                  straightforward and non-time consuming to avoid any scheduling
+                  issues.
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>
+                  Due to the University handling the assignment of Finals during
+                  the last week of the semester, Does that change how exams are
+                  administered?
+                </AccordionSummary>
+                <AccordionDetails>
+                  No, they will still be over Brightspace digitally to be taken
+                  anytime during the week, like the midterm. However, since I am
+                  required to be in those assigned rooms for 2 hours I will
+                  provide them as an open study days for help during finals
+                  week.
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>
+                  Are AI tools allowed in your course?
+                </AccordionSummary>
+                <AccordionDetails>
+                  Yes! I'd rather you know the appropriate use of a tool rather
+                  than trying to use it behind my back to disastrous results.
+                  What you shouldn't try to do is make it do all your HW. It is
+                  tempting, but I already know that AI tools perform poorly on
+                  our course material. However, AI tools are great at the
+                  comprehension of the topics! So don't ask ChatGPT to do the
+                  problem, ask it for ideas on what to do instead!
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>Is participation mandatory?</AccordionSummary>
+                <AccordionDetails>
+                  Nope. If you are the type of learner that performs better just
+                  listening quietly feel free to do so! However, don't ever be
+                  afraid to ask questions! We are covering hard material
+                  (Because I adapted course materials from graduate level work
+                  from many colleges like Cornell, Carnegie Melon, Stanford, and
+                  others) so don't just "bask", ask!
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>
+                  Are the workload expectations the same as in other course?
+                </AccordionSummary>
+                <AccordionDetails>
+                  Great question! I actually want to encourage "less" work by
+                  getting you all to work sooner in small chunks. Think about my
+                  grading system, if you do well on the homework by chiseling
+                  away at it early, you will avoid more than half of all the
+                  assignments and still get an A! So it might feel like the
+                  workload is higher, but really I just want it more often and
+                  for less time.
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>
+                  Am I allowed to have my computer/phone out and open during
+                  class?
+                </AccordionSummary>
+                <AccordionDetails>
+                  Yes. I'll be honest, the old system of keeping your tech out
+                  of sight so that I can monopolize your attention is pretty
+                  draconian (Old and reminisce of Vampires). If a message that
+                  YOU think is important comes up and you feel you need to
+                  answer it, go ahead, just don't disrupt others is all. Also
+                  this is a computer science course, bit odd to have a policy
+                  against tech right?
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>Can I eat in class?</AccordionSummary>
+                <AccordionDetails>
+                  This is a bit of a loaded question. My big rule is not to
+                  disrupt anyone. If you can eat it without bothering those in
+                  your immediate area, then you are good to go. Foods that emit
+                  an "area of effect" so to speak are not allowed as they may be
+                  disruptive others. I also retain the ability to stop anyone
+                  from eating at any time for the purposes of class activities
+                  or enforcing other university policies.
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>Can I ask for extra-credit?</AccordionSummary>
+                <AccordionDetails>
+                  While it may seem harsh, no. The course is made to provide all
+                  the opportunity necessary to succeed up front, if by the very
+                  end there is a serious issue we will work on it together, but
+                  if you are sitting at a B+ right on the edge of an A-, I will
+                  not invent work to boost your grade as it would be unfair to
+                  other students.
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary>
+                  Am I required to show up to class?
+                </AccordionSummary>
+                <AccordionDetails>
+                  No, you are all adult enough by now to make that decision for
+                  yourself. I'd highly recommend showing up because I
+                  constructed this class to center around the in-person
+                  experience. But I will not be docking your grade if you do not
+                  attend. The only detriment you will receive is from the
+                  awkwardness that arises from missing material.
+                </AccordionDetails>
+              </Accordion>
+            </AccordionGroup>
+          </Sheet>
+          <Speak>This list is subject to expand.</Speak>
+        </>
       ) : (
-        <> Hey You're Not Supposed to See This! How Did You Get Back Here?</>
+        <>Hey You're Not Supposed to See This! How Did You Get Back Here?</>
       )}
     </CoursePage>
-  );
+  )
 }

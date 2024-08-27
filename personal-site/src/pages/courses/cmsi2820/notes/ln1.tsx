@@ -517,11 +517,8 @@ export default function LectureNotes1() {
       </Speak>
       <Speak>
         Well that was a lot about logic! With this discussion ended we can now
-        say this course will feature Higher Order Intuitionistic Logic! Now as a
-        brief summary of what we talked about today, enjoy this knowledge tree
-        that displays the topics learned!
+        say this course will feature Higher Order Intuitionistic Logic!
       </Speak>
-      <Speak>vis.js or react-flow graph of the topics discussed today</Speak>
     </CoursePage>
   )
 }

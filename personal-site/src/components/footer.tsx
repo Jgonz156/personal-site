@@ -20,6 +20,7 @@ import PhoneIcon from "@mui/icons-material/Phone"
 import GitHubIcon from "@mui/icons-material/GitHub"
 import HomeIcon from "@mui/icons-material/Home"
 import SettingsMenu from "./settings-menu"
+import AccessTimeIcon from "@mui/icons-material/AccessTime"
 
 const personalInfo = [
   {
@@ -30,6 +31,10 @@ const personalInfo = [
   {
     value: "Foley Annex 139",
     icon: <MeetingRoomIcon />,
+  },
+  {
+    value: "Office Hours: W 9AM-12PM, W 2PM-5PM",
+    icon: <AccessTimeIcon />,
   },
   {
     value: "Julian.Gonzalez@lmu.edu",
