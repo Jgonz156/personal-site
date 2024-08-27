@@ -6,21 +6,21 @@ import {
   ListItem,
   Sheet,
   Typography,
-} from "@mui/joy";
-import CourseCard from "./course-card";
-import { CourseStatusBadge, SiteContext } from "./site-context";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import FeedIcon from "@mui/icons-material/Feed";
-import SchoolIcon from "@mui/icons-material/School";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import React from "react";
-import CourseInfoDump from "./course-info-dump";
-import PaperCard from "./paper-card";
-import BookCard from "./book-card";
-import ProjectCard from "./project-card";
+} from "@mui/joy"
+import CourseCard from "./course-card"
+import { CourseStatusBadge, SiteContext } from "./site-context"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import FeedIcon from "@mui/icons-material/Feed"
+import SchoolIcon from "@mui/icons-material/School"
+import AccountTreeIcon from "@mui/icons-material/AccountTree"
+import React from "react"
+import CourseInfoDump from "./course-info-dump"
+import PaperCard from "./paper-card"
+import BookCard from "./book-card"
+import ProjectCard from "./project-card"
 
 export default function Home() {
-  const { settings, dispatch } = React.useContext(SiteContext);
+  const { settings, dispatch } = React.useContext(SiteContext)
   const courses = [
     {
       title: "Discrete Mathematics for CS",
@@ -87,7 +87,7 @@ export default function Home() {
             timeStart="9:55 AM"
             timeEnd="11:35 AM"
             building="Pereira"
-            roomNumber={206}
+            roomNumber={201}
           />
           <CourseInfoDump
             sectionNumber={2}
@@ -108,7 +108,7 @@ export default function Home() {
         </Sheet>
       ),
     },
-  ];
+  ]
   const selfPapers = [
     {
       title:
@@ -138,7 +138,7 @@ export default function Home() {
       imageSlug:
         "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
     },
-  ];
+  ]
   //const otherPapers = [{}];
   const books = [
     {
@@ -224,8 +224,8 @@ export default function Home() {
       link: undefined,
       imageSlug: "/book-covers/ParallelProgramming-ConceptsAndPractice.jpg",
     },
-  ];
-  const projects = [{}];
+  ]
+  const projects = [{}]
   return (
     <Sheet
       sx={{
@@ -378,5 +378,5 @@ export default function Home() {
         ))}
       </Sheet>
     </Sheet>
-  );
+  )
 }

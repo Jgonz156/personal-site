@@ -97,7 +97,7 @@ export default function Syllabus() {
             timeStart="9:55 AM"
             timeEnd="11:35 AM"
             building="Pereira"
-            roomNumber={206}
+            roomNumber={201}
           />
           <CourseInfoDump
             sectionNumber={2}
