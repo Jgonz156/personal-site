@@ -41,7 +41,7 @@ const personalInfo = [
     icon: <EmailIcon />,
   },
   {
-    value: "To be determined",
+    value: "(310)-338-7353",
     icon: <PhoneIcon />,
   },
   //{
