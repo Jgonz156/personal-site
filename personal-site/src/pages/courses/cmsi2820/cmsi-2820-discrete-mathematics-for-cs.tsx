@@ -92,7 +92,7 @@ export default function CMSI2820() {
                   examSlug="/cmsi-2820/ex0"
                 />
               </Standard>
-              {/*
+
               <Standard
                 number={1}
                 title="Logic"
@@ -110,6 +110,7 @@ export default function CMSI2820() {
                   what it even means to craft a valid line of reasoning."
                   notesSlug="/cmsi-2820/ln1"
                 />
+                {/* 
                 <NotesCard
                   title="LN 2: Assumptions Make an Argument out of You and Me"
                   description="This lecture will be an introduction to 
@@ -135,8 +136,9 @@ export default function CMSI2820() {
                   translating natural language into logic, and natural deduction proofs!"
                   assignmentSlug="/cmsi-2820/hw1"
                 />
+                */}
               </Standard>
-              
+              {/*
               <Standard
                 number={2}
                 title="Numbers"
