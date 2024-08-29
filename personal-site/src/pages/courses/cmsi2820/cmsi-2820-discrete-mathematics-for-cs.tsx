@@ -70,6 +70,12 @@ export default function CMSI2820() {
                             for information and displays the small interactive
                             modules I might have throughout the notes."
                   notesSlug="/cmsi-2820/ln0"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/PLwKIyzTMabBtCxm-aT-7vswCLzer2D1mT-xySwyg6gL9K6m9aqzRo6F14o2zb4R.AFLsJSASj4l4z3LW?startTime=1724950470000",
+                    },
+                  ]}
                 />
                 <AssignmentCard
                   title="HW 0: Practicing Homework"

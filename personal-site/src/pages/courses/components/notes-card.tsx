@@ -5,10 +5,12 @@ export default function NotesCard({
   title,
   description,
   notesSlug,
+  sectionRecordings,
 }: Readonly<{
   title: string
   description: string
   notesSlug: string
+  sectionRecordings?: { url: string; buttonText: string }[]
 }>) {
   return (
     <Card
@@ -32,6 +34,21 @@ export default function NotesCard({
         >
           Open
         </Button>
+        {sectionRecordings ? (
+          sectionRecordings.map(({ url, buttonText }) => (
+            <Button
+              component={RouterLink}
+              to={url}
+              color="success"
+              variant="solid"
+              sx={{ maxWidth: "1in" }}
+            >
+              {buttonText}
+            </Button>
+          ))
+        ) : (
+          <></>
+        )}
       </CardActions>
     </Card>
   )

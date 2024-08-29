@@ -5,10 +5,12 @@ export default function ExamCard({
   title,
   description,
   examSlug,
+  studyHelpRecordings,
 }: Readonly<{
   title: string
   description: string
   examSlug: string
+  studyHelpRecordings?: { url: string; buttonText: string }[]
 }>) {
   return (
     <Card
@@ -32,6 +34,21 @@ export default function ExamCard({
         >
           Open
         </Button>
+        {studyHelpRecordings ? (
+          studyHelpRecordings.map(({ url, buttonText }) => (
+            <Button
+              component={RouterLink}
+              to={url}
+              color="success"
+              variant="solid"
+              sx={{ maxWidth: "1in" }}
+            >
+              {buttonText}
+            </Button>
+          ))
+        ) : (
+          <></>
+        )}
       </CardActions>
     </Card>
   )

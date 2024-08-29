@@ -5,10 +5,12 @@ export default function AssignmentCard({
   title,
   description,
   assignmentSlug,
+  homeworkHelpRecordings,
 }: {
   title: string
   description: string
   assignmentSlug: string
+  homeworkHelpRecordings?: { url: string; buttonText: string }[]
 }) {
   return (
     <Card
@@ -32,6 +34,21 @@ export default function AssignmentCard({
         >
           Open
         </Button>
+        {homeworkHelpRecordings ? (
+          homeworkHelpRecordings.map(({ url, buttonText }) => (
+            <Button
+              component={RouterLink}
+              to={url}
+              color="success"
+              variant="solid"
+              sx={{ maxWidth: "1in" }}
+            >
+              {buttonText}
+            </Button>
+          ))
+        ) : (
+          <></>
+        )}
       </CardActions>
     </Card>
   )
