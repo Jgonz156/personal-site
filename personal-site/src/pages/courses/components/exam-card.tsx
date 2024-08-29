@@ -39,7 +39,7 @@ export default function ExamCard({
             <Button
               component={RouterLink}
               to={url}
-              color="success"
+              color="danger"
               variant="solid"
               sx={{ maxWidth: "1in" }}
             >

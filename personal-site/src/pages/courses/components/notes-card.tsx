@@ -39,7 +39,7 @@ export default function NotesCard({
             <Button
               component={RouterLink}
               to={url}
-              color="success"
+              color="primary"
               variant="solid"
               sx={{ maxWidth: "1in" }}
             >
