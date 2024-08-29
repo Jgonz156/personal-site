@@ -1,10 +1,11 @@
+import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
 
 export default function Exam2() {
   return (
     <>
       <CoursePage type="exam">
-        Under Construction! Please Come Back Later!
+        <CourseBox>Under Construction! Please Come Back Later!</CourseBox>
       </CoursePage>
     </>
   )

@@ -1,8 +1,10 @@
-import { useColorScheme, Button } from "@mui/joy"
+import { useColorScheme as useMaterialColorScheme } from "@mui/material/styles"
+import { useColorScheme as useJoyColorScheme, Button } from "@mui/joy"
 import React from "react"
 
 export function ModeToggle() {
-  const { mode, setMode } = useColorScheme()
+  const { mode, setMode: setMaterialMode } = useMaterialColorScheme()
+  const { setMode: setJoyMode } = useJoyColorScheme()
   const [mounted, setMounted] = React.useState(false)
 
   // necessary for server-side rendering
@@ -18,7 +20,8 @@ export function ModeToggle() {
     <Button
       variant="outlined"
       onClick={() => {
-        setMode(mode === "light" ? "dark" : "light")
+        setMaterialMode(mode === "light" ? "dark" : "light")
+        setJoyMode(mode === "light" ? "dark" : "light")
       }}
     >
       {mode === "light" ? "Activate Dark Mode" : "Activate Light Mode"}

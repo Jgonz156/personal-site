@@ -2,7 +2,15 @@ import React from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 import App from "./pages/App.tsx"
-import { CssVarsProvider, extendTheme } from "@mui/joy"
+import {
+  experimental_extendTheme as materialExtendTheme,
+  Experimental_CssVarsProvider as MaterialCssVarsProvider,
+  THEME_ID as MATERIAL_THEME_ID,
+} from "@mui/material/styles"
+import {
+  CssVarsProvider as JoyCssVarsProvider,
+  extendTheme as joyExtendTheme,
+} from "@mui/joy"
 import CMSI2820 from "./pages/courses/cmsi2820/cmsi-2820-discrete-mathematics-for-cs.tsx"
 import { SiteContextProvider } from "./components/site-context.tsx"
 import "./index.css"
@@ -43,7 +51,9 @@ const router = [
   { path: "/cmsi-2820/ex2", element: <EX2 /> },
 ]
 
-const adjustedMUIDefault = extendTheme({
+const materialTheme = materialExtendTheme()
+
+const joyTheme = joyExtendTheme({
   colorSchemes: {
     light: { palette: { warning: { 500: "#c46d0a" } } },
     dark: { palette: { warning: { 500: "#c46d0a" } } },
@@ -54,15 +64,20 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <SiteContextProvider>
       <MathJaxContext>
-        <CssVarsProvider theme={adjustedMUIDefault} defaultMode="dark">
-          <Router>
-            <Routes>
-              {router.map(({ path, element }, i) => (
-                <Route key={i} path={path} element={element} />
-              ))}
-            </Routes>
-          </Router>
-        </CssVarsProvider>
+        <MaterialCssVarsProvider
+          theme={{ [MATERIAL_THEME_ID]: materialTheme }}
+          defaultMode="dark"
+        >
+          <JoyCssVarsProvider theme={joyTheme} defaultMode="dark">
+            <Router>
+              <Routes>
+                {router.map(({ path, element }, i) => (
+                  <Route key={i} path={path} element={element} />
+                ))}
+              </Routes>
+            </Router>
+          </JoyCssVarsProvider>
+        </MaterialCssVarsProvider>
       </MathJaxContext>
     </SiteContextProvider>
   </React.StrictMode>
