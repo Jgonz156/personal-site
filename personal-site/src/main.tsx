@@ -30,6 +30,8 @@ import EX0 from "./pages/courses/cmsi2820/exams/ex0.tsx"
 import EX1 from "./pages/courses/cmsi2820/exams/ex1.tsx"
 import EX2 from "./pages/courses/cmsi2820/exams/ex2.tsx"
 import { MathJaxContext } from "better-react-mathjax"
+import { LocalizationProvider } from "@mui/x-date-pickers"
+import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon"
 
 const router = [
   { path: "/", element: <App /> },
@@ -69,13 +71,32 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           defaultMode="dark"
         >
           <JoyCssVarsProvider theme={joyTheme} defaultMode="dark">
-            <Router>
-              <Routes>
-                {router.map(({ path, element }, i) => (
-                  <Route key={i} path={path} element={element} />
-                ))}
-              </Routes>
-            </Router>
+            <LocalizationProvider
+              dateAdapter={AdapterLuxon}
+              localeText={{
+                calendarWeekNumberHeaderText: "School Week",
+                calendarWeekNumberText: (weekNumber) => {
+                  const weekOffset = (weekNumber + 34) % 34
+                  return weekOffset <= 0 || weekOffset > 16
+                    ? ""
+                    : weekOffset % 10 === 1 && weekOffset !== 11
+                    ? `${weekOffset}st`
+                    : weekOffset % 10 === 2 && weekOffset !== 12
+                    ? `${weekOffset}nd`
+                    : weekOffset % 10 === 3 && weekOffset !== 13
+                    ? `${weekOffset}rd`
+                    : `${weekOffset}th`
+                },
+              }}
+            >
+              <Router>
+                <Routes>
+                  {router.map(({ path, element }, i) => (
+                    <Route key={i} path={path} element={element} />
+                  ))}
+                </Routes>
+              </Router>
+            </LocalizationProvider>
           </JoyCssVarsProvider>
         </MaterialCssVarsProvider>
       </MathJaxContext>

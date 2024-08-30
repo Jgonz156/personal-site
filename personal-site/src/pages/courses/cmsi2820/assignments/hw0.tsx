@@ -8,6 +8,9 @@ import QuestionBox from "../../components/question-box"
 import TopicBox from "../../components/topic-box"
 import LinkButton from "../../components/link-button"
 import ImageBox from "../../components/image-box"
+import DueDateCalendar from "../../components/due-date-calendar"
+import { DateTime } from "luxon"
+import DirectoryTree from "../../components/directory-tree"
 
 export default function Homework0() {
   return (
@@ -93,7 +96,7 @@ export default function Homework0() {
         </CourseBox>
         <CourseBox>
           <TitleBox title="HW0: Practicing Homework!" />
-          <Speak>insert assignment calendar due date here</Speak>
+          <DueDateCalendar dueDate={DateTime.local(2024, 9, 3, 23, 59)} />
           <TopicBox
             topics={[
               "There are no particular topics for this HW",
@@ -174,7 +177,9 @@ export default function Homework0() {
         </CourseBox>
         <CourseBox>
           <TitleBox title="Programming Section" quote="Points: 1" />
-          <Speak>Insert github repo file tree here</Speak>
+          <DirectoryTree
+            filesAsJSON={{ hw0Files: { questions: <></>, test: <></> } }}
+          />
           <Speak>
             For the programming section of this homework we will be getting used
             to the flow of receiving our code skeleton as a template repository
