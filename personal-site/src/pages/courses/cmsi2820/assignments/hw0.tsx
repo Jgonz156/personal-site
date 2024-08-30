@@ -178,7 +178,15 @@ export default function Homework0() {
         <CourseBox>
           <TitleBox title="Programming Section" quote="Points: 1" />
           <DirectoryTree
-            filesAsJSON={{ hw0Files: { questions: <></>, test: <></> } }}
+            filesAsJSON={{
+              "CMSI-2820-HW0": {
+                ".gitignore": <></>,
+                LICENSE: <></>,
+                "questions.py": <></>,
+                "README.md": <></>,
+                "test.py": <></>,
+              },
+            }}
           />
           <Speak>
             For the programming section of this homework we will be getting used

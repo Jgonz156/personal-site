@@ -43,7 +43,7 @@ export default function DirectoryTree({
             {Object.entries(files).map(([fileName, _]) => (
               <TreeItem
                 itemId={fileName}
-                label={`${fileName}.py`}
+                label={fileName}
                 slots={{ icon: PythonFileIcon }}
               ></TreeItem>
             ))}
