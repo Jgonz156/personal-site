@@ -44,7 +44,9 @@ export default function DirectoryTree({
               <TreeItem
                 itemId={fileName}
                 label={fileName}
-                slots={{ icon: PythonFileIcon }}
+                slots={{
+                  icon: fileName.endsWith(".py") ? PythonFileIcon : undefined,
+                }}
               ></TreeItem>
             ))}
           </TreeItem>

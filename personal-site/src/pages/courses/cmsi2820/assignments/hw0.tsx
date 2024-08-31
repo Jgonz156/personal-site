@@ -171,8 +171,11 @@ export default function Homework0() {
             me on BrightSpace in the "Written" HW0 assignment linked with the
             button below!
           </Speak>
-          <LinkButton color="success" to="">
-            Written HW0 Turn In (Shouldn't go anywhere yet)
+          <LinkButton
+            color="success"
+            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684852/detailsview#684852"
+          >
+            Written HW0 Turn In
           </LinkButton>
         </CourseBox>
         <CourseBox>
@@ -181,10 +184,9 @@ export default function Homework0() {
             filesAsJSON={{
               "CMSI-2820-HW0": {
                 ".gitignore": <></>,
-                LICENSE: <></>,
                 "questions.py": <></>,
                 "README.md": <></>,
-                "test.py": <></>,
+                "test_questions.py": <></>,
               },
             }}
           />
@@ -214,6 +216,20 @@ export default function Homework0() {
           </Speak>
           <LinkButton color="success" to="">
             Helper Video (Shouldn't go anywhere yet)
+          </LinkButton>
+          <Speak>
+            Below you will find an amazing guide designed by Dr. Forney that
+            helps get all your software in order! He likes using MyPy which is
+            an additional feature library that we do NOT need for this course so
+            feel free to ignore that portion of the guide, but installing it
+            anyway is good for the future and won't interfere with our course
+            material. This guide is found in the button below!
+          </Speak>
+          <LinkButton
+            color="success"
+            to="https://forns.lmu.build/classes/tutorials/python-dev-setup.html"
+          >
+            Dr. Forney's Python Setup Guide!
           </LinkButton>
           <Speak>
             Since, via GitHub Classrooms rules, you are joining the class for
@@ -247,28 +263,36 @@ export default function Homework0() {
             as the Python files, and type the "pytest" command into your
             terminal and hit enter. If the command is not found make sure to
             install it via Python's Package Manager "pip" by doing "pip install
-            pytest" and then try again.
+            pytest" and then try again. If that still doesn't work, it means the
+            terminal doesn't have the command aliased, which is ok! Just run
+            this command instead "python -m pytest"
           </Speak>
           <Speak>
             Once you are passing all the tests make sure to use your git
             commands to add your changes, commit them, and then push them to the
             cloud repository so I can grade it! This is "turning in the code" to
             me so I can grade. However, as an extra step, go to brightspace and
-            find the "Programming" HW0 assignment and just turn in nothing as an
-            indicator to me you are done! (I need you to do this so I can track
-            what time YOU say you finished your HW! Otherwise, I might
-            accidentally take points away thinking you turned it in on Sunday!
-            Save those 25 points!)
+            find the "Programming" HW0 assignment and just turn in a small
+            message as an indicator to me you are done! (I need you to do this
+            so I can track what time YOU say you finished your HW! Otherwise, I
+            might accidentally take points away thinking you turned it in on
+            Sunday! Save those 25 points!)
           </Speak>
           <Speak>
             You can find the GitHub Classroom assignment link as a button below
             and the Brightspace turn in link next to it.
           </Speak>
-          <LinkButton color="success" to="">
-            GitHub Assignment (Shouldn't go anywhere yet)
+          <LinkButton
+            color="success"
+            to="https://classroom.github.com/a/q8fEFsGq"
+          >
+            GitHub Assignment
           </LinkButton>
-          <LinkButton color="success" to="">
-            Programming HW0 Turn In (Shouldn't go anywhere yet)
+          <LinkButton
+            color="success"
+            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684892/detailsview#684892"
+          >
+            Programming HW0 Turn In
           </LinkButton>
         </CourseBox>
         <CourseBox>
@@ -290,8 +314,11 @@ export default function Homework0() {
           <ImageBox
             images={[{ url: "/cmsi-2820/HW0-Meme.jpg", caption: undefined }]}
           />
-          <LinkButton color="success" to="">
-            Optional HW0 turn in (Shouldn't go anywhere yet)
+          <LinkButton
+            color="success"
+            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684893/detailsview#684893"
+          >
+            Optional HW0 turn in
           </LinkButton>
         </CourseBox>
       </CoursePage>
