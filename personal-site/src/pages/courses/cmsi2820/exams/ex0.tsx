@@ -106,8 +106,11 @@ export default function Exam0() {
           <Speak>This exam is worth in total 2 points</Speak>
           <Speak>This exam has 5 questions</Speak>
           <DueDateBox daysOfWeek={["Friday"]} dueTime="11:59 PM" />
-          <LinkButton to="/cmsi-2820/ex0" color="danger">
-            To the Exam! (This shouldn't go anywhere right now)
+          <LinkButton
+            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/685321/detailsview#685321"
+            color="danger"
+          >
+            To the Exam!
           </LinkButton>
         </CourseBox>
       </CoursePage>
