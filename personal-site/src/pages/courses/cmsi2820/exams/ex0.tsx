@@ -1,7 +1,6 @@
 import { DateTime } from "luxon"
 import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
-import DueDateBox from "../../components/due-date-box"
 import DueDateCalendar from "../../components/due-date-calendar"
 import LinkButton from "../../components/link-button"
 import MultiSelectQuestion from "../../components/multi-select-question"
