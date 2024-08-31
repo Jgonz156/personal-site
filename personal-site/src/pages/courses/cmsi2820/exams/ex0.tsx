@@ -1,6 +1,8 @@
+import { DateTime } from "luxon"
 import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
 import DueDateBox from "../../components/due-date-box"
+import DueDateCalendar from "../../components/due-date-calendar"
 import LinkButton from "../../components/link-button"
 import MultiSelectQuestion from "../../components/multi-select-question"
 import Speak from "../../components/speak"
@@ -94,18 +96,14 @@ export default function Exam0() {
           </Speak>
           <TopicBreak title="Syllabus Exam" />
           <Speak>This exam covers standard 0, the syllabus.</Speak>
+          <Speak>The exam has unlimited attempts and no timer.</Speak>
           <Speak>
-            The exam is timed to take at most 30 minutes before it automatically
-            ends.
-          </Speak>
-          <Speak>
-            The exam will cover the topics of grading, navigation of the course
-            site, a few university imposed rules, and what my only classroom
-            rule is.
+            The exam will cover the topics of what my only classroom rule is,
+            contact information, course standards, and LMU student services
           </Speak>
           <Speak>This exam is worth in total 2 points</Speak>
           <Speak>This exam has 5 questions</Speak>
-          <DueDateBox daysOfWeek={["Friday"]} dueTime="11:59 PM" />
+          <DueDateCalendar dueDate={DateTime.local(2024, 9, 3)} />
           <LinkButton
             to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/685321/detailsview#685321"
             color="danger"
