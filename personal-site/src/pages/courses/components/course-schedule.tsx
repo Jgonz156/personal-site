@@ -392,15 +392,27 @@ export default function CourseSchedule() {
       dayInfo: <></>,
     },
     {
+      date: DateTime.local(2024, 12, 9).startOf("day"),
+      quote: "Final Release Day",
+      dayType: "finals",
+      dayInfo: <></>,
+    },
+    {
       date: DateTime.local(2024, 12, 10).startOf("day"),
       quote: "Finals Study Day 6 PM - 8 PM Seaver 304",
-      dayType: "finals",
+      dayType: "office hours",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2024, 12, 12).startOf("day"),
       quote:
         "Finals Study Day 8 AM - 10 AM Pereira 201 , 11 AM - 1 PM Pereira 109",
+      dayType: "office hours",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2024, 12, 13).startOf("day"),
+      quote: "Final Due",
       dayType: "finals",
       dayInfo: <></>,
     },
