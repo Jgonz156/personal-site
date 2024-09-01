@@ -7,19 +7,20 @@ import {
   Chip,
   Divider,
   Sheet,
-} from "@mui/joy"
-import CoursePage from "../components/course-page"
-import { useState } from "react"
-import Speak from "../components/speak"
-import CourseInfoDump from "../../../components/course-info-dump"
-import StandardsDiagram from "../components/standard-diagram"
-import Vocab from "../components/vocab"
-import TopicBreak from "../components/topic-break"
-import TitleBox from "../components/title-box"
-import CourseBox from "../components/course-box"
+} from "@mui/joy";
+import CoursePage from "../components/course-page";
+import { useState } from "react";
+import Speak from "../components/speak";
+import CourseInfoDump from "../../../components/course-info-dump";
+import StandardsDiagram from "../components/standard-diagram";
+import Vocab from "../components/vocab";
+import TopicBreak from "../components/topic-break";
+import TitleBox from "../components/title-box";
+import CourseBox from "../components/course-box";
+import CourseSchedule from "../components/course-schedule";
 
 export default function Syllabus() {
-  const [tabState, setTabState] = useState("Introduction")
+  const [tabState, setTabState] = useState("Introduction");
   return (
     <CoursePage type="syllabus">
       <CourseBox>
@@ -530,7 +531,9 @@ export default function Syllabus() {
             </Speak>
           </>
         ) : tabState === "Schedule" ? (
-          <></>
+          <>
+            <CourseSchedule />
+          </>
         ) : tabState === "Student Responsibilities" ? (
           <>
             <Speak>
@@ -1018,5 +1021,5 @@ Utilize the resources available through Emergency Management to help ensure that
         )}
       </CourseBox>
     </CoursePage>
-  )
+  );
 }
