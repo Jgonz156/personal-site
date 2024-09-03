@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet, Table } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
+import { Chip, Divider, Sheet, Table } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
 
 export default function CMSI2820() {
   return (
@@ -126,6 +126,12 @@ export default function CMSI2820() {
                   variables, compound formulas, logical connectives, natural 
                   deductive inference rules, and proofs."
                   notesSlug="/cmsi-2820/ln2"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/fYWflXiG0AQXlPMc-euVOauehDFiDyteNmdSggFmGXySfoU_sC_0dt4iGNb0fwTL.FLWNuYlzW16_IRRX?startTime=1725382524000",
+                    },
+                  ]}
                 />
                 {/* 
                 <NotesCard
@@ -384,5 +390,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }
