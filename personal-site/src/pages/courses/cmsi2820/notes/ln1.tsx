@@ -1,25 +1,19 @@
-import { Sheet, Typography } from "@mui/joy"
-import CoursePage from "../../components/course-page"
-import PhilosophyBreak from "../../components/philosophy-break"
-import TopicBreak from "../../components/topic-break"
-import Speak from "../../components/speak"
-import Vocab from "../../components/vocab"
-import { MathJax } from "better-react-mathjax"
-import MultiSelectQuestion from "../../components/multi-select-question"
-import TitleBox from "../../components/title-box"
-import CourseBox from "../../components/course-box"
+import { Sheet, Typography } from "@mui/joy";
+import CoursePage from "../../components/course-page";
+import PhilosophyBreak from "../../components/philosophy-break";
+import TopicBreak from "../../components/topic-break";
+import Speak from "../../components/speak";
+import Vocab from "../../components/vocab";
+import { MathJax } from "better-react-mathjax";
+import MultiSelectQuestion from "../../components/multi-select-question";
+import TitleBox from "../../components/title-box";
+import CourseBox from "../../components/course-box";
 
 export default function LectureNotes1() {
   return (
     <CoursePage
       type="notes"
       stepperInfo={{
-        left: {
-          lectureId: "LN0",
-          buttonColor: "primary",
-          buttonName: "Learning to Learn",
-          buttonSlug: "/cmsi-2820/ln0",
-        },
         middle: {
           lectureId: "HW1",
           buttonColor: "success",
@@ -80,13 +74,6 @@ export default function LectureNotes1() {
           </Vocab>
           , discrete pieces of truth in the world around us. With this we can
           draw our world as the below image.
-        </Speak>
-        <Speak>
-          Image: big circle that says truth, little circles inside that carve
-          out from the area that says truth into smaller circles within like
-          cars, birds, etc, and in them are smaller circles with more things.
-          Properties are represented as more circles within the circles of
-          things. and patterns are represented as lines connecting the circles.
         </Speak>
         <Speak>
           Neat right? This image helps represent some of the facts we find about
@@ -534,5 +521,5 @@ export default function LectureNotes1() {
         </Speak>
       </CourseBox>
     </CoursePage>
-  )
+  );
 }

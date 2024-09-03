@@ -1,6 +1,6 @@
-import { Sheet, Typography } from "@mui/joy"
-import { DateCalendar } from "@mui/x-date-pickers"
-import { DateTime } from "luxon"
+import { Sheet, Typography } from "@mui/joy";
+import { DateCalendar } from "@mui/x-date-pickers";
+import { DateTime } from "luxon";
 
 export default function DueDateCalendar({ dueDate }: { dueDate: DateTime }) {
   return (
@@ -23,12 +23,12 @@ export default function DueDateCalendar({ dueDate }: { dueDate: DateTime }) {
         minDate={DateTime.local()}
         maxDate={dueDate}
         // @ts-ignore
-        value={DateTime.local(2024, 9, 3)}
+        value={dueDate}
         sx={{ m: 0 }}
       />
       <Sheet color="neutral" variant="soft" sx={{ p: 4, borderRadius: 12 }}>
         <Typography level="h3">11:59 PM</Typography>
       </Sheet>
     </Sheet>
-  )
+  );
 }

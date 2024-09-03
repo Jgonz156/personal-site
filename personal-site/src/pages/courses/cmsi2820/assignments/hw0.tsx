@@ -1,16 +1,16 @@
-import CourseBox from "../../components/course-box"
-import CoursePage from "../../components/course-page"
-import Speak from "../../components/speak"
-import TitleBox from "../../components/title-box"
-import TopicBreak from "../../components/topic-break"
-import Vocab from "../../components/vocab"
-import QuestionBox from "../../components/question-box"
-import TopicBox from "../../components/topic-box"
-import LinkButton from "../../components/link-button"
-import ImageBox from "../../components/image-box"
-import DueDateCalendar from "../../components/due-date-calendar"
-import { DateTime } from "luxon"
-import DirectoryTree from "../../components/directory-tree"
+import CourseBox from "../../components/course-box";
+import CoursePage from "../../components/course-page";
+import Speak from "../../components/speak";
+import TitleBox from "../../components/title-box";
+import TopicBreak from "../../components/topic-break";
+import Vocab from "../../components/vocab";
+import QuestionBox from "../../components/question-box";
+import TopicBox from "../../components/topic-box";
+import LinkButton from "../../components/link-button";
+import ImageBox from "../../components/image-box";
+import DueDateCalendar from "../../components/due-date-calendar";
+import { DateTime } from "luxon";
+import DirectoryTree from "../../components/directory-tree";
 
 export default function Homework0() {
   return (
@@ -134,7 +134,7 @@ export default function Homework0() {
             with this happening, refrain from putting such information in the
             answers to these questions.
           </Speak>
-          <QuestionBox points={"Normally Points Would Go Here"} qid={"Q1"}>
+          <QuestionBox qid={"Q1"}>
             Do you have any previous experience with Discrete Mathematics? If
             so, give me a brief insight into some of the topics you've seen
             before or even just things you've heard of (This will not be held
@@ -143,25 +143,25 @@ export default function Homework0() {
             scratch). If you don't have any prior experience, take a guess as to
             what you think the course material will be about!
           </QuestionBox>
-          <QuestionBox points={"Normally Points Would Go Here"} qid={"Q2"}>
+          <QuestionBox qid={"Q2"}>
             What is your previous experience with programming? None is totally
             OK! (If you took it in a class here at LMU I'd love to know the
             name!)
           </QuestionBox>
-          <QuestionBox points={"Normally Points Would Go Here"} qid={"Q3"}>
+          <QuestionBox qid={"Q3"}>
             What is a non-tech related hobby of yours? (I will use this
             information during lecture to see if I can mention how course
             material may tie into these hobbies or to help with the
             brainstorming for the creative experience optional homeworks!)
           </QuestionBox>
-          <QuestionBox points={"Normally Points Would Go Here"} qid={"Q4"}>
+          <QuestionBox qid={"Q4"}>
             Is there anything on the course site that you noticed is hard to
             engage with or prevented you from easily accessing material? Is
             there anything you'd like to see changed, added, or altered? (Think
             web design. I will use any information you put here as an "Idea" jar
             for adding features to the website)
           </QuestionBox>
-          <QuestionBox points={"Normally Points Would Go Here"} qid={"Q5"}>
+          <QuestionBox qid={"Q5"}>
             Do you have any additional questions about me or this course that
             you came up with after class? (If you don't have any put something
             along the lines of "N/A" or "Nope", don't leave it blank)
@@ -323,5 +323,5 @@ export default function Homework0() {
         </CourseBox>
       </CoursePage>
     </>
-  )
+  );
 }

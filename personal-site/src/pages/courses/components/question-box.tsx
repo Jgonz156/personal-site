@@ -1,14 +1,14 @@
-import { Chip, Sheet, Typography } from "@mui/joy"
-import React from "react"
+import { Chip, Sheet, Typography } from "@mui/joy";
+import React from "react";
 
 export default function QuestionBox({
   points,
   qid,
   children,
 }: {
-  points: string | number
-  qid: string | number
-  children?: React.ReactNode
+  points?: string | number;
+  qid: string | number;
+  children?: React.ReactNode;
 }) {
   return (
     <Sheet
@@ -21,10 +21,10 @@ export default function QuestionBox({
       }}
     >
       <Sheet>
-        <Chip>({points})pts</Chip>
-        <Chip>{qid}:</Chip>
+        {points ? <Chip>{points} pts</Chip> : <></>}
+        <Chip>{qid}</Chip>
       </Sheet>
       <Typography level="body-md">{children}</Typography>
     </Sheet>
-  )
+  );
 }

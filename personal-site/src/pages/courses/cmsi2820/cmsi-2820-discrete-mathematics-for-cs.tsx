@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet, Table } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet, Table } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 
 export default function CMSI2820() {
   return (
@@ -118,15 +118,16 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/* 
+
                 <NotesCard
                   title="LN 2: Assumptions Make an Argument out of You and Me"
                   description="This lecture will be an introduction to 
-                  intuitionistic logic. We will cover propositions, their 
+                  intuitionistic logic more formally. We will cover propositions, their 
                   variables, compound formulas, logical connectives, natural 
                   deductive inference rules, and proofs."
                   notesSlug="/cmsi-2820/ln2"
                 />
+                {/* 
                 <NotesCard
                   title="LN 3: Properties are Predicated... Predicated on What?"
                   description="This lecture expands on propositional logic by 
@@ -137,10 +138,11 @@ export default function CMSI2820() {
                   universal quantifiers, and their natural deductive inference rules."
                   notesSlug="/cmsi-2820/ln3"
                 />
+                
                 <AssignmentCard
                   title="HW 1: Think Class! Think!"
                   description="In this homework you will get practice with logical 
-                  terminology, creating propositional and predicate logic statements, 
+                  terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, 
                   translating natural language into logic, and natural deduction proofs!"
                   assignmentSlug="/cmsi-2820/hw1"
                 />
@@ -382,5 +384,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }
