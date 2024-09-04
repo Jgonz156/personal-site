@@ -1,4 +1,4 @@
-import { Button, Card, CardActions, CardContent, Typography } from "@mui/joy"
+import { Button, Card, CardContent, Sheet, Typography } from "@mui/joy"
 import { Link as RouterLink } from "react-router-dom"
 
 export default function NotesCard({
@@ -24,7 +24,17 @@ export default function NotesCard({
         <Typography level="title-sm">{title}</Typography>
         <Typography level="body-sm">{description}</Typography>
       </CardContent>
-      <CardActions>
+      <Sheet
+        color="primary"
+        variant="soft"
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          gap: 2,
+        }}
+      >
         <Button
           component={RouterLink}
           to={notesSlug}
@@ -49,7 +59,7 @@ export default function NotesCard({
         ) : (
           <></>
         )}
-      </CardActions>
+      </Sheet>
     </Card>
   )
 }

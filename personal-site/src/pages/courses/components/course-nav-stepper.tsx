@@ -3,7 +3,7 @@ import { Link as RouterLink } from "react-router-dom"
 
 export default function CourseNavStepper({
   stepperInfo,
-}: {
+}: Readonly<{
   stepperInfo: {
     left?: {
       lectureId: string | number
@@ -24,7 +24,7 @@ export default function CourseNavStepper({
       buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
     }
   }
-}) {
+}>) {
   return (
     <Sheet
       sx={{

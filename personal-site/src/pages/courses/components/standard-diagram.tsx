@@ -5,7 +5,7 @@ export default function StandardsDiagram({
   standards,
   courseID,
   coursePointTotal,
-}: {
+}: Readonly<{
   courseID: string
   coursePointTotal: string | number
   standards: {
@@ -18,7 +18,7 @@ export default function StandardsDiagram({
       standards: string | number
     }[]
   }[]
-}) {
+}>) {
   return (
     <>
       <Sheet
