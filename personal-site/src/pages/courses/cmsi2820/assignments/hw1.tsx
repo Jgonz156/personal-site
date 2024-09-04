@@ -222,28 +222,28 @@ export default function Homework1() {
           <QuestionBox points={1} qid={"Q5 a"}>
             <MathJax>{`$$A\\land \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 a"}>
+          <QuestionBox points={1} qid={"Q5 b"}>
             <MathJax>{`$$B\\lor \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 b"}>
+          <QuestionBox points={1} qid={"Q5 c"}>
             <MathJax>{`$$(B \\lor A) \\land B$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 b"}>
+          <QuestionBox points={1} qid={"Q5 d"}>
             <MathJax>{`$$\\neg(A \\land B)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 c"}>
+          <QuestionBox points={1} qid={"Q5 e"}>
             <MathJax>{`$$(A \\lor \\bot) \\lor B$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 c"}>
+          <QuestionBox points={1} qid={"Q5 f"}>
             <MathJax>{`$$\\neg(A \\lor B) \\equiv (\\neg A \\land \\neg B)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 e"}>
+          <QuestionBox points={2} qid={"Q5 g"}>
             <MathJax>{`$$\\bot\\equiv \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 e"}>
+          <QuestionBox points={2} qid={"Q5 h"}>
             <MathJax>{`$$\\neg \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={2} qid={"Q5 d"}>
+          <QuestionBox points={2} qid={"Q5 i"}>
             <MathJax>{`$$((A \\lor B) \\land A) \\equiv ((A \\land B) \\lor B)$$`}</MathJax>
           </QuestionBox>
         </QuestionBox>
@@ -267,11 +267,11 @@ export default function Homework1() {
           series of new pieces of information to our limited, finite
           contexts/realities.
         </Speak>
-        <QuestionBox points={6} qid="Q7">
+        <QuestionBox points={2} qid="Q7">
           Similar to question Q4, give an explanation in your own words and an
           example usage of the Implication operator.
         </QuestionBox>
-        <QuestionBox points={"21 total"} qid="Q8">
+        <QuestionBox points={"28 total"} qid="Q8">
           As we saw in class, Natural Deduction's inference rules give us the
           ability to produce new information into our finite contexts. The
           following deductions below can be made and you should produce your
@@ -279,25 +279,25 @@ export default function Homework1() {
           reached the goal condition at the bottom of the derivation tree having
           started with the assumptions in the following deductions at the top of
           the tree:
-          <QuestionBox points={3} qid="Q8 a">
+          <QuestionBox points={4} qid="Q8 a">
             <MathJax>{`$$\\text{Show that }(A \\land B) \\land (B \\land A) \\text{ can be deduced from just assuming A and B}$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={3} qid="Q8 b">
+          <QuestionBox points={4} qid="Q8 b">
             <MathJax>{`$$\\text{Show that }(A \\lor B) \\lor C \\text{ can be deduced from just assuming A}$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={3} qid="Q8 c">
+          <QuestionBox points={4} qid="Q8 c">
             <MathJax>{`$$\\text{Show that to deduce } A \\to (B \\to C) \\text{ you must assume and discharge A and B}$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={3} qid="Q8 d">
+          <QuestionBox points={4} qid="Q8 d">
             <MathJax>{`$$\\text{Show that }(A \\to C) \\text{ can be deduced from } (A \\to B) \\land (B \\to C)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={3} qid="Q8 e">
+          <QuestionBox points={4} qid="Q8 e">
             <MathJax>{`$$\\text{Show that assuming }(A \\land (A \\to B)) \\land \\neg B \\text{ leads to a contradiction/absurdity}$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={3} qid="Q8 f">
+          <QuestionBox points={4} qid="Q8 f">
             <MathJax>{`$$\\text{Show that given } (A \\lor B) \\to C \\text{ you can deduce } (A \\to C)\\land(B \\to C)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={3} qid="Q8 g">
+          <QuestionBox points={4} qid="Q8 g">
             <MathJax>{`$$\\text{Show that given } \\neg(A \\land B) \\text{ you can deduce } (\\neg A \\lor \\neg B)$$`}</MathJax>
           </QuestionBox>
         </QuestionBox>
