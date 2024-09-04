@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet, Table } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
+import { Chip, Divider, Sheet, Table } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
 
 export default function CMSI2820() {
   return (
@@ -138,7 +138,7 @@ export default function CMSI2820() {
                   universal quantifiers, and their natural deductive inference rules."
                   notesSlug="/cmsi-2820/ln3"
                 />
-                
+                */}
                 <AssignmentCard
                   title="HW 1: Think Class! Think!"
                   description="In this homework you will get practice with logical 
@@ -146,7 +146,6 @@ export default function CMSI2820() {
                   translating natural language into logic, and natural deduction proofs!"
                   assignmentSlug="/cmsi-2820/hw1"
                 />
-                */}
               </Standard>
               {/*
               <Standard
@@ -384,5 +383,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }

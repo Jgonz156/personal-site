@@ -1,16 +1,16 @@
-import { DateTime } from "luxon";
-import CourseBox from "../../components/course-box";
-import CoursePage from "../../components/course-page";
-import DirectoryTree from "../../components/directory-tree";
-import DueDateCalendar from "../../components/due-date-calendar";
-import LinkButton from "../../components/link-button";
-import QuestionBox from "../../components/question-box";
-import Speak from "../../components/speak";
-import TitleBox from "../../components/title-box";
-import TopicBox from "../../components/topic-box";
-import Vocab from "../../components/vocab";
-import TopicBreak from "../../components/topic-break";
-import { MathJax } from "better-react-mathjax";
+import { DateTime } from "luxon"
+import CourseBox from "../../components/course-box"
+import CoursePage from "../../components/course-page"
+import DirectoryTree from "../../components/directory-tree"
+import DueDateCalendar from "../../components/due-date-calendar"
+import LinkButton from "../../components/link-button"
+import QuestionBox from "../../components/question-box"
+import Speak from "../../components/speak"
+import TitleBox from "../../components/title-box"
+import TopicBox from "../../components/topic-box"
+import Vocab from "../../components/vocab"
+import TopicBreak from "../../components/topic-break"
+import { MathJax } from "better-react-mathjax"
 
 export default function Homework1() {
   return (
@@ -68,8 +68,9 @@ export default function Homework1() {
           <Vocab
             definition={
               <>
-                <Speak>Declarative statements that evaluate to True</Speak>
-                <MathJax>{`$$T:True$$`}</MathJax>
+                <Speak>
+                  Declarative statements that tell you how reality is
+                </Speak>
               </>
             }
           >
@@ -79,8 +80,9 @@ export default function Homework1() {
           <Vocab
             definition={
               <>
-                <Speak>Declarative statements that evaluate to False</Speak>
-                <MathJax>{`$$F:False$$`}</MathJax>
+                <Speak>
+                  Declarative statements that tell you how reality isn't
+                </Speak>
               </>
             }
           >
@@ -144,6 +146,9 @@ export default function Homework1() {
             Evaluate: "John likes when a word that starts with 'J' is spelt
             right."
           </QuestionBox>
+          <QuestionBox points={1} qid="Q1 g">
+            Evaluate: "John does not like the word 'jalapenos'" (Note the n)
+          </QuestionBox>
         </QuestionBox>
 
         <QuestionBox points={5} qid="Q2">
@@ -172,7 +177,7 @@ export default function Homework1() {
           working on to discover the atomics we are actually working with when
           we informally reason about logic in the real world. This discussion
           begun with defining a few terms, discovering the intuition behind
-          where they come from, and ten subsequently formalizing a small set of
+          where they come from, and then subsequently formalizing a small set of
           operators to use to create compound propositions.
         </Speak>
         <Speak>
@@ -181,10 +186,78 @@ export default function Homework1() {
           discovered in lecture that english carries with it far more
           information than we can currently investigate.
         </Speak>
-        <QuestionBox points={10} qid="Q4"></QuestionBox>
-        <QuestionBox points={10} qid="Q5"></QuestionBox>
-        <QuestionBox points={10} qid="Q6"></QuestionBox>
-        <QuestionBox points={10} qid="Q7"></QuestionBox>
+        <Speak>
+          Due to LN2 not reaching Implication in the notes, this section has
+          been adjusted to reflect this and those problems have been moved to
+          LN3's section.
+        </Speak>
+        <QuestionBox points={"8 total"} qid="Q4">
+          In class we saw four logical connectives that we can use to form
+          larger compound propositions. In your own words, give a brief
+          explanation as to how each of these logical connectives operate and
+          give an example usage for each.
+          <QuestionBox points={2} qid={"Q4 a"}>
+            Describe and give an example of Logical Equivalence
+          </QuestionBox>
+          <QuestionBox points={2} qid={"Q4 b"}>
+            Describe and give an example of Negation.
+          </QuestionBox>
+          <QuestionBox points={2} qid={"Q4 c"}>
+            Describe and give an example of Conjunction.
+          </QuestionBox>
+          <QuestionBox points={2} qid={"Q4 d"}>
+            Describe and give an example of Disjunction.
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={"12 total"} qid="Q5">
+          Given the following finite context below, evaluate whether the
+          following compound propositions are True, False, or Absurd. Since we
+          have not defined the exact order of operations (PEMDAS) if you will
+          for these operators, evaluate larger propositions by evaluating whats
+          in the parenthesis first and follow that order:
+          <MathJax>{`$$ \\top:Reality =\\begin{cases}
+          A:True \\\\
+          B:False 
+          \\end{cases}$$`}</MathJax>
+          <QuestionBox points={1} qid={"Q5 a"}>
+            <MathJax>{`$$A\\land \\bot$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={1} qid={"Q5 a"}>
+            <MathJax>{`$$B\\lor \\bot$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={1} qid={"Q5 b"}>
+            <MathJax>{`$$(B \\lor A) \\land B$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={1} qid={"Q5 b"}>
+            <MathJax>{`$$\\neg(A \\land B)$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={1} qid={"Q5 c"}>
+            <MathJax>{`$$(A \\lor \\bot) \\lor B$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={1} qid={"Q5 c"}>
+            <MathJax>{`$$\\neg(A \\lor B) \\equiv (\\neg A \\land \\neg B)$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={1} qid={"Q5 e"}>
+            <MathJax>{`$$\\bot\\equiv \\bot$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={1} qid={"Q5 e"}>
+            <MathJax>{`$$\\neg \\bot$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={2} qid={"Q5 d"}>
+            <MathJax>{`$$((A \\lor B) \\land A) \\equiv ((A \\land B) \\lor B)$$`}</MathJax>
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={5} qid={"Q6"}>
+          Interestingly, logical connectives can be used to explain properties
+          of one another. We saw that in class we could use logical equivalence
+          to help define the operation of other operators and that negation
+          allowed us to "flip" from positive information to negative
+          information. We know that Conjunction and Disjunction are duals and
+          are opposites. With that information, can you write the compound
+          propositions that display that Conjunction and Disjunction are duals
+          (Opposites)? (It helps to investigate this in cases)
+        </QuestionBox>
+
         <TopicBreak title="END OF LN2" />
         <Speak>
           In LN3 we built off our new set of operators we were using to
@@ -194,25 +267,111 @@ export default function Homework1() {
           series of new pieces of information to our limited, finite
           contexts/realities.
         </Speak>
-        <QuestionBox points={10} qid="Q8">
-          <QuestionBox qid="Q1a"></QuestionBox>
+        <QuestionBox points={6} qid="Q7">
+          Similar to question Q4, give an explanation in your own words and an
+          example usage of the Implication operator.
+        </QuestionBox>
+        <QuestionBox points={"21 total"} qid="Q8">
+          As we saw in class, Natural Deduction's inference rules give us the
+          ability to produce new information into our finite contexts. The
+          following deductions below can be made and you should produce your
+          answer in the form of a derivation tree. You may stop once you have
+          reached the goal condition at the bottom of the derivation tree having
+          started with the assumptions in the following deductions at the top of
+          the tree:
+          <QuestionBox points={3} qid="Q8 a">
+            <MathJax>{`$$\\text{Show that }(A \\land B) \\land (B \\land A) \\text{ can be deduced from just assuming A and B}$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={3} qid="Q8 b">
+            <MathJax>{`$$\\text{Show that }(A \\lor B) \\lor C \\text{ can be deduced from just assuming A}$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={3} qid="Q8 c">
+            <MathJax>{`$$\\text{Show that to deduce } A \\to (B \\to C) \\text{ you must assume and discharge A and B}$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={3} qid="Q8 d">
+            <MathJax>{`$$\\text{Show that }(A \\to C) \\text{ can be deduced from } (A \\to B) \\land (B \\to C)$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={3} qid="Q8 e">
+            <MathJax>{`$$\\text{Show that assuming }(A \\land (A \\to B)) \\land \\neg B \\text{ leads to a contradiction/absurdity}$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={3} qid="Q8 f">
+            <MathJax>{`$$\\text{Show that given } (A \\lor B) \\to C \\text{ you can deduce } (A \\to C)\\land(B \\to C)$$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={3} qid="Q8 g">
+            <MathJax>{`$$\\text{Show that given } \\neg(A \\land B) \\text{ you can deduce } (\\neg A \\lor \\neg B)$$`}</MathJax>
+          </QuestionBox>
         </QuestionBox>
         <TopicBreak title="END OF LN3" />
-        <LinkButton color="success" to="">
-          Written HW0 Turn In
+        <Speak>
+          Whew! That was a lot about logic, and unfortunately for the purposes
+          of this foundational course we will take intuitionistic logic no
+          further. Of course the topics we practiced and the intuition we
+          gathered from our investigations will become useful again as we
+          discover more topics in discrete mathematics, however we will not be
+          expanding further into pure logic.
+        </Speak>
+        <Speak>
+          There is a wide range of more logical connectives we could have
+          discovered and understood. This foundational look at viewing how to
+          evaluate and infer information from new operators will always be valid
+          if you choose to dive into this topic further on your in in an
+          independent study or research! There is plenty more to discover in
+          discrete however so we move forward from here ready to take on
+          Numbers!
+        </Speak>
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=295184&grpid=0&isprv=0&bp=0&ou=253279"
+        >
+          Written HW1 Turn In
         </LinkButton>
       </CourseBox>
       <CourseBox>
         <TitleBox title="Programming Section" quote="Points: 30" />
-        <DirectoryTree filesAsJSON={{}} />
-
+        <DirectoryTree
+          filesAsJSON={{
+            "CMSI-2820-HW1": {
+              ".gitignore": <></>,
+              "logical_connectives.py": <></>,
+              "logical_connectives_test.py": <></>,
+              "lllof.py": <></>,
+              "README.md": <></>,
+            },
+          }}
+        />
+        <Speak>
+          In this programming assignment you will look into how we can represent
+          our logical connectives programmatically in Python! The motivation for
+          this is to investigate how we can operationalize what we discovered in
+          class into code! Once we see how this is done, we will always have it
+          in the back of our "tool belt" for handling complex conditionals or
+          branching code!
+        </Speak>
+        <Speak>
+          As a refresher, here is the helper video that goes from complete start
+          to finish for the process of receiving, setting up, and turning in
+          your programming portion of the HW.
+        </Speak>
         <LinkButton color="success" to="">
+          Helper Video (Shouldn't go anywhere yet)
+        </LinkButton>
+        <Speak>
+          Linked below is the GitHub Classroom assignment link and the
+          Brightspace turn in link both as buttons
+        </Speak>
+        <LinkButton
+          color="success"
+          to="https://classroom.github.com/a/Uei9osAT"
+        >
           GitHub Assignment
         </LinkButton>
-        <LinkButton color="success" to="">
-          Programming HW0 Turn In
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=295185&grpid=0&isprv=&bp=0&ou=253279"
+        >
+          Programming HW1 Turn In
         </LinkButton>
       </CourseBox>
     </CoursePage>
-  );
+  )
 }
