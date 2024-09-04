@@ -1,16 +1,16 @@
-import CourseBox from "../../components/course-box";
-import CoursePage from "../../components/course-page";
-import Speak from "../../components/speak";
-import TitleBox from "../../components/title-box";
-import TopicBreak from "../../components/topic-break";
-import Vocab from "../../components/vocab";
-import QuestionBox from "../../components/question-box";
-import TopicBox from "../../components/topic-box";
-import LinkButton from "../../components/link-button";
-import ImageBox from "../../components/image-box";
-import DueDateCalendar from "../../components/due-date-calendar";
-import { DateTime } from "luxon";
-import DirectoryTree from "../../components/directory-tree";
+import CourseBox from "../../components/course-box"
+import CoursePage from "../../components/course-page"
+import Speak from "../../components/speak"
+import TitleBox from "../../components/title-box"
+import TopicBreak from "../../components/topic-break"
+import Vocab from "../../components/vocab"
+import QuestionBox from "../../components/question-box"
+import TopicBox from "../../components/topic-box"
+import LinkButton from "../../components/link-button"
+import ImageBox from "../../components/image-box"
+import DueDateCalendar from "../../components/due-date-calendar"
+import { DateTime } from "luxon"
+import DirectoryTree from "../../components/directory-tree"
 
 export default function Homework0() {
   return (
@@ -214,8 +214,11 @@ export default function Homework0() {
             tutorial displaying the entire process from start to finish on
             Brightspace! A link to it is provided via the button below
           </Speak>
-          <LinkButton color="success" to="">
-            Helper Video (Shouldn't go anywhere yet)
+          <LinkButton
+            color="success"
+            to="https://lmula.zoom.us/rec/share/LHMwk2fFto5pKnfMEKK5ZBdiwkRO0WacAkDyfbdqMrDz8Eo9dwyFlnYq5a_I8iX3.aa-YDE0MpCpp2sK8"
+          >
+            Helper Video
           </LinkButton>
           <Speak>
             Below you will find an amazing guide designed by Dr. Forney that
@@ -323,5 +326,5 @@ export default function Homework0() {
         </CourseBox>
       </CoursePage>
     </>
-  );
+  )
 }

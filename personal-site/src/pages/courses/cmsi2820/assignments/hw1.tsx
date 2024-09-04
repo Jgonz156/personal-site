@@ -352,8 +352,11 @@ export default function Homework1() {
           to finish for the process of receiving, setting up, and turning in
           your programming portion of the HW.
         </Speak>
-        <LinkButton color="success" to="">
-          Helper Video (Shouldn't go anywhere yet)
+        <LinkButton
+          color="success"
+          to="https://lmula.zoom.us/rec/share/LHMwk2fFto5pKnfMEKK5ZBdiwkRO0WacAkDyfbdqMrDz8Eo9dwyFlnYq5a_I8iX3.aa-YDE0MpCpp2sK8"
+        >
+          Helper Video
         </LinkButton>
         <Speak>
           Linked below is the GitHub Classroom assignment link and the
