@@ -135,6 +135,10 @@ export default function CMSI2820() {
                       buttonText: "Section 2 Video",
                       url: "https://lmula.zoom.us/rec/share/3zceh-ULXuGwuRHuwuRoBpk14_gD9a_7Y9_EvZ4xyqMvH9Hx2nhzrAp6FYnezKxh.YkXxb-iXG6SHTVqA?startTime=1725396418000",
                     },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/Yf2GeeYwf3JFYh8tPNIBDuKbziJINqM-wloM7VWSzFII2qQ5EWhSfEULZDQLZzE.QVTY5ZR5896GpR53?startTime=1725411758000",
+                    },
                   ]}
                 />
                 {/* 
