@@ -210,12 +210,12 @@ export default function Homework1() {
           </QuestionBox>
         </QuestionBox>
         <QuestionBox points={"12 total"} qid="Q5">
-          Given the following finite context below, evaluate whether the
+          <MathJax>{`Given the following finite context below, evaluate whether the
           following compound propositions are True, False, or Absurd. Since we
           have not defined the exact order of operations (PEMDAS) if you will
           for these operators, evaluate larger propositions by evaluating whats
           in the parenthesis first and follow that order:
-          <MathJax>{`$$ \\top:Reality =\\begin{cases}
+          $$ \\top:Reality =\\begin{cases}
           A:True \\\\
           B:False 
           \\end{cases}$$`}</MathJax>

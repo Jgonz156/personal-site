@@ -1,10 +1,10 @@
-import { MathJax } from "better-react-mathjax";
-import CourseBox from "../../components/course-box";
-import CoursePage from "../../components/course-page";
-import PhilosophyBreak from "../../components/philosophy-break";
-import Speak from "../../components/speak";
-import TitleBox from "../../components/title-box";
-import Vocab from "../../components/vocab";
+import { MathJax } from "better-react-mathjax"
+import CourseBox from "../../components/course-box"
+import CoursePage from "../../components/course-page"
+import PhilosophyBreak from "../../components/philosophy-break"
+import Speak from "../../components/speak"
+import TitleBox from "../../components/title-box"
+import Vocab from "../../components/vocab"
 
 export default function LectureNotes2() {
   return (
@@ -557,5 +557,5 @@ export default function LectureNotes2() {
         />
       </CourseBox>
     </CoursePage>
-  );
+  )
 }
