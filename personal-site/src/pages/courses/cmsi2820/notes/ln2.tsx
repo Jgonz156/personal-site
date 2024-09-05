@@ -33,7 +33,7 @@ export default function LectureNotes2() {
     >
       <CourseBox>
         <TitleBox
-          title="Assumptions Make an Argument out of You and Me"
+          title="Making Logical Connections"
           quote={`"All the world is a laboratory to the inquiring mind" - Martin Fisher`}
         />
         <Speak>

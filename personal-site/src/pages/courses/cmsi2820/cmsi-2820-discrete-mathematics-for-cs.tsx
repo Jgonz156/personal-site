@@ -120,11 +120,10 @@ export default function CMSI2820() {
                 />
 
                 <NotesCard
-                  title="LN 2: Assumptions Make an Argument out of You and Me"
+                  title="LN 2: Making Logical Connections"
                   description="This lecture will be an introduction to 
                   intuitionistic logic more formally. We will cover propositions, their 
-                  variables, compound formulas, logical connectives, natural 
-                  deductive inference rules, and proofs."
+                  variables, compound formulas, and logical connectives."
                   notesSlug="/cmsi-2820/ln2"
                   sectionRecordings={[
                     {
@@ -141,18 +140,13 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/* 
                 <NotesCard
-                  title="LN 3: Properties are Predicated... Predicated on What?"
+                  title="LN 3: Assumptions Make an Argument out of You and Me"
                   description="This lecture expands on propositional logic by 
-                  extending it to objects and statements about their properties, 
-                  what is formalized as predicate logic. We will cover new 
-                  forms of equality, predicated statements, their variables, 
-                  their constants, and their composites, new existential and 
-                  universal quantifiers, and their natural deductive inference rules."
+                  extending our inferential abilities for each of our logical
+                   connectives by exploring Natural Deduction"
                   notesSlug="/cmsi-2820/ln3"
                 />
-                */}
                 <AssignmentCard
                   title="HW 1: Think Class! Think!"
                   description="In this homework you will get practice with logical 
