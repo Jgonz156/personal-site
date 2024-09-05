@@ -212,9 +212,13 @@ export default function Homework1() {
         <QuestionBox points={"12 total"} qid="Q5">
           <MathJax>{`Given the following finite context below, evaluate whether the
           following compound propositions are True, False, or Absurd. Since we
-          have not defined the exact order of operations (PEMDAS) if you will
-          for these operators, evaluate larger propositions by evaluating whats
-          in the parenthesis first and follow that order:
+          have not defined the exact order of operations (PEMDAS) I will define it now.
+          The operator that has the highest precedence (do this one first) is Negation.
+           It is followed by the rest of the operators in exactly this order Conjunction,
+            Disjunction, Implication, then the lowest precedence operator is Logical
+             Equivalence. This forms PNCDILe as our equivalent to PEMDAS. Admittedly it 
+             is not as nice and that hanging e is due to it being Logical "E"quivalence.
+              Also the P is the front is still Parenthesis because you always due parenthesis first.
           $$ \\top:Reality =\\begin{cases}
           A:True \\\\
           B:False 
