@@ -17,18 +17,18 @@ export default function LectureNotes2() {
           buttonName: "Information and It's Consequences...",
           buttonSlug: "/cmsi-2820/ln1",
         },
-        //middle: {
-        //  lectureId: "HW1",
-        //  buttonColor: "success",
-        //  buttonName: "Think Class, Think!",
-        //  buttonSlug: "/cmsi-2820/hw1",
-        //},
-        //right: {
-        //  lectureId: "LN3",
-        //  buttonColor: "primary",
-        //  buttonName: "Properties are Predicated... Predicated on What?",
-        //  buttonSlug: "/cmsi-2820/ln3",
-        //},
+        middle: {
+          lectureId: "HW1",
+          buttonColor: "success",
+          buttonName: "Think Class, Think!",
+          buttonSlug: "/cmsi-2820/hw1",
+        },
+        right: {
+          lectureId: "LN3",
+          buttonColor: "primary",
+          buttonName: "Assumptions Make an Argument out of You and Me",
+          buttonSlug: "/cmsi-2820/ln3",
+        },
       }}
     >
       <CourseBox>
