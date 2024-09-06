@@ -1,24 +1,30 @@
-import { Avatar, Sheet, Typography } from "@mui/joy";
-import { DateCalendar, PickersDay, PickersDayProps } from "@mui/x-date-pickers";
-import { DateTime } from "luxon";
-import { RefAttributes, useState } from "react";
-import TitleBox from "./title-box";
-import Speak from "./speak";
-import { JSX } from "react/jsx-runtime";
-import { SxProps } from "@mui/material";
+import { Avatar, Sheet, Typography } from "@mui/joy"
+import { DateCalendar, PickersDay, PickersDayProps } from "@mui/x-date-pickers"
+import { DateTime } from "luxon"
+import { RefAttributes, useState } from "react"
+import TitleBox from "./title-box"
+import Speak from "./speak"
+import { JSX } from "react/jsx-runtime"
+import { SxProps } from "@mui/material"
 
 function ScheduleDay(
   props: JSX.IntrinsicAttributes &
     PickersDayProps<DateTime<boolean>> &
     RefAttributes<HTMLButtonElement> & {
-      schedule?: { date: any; quote: string; dayType: string; dayInfo: any }[];
+      schedule?: {
+        date: DateTime
+        quote: string
+        dayType: string
+        dayInfo: any
+      }[]
     }
 ) {
-  const { schedule, day, ...otherProps } = props;
-  const dayInfo = schedule?.find(({ date }) =>
-    date.startOf("day").equals(day.startOf("day"))
-  );
-  const scheduleDaySX: SxProps = { borderRadius: 100 };
+  const { schedule, day, ...otherProps } = props
+  const dayInfo = schedule?.find(
+    ({ date }) =>
+      date.startOf("day").toISODate() === day.startOf("day").toISODate()
+  )
+  const scheduleDaySX: SxProps = { borderRadius: 100 }
   return dayInfo?.dayType === "lecture" ? (
     <Sheet color="primary" variant="soft" sx={scheduleDaySX}>
       <PickersDay day={day} {...otherProps} />
@@ -41,7 +47,7 @@ function ScheduleDay(
     </Sheet>
   ) : (
     <PickersDay day={day} {...otherProps} />
-  );
+  )
 }
 
 export default function CourseSchedule() {
@@ -416,15 +422,16 @@ export default function CourseSchedule() {
       dayType: "finals",
       dayInfo: <></>,
     },
-  ];
+  ]
 
   const [currentDate, setCurrentDate] = useState(
     DateTime.local().startOf("day")
-  );
+  )
 
-  let currentDateInfo = schedule?.find(({ date }) =>
-    date.startOf("day").equals(currentDate.startOf("day"))
-  );
+  let currentDateInfo = schedule?.find(
+    ({ date }) =>
+      date.startOf("day").toISODate() === currentDate.startOf("day").toISODate()
+  )
 
   return (
     <>
@@ -476,10 +483,12 @@ export default function CourseSchedule() {
           displayWeekNumber
           value={currentDate}
           onChange={(selectedDate) => {
-            setCurrentDate(selectedDate.startOf("day"));
-            currentDateInfo = schedule?.find(({ date }) =>
-              date.startOf("day").equals(currentDate.startOf("day"))
-            );
+            setCurrentDate(selectedDate.startOf("day"))
+            currentDateInfo = schedule?.find(
+              ({ date }) =>
+                date.startOf("day").toISODate() ===
+                currentDate.startOf("day").toISODate()
+            )
           }}
           sx={{ m: 0 }}
           slots={{ day: ScheduleDay }}
@@ -504,5 +513,5 @@ export default function CourseSchedule() {
         )}
       </Sheet>
     </>
-  );
+  )
 }

@@ -1,5 +1,6 @@
-import { Button, Card, CardContent, Sheet, Typography } from "@mui/joy"
+import { Button, Card, CardContent, Sheet, Tooltip, Typography } from "@mui/joy"
 import { Link as RouterLink } from "react-router-dom"
+import Speak from "./speak"
 
 export default function NotesCard({
   title,
@@ -10,7 +11,7 @@ export default function NotesCard({
   title: string
   description: string
   notesSlug: string
-  sectionRecordings?: { url: string; buttonText: string }[]
+  sectionRecordings?: { url?: string; buttonText: string }[]
 }>) {
   return (
     <Card
@@ -45,17 +46,39 @@ export default function NotesCard({
           Open
         </Button>
         {sectionRecordings ? (
-          sectionRecordings.map(({ url, buttonText }) => (
-            <Button
-              component={RouterLink}
-              to={url}
-              color="primary"
-              variant="solid"
-              sx={{ maxWidth: "1in" }}
-            >
-              {buttonText}
-            </Button>
-          ))
+          sectionRecordings.map(({ url, buttonText }) => {
+            return url ? (
+              <Button
+                component={RouterLink}
+                to={url}
+                color="primary"
+                variant="solid"
+                sx={{ maxWidth: "1in" }}
+              >
+                {buttonText}
+              </Button>
+            ) : (
+              <Tooltip
+                describeChild
+                color="primary"
+                variant="soft"
+                title={
+                  <Speak>Recording Failed, Please Watch Another Section</Speak>
+                }
+              >
+                <Sheet color="primary" variant="soft">
+                  <Button
+                    disabled
+                    color="primary"
+                    variant="solid"
+                    sx={{ maxWidth: "1in" }}
+                  >
+                    {buttonText}
+                  </Button>
+                </Sheet>
+              </Tooltip>
+            )
+          })
         ) : (
           <></>
         )}

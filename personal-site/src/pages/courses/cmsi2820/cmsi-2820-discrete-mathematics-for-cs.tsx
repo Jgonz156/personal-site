@@ -146,6 +146,17 @@ export default function CMSI2820() {
                   extending our inferential abilities for each of our logical
                    connectives by exploring Natural Deduction"
                   notesSlug="/cmsi-2820/ln3"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/dUCxOlsnVgN30RaGnVABOG9ROXdCHEPhiO3DnieCOchspc5KHan_EYb6W_FqXp6z.u4qHArf88JxIhk3u?startTime=1725555439000",
+                    },
+                    { buttonText: "Section 2 Video", url: undefined },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/Rg__u6lYojd0L3PQ_TJh6Gyjq0Ky4-_NozQQ7anGA2TAK1FFrp3hsuN_EDR4uapZ.G1RaYcvHM3MfLBkN?startTime=1725584600000",
+                    },
+                  ]}
                 />
                 <AssignmentCard
                   title="HW 1: Think Class! Think!"

@@ -77,7 +77,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <JoyCssVarsProvider theme={joyTheme} defaultMode="dark">
             <LocalizationProvider
               dateAdapter={AdapterLuxon}
-              //adapterLocale="us"
+              adapterLocale="en"
               localeText={{
                 calendarWeekNumberHeaderText: "School Week",
                 calendarWeekNumberText: (weekNumber) => {
