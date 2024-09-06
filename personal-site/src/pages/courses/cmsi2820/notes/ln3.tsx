@@ -338,38 +338,39 @@ export default function LectureNotes3() {
       \\end{prooftree}$$`}</MathJax>
         <MathJax>{`$$\\text{Left Branch: }\\begin{prooftree}
       \\AxiomC{(A \\(\\land\\) B) \\(\\land\\) C}
-      \\RightLabel{\\(\\land\\) E1}
+      \\RightLabel{(\\(\\land\\) E1)}
       \\UnaryInfC{A \\(\\land\\) B}
-\\RightLabel{\\(\\land\\) E1}
+\\RightLabel{(\\(\\land\\) E1)}
 \\UnaryInfC{A}
 
 \\end{prooftree}$$`}</MathJax>
         <MathJax>{`$$\\text{Right Branch: } \\begin{prooftree}
       \\AxiomC{(A \\(\\land\\) B) \\(\\land\\) C}
-      \\RightLabel{\\(\\land\\) E1}
+      \\RightLabel{(\\(\\land\\) E1)}
       \\UnaryInfC{A \\(\\land\\) B}
-\\RightLabel{\\(\\land\\) E2}
+\\RightLabel{(\\(\\land\\) E2)}
 \\UnaryInfC{B}
 \\AxiomC{(A \\(\\land\\) B) \\(\\land\\) C}
-\\RightLabel{\\(\\land\\) E2}
+\\RightLabel{(\\(\\land\\) E2)}
 \\UnaryInfC{C}
 \\BinaryInfC{B \\(\\land\\) C}
 
 \\end{prooftree}$$`}</MathJax>
         <MathJax>{`$$\\text{Full Proof: }\\begin{prooftree}
       \\AxiomC{(A \\(\\land\\) B) \\(\\land\\) C}
-      \\RightLabel{\\(\\land\\) E1}
+      \\RightLabel{(\\(\\land\\) E1)}
       \\UnaryInfC{A \\(\\land\\) B}
-\\RightLabel{\\(\\land\\) E1}
+\\RightLabel{(\\(\\land\\) E1)}
 \\UnaryInfC{A}
       \\AxiomC{(A \\(\\land\\) B) \\(\\land\\) C}
-      \\RightLabel{\\(\\land\\) E1}
+      \\RightLabel{(\\(\\land\\) E1)}
       \\UnaryInfC{A \\(\\land\\) B}
-\\RightLabel{\\(\\land\\) E2}
+\\RightLabel{(\\(\\land\\) E2)}
 \\UnaryInfC{B}
 \\AxiomC{(A \\(\\land\\) B) \\(\\land\\) C}
-\\RightLabel{\\(\\land\\) E2}
+\\RightLabel{(\\(\\land\\) E2)}
 \\UnaryInfC{C}
+\\RightLabel{(\\(\\land\\) I)}
 \\BinaryInfC{B \\(\\land\\) C}
       \\RightLabel{(\\(\\land\\) I)}
       \\BinaryInfC{A \\(\\land\\) (B \\(\\land\\) C)}
@@ -408,7 +409,7 @@ export default function LectureNotes3() {
 
 \\AxiomC{A}
 \\AxiomC{A \\(\\to\\) B}
-\\RightLabel{(\\(\\land\\) E)}
+\\RightLabel{(\\(\\to\\) E)}
 \\BinaryInfC{B}
 
 \\end{prooftree}\\end{cases}$$`}</MathJax>
@@ -433,7 +434,8 @@ export default function LectureNotes3() {
           Lets begin by creating the argumentation with assumptions as is
           natural and then adjust from there:
         </Speak>
-        <MathJax>{`$$\\text{Assumption-less Argumentation }\\begin{prooftree}
+        <MathJax>{`$$\\text{Assumption-less Argumentation }$$`}</MathJax>
+        <MathJax>{`$$\\begin{prooftree}
       \\AxiomC{[A]2}
       \\AxiomC{ [B]1}
       \\RightLabel{(\\(\\land\\) I)}
@@ -446,12 +448,13 @@ export default function LectureNotes3() {
 \\RightLabel{(\\(\\to\\) I)2}
 \\UnaryInfC{A\\(\\to\\) (B \\(\\to\\) C)}
 \\RightLabel{(\\(\\to\\) I)3}
-\\UnaryInfC{(A \\(\\land\\) B)\\(\\to\\)C\\(\\to\\)(A\\(\\to\\) (B \\(\\to\\) C))}
+\\UnaryInfC{((A \\(\\land\\) B)\\(\\to\\)C)\\(\\to\\)(A\\(\\to\\) (B \\(\\to\\) C))}
 
 \\end{prooftree}$$`}</MathJax>
-        <MathJax>{`$$\\text{Assumption-less Argumentation }\\begin{prooftree}
+
+        <MathJax>{`$$\\begin{prooftree}
       \\AxiomC{[A]1}
-      \\RightLabel{(\\(\\land\\) I)1}
+      \\RightLabel{(\\(\\to\\) I)1}
       \\UnaryInfC{A \\(\\to\\) A}
 
 \\end{prooftree}$$`}</MathJax>
@@ -467,11 +470,11 @@ export default function LectureNotes3() {
         <MathJax>{`$$\\text{Disjunction Rules }\\equiv \\begin{cases}\\begin{prooftree}
 
       \\AxiomC{A}
-      \\RightLabel{(\\(\\land\\) I1)}
+      \\RightLabel{(\\(\\lor\\) I1)}
       \\UnaryInfC{A \\(\\lor\\) B}
 
       \\AxiomC{B}
-      \\RightLabel{(\\(\\land\\) I2)}
+      \\RightLabel{(\\(\\lor\\) I2)}
       \\UnaryInfC{A \\(\\lor\\) B}
 
       \\AxiomC{A \\(\\lor\\) B}
@@ -482,7 +485,7 @@ export default function LectureNotes3() {
       \\noLine
       \\UnaryInfC{C}
       \\RightLabel{(\\(\\lor\\) E)1}
-      \\TrinaryInfC{B}
+      \\TrinaryInfC{C}
 
 \\end{prooftree}\\end{cases}$$`}</MathJax>
         <Speak>
@@ -519,11 +522,13 @@ export default function LectureNotes3() {
       \\AxiomC{[A \\(\\lor\\) B]2}
         \\AxiomC{[A]1}
         \\AxiomC{[(A \\(\\to\\) C) \\(\\land\\) (B \\(\\to\\) C)]3}
+        \\RightLabel{(\\(\\land\\)E1)}
         \\UnaryInfC{(A \\(\\to\\) C)}
       \\RightLabel{(\\(\\to\\) E)}
       \\BinaryInfC{C}
       \\AxiomC{[B]1}
         \\AxiomC{[(A \\(\\to\\) C) \\(\\land\\) (B \\(\\to\\) C)]3}
+        \\RightLabel{(\\(\\land\\)E2)}
         \\UnaryInfC{(B \\(\\to\\) C)}
       \\RightLabel{(\\(\\to\\) E)}
       \\BinaryInfC{C}
