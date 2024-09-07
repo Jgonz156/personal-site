@@ -94,7 +94,7 @@ export default function Homework1() {
         </Speak>
         <MathJax>{`$$ \\top:Reality=
         \\begin{cases}
-        \\text{Haley is friends with everyone},  & \\text{+ Fact 1} \\\\
+        \\text{Haley is friends with a lot of people!},  & \\text{+ Fact 1} \\\\
         \\text{Haley does not like pancakes made upside down},  & \\text{$-$ Fact 2}
         \\end{cases}
         $$`}</MathJax>
