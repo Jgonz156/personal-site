@@ -108,6 +108,7 @@ export default function Home() {
         </Sheet>
       ),
     },
+    /* 
     {
       title: "Independent Study",
       code: "X998",
@@ -168,7 +169,7 @@ export default function Home() {
           <Sheet>Student, Proctor, Chair and Dean Approval</Sheet>
         </Sheet>
       ),
-    },
+    },*/
   ];
   const selfPapers = [
     {
