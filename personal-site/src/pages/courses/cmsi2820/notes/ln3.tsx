@@ -1,9 +1,9 @@
-import { MathJax } from "better-react-mathjax"
-import CourseBox from "../../components/course-box"
-import CoursePage from "../../components/course-page"
-import PhilosophyBreak from "../../components/philosophy-break"
-import Speak from "../../components/speak"
-import TitleBox from "../../components/title-box"
+import { MathJax } from "better-react-mathjax";
+import CourseBox from "../../components/course-box";
+import CoursePage from "../../components/course-page";
+import PhilosophyBreak from "../../components/philosophy-break";
+import Speak from "../../components/speak";
+import TitleBox from "../../components/title-box";
 
 export default function LectureNotes3() {
   return (
@@ -595,7 +595,7 @@ export default function LectureNotes3() {
       \\noLine
       \\UnaryInfC{\\(\\neg\\)B}
       \\RightLabel{(\\(\\neg\\) I)1}
-      \\BinaryInfC{B}
+      \\BinaryInfC{\\(\\neg\\)A}
 
       \\AxiomC{A}
       \\AxiomC{\\(\\neg\\)A}
@@ -630,5 +630,5 @@ export default function LectureNotes3() {
         </Speak>
       </CourseBox>
     </CoursePage>
-  )
+  );
 }

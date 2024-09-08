@@ -6,21 +6,21 @@ import {
   ListItem,
   Sheet,
   Typography,
-} from "@mui/joy"
-import CourseCard from "./course-card"
-import { CourseStatusBadge, SiteContext } from "./site-context"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import FeedIcon from "@mui/icons-material/Feed"
-import SchoolIcon from "@mui/icons-material/School"
-import AccountTreeIcon from "@mui/icons-material/AccountTree"
-import React from "react"
-import CourseInfoDump from "./course-info-dump"
-import PaperCard from "./paper-card"
-import BookCard from "./book-card"
-import ProjectCard from "./project-card"
+} from "@mui/joy";
+import CourseCard from "./course-card";
+import { CourseStatusBadge, SiteContext } from "./site-context";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import FeedIcon from "@mui/icons-material/Feed";
+import SchoolIcon from "@mui/icons-material/School";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import React from "react";
+import CourseInfoDump from "./course-info-dump";
+import PaperCard from "./paper-card";
+import BookCard from "./book-card";
+import ProjectCard from "./project-card";
 
 export default function Home() {
-  const { settings, dispatch } = React.useContext(SiteContext)
+  const { settings, dispatch } = React.useContext(SiteContext);
   const courses = [
     {
       title: "Discrete Mathematics for CS",
@@ -108,7 +108,68 @@ export default function Home() {
         </Sheet>
       ),
     },
-  ]
+    {
+      title: "Independent Study",
+      code: "X998",
+      imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+      slug: "/cmsi-X998",
+      status: settings.Home.Courses.CMSIX998.StatusBadge,
+      openModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSIX998: {
+                ...settings.Home.Courses.CMSIX998,
+                ModalVisible: true,
+              },
+            },
+          },
+        }),
+      closeModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSIX998: {
+                ...settings.Home.Courses.CMSIX998,
+                ModalVisible: false,
+              },
+            },
+          },
+        }),
+      modalState: settings.Home.Courses.CMSIX998.ModalVisible,
+      courseCardDescription: (
+        <Sheet
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "wrap",
+            gap: 4,
+            alignItems: "center",
+          }}
+        >
+          <Sheet>
+            Independent Study is an adjustable credit hour course designed to
+            give students the flexibility to study, engage with, and produce
+            projects in topic areas not investigated directly by the University
+            CS curriculum. The independent study is built as a collaborative
+            effort between a student and proctor to ensure University guidelines
+            are being followed while allowing for novel studies and software
+            production.
+          </Sheet>
+          <Divider>
+            <Chip>Prerequisites</Chip>
+          </Divider>
+          <Sheet>Student, Proctor, Chair and Dean Approval</Sheet>
+        </Sheet>
+      ),
+    },
+  ];
   const selfPapers = [
     {
       title:
@@ -138,7 +199,7 @@ export default function Home() {
       imageSlug:
         "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
     },
-  ]
+  ];
   //const otherPapers = [{}];
   const books = [
     {
@@ -224,8 +285,8 @@ export default function Home() {
       link: undefined,
       imageSlug: "/book-covers/ParallelProgramming-ConceptsAndPractice.jpg",
     },
-  ]
-  const projects = [{}]
+  ];
+  const projects = [{}];
   return (
     <Sheet
       sx={{
@@ -378,5 +439,5 @@ export default function Home() {
         ))}
       </Sheet>
     </Sheet>
-  )
+  );
 }
