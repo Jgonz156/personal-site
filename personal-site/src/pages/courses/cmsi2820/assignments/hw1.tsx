@@ -1,16 +1,16 @@
-import { DateTime } from "luxon"
-import CourseBox from "../../components/course-box"
-import CoursePage from "../../components/course-page"
-import DirectoryTree from "../../components/directory-tree"
-import DueDateCalendar from "../../components/due-date-calendar"
-import LinkButton from "../../components/link-button"
-import QuestionBox from "../../components/question-box"
-import Speak from "../../components/speak"
-import TitleBox from "../../components/title-box"
-import TopicBox from "../../components/topic-box"
-import Vocab from "../../components/vocab"
-import TopicBreak from "../../components/topic-break"
-import { MathJax } from "better-react-mathjax"
+import { DateTime } from "luxon";
+import CourseBox from "../../components/course-box";
+import CoursePage from "../../components/course-page";
+import DirectoryTree from "../../components/directory-tree";
+import DueDateCalendar from "../../components/due-date-calendar";
+import LinkButton from "../../components/link-button";
+import QuestionBox from "../../components/question-box";
+import Speak from "../../components/speak";
+import TitleBox from "../../components/title-box";
+import TopicBox from "../../components/topic-box";
+import Vocab from "../../components/vocab";
+import TopicBreak from "../../components/topic-break";
+import { MathJax } from "better-react-mathjax";
 
 export default function Homework1() {
   return (
@@ -283,25 +283,25 @@ export default function Homework1() {
           reached the goal condition at the bottom of the derivation tree having
           started with the assumptions in the following deductions at the top of
           the tree:
-          <QuestionBox points={4} qid="Q8 a">
+          <QuestionBox points={8} qid="Q8 a">
             <MathJax>{`$$\\text{Show that }(A \\land B) \\land (B \\land A) \\text{ can be deduced from just assuming A and B}$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={4} qid="Q8 b">
+          <QuestionBox points={6} qid="Q8 b">
             <MathJax>{`$$\\text{Show that }(A \\lor B) \\lor C \\text{ can be deduced from just assuming A}$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={4} qid="Q8 c">
+          <QuestionBox points={6} qid="Q8 c">
             <MathJax>{`$$\\text{Show that to deduce } A \\to (B \\to C) \\text{ you must assume and discharge A and B}$$`}</MathJax>
           </QuestionBox>
           <QuestionBox points={4} qid="Q8 d">
             <MathJax>{`$$\\text{Show that }(A \\to C) \\text{ can be deduced from } (A \\to B) \\land (B \\to C)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={4} qid="Q8 e">
+          <QuestionBox points={"0"} qid="Q8 e">
             <MathJax>{`$$\\text{Show that assuming }(A \\land (A \\to B)) \\land \\neg B \\text{ leads to a contradiction/absurdity}$$`}</MathJax>
           </QuestionBox>
           <QuestionBox points={4} qid="Q8 f">
             <MathJax>{`$$\\text{Show that given } (A \\lor B) \\to C \\text{ you can deduce } (A \\to C)\\land(B \\to C)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={4} qid="Q8 g">
+          <QuestionBox points={"0"} qid="Q8 g">
             <MathJax>{`$$\\text{Show that given } \\neg(A \\land B) \\text{ you can deduce } (\\neg A \\lor \\neg B)$$`}</MathJax>
           </QuestionBox>
         </QuestionBox>
@@ -380,5 +380,5 @@ export default function Homework1() {
         </LinkButton>
       </CourseBox>
     </CoursePage>
-  )
+  );
 }
