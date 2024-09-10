@@ -317,7 +317,7 @@ export default function LectureNotes4() {
         </Speak>
         <MathJax>{`$$\\begin{matrix}
         \\text{Find x: int | string: }\\\\
-         10:int \\space >:(int|string)\\to int \\space x:int|string >:(int|string)\\to int \\space 3:int 
+         10:int \\space >:(int|string)\\to boolean \\space x:int|string >:(int|string)\\to boolean \\space 3:int 
          \\end{matrix}$$`}</MathJax>
         <Speak>
           Of course we will refrain from writing things like this exactly as it
