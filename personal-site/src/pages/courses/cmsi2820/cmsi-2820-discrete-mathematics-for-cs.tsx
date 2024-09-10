@@ -166,7 +166,7 @@ export default function CMSI2820() {
                   assignmentSlug="/cmsi-2820/hw1"
                 />
               </Standard>
-              {/*
+
               <Standard
                 number={2}
                 title="Numbers"
@@ -175,10 +175,11 @@ export default function CMSI2820() {
                   going over the arithmetic of the Booleans and the Integers."
               >
                 <NotesCard
-                  title="LN 5: Primitive Beginnings"
-                  description=""
-                  notesSlug="/cmsi-2820/ln5"
+                  title="LN 4: Primitive Beginnings"
+                  description="In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory"
+                  notesSlug="/cmsi-2820/ln4"
                 />
+                {/* 
                 <NotesCard
                   title="LN 6: Meet The Booleans, Don't Worry There's only Two of Them"
                   description=""
@@ -200,7 +201,9 @@ export default function CMSI2820() {
                   description=""
                   assignmentSlug="/cmsi-2820/hw2"
                 />
+                */}
               </Standard>
+              {/* 
               <Standard
                 number={3}
                 title="Collections"
