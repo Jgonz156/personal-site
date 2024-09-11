@@ -178,26 +178,37 @@ export default function CMSI2820() {
                   title="LN 4: Primitive Beginnings"
                   description="In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory"
                   notesSlug="/cmsi-2820/ln4"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/Nnq1vR_A7N0udysBLXGO5i_R1Rw7tCt51aI_qQlTFt0SkLURe_BO3t8kxLID2AGR.ik5kYUMp6v6AXfPM?startTime=1725987844000",
+                    },
+                    { buttonText: "Section 2 Video", url: undefined },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/dSZvWy6wjuW-AJqTSVBICPpe3nbNuQ4K1C75ibNieCiv23D8hWclWZHJGTK22j5r.k1umb0BaJKrwLxIY?startTime=1726016703000",
+                    },
+                  ]}
                 />
                 {/* 
                 <NotesCard
-                  title="LN 6: Meet The Booleans, Don't Worry There's only Two of Them"
+                  title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
+                  description=""
+                  notesSlug="/cmsi-2820/ln5"
+                />
+                <NotesCard
+                  title="LN 6: The Integers, The Booleans' Infinite In-laws"
                   description=""
                   notesSlug="/cmsi-2820/ln6"
                 />
                 <NotesCard
-                  title="LN 7: The Integers, The Booleans' Infinite In-laws"
+                  title="LN 7: Division without Decimals? Positive Numbers that Add 
+                  to Zero? What is this Place?!?"
                   description=""
                   notesSlug="/cmsi-2820/ln7"
                 />
-                <NotesCard
-                  title="LN 8: Division without Decimals? Positive Numbers that Add 
-                  to Zero? What is this Place?!?"
-                  description=""
-                  notesSlug="/cmsi-2820/ln8"
-                />
                 <AssignmentCard
-                  title="HW 2: Numbers"
+                  title="HW 2: Counting Sheep"
                   description=""
                   assignmentSlug="/cmsi-2820/hw2"
                 />
