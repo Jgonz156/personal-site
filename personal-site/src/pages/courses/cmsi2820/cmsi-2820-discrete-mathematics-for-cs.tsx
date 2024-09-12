@@ -190,12 +190,13 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/* 
+
                 <NotesCard
                   title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
-                  description=""
+                  description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
                   notesSlug="/cmsi-2820/ln5"
                 />
+                {/* 
                 <NotesCard
                   title="LN 6: The Integers, The Booleans' Infinite In-laws"
                   description=""

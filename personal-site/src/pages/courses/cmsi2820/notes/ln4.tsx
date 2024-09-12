@@ -10,7 +10,6 @@ export default function LectureNotes4() {
   return (
     <CoursePage
       type="notes"
-      /*
       stepperInfo={{
         middle: {
           lectureId: "HW2",
@@ -20,12 +19,11 @@ export default function LectureNotes4() {
         },
         right: {
           lectureId: "LN5",
-          buttonColor: "success",
+          buttonColor: "primary",
           buttonName: "Meet The Booleans, Don't Worry There's only Two of Them",
           buttonSlug: "/cmsi-2820/ln5",
         },
       }}
-        */
     >
       <CourseBox>
         <TitleBox
