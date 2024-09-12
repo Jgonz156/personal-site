@@ -195,6 +195,16 @@ export default function CMSI2820() {
                   title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
                   description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
                   notesSlug="/cmsi-2820/ln5"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/NAHDMgiuE48tbICq4YlGrkzlSkfhhkzMSYg1SaSPtQYRgqRDVnhSFsf8rXbo-5z6.cK2Q3xRad8ZNxBFW?startTime=1726160876000",
+                    },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/qay0FeEkmNL2ed4_F7GnxcItuvSx3o2GfdXYG0KVUx3Rk85g2UfXk5IrUWKnmS4C.0AVSCeqJT5QcuyI4?startTime=1726173876000",
+                    },
+                  ]}
                 />
                 {/* 
                 <NotesCard
