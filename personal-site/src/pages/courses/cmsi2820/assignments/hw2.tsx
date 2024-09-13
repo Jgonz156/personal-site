@@ -15,9 +15,17 @@ export default function Homework2() {
   return (
     <CoursePage type="homework">
       <CourseBox>
-        <TitleBox title="HW2:" />
+        <TitleBox title="HW2: Counting Sheep" />
         <DueDateCalendar dueDate={DateTime.local(2024, 10, 4, 23, 59)} />
-        <TopicBox topics={["Type Theory"]} />
+        <TopicBox
+          topics={[
+            "Type Theory",
+            "Boolean Algebra",
+            "Venn Diagrams",
+            "Integer Arithmetic",
+            "Modular Arithmetic",
+          ]}
+        />
         <Speak>
           In class we've see the beginnings of Type Theory! We started with
           gathering an intuition for how Type Theory underlies mathematics and
@@ -67,6 +75,24 @@ export default function Homework2() {
             Give 5 unique real-world types whose existence is proven by the SAME
             instance
           </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={"TBA"} qid={"Q2"}>
+          <MathJax>{`In class we saw that Type information could be used to intuit
+           the kind of instance we would need to search for to show some greater
+            proposition as valid. We called this forming a Constructive Proof of 
+            something. In this problem I would like you to determine the Type of x 
+            and give an instance to prove the statement, only using type information from the rest of the 
+            compound proposition. Say that there is no such instance that can 
+            be constructed, then show that no instance within the Type that X 
+            must be can make the statement valid. Use the following information below to answer the sub-problems:
+            $$\\begin{matrix}
+            Fact 1 \\\\
+            Fact 2 \\\\
+            Fact 3 \\\\
+            Fact 4 \\\\
+            Fact 5 \\\\
+            Fact 6 \\\\
+            \\end{matrix}$$`}</MathJax>
         </QuestionBox>
         <TopicBreak title="END OF LN4" />
         <Speak>
