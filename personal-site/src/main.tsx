@@ -22,6 +22,7 @@ import LectureNotes2 from "./pages/courses/cmsi2820/notes/ln2.tsx"
 import LectureNotes3 from "./pages/courses/cmsi2820/notes/ln3.tsx"
 import LectureNotes4 from "./pages/courses/cmsi2820/notes/ln4.tsx"
 import LectureNotes5 from "./pages/courses/cmsi2820/notes/ln5.tsx"
+import LectureNotes6 from "./pages/courses/cmsi2820/notes/ln6.tsx"
 import HW0 from "./pages/courses/cmsi2820/assignments/hw0.tsx"
 import HW1 from "./pages/courses/cmsi2820/assignments/hw1.tsx"
 import HW2 from "./pages/courses/cmsi2820/assignments/hw2.tsx"
@@ -49,6 +50,7 @@ const router = [
   { path: "/cmsi-2820/ln3", element: <LectureNotes3 /> },
   { path: "/cmsi-2820/ln4", element: <LectureNotes4 /> },
   { path: "/cmsi-2820/ln5", element: <LectureNotes5 /> },
+  { path: "/cmsi-2820/ln6", element: <LectureNotes6 /> },
   { path: "/cmsi-2820/hw0", element: <HW0 /> },
   { path: "/cmsi-2820/hw1", element: <HW1 /> },
   { path: "/cmsi-2820/hw2", element: <HW2 /> },

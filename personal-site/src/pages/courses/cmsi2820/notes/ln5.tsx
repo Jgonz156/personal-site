@@ -24,13 +24,13 @@ export default function LectureNotes5() {
           buttonName: "Counting Sheep",
           buttonSlug: "/cmsi-2820/hw2",
         },
-        /*
+
         right: {
           lectureId: "LN6",
           buttonColor: "primary",
           buttonName: "The Integers, The Booleans' Infinite In-laws",
           buttonSlug: "/cmsi-2820/ln6",
-        },*/
+        },
       }}
     >
       <CourseBox>
