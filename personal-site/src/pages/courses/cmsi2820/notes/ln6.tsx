@@ -5,7 +5,7 @@ import Speak from "../../components/speak"
 import TitleBox from "../../components/title-box"
 import TopicBreak from "../../components/topic-break"
 import ImageBox from "../../components/image-box"
-import PhilosophyBreak from "../../components/philosophy-break"
+import CodeBox from "../../components/code-box"
 
 export default function LectureNotes6() {
   return (
@@ -36,7 +36,10 @@ export default function LectureNotes6() {
       <CourseBox>
         <TitleBox
           title="The Integers, The Booleans' Infinite In-laws"
-          quote={`"" - `}
+          quote={`"It's on the strength of observation
+and reflection that one finds
+a way. So we must dig
+and delve unceasingly." - Claude Monet`}
         />
         <Speak>
           The other day we used operators as a way to intuitively discover why
@@ -151,6 +154,289 @@ export default function LectureNotes6() {
           simplest one within the Integers: Addition!
         </Speak>
         <TopicBreak title="Addition?" />
+        <Speak>
+          We start by asking ourselves, what is addition? That's easy right? Its
+          just adding multiple instances together! Well what does that mean?
+          What's adding?
+        </Speak>
+        <Speak>
+          Turns out that for a very long time, addition was understood in a very
+          informal manner. Through either counting, or using a number line we
+          could discover what adding numbers together did. This process was
+          self-contained however, and not until abstract algebra came along did
+          we have a formal way of discussing the "addition" we use with numbers
+          nowadays.
+        </Speak>
+        <Speak>
+          In fact, the intuition that addition can be defined multiple ways
+          should make sense after seeing that boolean venn diagrams and our
+          logical algebra preformed the same actions.
+        </Speak>
+        <Speak>
+          Lets look at addition in terms of counting as that is where you
+          probably first learned how to add. For our simple counting I will use
+          dots and groups. The idea is that a field of dots can be drawn and the
+          groups bring dots together.
+        </Speak>
+        <ImageBox
+          images={[
+            {
+              url: "/cmsi-2820/dotsandgroups.png",
+              caption:
+                "The image above displays our dots on the left and what groups look like on the right.",
+            },
+          ]}
+        />
+        <Speak>
+          With this, lets begin counting dots by grouping them together!
+        </Speak>
+        <ImageBox
+          images={[
+            {
+              url: "/cmsi-2820/dotsandgroups3.png",
+              caption:
+                "The image above displays counting dots by grouping them together. In this case the dots are brought together to form a 3.",
+            },
+          ]}
+        />
+        <Speak>
+          So this process of grouping is addition? Ok not so bad. So we can say
+          addition is just bringing things together? In a sense yes! So lets
+          look at more addition in this little system.
+        </Speak>
+        <ImageBox
+          images={[
+            {
+              url: "/cmsi-2820/dotsandgroupsaddition.png",
+              caption:
+                "The image above displays Addition between pre-made dot groups, by joining them together.",
+            },
+          ]}
+        />
+        <Speak>
+          Wait, bringing groups together also feels like addition too. This is
+          because what we did before is counting all the elements in a group
+          (Which is analogous to adding one over and over for each dot). This
+          addition however is bring together two separate counts from before.
+        </Speak>
+        <Speak>
+          Lets say for the sake of argument however that you don't appreciate
+          this form of addition. Its not "real" addition, you say in your head.
+          Well lets upgrade to something else, the number line!
+        </Speak>
+        <Speak>
+          Addition here is exactly what we learned in grade school. We start at
+          some point on the line and then hop along the line for the number we
+          are given! Thats addition right?
+        </Speak>
+        <ImageBox
+          images={[
+            {
+              url: "/cmsi-2820/numberlineaddition.png",
+              caption: "The image above displays Addition with number lines.",
+            },
+          ]}
+        />
+        <Speak>
+          If that were the case however, why can we "make sense" of the previous
+          example? If addition is directly defined to only be about number on
+          the number line than what did we do before?
+        </Speak>
+        <Speak>
+          The answer is that we are definitely doing "addition" just not the
+          same form of addition. But if there are different forms than what is
+          addition?
+        </Speak>
+        <Speak>
+          The answer to this issue is that addition is actually a more general
+          process than we give it credit. Than what is it actually?
+        </Speak>
+        <Speak>
+          Modern abstract algebra gives us the tools to investigate this.
+          However, it gives a potentially non-intuitive answer. Addition isn't
+          necessarily just the sequence of steps you go through to "add" things
+          together. Instead it is the collection of properties shared by all
+          operations that seem to "add" things together.
+        </Speak>
+        <Speak>
+          Just as we did with Venn diagrams and Boolean Algebra, lets see these
+          properties in action in all the systems we've seen so far. The first
+          to investigate is Associativity.
+        </Speak>
+        <ImageBox
+          images={[
+            {
+              url: "/cmsi-2820/associativity.png",
+              caption:
+                "The image above displays Associativity within grouping dots, number lines, and typical algebra.",
+            },
+          ]}
+        />
+        <Speak>
+          Informally, associativity is defined as a property of an operator that
+          specifically states that the order of performing the operation amongst
+          more than two instances doesn't matter.
+        </Speak>
+        <Speak>
+          Formally it is defined by the following statement about any binary
+          operator "~":
+        </Speak>
+        <MathJax>{`$$(a\\sim b) \\sim c \\equiv a\\sim (b \\sim c)$$`}</MathJax>
+        <Speak>
+          The second property is Commutativity. It appears as the following in
+          our three previous systems.
+        </Speak>
+        <ImageBox
+          images={[
+            {
+              url: "/cmsi-2820/commutativity.png",
+              caption:
+                "The image above displays Commutativity within grouping dots, number lines, and typical algebra.",
+            },
+          ]}
+        />
+        <Speak>
+          Informally, commutativity is defined as a property of a binary
+          operator whose operation is not directional. Put another way, the
+          order of instances around the operator doesn't matter.
+        </Speak>
+        <Speak>
+          Formally it is defined by the following statement about any binary
+          operator "~":
+        </Speak>
+        <MathJax>{`$$a\\sim b \\equiv b \\sim a$$`}</MathJax>
+        <Speak>
+          The third property is Identity. It appears as the following in our
+          previous systems.
+        </Speak>
+        <ImageBox
+          images={[
+            {
+              url: "/cmsi-2820/identity.png",
+              caption:
+                "The image above displays Identity within grouping dots, number lines, and typical algebra.",
+            },
+          ]}
+        />
+        <Speak>
+          Informally, Identity is defined as a property on a binary operator
+          that has a special instance that when operated with any other instance
+          results in the other instance being "unaffected".
+        </Speak>
+        <Speak>
+          Formally it is defined by the following statement about any binary
+          operator "~" with some special instance "i":
+        </Speak>
+        <MathJax>{`$$a\\sim i \\equiv a$$`}</MathJax>
+        <Speak>
+          The last property we will look at is Closure. Closure is an important
+          property for us as it is defined via our type information! It is the
+          hardest to show in our previous systems as it is a property that is
+          impossible to display without seeing every single combination of our
+          operator being used.
+        </Speak>
+        <Speak>
+          Informally, Closure is a property on an operator that says that the
+          operator, given any combination of instances of the same type, can
+          never produce an instance of another type. Put another way, it must
+          always produce an instance of the same type as its input, hence it is
+          "closed" as it cannot "escape" its parent Type.
+        </Speak>
+        <Speak>
+          Formally, it can be defined with the following statement in Type
+          Theoretic notation about some operator "~" and some type "A".
+        </Speak>
+        <MathJax>{`$$\\sim : (A~x~A~...) \\to A$$`}</MathJax>
+        <Speak>
+          While this notation is foreign to us at the moment, it is simply a
+          concise way of saying that any number of input instances of some
+          shared type "A" when used with "~" will always produce some other
+          instance within Type "A".
+        </Speak>
+        <Speak>
+          Addition between Integers cannot produce anything other than another
+          Integer so it is "closed" or displays the closure property over the
+          integers.
+        </Speak>
+        <Speak>
+          This is important moving forward as investigating division within the
+          Integers shows that it is NOT closed as it can produce rational
+          numbers, which is another type!.
+        </Speak>
+        <Speak>
+          These properties are powerful, as they are generalizations that can
+          apply to ANY operation! In fact, they are so fundamental to operators,
+          in Abstract Algebra, they are used to define them!
+        </Speak>
+        <Speak>
+          Addition, within abstract algebra, is actually defined as any
+          operation that is associative and commutative! (Well kind of, its far
+          more complicated than just that, but for our purposes this lets us
+          extend "addition" to other types!)
+        </Speak>
+        <Speak>
+          So Addition is defined without numbers at all? Correct! We need only
+          ensure our associative and commutative properties are upheld and we
+          will receive an operators that functions in an "additive" manner!
+        </Speak>
+        <Speak>
+          To prove how fundamental these properties are, we will now define a
+          custom type (class) in python that has a special "add" method that
+          uses no numbers, but none the less creates addition!
+        </Speak>
+        <CodeBox
+          code={`class Dot:
+    def __repr__(self):
+        return "."
+    def __int__(self):
+        return 1
+
+class Group:
+    def __init__(self):
+        self.dots = []
+
+    def __add__(self, other):
+        new_group = Group()
+        for dot in self.dots:
+            new_group.dots.append(Dot())
+
+        if type(other) == Group:
+            for dot in other.dots:
+                new_group.dots.append(Dot())
+
+        elif type(other) == Dot:
+            new_group.dots.append(Dot())
+        return new_group
+    
+    def __int__(self):
+        total = 0
+        for dot in self.dots:
+            total += 1
+        return total
+    
+    def __repr__(self):
+        return f"[{"." * len(self.dots)}]"
+
+group_1 = Group() + Dot() + Dot()
+group_2 = Group() + Dot()
+group_3 = Group() + Dot() + Dot() + Dot() + Dot()
+
+print("Should be Equal if Commutative:", group_1 + group_2, "=", group_2 + group_1)
+print("Should be Equal if Associative:", (group_1 + group_2) + group_3, "=", group_1 + (group_2 + group_3) )`}
+        />
+        <Speak>
+          What is the major take away here? Learning that Addition is not just
+          for numbers is interesting, however that is not the larger take away.
+          The reason we performed this investigation was to see what operators
+          are like. While we can't define them directly in math just yet, we can
+          still learn about their underlying properties.
+        </Speak>
+        <Speak>
+          In a larger sense, it also uncovers that Mathematics is not just the
+          study of numbers, but rather the fundamental ability to use math to
+          recognize similar patterns in the world around us using numbers as a
+          short hand.
+        </Speak>
       </CourseBox>
     </CoursePage>
   )
