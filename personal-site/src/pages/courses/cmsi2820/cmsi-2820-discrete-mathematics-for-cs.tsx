@@ -215,6 +215,12 @@ export default function CMSI2820() {
                   title="LN 6: The Integers, The Booleans' Infinite In-laws"
                   description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
                   notesSlug="/cmsi-2820/ln6"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/uBKHYk01Mb8dvxse5WFs-47eaBpH72XfHHFaPgPGJEv2GYBbcY6jOiUgMtw7ts2H.gHkahQAfPSlDtqqk?startTime=1726592078000",
+                    },
+                  ]}
                 />
                 {/* 
                 <NotesCard
