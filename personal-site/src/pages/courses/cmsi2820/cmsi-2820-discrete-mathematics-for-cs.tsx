@@ -204,14 +204,19 @@ export default function CMSI2820() {
                       buttonText: "Section 2 Video",
                       url: "https://lmula.zoom.us/rec/share/qay0FeEkmNL2ed4_F7GnxcItuvSx3o2GfdXYG0KVUx3Rk85g2UfXk5IrUWKnmS4C.0AVSCeqJT5QcuyI4?startTime=1726173876000",
                     },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/OkdHJey2Y11oJXbmoBT7z3p_uz0bucBrkhT9CE0IG0UB73F9rSYvzzxjUqgeR57h.kTt6m5331rq8T5UF?startTime=1726189501000",
+                    },
                   ]}
                 />
-                {/* 
+
                 <NotesCard
                   title="LN 6: The Integers, The Booleans' Infinite In-laws"
-                  description=""
+                  description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
                   notesSlug="/cmsi-2820/ln6"
                 />
+                {/* 
                 <NotesCard
                   title="LN 7: Division without Decimals? Positive Numbers that Add 
                   to Zero? What is this Place?!?"
