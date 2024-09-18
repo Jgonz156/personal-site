@@ -220,6 +220,14 @@ export default function CMSI2820() {
                       buttonText: "Section 1 Video",
                       url: "https://lmula.zoom.us/rec/share/uBKHYk01Mb8dvxse5WFs-47eaBpH72XfHHFaPgPGJEv2GYBbcY6jOiUgMtw7ts2H.gHkahQAfPSlDtqqk?startTime=1726592078000",
                     },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: undefined,
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: undefined,
+                    },
                   ]}
                 />
                 {/* 

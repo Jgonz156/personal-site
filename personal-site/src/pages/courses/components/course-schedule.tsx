@@ -60,7 +60,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 8, 28).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -78,13 +78,13 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 9, 3).startOf("day"),
-      quote: "Lecture Day (LN2), HW0 Due",
+      quote: "Lecture Day (LN2)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2024, 9, 4).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -96,7 +96,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 9, 8).startOf("day"),
-      quote: "HW1 Due",
+      quote: "HW0 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -108,7 +108,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 9, 11).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -126,7 +126,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 9, 18).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -138,7 +138,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 9, 20).startOf("day"),
-      quote: "HW 2 Due",
+      quote: "HW1 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -150,7 +150,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 9, 25).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -168,7 +168,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 10, 2).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -180,7 +180,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 10, 4).startOf("day"),
-      quote: "HW3 Due",
+      quote: "HW2 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -198,7 +198,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 10, 9).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -229,7 +229,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 10, 16).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -241,7 +241,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 10, 18).startOf("day"),
-      quote: "HW 4 Due",
+      quote: "HW3 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -253,7 +253,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 10, 23).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -271,7 +271,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 10, 30).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -283,7 +283,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 11, 1).startOf("day"),
-      quote: "HW 5 Due",
+      quote: "HW4 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -295,7 +295,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 11, 6).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -313,7 +313,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 11, 13).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -325,7 +325,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 11, 15).startOf("day"),
-      quote: "HW 6 Due",
+      quote: "HW5 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -337,7 +337,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 11, 20).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
@@ -349,7 +349,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 11, 22).startOf("day"),
-      quote: "HW 7 Due",
+      quote: "HW6 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -387,7 +387,7 @@ export default function CourseSchedule() {
     },
     {
       date: DateTime.local(2024, 12, 4).startOf("day"),
-      quote: "Office Hours 9 AM - 12 Pm, 2 PM - 5 PM",
+      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
       dayType: "office hours",
       dayInfo: <></>,
     },
