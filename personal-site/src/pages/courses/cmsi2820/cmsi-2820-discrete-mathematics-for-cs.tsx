@@ -230,13 +230,14 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/* 
+
                 <NotesCard
                   title="LN 7: Division without Decimals? Positive Numbers that Add 
                   to Zero? What is this Place?!?"
-                  description=""
+                  description="In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic."
                   notesSlug="/cmsi-2820/ln7"
                 />
+                {/* 
                 <AssignmentCard
                   title="HW 2: Counting Sheep"
                   description=""

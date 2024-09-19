@@ -24,13 +24,14 @@ export default function LectureNotes6() {
           buttonName: "Counting Sheep",
           buttonSlug: "/cmsi-2820/hw2",
         },
-        /*
+
         right: {
           lectureId: "LN7",
           buttonColor: "primary",
-          buttonName: "",
-          buttonSlug: "/cmsi-2820/ln",
-        },*/
+          buttonName:
+            "Division without Decimals? Positive Numbers that Add to Zero? What is this Place?!?",
+          buttonSlug: "/cmsi-2820/ln7",
+        },
       }}
     >
       <CourseBox>

@@ -16,13 +16,14 @@ import { SiteContextProvider } from "./components/site-context.tsx"
 import "./index.css"
 import CheatSheet from "./pages/courses/cmsi2820/cheat-sheet.tsx"
 import Syllabus from "./pages/courses/cmsi2820/syllabus.tsx"
-import LectureNotes0 from "./pages/courses/cmsi2820/notes/ln0.tsx"
-import LectureNotes1 from "./pages/courses/cmsi2820/notes/ln1.tsx"
-import LectureNotes2 from "./pages/courses/cmsi2820/notes/ln2.tsx"
-import LectureNotes3 from "./pages/courses/cmsi2820/notes/ln3.tsx"
-import LectureNotes4 from "./pages/courses/cmsi2820/notes/ln4.tsx"
-import LectureNotes5 from "./pages/courses/cmsi2820/notes/ln5.tsx"
-import LectureNotes6 from "./pages/courses/cmsi2820/notes/ln6.tsx"
+import LN0 from "./pages/courses/cmsi2820/notes/ln0.tsx"
+import LN1 from "./pages/courses/cmsi2820/notes/ln1.tsx"
+import LN2 from "./pages/courses/cmsi2820/notes/ln2.tsx"
+import LN3 from "./pages/courses/cmsi2820/notes/ln3.tsx"
+import LN4 from "./pages/courses/cmsi2820/notes/ln4.tsx"
+import LN5 from "./pages/courses/cmsi2820/notes/ln5.tsx"
+import LN6 from "./pages/courses/cmsi2820/notes/ln6.tsx"
+import LN7 from "./pages/courses/cmsi2820/notes/ln7.tsx"
 import HW0 from "./pages/courses/cmsi2820/assignments/hw0.tsx"
 import HW1 from "./pages/courses/cmsi2820/assignments/hw1.tsx"
 import HW2 from "./pages/courses/cmsi2820/assignments/hw2.tsx"
@@ -44,13 +45,14 @@ const router = [
   { path: "/cmsi-2820", element: <CMSI2820 /> },
   { path: "/cmsi-2820/cheat-sheet", element: <CheatSheet /> },
   { path: "/cmsi-2820/syllabus", element: <Syllabus /> },
-  { path: "/cmsi-2820/ln0", element: <LectureNotes0 /> },
-  { path: "/cmsi-2820/ln1", element: <LectureNotes1 /> },
-  { path: "/cmsi-2820/ln2", element: <LectureNotes2 /> },
-  { path: "/cmsi-2820/ln3", element: <LectureNotes3 /> },
-  { path: "/cmsi-2820/ln4", element: <LectureNotes4 /> },
-  { path: "/cmsi-2820/ln5", element: <LectureNotes5 /> },
-  { path: "/cmsi-2820/ln6", element: <LectureNotes6 /> },
+  { path: "/cmsi-2820/ln0", element: <LN0 /> },
+  { path: "/cmsi-2820/ln1", element: <LN1 /> },
+  { path: "/cmsi-2820/ln2", element: <LN2 /> },
+  { path: "/cmsi-2820/ln3", element: <LN3 /> },
+  { path: "/cmsi-2820/ln4", element: <LN4 /> },
+  { path: "/cmsi-2820/ln5", element: <LN5 /> },
+  { path: "/cmsi-2820/ln6", element: <LN6 /> },
+  { path: "/cmsi-2820/ln7", element: <LN7 /> },
   { path: "/cmsi-2820/hw0", element: <HW0 /> },
   { path: "/cmsi-2820/hw1", element: <HW1 /> },
   { path: "/cmsi-2820/hw2", element: <HW2 /> },
