@@ -236,6 +236,12 @@ export default function CMSI2820() {
                   to Zero? What is this Place?!?"
                   description="In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic."
                   notesSlug="/cmsi-2820/ln7"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/VcEoNu-g8JPooH3-cGYnk43Irnge4ssGNKcp4Hvw23fi-g9WAtwRl4AsIeuAaj-h.6r84e9a6x5Pg0KYW?startTime=1726765262000",
+                    },
+                  ]}
                 />
                 {/* 
                 <AssignmentCard
