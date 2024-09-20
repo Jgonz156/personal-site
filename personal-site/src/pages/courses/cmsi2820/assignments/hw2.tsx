@@ -87,14 +87,14 @@ export default function Homework2() {
             must be can make the statement valid. Use the following information below to answer the sub-problems:
             $$\\begin{matrix}
             a:int~=~3 \\\\
-            b:str~=~"3" \\\\
-            #:(str,~int)\\to str\\\\
-            b~#~a~=~"333"\\\\
-            a~#~b~=~\\bot \\\\
-            c:str~=~"three" \\\\
+            b:str~=~\\text{"3"} \\\\
+            \\#:(str,~int)\\to str\\\\
+            b~\\#~a~=~\\text{"333"}\\\\
+            a~\\#~b~=~\\bot \\\\
+            c:str~=~\\text{"three"} \\\\
             +:(int,~int)\\to int \\\\
             +:(str,~str)\\to str \\\\
-            b + c~=~"3three" \\\\
+            b + c~=~\\text{"3three"} \\\\
             \\end{matrix}$$`}</MathJax>
           <QuestionBox points={"TBA"} qid={"Q2 a"}>
             Find x: "a + a = x"
