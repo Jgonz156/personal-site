@@ -79,20 +79,44 @@ export default function Homework2() {
         <QuestionBox points={"TBA"} qid={"Q2"}>
           <MathJax>{`In class we saw that Type information could be used to intuit
            the kind of instance we would need to search for to show some greater
-            proposition as valid. We called this forming a Constructive Proof of 
+            proposition as valid. Using this type information to then declare a specific value  We called this forming a Constructive Proof of 
             something. In this problem I would like you to determine the Type of x 
             and give an instance to prove the statement, only using type information from the rest of the 
-            compound proposition. Say that there is no such instance that can 
-            be constructed, then show that no instance within the Type that X 
+            compound proposition. If there is no such instance that can 
+            be constructed, then briefly explain why no instance within the Type that X 
             must be can make the statement valid. Use the following information below to answer the sub-problems:
             $$\\begin{matrix}
-            Fact 1 \\\\
-            Fact 2 \\\\
-            Fact 3 \\\\
-            Fact 4 \\\\
-            Fact 5 \\\\
-            Fact 6 \\\\
+            a:int~=~3 \\\\
+            b:str~=~\\text{"3"} \\\\
+            \\#:(str,~int)\\to str\\\\
+            b~\\#~a~=~\\text{"333"}\\\\
+            a~\\#~b~=~\\bot \\\\
+            c:str~=~\\text{"three"} \\\\
+            +:(int,~int)\\to int \\\\
+            +:(str,~str)\\to str \\\\
+            b + c~=~\\text{"3three"} \\\\
             \\end{matrix}$$`}</MathJax>
+          <QuestionBox points={"TBA"} qid={"Q2 a"}>
+            Find x: "a + a = x"
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q2 b"}>
+            Find y: "y = b + b"
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q2 c"}>
+            Find z: "z = a + b"
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q2 d"}>
+            Find w: ""
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q2 e"}>
+            Find q: ""
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q2 f"}>
+            Find f: ""
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q2 i"}>
+            Find g: ""
+          </QuestionBox>
         </QuestionBox>
         <TopicBreak title="END OF LN4" />
         <Speak>
@@ -100,6 +124,8 @@ export default function Homework2() {
           Involution, Identity
         </Speak>
         <TopicBreak title="END OF LN5" />
+        <TopicBreak title="END OF LN6" />
+        <TopicBreak title="END OF LN7" />
         <LinkButton color="success" to="">
           Written HW2 Turn In
         </LinkButton>
