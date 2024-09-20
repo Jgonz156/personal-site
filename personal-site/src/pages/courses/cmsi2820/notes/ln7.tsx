@@ -195,14 +195,14 @@ export default function LectureNotes6() {
         </Speak>
         <Sheet sx={{ height: "90vh" }}>
           <iframe
-            src="https://www.desmos.com/calculator/arjpxjpfwr?embed"
+            src="https://www.desmos.com/calculator/u7ttqd9par?embed"
             width={"100%"}
             height={"100%"}
           />
           <a href="https://www.desmos.com/calculator/kiyedej7dh">link here!</a>
         </Sheet>
         <Speak>
-          Exploring that desmos interactive we may have noticed something
+          Exploring that Desmos interactive we may have noticed something
           interesting. While their may be an intuition that as numbers get
           larger they should have more of these pairs of factors, there are
           still some that seem to randomly only have 1 pair in total! Put
@@ -401,7 +401,7 @@ export default function LectureNotes6() {
         </Speak>
         <MathJax>{`$$\\begin{prooftree}
       \\AxiomC{[a \\(\\equiv \\) b mod m \\(\\land \\) b \\(\\equiv \\) c mod m]1}
-        \\RightLabel{(\\(\\land\\) E2)}
+        \\RightLabel{(\\(\\land\\) E1)}
         \\UnaryInfC{a\\(\\equiv \\) b mod m}
         \\RightLabel{(\\(\\equiv \\) E)}
         \\UnaryInfC{a mod m = b mod m}
