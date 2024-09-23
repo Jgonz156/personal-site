@@ -132,7 +132,7 @@ export default function Homework2() {
             Evaluate "d + d"
           </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 i"}>
-            Evaluate ""
+            Evaluate "a + a +" NOTE: This is NOT a typo
           </QuestionBox>
         </QuestionBox>
 
@@ -212,8 +212,58 @@ export default function Homework2() {
           Here you will only need to use typical algebra and the number line, we
           can leave the dots with groups system for another time!
         </Speak>
-        <QuestionBox points={"TBA"} qid={"Q6"}></QuestionBox>
+        <QuestionBox points={"TBA"} qid={"Q6"}>
+          <MathJax>{`The Associative Property is obtained by an operator between instances
+          when the evaluation order amongst 3 or more of the instances, chained by that operator,
+          does not alter the outcome of the larger statement. In this question you are tasked
+          with showing that associativity holds on multiplication for at least one example. You must
+           represent this example visually (using number lines) and algebraically. (You must use three numbers unique from one another and all of them must have an absolute value larger than 3)
+          `}</MathJax>
+        </QuestionBox>
+        <QuestionBox points={"TBA"} qid={"Q6"}>
+          <MathJax>{`The Commutative Property is obtained by an operator when the order of the 
+          two input instances does not alter the outcome. In this question you are tasked
+          with showing that commutativity holds on multiplication for at least one example. You must
+           represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and all of them must have an absolute value larger than 3)
+          `}</MathJax>
+        </QuestionBox>
+        <QuestionBox points={"TBA"} qid={"Q7"}>
+          <MathJax>{`The Associative Property is attained by many operators, but bot all. In this question
+           you are tasked with showing that associativity does NOT hold on subtraction for at least one example. You must
+           represent this example visually (using number lines) and algebraically. (You must use three numbers unique from one another and all of them must have an absolute value larger than 3)
+          `}</MathJax>
+        </QuestionBox>
+        <QuestionBox points={"TBA"} qid={"Q7"}>
+          <MathJax>{`The Commutative Property is attained by many operators, but not all. Just as before, In this question
+           you are tasked with showing that commutativity does NOT hold on subtraction for at least one example. You must
+           represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and all of them must have an absolute value larger than 3)
+          `}</MathJax>
+        </QuestionBox>
+        <QuestionBox points={"2"} qid={"Q8"}>
+          <MathJax>{`We saw in class that the Identity property was obtained when there was a special instance
+          within a type for an operator, such that when the operator was used, the non-special input instance
+           remained unchanged. For Subtraction and Multiplication, give the special instances that prove
+            Subtraction and Multiplication have this property.
+          `}</MathJax>
+        </QuestionBox>
         <TopicBreak title="END OF LN6" />
+        <Speak>
+          Our previous investigation led us naturally to do the same for
+          Division, but we saw that when only using Integers, the Closure
+          property was not obtained! This lead us to build a version of division
+          that did obtain closure within the Integers.
+        </Speak>
+        <Speak>
+          While Integer division worked, it was unsatisfying that it left the
+          vast majority of Integers "out in the cold". Thus we needed a way to
+          speak about the areas left behind. This gave us Modulus!
+        </Speak>
+        <Speak>
+          Modulus and Integer division, as a pair, gave us the ability to fully
+          describe the integers during factorization, and in the following
+          section we will perform some practice with the operators!
+        </Speak>
+
         <TopicBreak title="END OF LN7" />
         <LinkButton color="success" to="">
           Written HW2 Turn In
