@@ -79,12 +79,11 @@ export default function Homework2() {
         <QuestionBox points={"TBA"} qid={"Q2"}>
           <MathJax>{`In class we saw that Type information could be used to intuit
            the kind of instance we would need to search for to show some greater
-            proposition as valid. Using this type information to then declare a specific value  We called this forming a Constructive Proof of 
-            something. In this problem I would like you to determine the Type of x 
-            and give an instance to prove the statement, only using type information from the rest of the 
-            compound proposition. If there is no such instance that can 
-            be constructed, then briefly explain why no instance within the Type that X 
-            must be can make the statement valid. Use the following information below to answer the sub-problems:
+            proposition as valid. Using this type information to guide our search, we could then declare a specific
+             value to make the proposition true. We called this forming a Constructive Proof.
+              In this problem I would like you to evaluate an expression and give its type. If there is no such instance that can 
+            be constructed (You get an absurdity), then briefly explain why no instance within the Type required can make the statement valid. 
+            Use the following information below to answer the sub-problems:
             $$\\begin{matrix}
             a:int~=~3 \\\\
             b:str~=~\\text{"3"} \\\\
@@ -95,35 +94,125 @@ export default function Homework2() {
             +:(int,~int)\\to int \\\\
             +:(str,~str)\\to str \\\\
             b + c~=~\\text{"3three"} \\\\
+            d: rational = 1/2
             \\end{matrix}$$`}</MathJax>
+          <QuestionBox points={"TBA"} qid={"Q2 EXAMPLE"}>
+            <MathJax>{`Evaluate: $$
+            b+b~\\#~a
+            $$
+            Answer: $$
+            \\text{"333333"}:str
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q2 EXAMPLE"}>
+            <MathJax>{`Evaluate: $$
+            a + d
+            $$
+            Answer: $$
+            \\bot:Absurd
+            $$
+            We know that "a" is an int and that "d" is a rational. However, we do not have a "+" operator that allows those types, thus there is no way to reduce this expression.`}</MathJax>
+          </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 a"}>
-            Find x: "a + a = x"
+            Evaluate "a + a"
           </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 b"}>
-            Find y: "y = b + b"
+            Evaluate "b + b"
           </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 c"}>
-            Find z: "z = a + b"
+            Evaluate "a + b"
           </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 d"}>
-            Find w: ""
+            Evaluate "b # b"
           </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 e"}>
-            Find q: ""
+            Evaluate "(b # (a + a)) + c "
           </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 f"}>
-            Find f: ""
+            Evaluate "d + d"
           </QuestionBox>
           <QuestionBox points={"TBA"} qid={"Q2 i"}>
-            Find g: ""
+            Evaluate ""
           </QuestionBox>
         </QuestionBox>
+
         <TopicBreak title="END OF LN4" />
         <Speak>
-          INCLUDE: Absorption laws, Complement Laws, Annihilator/Annulment,
-          Involution, Identity
+          Within the Boolean type, their are special properties that let us
+          simplify larger compound expressions. The questions in this section
+          will be highlighting the interplay between Boolean Algebra on one hand
+          and the Venn Diagram visual system on the other. We know they both
+          have the same ability to display, and prove, properties within the
+          Booleans. Lets Investigate some that we did not see in class below!
         </Speak>
+        <QuestionBox points={"TBA"} qid={"Q3"}>
+          <MathJax>{`One of the properties we investigated was the First
+           Complement Law. We showed what it looked like in a table format
+            and a series of venn diagrams. In this problem you must do the
+             same as we did in class, justify the law using a table and 
+             venn diagrams, expect this time for the Second 
+             Complement Law shown below: 
+             $$
+             X \\lor \\neg X \\equiv 1
+             $$`}</MathJax>
+          <QuestionBox points={"TBA"} qid={"Q3 a"}>
+            Justify the Second Complement Law with a Table
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q3 b"}>
+            Justify the Second Complement Law with a Venn Diagram
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={"TBA"} qid={"Q4"}>
+          <MathJax>{`One of the properties we investigated was the First
+           Absorption Law. We showed what it looked like in a table format
+            and a series of venn diagrams. In this problem you must do the
+             same as we did in class, justify the law using a table and 
+             venn diagrams, expect this time for the Second 
+             Absorption Law shown below: 
+             $$
+             X \\lor (X \\land Y) \\equiv X
+             $$`}</MathJax>
+          <QuestionBox points={"TBA"} qid={"Q4 a"}>
+            Justify the Second Absorption Law with a Table
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q4 b"}>
+            Justify the Second Absorption Law with a series of Venn Diagrams
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={"TBA"} qid={"Q5"}>
+          <MathJax>{`One of the properties we didn't see were the Annihilator Laws for Conjunction and Disjunction.
+           In this problem you must do the
+             same as we did in class, justify the laws tables and 
+             venn diagrams, expect this time give a small explanation as to why these laws hold: 
+             $$\\begin{matrix}
+             X \\land 0 \\equiv 0 \\\\
+             X \\lor 1 \\equiv 1 \\\\
+             \\end{matrix}$$`}</MathJax>
+          <QuestionBox points={"TBA"} qid={"Q5 a"}>
+            Justify the Annihilator Laws with Tables
+          </QuestionBox>
+          <QuestionBox points={"TBA"} qid={"Q5 b"}>
+            Justify the Annihilator Laws with a series of Venn Diagrams
+          </QuestionBox>
+        </QuestionBox>
         <TopicBreak title="END OF LN5" />
+        <Speak>
+          In class we discovered the properties of operators by performing a
+          deep dive into Addition with the help of 2 visual systems and an
+          algebraic one. These systems were the dots with groups, number line,
+          and typical algebra.
+        </Speak>
+        <Speak>
+          However, the investigation we performed need not only have been done
+          on Addition! You could do it for any operator to discover the
+          properties that they have! We will do the same here, but this time for
+          Multiplication and Subtraction!
+        </Speak>
+        <Speak>
+          Here you will only need to use typical algebra and the number line, we
+          can leave the dots with groups system for another time!
+        </Speak>
+        <QuestionBox points={"TBA"} qid={"Q6"}></QuestionBox>
         <TopicBreak title="END OF LN6" />
         <TopicBreak title="END OF LN7" />
         <LinkButton color="success" to="">
