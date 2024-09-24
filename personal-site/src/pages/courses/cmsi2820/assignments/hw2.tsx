@@ -371,7 +371,10 @@ export default function Homework2() {
           operators as a base to investigate and explore new Types and new
           operators for Grouping and Ordering our instances!
         </Speak>
-        <LinkButton color="success" to="">
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=298255&grpid=0&isprv=0&bp=0&ou=253279"
+        >
           Written HW2 Turn In
         </LinkButton>
       </CourseBox>
@@ -393,10 +396,16 @@ export default function Homework2() {
           Linked below is the GitHub Classroom assignment link and the
           Brightspace turn in link both as buttons
         </Speak>
-        <LinkButton color="success" to="">
+        <LinkButton
+          color="success"
+          to="https://classroom.github.com/a/xNIeTGFQ"
+        >
           GitHub Assignment
         </LinkButton>
-        <LinkButton color="success" to="">
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=298256&grpid=0&isprv=0&bp=0&ou=253279"
+        >
           Programming HW2 Turn In
         </LinkButton>
       </CourseBox>
@@ -438,7 +447,10 @@ export default function Homework2() {
           Give me an intuitionistic argument for why you are right by arguing
           that other stances lead to absurdities or falsehoods!
         </Speak>
-        <LinkButton color="success" to="">
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=298257&grpid=0&isprv=&bp=0&ou=253279"
+        >
           Optional HW1 turn in
         </LinkButton>
       </CourseBox>

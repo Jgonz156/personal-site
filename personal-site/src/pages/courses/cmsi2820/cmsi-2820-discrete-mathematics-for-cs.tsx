@@ -243,13 +243,11 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/* 
                 <AssignmentCard
                   title="HW 2: Counting Sheep"
-                  description=""
+                  description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
                   assignmentSlug="/cmsi-2820/hw2"
                 />
-                */}
               </Standard>
               {/* 
               <Standard
@@ -260,22 +258,22 @@ export default function CMSI2820() {
                   This includes working with tuples, sets, and their many operations."
               >
                 <NotesCard
-                  title="LN 9: Tuples"
+                  title="LN 8: Tuples"
                   description=""
                   notesSlug="/cmsi-2820/ln9"
                 />
                 <NotesCard
-                  title="LN 10: Sets"
+                  title="LN 9: Sets"
                   description=""
                   notesSlug="/cmsi-2820/ln10"
                 />
                 <NotesCard
-                  title="LN 11: More Sets"
+                  title="LN 10: More Sets"
                   description=""
                   notesSlug="/cmsi-2820/ln11"
                 />
                 <NotesCard
-                  title="LN 12: Relations"
+                  title="LN 11: Relations"
                   description=""
                   notesSlug="/cmsi-2820/ln12"
                 />
