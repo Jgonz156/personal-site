@@ -249,7 +249,7 @@ export default function CMSI2820() {
                   assignmentSlug="/cmsi-2820/hw2"
                 />
               </Standard>
-              {/* 
+
               <Standard
                 number={3}
                 title="Collections"
@@ -259,9 +259,10 @@ export default function CMSI2820() {
               >
                 <NotesCard
                   title="LN 8: Tuples"
-                  description=""
-                  notesSlug="/cmsi-2820/ln9"
+                  description="In this lecture we formally investigate product types in type theory including their properties, operations, and how they are used to build up more complex types."
+                  notesSlug="/cmsi-2820/ln8"
                 />
+                {/* 
                 <NotesCard
                   title="LN 9: Sets"
                   description=""
@@ -282,7 +283,9 @@ export default function CMSI2820() {
                   description=""
                   assignmentSlug="/cmsi-2820/hw3"
                 />
+                */}
               </Standard>
+              {/* 
               <Standard
                 number={"MIDTERM"}
                 title="Standards 1-3"

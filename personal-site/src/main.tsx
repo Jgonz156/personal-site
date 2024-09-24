@@ -24,6 +24,7 @@ import LN4 from "./pages/courses/cmsi2820/notes/ln4.tsx"
 import LN5 from "./pages/courses/cmsi2820/notes/ln5.tsx"
 import LN6 from "./pages/courses/cmsi2820/notes/ln6.tsx"
 import LN7 from "./pages/courses/cmsi2820/notes/ln7.tsx"
+import LN8 from "./pages/courses/cmsi2820/notes/ln8.tsx"
 import HW0 from "./pages/courses/cmsi2820/assignments/hw0.tsx"
 import HW1 from "./pages/courses/cmsi2820/assignments/hw1.tsx"
 import HW2 from "./pages/courses/cmsi2820/assignments/hw2.tsx"
@@ -53,6 +54,7 @@ const router = [
   { path: "/cmsi-2820/ln5", element: <LN5 /> },
   { path: "/cmsi-2820/ln6", element: <LN6 /> },
   { path: "/cmsi-2820/ln7", element: <LN7 /> },
+  { path: "/cmsi-2820/ln8", element: <LN8 /> },
   { path: "/cmsi-2820/hw0", element: <HW0 /> },
   { path: "/cmsi-2820/hw1", element: <HW1 /> },
   { path: "/cmsi-2820/hw2", element: <HW2 /> },
