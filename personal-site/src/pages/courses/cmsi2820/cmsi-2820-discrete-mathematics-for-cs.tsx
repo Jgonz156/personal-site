@@ -258,7 +258,7 @@ export default function CMSI2820() {
                   This includes working with tuples, sets, and their many operations."
               >
                 <NotesCard
-                  title="LN 8: Tuples"
+                  title="LN 8: Getting Our Types in a Row"
                   description="In this lecture we formally investigate product types in type theory including their properties, operations, and how they are used to build up more complex types."
                   notesSlug="/cmsi-2820/ln8"
                 />

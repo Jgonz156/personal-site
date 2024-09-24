@@ -3,6 +3,7 @@ import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
 import Speak from "../../components/speak"
 import PhilosophyBreak from "../../components/philosophy-break"
+import TitleBox from "../../components/title-box"
 
 export default function LectureNotes8() {
   return (
@@ -18,6 +19,10 @@ export default function LectureNotes8() {
       }}
     >
       <CourseBox>
+        <TitleBox
+          title="Getting Our Types in a Row"
+          quote={`"Good order is the foundational of all great things" - Edmund Burke`}
+        />
         <Speak>
           We begin our look into collection types by with the humble tuple. What
           is a tuple? what are its operations? what are its instances? As
