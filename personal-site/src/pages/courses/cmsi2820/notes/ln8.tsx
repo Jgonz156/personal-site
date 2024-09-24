@@ -21,7 +21,7 @@ export default function LectureNotes8() {
       <CourseBox>
         <TitleBox
           title="Getting Our Types in a Row"
-          quote={`"Good order is the foundational of all great things" - Edmund Burke`}
+          quote={`"Good order is the foundation of all great things" - Edmund Burke`}
         />
         <Speak>
           We begin our look into collection types by with the humble tuple. What
