@@ -6,7 +6,7 @@ import TitleBox from "../../components/title-box"
 import { Sheet } from "@mui/joy"
 import TopicBreak from "../../components/topic-break"
 
-export default function LectureNotes6() {
+export default function LectureNotes7() {
   return (
     <CoursePage
       type="notes"
