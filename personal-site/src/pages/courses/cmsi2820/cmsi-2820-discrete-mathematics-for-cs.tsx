@@ -241,6 +241,14 @@ export default function CMSI2820() {
                       buttonText: "Section 1 Video",
                       url: "https://lmula.zoom.us/rec/share/VcEoNu-g8JPooH3-cGYnk43Irnge4ssGNKcp4Hvw23fi-g9WAtwRl4AsIeuAaj-h.6r84e9a6x5Pg0KYW?startTime=1726765262000",
                     },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/y6aeTwpsdfBMd55omdG9vknGQjT_U9bNaxCWt4xmyH8B9KpuDYX2iXhs6jysTObQ.WfaL-kVTcXFgCpSw?startTime=1726778516000",
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/ncGAMmwVCpCWXPCgmceRLHL07FVA_vD6a31HMEFTUytHkBzHEoGW-00teeoUZt6k.0IlFidW3IJ_OaZcO?startTime=1726794112000",
+                    },
                   ]}
                 />
                 <AssignmentCard
@@ -261,6 +269,12 @@ export default function CMSI2820() {
                   title="LN 8: Getting Our Types in a Row"
                   description="In this lecture we formally investigate product types in type theory including their properties, operations, and how they are used to build up more complex types."
                   notesSlug="/cmsi-2820/ln8"
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/Bbvz-ndaWE15IMuqdU_wW3vrsWRSExQxruGrDMQAkmXEPbgmjEU-DkTwfTgOUZQi.aWuxRPu06-Wz-hCO?startTime=1727197036000",
+                    },
+                  ]}
                 />
                 {/* 
                 <NotesCard
