@@ -36,7 +36,7 @@ export default function Homework2() {
         </Speak>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Written Section" quote="Points: TBA" />
+        <TitleBox title="Written Section" quote="Points: 60" />
         <Speak>
           After an informal history lesson of Set Theory, Category Theory, and
           Type Theory, we have chosen Type Theory as our foundation moving
@@ -54,7 +54,7 @@ export default function Homework2() {
           denote this relationship (And the greater philosophical argument that
           it represents)
         </Speak>
-        <QuestionBox points={"TBA"} qid={"Q1"}>
+        <QuestionBox points={"6 total"} qid={"Q1"}>
           <MathJax>{`We saw in class that the formal notation for an instance
            proving the existence of a Type was the following:
            $$\\begin{matrix}
@@ -63,20 +63,20 @@ export default function Homework2() {
            \\text{"dog"}:String
            \\end{matrix}$$
             In the sub-problems below, give your answers in the exact same format.`}</MathJax>
-          <QuestionBox points={"TBA"} qid={"Q1 a"}>
+          <QuestionBox points={"2"} qid={"Q1 a"}>
             Give 5 unique real-world examples of an instance proving the
             existence of a type
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q1 b"}>
+          <QuestionBox points={"2"} qid={"Q1 b"}>
             Give 5 unique real-world instances that all prove the existence of
             the SAME type
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q1 c"}>
+          <QuestionBox points={"2"} qid={"Q1 c"}>
             Give 5 unique real-world types whose existence is proven by the SAME
             instance
           </QuestionBox>
         </QuestionBox>
-        <QuestionBox points={"TBA"} qid={"Q2"}>
+        <QuestionBox points={"14 total"} qid={"Q2"}>
           <MathJax>{`In class we saw that Type information could be used to intuit
            the kind of instance we would need to search for to show some greater
             proposition as valid. Using this type information to guide our search, we could then declare a specific
@@ -96,7 +96,7 @@ export default function Homework2() {
             b + c~=~\\text{"3three"} \\\\
             d: rational = 1/2
             \\end{matrix}$$`}</MathJax>
-          <QuestionBox points={"TBA"} qid={"Q2 EXAMPLE"}>
+          <QuestionBox points={"0"} qid={"Q2 EXAMPLE"}>
             <MathJax>{`Evaluate: $$
             b+b~\\#~a
             $$
@@ -104,7 +104,7 @@ export default function Homework2() {
             \\text{"333333"}:str
             $$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 EXAMPLE"}>
+          <QuestionBox points={"0"} qid={"Q2 EXAMPLE"}>
             <MathJax>{`Evaluate: $$
             a + d
             $$
@@ -113,25 +113,25 @@ export default function Homework2() {
             $$
             We know that "a" is an int and that "d" is a rational. However, we do not have a "+" operator that allows those types, thus there is no way to reduce this expression.`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 a"}>
+          <QuestionBox points={"2"} qid={"Q2 a"}>
             Evaluate "a + a"
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 b"}>
+          <QuestionBox points={"2"} qid={"Q2 b"}>
             Evaluate "b + b"
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 c"}>
+          <QuestionBox points={"2"} qid={"Q2 c"}>
             Evaluate "a + b"
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 d"}>
+          <QuestionBox points={"2"} qid={"Q2 d"}>
             Evaluate "b # b"
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 e"}>
+          <QuestionBox points={"2"} qid={"Q2 e"}>
             Evaluate "(b # (a + a)) + c "
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 f"}>
+          <QuestionBox points={"2"} qid={"Q2 f"}>
             Evaluate "d + d"
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q2 i"}>
+          <QuestionBox points={"2"} qid={"Q2 i"}>
             Evaluate "a + a +" NOTE: This is NOT a typo
           </QuestionBox>
         </QuestionBox>
@@ -145,7 +145,7 @@ export default function Homework2() {
           have the same ability to display, and prove, properties within the
           Booleans. Lets Investigate some that we did not see in class below!
         </Speak>
-        <QuestionBox points={"TBA"} qid={"Q3"}>
+        <QuestionBox points={"4 total"} qid={"Q3"}>
           <MathJax>{`One of the properties we investigated was the First
            Complement Law. We showed what it looked like in a table format
             and a series of venn diagrams. In this problem you must do the
@@ -155,14 +155,14 @@ export default function Homework2() {
              $$
              X \\lor \\neg X \\equiv 1
              $$`}</MathJax>
-          <QuestionBox points={"TBA"} qid={"Q3 a"}>
+          <QuestionBox points={"2"} qid={"Q3 a"}>
             Justify the Second Complement Law with a Table
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q3 b"}>
+          <QuestionBox points={"2"} qid={"Q3 b"}>
             Justify the Second Complement Law with a Venn Diagram
           </QuestionBox>
         </QuestionBox>
-        <QuestionBox points={"TBA"} qid={"Q4"}>
+        <QuestionBox points={"4 total"} qid={"Q4"}>
           <MathJax>{`One of the properties we investigated was the First
            Absorption Law. We showed what it looked like in a table format
             and a series of venn diagrams. In this problem you must do the
@@ -172,14 +172,14 @@ export default function Homework2() {
              $$
              X \\lor (X \\land Y) \\equiv X
              $$`}</MathJax>
-          <QuestionBox points={"TBA"} qid={"Q4 a"}>
+          <QuestionBox points={"2"} qid={"Q4 a"}>
             Justify the Second Absorption Law with a Table
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q4 b"}>
+          <QuestionBox points={"2"} qid={"Q4 b"}>
             Justify the Second Absorption Law with a series of Venn Diagrams
           </QuestionBox>
         </QuestionBox>
-        <QuestionBox points={"TBA"} qid={"Q5"}>
+        <QuestionBox points={"4 total"} qid={"Q5"}>
           <MathJax>{`One of the properties we didn't see were the Annihilator Laws for Conjunction and Disjunction.
            In this problem you must do the
              same as we did in class, justify the laws tables and 
@@ -188,10 +188,10 @@ export default function Homework2() {
              X \\land 0 \\equiv 0 \\\\
              X \\lor 1 \\equiv 1 \\\\
              \\end{matrix}$$`}</MathJax>
-          <QuestionBox points={"TBA"} qid={"Q5 a"}>
+          <QuestionBox points={"2"} qid={"Q5 a"}>
             Justify the Annihilator Laws with Tables
           </QuestionBox>
-          <QuestionBox points={"TBA"} qid={"Q5 b"}>
+          <QuestionBox points={"2"} qid={"Q5 b"}>
             Justify the Annihilator Laws with a series of Venn Diagrams
           </QuestionBox>
         </QuestionBox>
@@ -212,34 +212,34 @@ export default function Homework2() {
           Here you will only need to use typical algebra and the number line, we
           can leave the dots with groups system for another time!
         </Speak>
-        <QuestionBox points={"TBA"} qid={"Q6"}>
+        <QuestionBox points={"2"} qid={"Q6"}>
           <MathJax>{`The Associative Property is obtained by an operator between instances
           when the evaluation order amongst 3 or more of the instances, chained by that operator,
           does not alter the outcome of the larger statement. In this question you are tasked
           with showing that associativity holds on multiplication for at least one example. You must
-           represent this example visually (using number lines) and algebraically. (You must use three numbers unique from one another and all of them must have an absolute value larger than 3)
+           represent this example visually (using number lines) and algebraically. (You must use three numbers unique from one another and all of them must have an absolute value larger than 1)
           `}</MathJax>
         </QuestionBox>
-        <QuestionBox points={"TBA"} qid={"Q6"}>
+        <QuestionBox points={"2"} qid={"Q7"}>
           <MathJax>{`The Commutative Property is obtained by an operator when the order of the 
           two input instances does not alter the outcome. In this question you are tasked
           with showing that commutativity holds on multiplication for at least one example. You must
-           represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and all of them must have an absolute value larger than 3)
+           represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and both of them must have an absolute value larger than 2)
           `}</MathJax>
         </QuestionBox>
-        <QuestionBox points={"TBA"} qid={"Q7"}>
-          <MathJax>{`The Associative Property is attained by many operators, but bot all. In this question
+        <QuestionBox points={"2"} qid={"Q8"}>
+          <MathJax>{`The Associative Property is attained by many operators, but not all. In this question
            you are tasked with showing that associativity does NOT hold on subtraction for at least one example. You must
            represent this example visually (using number lines) and algebraically. (You must use three numbers unique from one another and all of them must have an absolute value larger than 3)
           `}</MathJax>
         </QuestionBox>
-        <QuestionBox points={"TBA"} qid={"Q7"}>
+        <QuestionBox points={"2"} qid={"Q9"}>
           <MathJax>{`The Commutative Property is attained by many operators, but not all. Just as before, In this question
            you are tasked with showing that commutativity does NOT hold on subtraction for at least one example. You must
-           represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and all of them must have an absolute value larger than 3)
+           represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and both of them must have an absolute value larger than 2)
           `}</MathJax>
         </QuestionBox>
-        <QuestionBox points={"2"} qid={"Q8"}>
+        <QuestionBox points={"2"} qid={"Q10"}>
           <MathJax>{`We saw in class that the Identity property was obtained when there was a special instance
           within a type for an operator, such that when the operator was used, the non-special input instance
            remained unchanged. For Subtraction and Multiplication, give the special instances that prove
@@ -263,8 +263,114 @@ export default function Homework2() {
           describe the integers during factorization, and in the following
           section we will perform some practice with the operators!
         </Speak>
-
+        <QuestionBox points={"6 total"} qid={"Q11"}>
+          <MathJax>{`In class we saw that integer division by 3 caused the 
+          entire number line to turn into just the multiples/factors of 3. 
+          However, losing 66% of the Integers was not ideal, so Modulo 
+          picked up the slack. The integers modulo 3 turned our inputs 
+          into "hops" or increments along a ring of length 3. However, 
+          what happens if we increment Modulo on the same number?`}</MathJax>
+          <QuestionBox points={"2"} qid={"Q11 a"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            12~mod~12
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={"2"} qid={"Q11 b"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            12~mod~13
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={"2"} qid={"Q11 c"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            12~mod~14
+            $$`}</MathJax>
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={"6 total"} qid={"Q12"}>
+          <MathJax>{`Not very exciting it seems. However, what if we decrement?`}</MathJax>
+          <QuestionBox points={"2"} qid={"Q12 a"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            12~mod~11
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={"2"} qid={"Q12 b"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            12~mod~10
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={"2"} qid={"Q12 c"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            12~mod~9
+            $$`}</MathJax>
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={"6 total"} qid={"Q13"}>
+          <MathJax>{`Modulo 2, 1, and 0 actually raise some valuable
+          questions regarding number theory. In the following sub-problems, 
+          investigate modulo's relationship to larger concepts in the Integers.`}</MathJax>
+          <QuestionBox points={"2"} qid={"Q13 a"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            0~mod~2
+            $$
+            $$
+            1~mod~2
+            $$
+            $$
+            2~mod~2
+            $$
+            $$
+            3~mod~2
+            $$
+            $$
+            4~mod~2
+            $$
+            Briefly explain why modulo 2 seems to test for even-ness/odd-ness!`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={"2"} qid={"Q13 b"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            0~mod~1
+            $$
+            $$
+            1~mod~1
+            $$
+            $$
+            2~mod~1
+            $$
+            $$
+            3~mod~1
+            $$
+            $$
+            4~mod~1
+            $$
+            Briefly explain why modulo 1 seems to maps everything to 0!`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={"2"} qid={"Q13 c"}>
+            <MathJax>{`Evaluate the following: 
+            $$
+            3~mod~0
+            $$
+            Briefly explain your findings!`}</MathJax>
+          </QuestionBox>
+        </QuestionBox>
         <TopicBreak title="END OF LN7" />
+        <Speak>
+          With all those problems completed we now say good-bye to the Numbers
+          standard. We covered topics from Number Theory and Abstract Algebra
+          through the lense of Type Theory.
+        </Speak>
+        <Speak>
+          We will use this knowledge of the Booleans, Integers, and their
+          operators as a base to investigate and explore new Types and new
+          operators for Grouping and Ordering our instances!
+        </Speak>
         <LinkButton color="success" to="">
           Written HW2 Turn In
         </LinkButton>
@@ -333,7 +439,7 @@ export default function Homework2() {
           that other stances lead to absurdities or falsehoods!
         </Speak>
         <LinkButton color="success" to="">
-          Optional HW0 turn in
+          Optional HW1 turn in
         </LinkButton>
       </CourseBox>
     </CoursePage>
