@@ -398,7 +398,7 @@ export default function Homework2() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://classroom.github.com/a/xNIeTGFQ"
+          to="https://classroom.github.com/a/7kgo4Hdc"
         >
           GitHub Assignment
         </LinkButton>
