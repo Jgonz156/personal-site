@@ -379,8 +379,17 @@ export default function Homework2() {
         </LinkButton>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Programming Section" quote="Points: TBA" />
-        <DirectoryTree filesAsJSON={{}} />
+        <TitleBox title="Programming Section" quote="Points: 30" />
+        <DirectoryTree
+          filesAsJSON={{
+            "CMSI-2820-HW2": {
+              ".gitignore": <></>,
+              "farm.py": <></>,
+              "test_farm.py": <></>,
+              "README.md": <></>,
+            },
+          }}
+        />
         <Speak>
           As a refresher, here is the helper video that goes from complete start
           to finish for the process of receiving, setting up, and turning in
