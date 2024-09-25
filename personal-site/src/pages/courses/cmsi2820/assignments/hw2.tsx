@@ -451,7 +451,7 @@ export default function Homework2() {
           color="success"
           to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=298257&grpid=0&isprv=&bp=0&ou=253279"
         >
-          Optional HW1 turn in
+          Optional HW1 Turn in
         </LinkButton>
       </CourseBox>
     </CoursePage>

@@ -321,7 +321,7 @@ export default function Homework0() {
             color="success"
             to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684893/detailsview#684893"
           >
-            Optional HW0 turn in
+            Optional HW0 Turn in
           </LinkButton>
         </CourseBox>
       </CoursePage>
