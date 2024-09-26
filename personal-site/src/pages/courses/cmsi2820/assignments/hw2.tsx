@@ -379,7 +379,7 @@ export default function Homework2() {
         </LinkButton>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Programming Section" quote="Points: 30" />
+        <TitleBox title="Programming Section" quote="Points: 40" />
         <DirectoryTree
           filesAsJSON={{
             "CMSI-2820-HW2": {

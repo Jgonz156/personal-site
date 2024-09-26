@@ -278,19 +278,19 @@ export default function CMSI2820() {
                 />
                 {/* 
                 <NotesCard
-                  title="LN 9: Sets"
-                  description=""
-                  notesSlug="/cmsi-2820/ln10"
+                  title="LN 9: Settling In"
+                  description="In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators."
+                  notesSlug="/cmsi-2820/ln9"
                 />
                 <NotesCard
                   title="LN 10: More Sets"
                   description=""
-                  notesSlug="/cmsi-2820/ln11"
+                  notesSlug="/cmsi-2820/ln10"
                 />
                 <NotesCard
                   title="LN 11: Relations"
                   description=""
-                  notesSlug="/cmsi-2820/ln12"
+                  notesSlug="/cmsi-2820/ln11"
                 />
                 <AssignmentCard
                   title="HW 3: Collections Agency"
