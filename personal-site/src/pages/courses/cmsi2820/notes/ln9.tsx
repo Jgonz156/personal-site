@@ -19,7 +19,10 @@ export default function LectureNotes9() {
       }}
     >
       <CourseBox>
-        <TitleBox title="Settling In" quote={`"" - `} />
+        <TitleBox
+          title="Settling In"
+          quote={`"Disorganization can scarcely fail to result in efficiency" - Dwight D. Eisenhower`}
+        />
         <Speak>
           Recall Tuples. We investigated the way they took on instances of other
           types. They were ordered, finite in nature, and their uniqueness came
@@ -248,6 +251,157 @@ export default function LectureNotes9() {
             },
           ]}
         />
+        <Speak>
+          Without having the same properties as one another, its probably easy
+          to say that Sets can't really easily represent the same objects we saw
+          Tuples represent. To bring back the email example, we could use a set
+          to store all the same pieces as before, however, now they can go in
+          any order? I guess sometimes I visually jump around the email, however
+          there is a set order to look at it in so it would be very odd to use a
+          set.
+        </Speak>
+        <Speak>
+          As it goes for that cool way to represent a program, that doesn't work
+          here either unfortunately. Since we can't define order, there is no
+          way to ensure certain operations happen before others. However, if you
+          had a set of operations where order didn't matter sets would be
+          perfect!
+        </Speak>
+        <Speak>
+          With this odd distinction made, you could possibly represent the
+          parallelism in modern computer programs as a set!
+        </Speak>
+        <MathJax>{`$$\\begin{matrix}
+        \\{Browser, Spotify, Email, Minecraft, Peripheral Software, Discord, etc\\} \\\\
+        \\end{matrix}$$`}</MathJax>
+        <Speak>
+          This could get especially interesting if we combined tuples with sets
+          to create minor order in the unorderedness or even unorderedness in
+          the order. However, once again we are getting ahead of ourselves.
+        </Speak>
+        <Speak>
+          Its valuable to know that there are multiple valid ways to create sets
+          that aren't just listing out what is inside of them plainly. There are
+          two other methods that are commonly used to create sets: Semantic
+          Definitions, and Set Builder Notation.
+        </Speak>
+        <Speak>
+          We will start by looking at semantic definitions. These are very
+          straightforward as it literally means to just write out a definition
+          in english to create a rule for what is a member, and what isn't, for
+          the set. For instance, the sentence below could be used to define a
+          set we are already very familiar with:
+        </Speak>
+        <MathJax>{`$$\\begin{matrix}
+        \\{\\ldots, -2, -1, 0, 1 , 2, \\ldots\\} \\\\
+        \\equiv \\\\
+          \\text{"The set of all integers"}
+        \\end{matrix}$$`}</MathJax>
+        <Speak>
+          This is a very simple way to define a set and is very useful for
+          defining sets that are very large or infinite. However, it is not the
+          most precise way to define a set. For instance, how would you define
+          the set of all even numbers? We could use a that last question to
+          create the semantic definition, "The set of all even numbers", but
+          this is not very "visual".
+        </Speak>
+        <Speak>
+          In cases where writing a rule in mathematical notation is easier than
+          writing out the english definition or simply writing out the entire
+          set, set builder notation is used!
+        </Speak>
+        <Speak>
+          It simply defines what a member looks like via some large logical
+          expression that evaluates to true or false. for every instance where
+          the logical expression is true, that instance is a member of the set.
+          For every instance where the logical expression is false, that
+          instance is not a member of the set. It looks like the following for
+          that previous example set we brought up:
+        </Speak>
+        <MathJax>{`$$\\begin{matrix}
+        \\text{"The set of all even integers"} \\\\
+        \\equiv \\\\
+          \\{a~|~a%2=0 \\land a:int\\}
+        \\end{matrix}$$`}</MathJax>
+        <Speak>
+          In this notation, the left hand side of the "|" is the "shape" of the
+          instance in the set. We aren't doing anything complicated here other
+          than integers, but it could also be a another instance of a type,
+          tuple, set, or other nested data structure built up of other types.
+          The right hand side of the "|" is the logical expression used as the
+          rule to test for membership.
+        </Speak>
+        <Speak>
+          Just for completions sake you might also see set builder notation
+          mixed with semantic definition on occasion when it is more valuable to
+          simply writ out a english sentence for the logical expression such as
+          the below:
+        </Speak>
+        <MathJax>{`$$\\begin{matrix}
+        \\text{"The set of all even integers"} \\\\
+        \\equiv \\\\
+          \\{a~|~a%2=0 \\land a:int\\}
+          \\equiv \\\\
+          \\{a~|~\\text{"2 divides a"}\\}
+        \\end{matrix}$$`}</MathJax>
+        <Speak>
+          Given that these notations makes it quite difficult to determine the
+          actual size of the set (As it trades a clearly defined number of
+          members for an easier membership testing process) it is important to
+          have a manner to understand the size of sets. This is done with the
+          Cardinality operator.
+        </Speak>
+        <Speak>
+          The cardinality operator simply exposes the underlying Cardinality of
+          the set, which is a property of all sets that is simply defined as its
+          number of members, or put another way, its length. It is written as
+          the following:
+        </Speak>
+        <MathJax>{`$$\\begin{matrix}
+        |\\{1,2,3\\}| = 3 \\\\
+        |\\{\\}| = 0 \\\\
+          |A| = n
+        \\end{matrix}$$`}</MathJax>
+        <Speak>
+          It looks like "absolute value" but it is simply referring to the
+          number of members. An entire operator is defined for this because it
+          is very common to need to make logical/mathematical statements
+          comparing the sizes of sets. For instance, if we wanted to say that
+          two sets were the same size, we could use the following:
+        </Speak>
+        <MathJax>{`$$\\begin{matrix}
+        |A| = |B| \\\\
+        \\end{matrix}$$`}</MathJax>
+        <Speak>
+          This might seem trivial, but the more we know about A and B, the more
+          interesting this gets. Like for instance, to get your brain working
+          take a look at the following statements:
+        </Speak>
+        <MathJax>{`$$\\begin{matrix}
+        |\\{a~|~a%2=0\\}| = |\\{\\ldots, -2,-1,0,1,-2, \\ldots\\}| \\\\
+        |\\{a~|"a is even" \\}| = |\\{a~|~a:int\\}| \\\\
+        |\\{\\ldots, -4, -2, 0, 2, 4, \\ldots\\}| = |\\mathbb{Z}|
+        \\end{matrix}$$`}</MathJax>
+        <Speak>
+          They are all saying the same thing, just throwing in some practice
+          with our notations! However, the underlying question is a very
+          interesting one and it is the very type of question that George Cantor
+          would be exploring during the creation of Set Theory!
+        </Speak>
+        <Speak>
+          Are these statements true or false? It may seem simple to say that
+          clearly the set of all the even integers is exactly half the size of
+          the set of all integers, however they are both infinite sets so things
+          can be tricky. We unfortunately do not currently have the tools to
+          prove these statements true or false, however, it is a very
+          interesting question to think about for the current moment!
+        </Speak>
+        <Speak>
+          With these new operators and notations shown, we can now compare sets,
+          in any of their notations, and subsets for equality. We will begin to
+          investigate even more operators that can be used to manipulate sets
+          next time!
+        </Speak>
       </CourseBox>
     </CoursePage>
   )
