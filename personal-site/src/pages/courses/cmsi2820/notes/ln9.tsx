@@ -53,7 +53,7 @@ export default function LectureNotes9() {
         <MathJax>{`$$\\begin{matrix}
         \\{1,2,3\\} \\\\
         \\{True, \\bot\\} \\\\
-        \\{\\{\\},\\{"dog"\\}\\}
+        \\{\\{\\},\\{\\text{"dog"}\\}\\}
         \\end{matrix}$$`}</MathJax>
         <Speak>
           Not going to lie, these look identical to Tuples thus far... Well,
@@ -272,7 +272,7 @@ export default function LectureNotes9() {
           parallelism in modern computer programs as a set!
         </Speak>
         <MathJax>{`$$\\begin{matrix}
-        \\{Browser, Spotify, Email, Minecraft, Peripheral Software, Discord, etc\\} \\\\
+        \\{\\text{Browser, Spotify, Email, Minecraft, Peripheral Software, Discord, etc}\\} \\\\
         \\end{matrix}$$`}</MathJax>
         <Speak>
           This could get especially interesting if we combined tuples with sets
@@ -321,7 +321,7 @@ export default function LectureNotes9() {
         <MathJax>{`$$\\begin{matrix}
         \\text{"The set of all even integers"} \\\\
         \\equiv \\\\
-          \\{a~|~a%2=0 \\land a:int\\}
+          \\{a~|~a~mod~2=0 \\land a:int\\}
         \\end{matrix}$$`}</MathJax>
         <Speak>
           In this notation, the left hand side of the "|" is the "shape" of the
@@ -340,7 +340,7 @@ export default function LectureNotes9() {
         <MathJax>{`$$\\begin{matrix}
         \\text{"The set of all even integers"} \\\\
         \\equiv \\\\
-          \\{a~|~a%2=0 \\land a:int\\}
+          \\{a~|~a~mod~2=0 \\land a:int\\} \\\\
           \\equiv \\\\
           \\{a~|~\\text{"2 divides a"}\\}
         \\end{matrix}$$`}</MathJax>
@@ -378,8 +378,8 @@ export default function LectureNotes9() {
           take a look at the following statements:
         </Speak>
         <MathJax>{`$$\\begin{matrix}
-        |\\{a~|~a%2=0\\}| = |\\{\\ldots, -2,-1,0,1,-2, \\ldots\\}| \\\\
-        |\\{a~|"a is even" \\}| = |\\{a~|~a:int\\}| \\\\
+        |\\{a~|~a~mod~2=0\\}| = |\\{\\ldots, -2,-1,0,1,-2, \\ldots\\}| \\\\
+    |\\{a~|~\\text{"a is even"} \\}| = |\\{a~|~a:int\\}| \\\\
         |\\{\\ldots, -4, -2, 0, 2, 4, \\ldots\\}| = |\\mathbb{Z}|
         \\end{matrix}$$`}</MathJax>
         <Speak>
