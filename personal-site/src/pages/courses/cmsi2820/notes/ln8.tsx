@@ -16,6 +16,12 @@ export default function LectureNotes8() {
           buttonName: "Collections Agency",
           buttonSlug: "/cmsi-2820/hw3",
         },
+        right: {
+          lectureId: "LN9",
+          buttonColor: "primary",
+          buttonName: "Setting In",
+          buttonSlug: "/cmsi-2820/ln9",
+        },
       }}
     >
       <CourseBox>

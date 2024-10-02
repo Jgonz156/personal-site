@@ -10,12 +10,26 @@ export default function LectureNotes9() {
     <CoursePage
       type="notes"
       stepperInfo={{
+        left: {
+          lectureId: "LN8",
+          buttonColor: "primary",
+          buttonName: "Getting our Types in a Row",
+          buttonSlug: "/cmsi-2820/ln8",
+        },
         middle: {
           lectureId: "HW3",
           buttonColor: "success",
           buttonName: "Collections Agency",
           buttonSlug: "/cmsi-2820/hw3",
         },
+        /*
+        right: {
+          lectureId: "LN10",
+          buttonColor: "primary",
+          buttonName: "Setting Down",
+          buttonSlug: "/cmsi-2820/ln10",
+        },
+        */
       }}
     >
       <CourseBox>
