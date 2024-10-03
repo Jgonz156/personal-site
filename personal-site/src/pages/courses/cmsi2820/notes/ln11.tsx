@@ -8,10 +8,10 @@ export default function LectureNotes10() {
       type="notes"
       stepperInfo={{
         left: {
-          lectureId: "LN9",
+          lectureId: "LN10",
           buttonColor: "primary",
-          buttonName: "Settling In",
-          buttonSlug: "/cmsi-2820/ln9",
+          buttonName: "Settling Down",
+          buttonSlug: "/cmsi-2820/ln10",
         },
         middle: {
           lectureId: "HW3",
@@ -19,16 +19,10 @@ export default function LectureNotes10() {
           buttonName: "Collections Agency",
           buttonSlug: "/cmsi-2820/hw3",
         },
-        right: {
-          lectureId: "LN11",
-          buttonColor: "primary",
-          buttonName: "Relationship Counseling",
-          buttonSlug: "/cmsi-2820/ln11",
-        },
       }}
     >
       <CourseBox>
-        <TitleBox title="Settling Down" quote={`"" - `} />
+        <TitleBox title="Relationship Counseling" quote={`"" - `} />
       </CourseBox>
     </CoursePage>
   )

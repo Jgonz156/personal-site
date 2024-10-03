@@ -22,14 +22,12 @@ export default function LectureNotes9() {
           buttonName: "Collections Agency",
           buttonSlug: "/cmsi-2820/hw3",
         },
-        /*
         right: {
           lectureId: "LN10",
           buttonColor: "primary",
-          buttonName: "Setting Down",
+          buttonName: "Settling Down",
           buttonSlug: "/cmsi-2820/ln10",
         },
-        */
       }}
     >
       <CourseBox>

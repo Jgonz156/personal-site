@@ -36,15 +36,35 @@ export default function NotesCard({
           gap: 2,
         }}
       >
-        <Button
-          component={RouterLink}
-          to={notesSlug}
-          color="primary"
-          variant="solid"
-          sx={{ maxWidth: "1in" }}
-        >
-          Open
-        </Button>
+        {notesSlug ? (
+          <Button
+            component={RouterLink}
+            to={notesSlug}
+            color="primary"
+            variant="solid"
+            sx={{ maxWidth: "1in" }}
+          >
+            Open
+          </Button>
+        ) : (
+          <Tooltip
+            describeChild
+            color="primary"
+            variant="soft"
+            title={<Speak>Under Construction</Speak>}
+          >
+            <Sheet color="primary" variant="soft">
+              <Button
+                disabled
+                color="primary"
+                variant="solid"
+                sx={{ maxWidth: "1in" }}
+              >
+                Open
+              </Button>
+            </Sheet>
+          </Tooltip>
+        )}
         {sectionRecordings ? (
           sectionRecordings.map(({ url, buttonText }) => {
             return url ? (
