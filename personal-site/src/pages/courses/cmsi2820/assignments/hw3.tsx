@@ -1,4 +1,3 @@
-import { MathJax } from "better-react-mathjax"
 import { DateTime } from "luxon"
 import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
