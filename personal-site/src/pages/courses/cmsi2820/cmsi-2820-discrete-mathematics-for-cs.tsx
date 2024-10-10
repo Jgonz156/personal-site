@@ -334,13 +334,11 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/*
                 <AssignmentCard
-                  title="HW 3: Collections Agency"
-                  description=""
+                  title="HW 3: Storage Wars"
+                  description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
                   assignmentSlug="/cmsi-2820/hw3"
                 />
-                */}
               </Standard>
               {/* 
               <Standard

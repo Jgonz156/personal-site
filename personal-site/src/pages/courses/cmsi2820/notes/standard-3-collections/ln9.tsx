@@ -19,7 +19,7 @@ export default function LectureNotes9() {
         middle: {
           lectureId: "HW3",
           buttonColor: "success",
-          buttonName: "Collections Agency",
+          buttonName: "Storage Wars",
           buttonSlug: "/cmsi-2820/hw3",
         },
         right: {
