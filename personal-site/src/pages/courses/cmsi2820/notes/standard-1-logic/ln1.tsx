@@ -1,13 +1,13 @@
 import { Sheet, Typography } from "@mui/joy"
-import CoursePage from "../../components/course-page"
-import PhilosophyBreak from "../../components/philosophy-break"
-import TopicBreak from "../../components/topic-break"
-import Speak from "../../components/speak"
-import Vocab from "../../components/vocab"
+import CoursePage from "../../../components/course-page"
+import PhilosophyBreak from "../../../components/philosophy-break"
+import TopicBreak from "../../../components/topic-break"
+import Speak from "../../../components/speak"
+import Vocab from "../../../components/vocab"
 import { MathJax } from "better-react-mathjax"
-import MultiSelectQuestion from "../../components/multi-select-question"
-import TitleBox from "../../components/title-box"
-import CourseBox from "../../components/course-box"
+import MultiSelectQuestion from "../../../components/multi-select-question"
+import TitleBox from "../../../components/title-box"
+import CourseBox from "../../../components/course-box"
 
 export default function LectureNotes1() {
   return (

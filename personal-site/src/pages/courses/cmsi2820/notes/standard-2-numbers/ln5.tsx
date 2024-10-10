@@ -1,11 +1,11 @@
 import { MathJax } from "better-react-mathjax"
-import CourseBox from "../../components/course-box"
-import CoursePage from "../../components/course-page"
-import Speak from "../../components/speak"
-import TitleBox from "../../components/title-box"
-import TopicBreak from "../../components/topic-break"
-import ImageBox from "../../components/image-box"
-import PhilosophyBreak from "../../components/philosophy-break"
+import CourseBox from "../../../components/course-box"
+import CoursePage from "../../../components/course-page"
+import Speak from "../../../components/speak"
+import TitleBox from "../../../components/title-box"
+import TopicBreak from "../../../components/topic-break"
+import ImageBox from "../../../components/image-box"
+import PhilosophyBreak from "../../../components/philosophy-break"
 
 export default function LectureNotes5() {
   return (

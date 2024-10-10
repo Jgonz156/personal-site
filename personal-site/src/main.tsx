@@ -16,18 +16,20 @@ import { SiteContextProvider } from "./components/site-context.tsx"
 import "./index.css"
 import CheatSheet from "./pages/courses/cmsi2820/cheat-sheet.tsx"
 import Syllabus from "./pages/courses/cmsi2820/syllabus.tsx"
-import LN0 from "./pages/courses/cmsi2820/notes/ln0.tsx"
-import LN1 from "./pages/courses/cmsi2820/notes/ln1.tsx"
-import LN2 from "./pages/courses/cmsi2820/notes/ln2.tsx"
-import LN3 from "./pages/courses/cmsi2820/notes/ln3.tsx"
-import LN4 from "./pages/courses/cmsi2820/notes/ln4.tsx"
-import LN5 from "./pages/courses/cmsi2820/notes/ln5.tsx"
-import LN6 from "./pages/courses/cmsi2820/notes/ln6.tsx"
-import LN7 from "./pages/courses/cmsi2820/notes/ln7.tsx"
-import LN8 from "./pages/courses/cmsi2820/notes/ln8.tsx"
-import LN9 from "./pages/courses/cmsi2820/notes/ln9.tsx"
-import LN10 from "./pages/courses/cmsi2820/notes/ln10.tsx"
-import LN11 from "./pages/courses/cmsi2820/notes/ln11.tsx"
+import LN0 from "./pages/courses/cmsi2820/notes/standard-0-syllabus/ln0.tsx"
+import LN1 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln1.tsx"
+import LN2 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln2.tsx"
+import LN3 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln3.tsx"
+import LN4 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln4.tsx"
+import LN5 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln5.tsx"
+import LN6 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln6.tsx"
+import LN7 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln7.tsx"
+import LN8 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln8.tsx"
+import LN9 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln9.tsx"
+import LN10 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln10.tsx"
+import LN11 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln11.tsx"
+import LN12 from "./pages/courses/cmsi2820/notes/standard-4-functions/ln12.tsx"
+import LN13 from "./pages/courses/cmsi2820/notes/standard-4-functions/ln13.tsx"
 import HW0 from "./pages/courses/cmsi2820/assignments/hw0.tsx"
 import HW1 from "./pages/courses/cmsi2820/assignments/hw1.tsx"
 import HW2 from "./pages/courses/cmsi2820/assignments/hw2.tsx"
@@ -61,6 +63,8 @@ const router = [
   { path: "/cmsi-2820/ln9", element: <LN9 /> },
   { path: "/cmsi-2820/ln10", element: <LN10 /> },
   { path: "/cmsi-2820/ln11", element: <LN11 /> },
+  { path: "/cmsi-2820/ln12", element: <LN12 /> },
+  { path: "/cmsi-2820/ln13", element: <LN13 /> },
   { path: "/cmsi-2820/hw0", element: <HW0 /> },
   { path: "/cmsi-2820/hw1", element: <HW1 /> },
   { path: "/cmsi-2820/hw2", element: <HW2 /> },

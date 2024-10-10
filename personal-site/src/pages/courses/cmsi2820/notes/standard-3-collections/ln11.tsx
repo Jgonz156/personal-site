@@ -1,6 +1,6 @@
-import CourseBox from "../../components/course-box"
-import CoursePage from "../../components/course-page"
-import TitleBox from "../../components/title-box"
+import CourseBox from "../../../components/course-box"
+import CoursePage from "../../../components/course-page"
+import TitleBox from "../../../components/title-box"
 
 export default function LectureNotes10() {
   return (

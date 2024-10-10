@@ -355,40 +355,72 @@ export default function CMSI2820() {
                   examSlug="/cmsi-2820/ex1"
                 />
               </Standard>
+              */}
               <Standard
                 number={4}
                 title="Functions"
                 description="In this standard we will investigate functions. This 
                 includes their formalized mathematical definition in the lambda 
                 calculus, their reductions, their properties, and how they are 
-                used in conjunction with logic to formalize Type Theory."
+                used in conjunction with our previous tools to further formalize Type Theory."
               >
                 <NotesCard
-                  title="LN 13: This Lamb Don't Baa"
-                  description=""
-                  notesSlug="/cmsi-2820/ln13"
+                  title="LN 12: This Lamb Don't Baa"
+                  description="In this lecture we introduce the lambda calculus, a system that is used to define functions in a formal way. We will cover the syntax, the rules, and the reductions that can be made to simplify functions."
+                  notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/vXeGKyE1dLZe6K_tbgkpKgcc2V8BAPOomC3e-NRKOo_vaezz90u6IFHCyurdMrej.QigqUt9W4guooHrC?startTime=1728406977000",
+                    },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/GjsEvU6dNc5v-g0ij4EcYNW399P_W9p44VkPMIeXPHRphQl0OeaedT9RiZk5qC_b.ggOaWWYYrFQROyT-?startTime=1728420502000",
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/5mf2e5YfCoTOHrH6P0aA8dshV46cgPsplJ8ocjSFp6ksfFc6WeOr36sgOx5wtTpP.a-4WERd0px2BkpZ3?startTime=1728435902000",
+                    },
+                  ]}
                 />
                 <NotesCard
-                  title="LN 14: Functions 2"
-                  description=""
-                  notesSlug="/cmsi-2820/ln14"
+                  title="LN 13: Free Range Variables"
+                  description="In this lecture we continue our work with Lambdas by investigating how variables interact with functions. We discover being bound and free, how to substitute variables, and how to reduce functions formally using proper substitution."
+                  notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/St_K0PfQZKZCwbJHtWcrcvuqov7bHYY7a_xdkD1AP7XNkzAN9JU_0BQS6gBJU8O4.BqY94Ww9mpaDTZK8?startTime=1728579589000",
+                    },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/08EmA-M1MXWNJoZb-xRLHt8S6U6auBbMMD2vF2HZJGgK4YWrFcRdH-bIPeP7xGU.UUoNwDD5gLAZnrGq?startTime=1728593388000",
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "",
+                    },
+                  ]}
                 />
+                {/* 
                 <NotesCard
-                  title="LN 15: Functions 3"
+                  title="LN 14: Functions 3"
                   description=""
                   notesSlug="/cmsi-2820/ln15"
                 />
                 <NotesCard
-                  title="LN 16: Programs are Proofs too!"
+                  title="LN 15: Programs are Proofs too!"
                   description=""
                   notesSlug="/cmsi-2820/ln16"
                 />
                 <AssignmentCard
-                  title="HW 4: Input an Inch and They'll Output a Mile!"
+                  title="HW 4: Silence of the Lambdas"
                   description=""
                   assignmentSlug="/cmsi-2820/hw4"
                 />
+                */}
               </Standard>
+              {/*
               <Standard
                 number={5}
                 title="Combinatorics"
