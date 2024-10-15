@@ -340,7 +340,7 @@ export default function CMSI2820() {
                   assignmentSlug="/cmsi-2820/hw3"
                 />
               </Standard>
-              {/* 
+
               <Standard
                 number={"MIDTERM"}
                 title="Standards 1-3"
@@ -349,11 +349,11 @@ export default function CMSI2820() {
               >
                 <ExamCard
                   title="EX 1: Midterm Exam"
-                  description=""
+                  description="This exam is 15 questions total and worth 30 points. It covers logic, numbers, and collections."
                   examSlug="/cmsi-2820/ex1"
                 />
               </Standard>
-              */}
+
               <Standard
                 number={4}
                 title="Functions"

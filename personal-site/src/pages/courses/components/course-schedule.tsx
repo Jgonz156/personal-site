@@ -184,12 +184,7 @@ export default function CourseSchedule() {
       dayType: "homework",
       dayInfo: <></>,
     },
-    {
-      date: DateTime.local(2024, 10, 7).startOf("day"),
-      quote: "Midterm Release Day",
-      dayType: "midterm",
-      dayInfo: <></>,
-    },
+
     {
       date: DateTime.local(2024, 10, 8).startOf("day"),
       quote: "Lecture Day (LN12)",
@@ -216,11 +211,12 @@ export default function CourseSchedule() {
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 13).startOf("day"),
-      quote: "Midterm Due",
+      date: DateTime.local(2024, 10, 14).startOf("day"),
+      quote: "Midterm Release Day",
       dayType: "midterm",
       dayInfo: <></>,
     },
+
     {
       date: DateTime.local(2024, 10, 15).startOf("day"),
       quote: "Lecture Day (LN14)",
@@ -243,6 +239,12 @@ export default function CourseSchedule() {
       date: DateTime.local(2024, 10, 18).startOf("day"),
       quote: "HW3 Due",
       dayType: "homework",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2024, 10, 20).startOf("day"),
+      quote: "Midterm Due",
+      dayType: "midterm",
       dayInfo: <></>,
     },
     {
