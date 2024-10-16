@@ -396,20 +396,34 @@ export default function CMSI2820() {
                     },
                     {
                       buttonText: "Section 3 Video",
-                      url: "",
+                      url: "https://lmula.zoom.us/rec/share/y2YT25T9k-ygUZXmDg29qjvvxa77KiElZU-PbWyWJCrEQpotZvDoAT-yE9pVwp_E.eiEPGVQ1YCZF7QOr?startTime=1728608796000",
+                    },
+                  ]}
+                />
+                <NotesCard
+                  title="LN 14: Supplying and Consuming Lambdas"
+                  description="In this lecture we start by recapping proper substitution and then officially define the formal alpha, beta, and gamma conversion rules. After we go over some nomenclature for functions and how to identify suppliers, consumers, and the like."
+                  notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/M-Q4w9o-9ZwAkkZ8aFQJQln7gLKvVkkAcZOwBCPXQ1R7qLAIM6eo9Hb2oUrYl7RT.53DRR5KWubqPDt1A?startTime=1729011698000",
+                    },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/MBsV4n6c941fnIe9z17qKhz-ZqhQmYp6LROyRc1VKA0TCpdacT4bIHitWxPGhNXb.N-f2cND7NSiCPUZI?startTime=1729025363000",
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/5mVa6kDx_8ozDqSmZvN1DXasjGRrZv2Yf5-pjsY4FAzwXATNkCtstHzL02N7Mh41.oAKBo7LxhNVpFw5o",
                     },
                   ]}
                 />
                 {/* 
                 <NotesCard
-                  title="LN 14: Functions 3"
-                  description=""
-                  notesSlug="/cmsi-2820/ln15"
-                />
-                <NotesCard
                   title="LN 15: Programs are Proofs too!"
                   description=""
-                  notesSlug="/cmsi-2820/ln16"
+                  notesSlug="/cmsi-2820/ln15"
                 />
                 <AssignmentCard
                   title="HW 4: Silence of the Lambdas"
