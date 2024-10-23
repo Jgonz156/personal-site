@@ -1,95 +1,139 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
+import * as React from "react"
+import {
+  Sheet,
+  ListItemDecorator,
+  Tab,
+  tabClasses,
+  TabList,
+  Tabs,
+} from "@mui/joy"
 
-export default function Home() {
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded"
+import SchoolIcon from "@mui/icons-material/School"
+import Person from "@mui/icons-material/Person"
+import Footer from "../components/global/footer"
+import { HomeNavBarState, SiteContext } from "@/contexts/site-context"
+import About from "../components/global/about"
+import CurriculumVitae from "../components/global/cv"
+import Home from "../components/global/home"
+
+const tabs = [
+  { title: "Home", icon: <HomeRoundedIcon /> },
+  { title: "About Me", icon: <Person /> },
+  { title: "CV", icon: <SchoolIcon /> },
+]
+
+export default function App() {
+  const { settings, dispatch } = React.useContext(SiteContext)
+  const colors = ["primary", "success", "danger"] as const
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <Sheet sx={{ width: "100%", minHeight: "100vh" }}>
+      <Sheet
+        sx={{
+          //zIndex: 1,
+          //flexGrow: 1,
+          height: "40vh",
+          //width: "100vw",
+          //minHeight: "100vh",
+          //position: "relative",
+          backgroundImage: `url(/lmu-identity/LMU-Campus-Ariel.jpg)`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
+          backgroundPosition: "center",
+        }}
+      />
+      <Sheet
+        color={colors[settings.Home.NavBarState]}
+        variant="solid"
+        sx={{
+          //zIndex: 2,
+          //position: "relative",
+          //flexGrow: 1,
+          marginTop: -3,
+          p: 4,
+          borderTopLeftRadius: "12px",
+          borderTopRightRadius: "12px",
+          //bgcolor: `${colors[settings.Home.NavBarState]}.500`,
+        }}
+      >
+        <Tabs
+          //color={colors[settings.Home.NavBarState]}
+          size="lg"
+          value={settings.Home.NavBarState}
+          onChange={(_event, value) =>
+            dispatch({
+              field: "Home",
+              value: { ...settings.Home, NavBarState: value },
+            })
+          }
+          sx={(theme) => ({
+            p: 1,
+            borderRadius: 16,
+            maxWidth: "95vw",
+            mx: "auto",
+            boxShadow: theme.shadow.sm,
+            "--joy-shadowChannel":
+              theme.vars.palette[colors[settings.Home.NavBarState]].darkChannel,
+            [`& .${tabClasses.root}`]: {
+              py: 1,
+              flex: 1,
+              transition: "0.3s",
+              fontWeight: "md",
+              fontSize: "md",
+              [`&:not(.${tabClasses.selected}):not(:hover)`]: {
+                opacity: 0.7,
+              },
+            },
+          })}
+        >
+          <TabList
+            variant="plain"
+            size="sm"
+            disableUnderline
+            sx={{ borderRadius: "lg", p: 0 }}
           >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            {tabs.map(({ title, icon }, i) => (
+              <Tab
+                key={i}
+                disableIndicator
+                orientation="vertical"
+                {...(settings.Home.NavBarState === 0 && {
+                  color: colors[0],
+                })}
+              >
+                <ListItemDecorator>{icon}</ListItemDecorator>
+                {title}
+              </Tab>
+            ))}
+          </TabList>
+        </Tabs>
+        <Sheet
+          sx={{
+            marginTop: 4,
+            p: 4,
+            borderRadius: 12,
+            display: "flex",
+            //flexDirection: "column",
+          }}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+          {settings.Home.NavBarState === HomeNavBarState.Home ? (
+            <Home />
+          ) : settings.Home.NavBarState === HomeNavBarState.AboutMe ? (
+            <About />
+          ) : settings.Home.NavBarState === HomeNavBarState.CV ? (
+            <CurriculumVitae />
+          ) : (
+            <Sheet>
+              I Don't Know How You Got Here, But Uh... You Are Not Mean't To See
+              This
+            </Sheet>
+          )}
+        </Sheet>
+      </Sheet>
+      <Footer />
+    </Sheet>
+  )
 }
