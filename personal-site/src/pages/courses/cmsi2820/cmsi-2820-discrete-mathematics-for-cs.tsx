@@ -442,44 +442,59 @@ export default function CMSI2820() {
                 {/*
                 <AssignmentCard
                   title="HW 4: Silence of the Lambdas"
-                  description=""
+                  description="In this homework we practice lambdas, their reductions, their properties, and their creation!"
                   assignmentSlug="/cmsi-2820/hw4"
                 />
                 */}
               </Standard>
-              {/*
+
               <Standard
                 number={5}
                 title="Combinatorics"
-                description="In this standard we will investigate combinations and 
-                permutations."
+                description="In this standard we will investigate counting, combinations, permutations, and more."
               >
                 <NotesCard
-                  title="LN 17: Combinatorics 1"
-                  description=""
-                  notesSlug="/cmsi-2820/ln17"
+                  title="LN 16: Laws and Orders"
+                  description="In this lecture we will introduce a more formal manner of counting, define disjoint-ness, the rule of sums and products, and practice some combinatorics problems!"
+                  notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Lecture Video",
+                      url: "https://lmula.zoom.us/rec/share/Znj8oZh4iFYH-55h2IQaCwPJiJKmrj-RfsIybETYR_8765SOA-BhkmR6d4lZtIo3.W_DGK5Rxqa87ymFC?startTime=1729652001000",
+                    },
+                  ]}
                 />
+
                 <NotesCard
-                  title="LN 18: Combinatorics 2"
+                  title="LN 17: Factorialing in Evidence"
+                  description="In this lecture we will investigate factorials, permutations, and combinations with and without repeats allowed!"
+                  notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Lecture Video",
+                      url: "https://lmula.zoom.us/rec/share/Yl7uACGPQUyKOWb6z11fMeMiEkNR-DBctVPKRQAtZ33AgFcFTdUdJf7xMeamaLAE.txpI1KGSkHbTQret",
+                    },
+                  ]}
+                />
+                {/*
+                <NotesCard
+                  title="LN 18: Combinatorics 3"
                   description=""
                   notesSlug="/cmsi-2820/ln18"
                 />
                 <NotesCard
-                  title="LN 19: Combinatorics 3"
+                  title="LN 19: Combinatorics 4"
                   description=""
                   notesSlug="/cmsi-2820/ln19"
-                />
-                <NotesCard
-                  title="LN 20: Combinatorics 4"
-                  description=""
-                  notesSlug="/cmsi-2820/ln20"
                 />
                 <AssignmentCard
                   title="HW 5: Combinatorics!"
                   description=""
                   assignmentSlug="/cmsi-2820/hw5"
                 />
+                */}
               </Standard>
+              {/*
               <Standard
                 number={6}
                 title="Graph Theory"
