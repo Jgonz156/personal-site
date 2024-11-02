@@ -493,12 +493,19 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/*
+
                 <NotesCard
-                  title="LN 19: Combinatorics 4"
-                  description=""
-                  notesSlug="/cmsi-2820/ln19"
+                  title="LN 19: Bijection Your Honor!"
+                  description="In this lecture we learn how to leverage bijective functions to solve an interesting class of combinatorics problems and introduce the pigeonhole principle."
+                  notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Lecture Video",
+                      url: "https://lmula.zoom.us/rec/share/UeUrUcJASOdXuromubzXAUa-an3Eic5TJ958lIH4XEuozDoXWVvVPgBBj56IFnmM.xQhqXL16cAXK0jye",
+                    },
+                  ]}
                 />
+                {/*
                 <AssignmentCard
                   title="HW 5: Combinatorics!"
                   description=""
