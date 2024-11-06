@@ -507,45 +507,62 @@ export default function CMSI2820() {
                 />
                 {/*
                 <AssignmentCard
-                  title="HW 5: Combinatorics!"
+                  title="HW 5: Order in the Court!"
                   description=""
                   assignmentSlug="/cmsi-2820/hw5"
                 />
                 */}
               </Standard>
-              {/*
+
               <Standard
                 number={6}
                 title="Graph Theory"
                 description="In this standard we will investigate the mathematical 
-                underpinnings of graph theory."
+                underpinnings of Graph Theory."
               >
                 <NotesCard
-                  title="LN 21: Graph Theory 1"
+                  title="LN 20: Going for a Walk"
+                  description="In this lecture we follow in the footsteps of Euler and complete the Seven Bridges of Konigsberg problem to introduce graphs formally."
+                  notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/gh9M9Mr8vWy2cZ7QkxYhp7mT_dZMeDcyv-3cZaEivvElSvP4IRAUrUKw-vt-r_np.wqKczhxy-oiTjdMG?startTime=1730829588000",
+                    },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/LuyleXemMtEysQSbZhxmvPWHoknhP3iemSTfaOj6awnxwsoq90FPAyYewx-_5EZZ.sYNGb_KIJIi9Qusl?startTime=1730843339000",
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/hc4JSVNUzrhtr0WYWvFZ5mdOpD2yeCHIdgIvX2xjpw_Qocmg8rdrDq8cgSR4G8Su.mP-QZuUQ6ZtN3bZJ?startTime=1730858832000",
+                    },
+                  ]}
+                />
+                {/*
+                <NotesCard
+                  title="LN 21: Graph Theory 2"
                   description=""
-                  notesSlug="/cmsi-2820/ln21"
+                  notesSlug=""
                 />
                 <NotesCard
-                  title="LN 22: Graph Theory 2"
+                  title="LN 22: Graph Theory 3"
                   description=""
-                  notesSlug="/cmsi-2820/ln22"
+                  notesSlug=""
                 />
                 <NotesCard
-                  title="LN 23: Graph Theory 3"
+                  title="LN 23: Graph Theory 4"
                   description=""
-                  notesSlug="/cmsi-2820/ln23"
-                />
-                <NotesCard
-                  title="LN 24: Graph Theory 4"
-                  description=""
-                  notesSlug="/cmsi-2820/ln24"
+                  notesSlug=""
                 />
                 <AssignmentCard
                   title="HW 6: Graph Theory!"
                   description=""
-                  assignmentSlug="/cmsi-2820/hw5"
+                  assignmentSlug="/cmsi-2820/hw6"
                 />
+                */}
               </Standard>
+              {/*
               <Standard
                 number={7}
                 title="Set Theory"
