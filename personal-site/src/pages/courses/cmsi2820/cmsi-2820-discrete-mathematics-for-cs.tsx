@@ -539,12 +539,26 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/*
                 <NotesCard
-                  title="LN 21: Graph Theory 2"
-                  description=""
+                  title="LN 21: Connecting with Nature"
+                  description="In this lecture we investigate how the alterations to the formal graph definition propagate to change our visuals. We take a look at isomorphisms, connectedness, and the handshaking Lemma."
                   notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/m7fGV1QaucjdlM3mFPtKo2TDk0hCNNRcLq3iUYPo17VWXbN-Ys9bvuXkG9I1OnEX.OTpNPVmppGSjEmw8?startTime=1731002382000",
+                    },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/hVQw21hJ2xVJfxhbp3_HA_a9ragRjI0IxxxbIdq1tFLj-7g3781jQPBI753TC4-i.UX7321B4hCmggABv?startTime=1731016162000",
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/LBhF400-cSb8A-0LGu6NQ1rZuGtXSPx88IdOLrFb1fg4w3rd7kRSpcyO_Twc72J5.48wnJyuYC_QYCFg8?startTime=1731031580000",
+                    },
+                  ]}
                 />
+                {/*
                 <NotesCard
                   title="LN 22: Graph Theory 3"
                   description=""
