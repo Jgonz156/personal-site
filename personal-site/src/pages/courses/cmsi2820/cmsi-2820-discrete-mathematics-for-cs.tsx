@@ -505,13 +505,11 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/*
                 <AssignmentCard
                   title="HW 5: Order in the Court!"
-                  description=""
+                  description="In this homework we investigate counting, combinations, permutations, and the many tools and intuitions that can be pulled from them!"
                   assignmentSlug="/cmsi-2820/hw5"
                 />
-                */}
               </Standard>
 
               <Standard
