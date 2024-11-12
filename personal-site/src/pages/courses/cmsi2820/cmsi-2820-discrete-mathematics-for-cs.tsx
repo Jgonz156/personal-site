@@ -558,17 +558,17 @@ export default function CMSI2820() {
                 />
                 {/*
                 <NotesCard
-                  title="LN 22: Graph Theory 3"
+                  title="LN 22: Looking Over the Edge"
                   description=""
                   notesSlug=""
                 />
                 <NotesCard
-                  title="LN 23: Graph Theory 4"
+                  title="LN 23: Spanning the Globe"
                   description=""
                   notesSlug=""
                 />
                 <AssignmentCard
-                  title="HW 6: Graph Theory!"
+                  title="HW 6: (Warning: Graphic Content)"
                   description=""
                   assignmentSlug="/cmsi-2820/hw6"
                 />

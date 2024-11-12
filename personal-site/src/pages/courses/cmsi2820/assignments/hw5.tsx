@@ -51,7 +51,9 @@ export default function Homework5() {
               yourself. You are responsible for setting up everyone schedules
               for the events. The conference features talks, workshops,
               lectures, Q & A's, and even some one-on-one experiences. The full
-              itinerary for the conference can be found below in a table:
+              itinerary for the conference can be found below in a table (An x
+              means that the event is happening at that time, a blank means it
+              is not happening):
             </Speak>
             <MathJax>{`$$\\begin{matrix}
             \\text{Event} & \\text{8am - 10am} & \\text{10am - 12pm} & \\text{12pm - 2pm} & \\text{2pm - 4pm} \\\\
