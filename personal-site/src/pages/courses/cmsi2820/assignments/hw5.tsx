@@ -8,16 +8,16 @@ import QuestionBox from "../../components/question-box"
 import Speak from "../../components/speak"
 import TitleBox from "../../components/title-box"
 import TopicBox from "../../components/topic-box"
-//import TopicBreak from "../../components/topic-break"
 import { MathJax } from "better-react-mathjax"
 import Vocab from "../../components/vocab"
+import TopicBreak from "../../components/topic-break"
 
 export default function Homework5() {
   return (
     <CoursePage type="homework">
       <CourseBox>
         <TitleBox title="HW5: Order In The Court" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 11, 15, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2024, 11, 22, 23, 59)} />
         <TopicBox
           topics={[
             "Rule of Sums and Products",
@@ -32,7 +32,7 @@ export default function Homework5() {
         <Speak></Speak>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Written Section" quote="Points: 60" />
+        <TitleBox title="Written Section" quote="Points: 80" />
         <QuestionBox qid={"Q1"}>
           In your own words, describe the following rules/laws and give a
           real-world example of their use:
@@ -74,6 +74,7 @@ export default function Homework5() {
             flight-logs:
           </QuestionBox>
         </QuestionBox>
+        <TopicBreak title="END LN17" />
         <QuestionBox qid={"Q3"}>
           You are shopping for locks so you can seal up your luggage for a
           flight. You pass many different designs in the airport, upset that
@@ -81,11 +82,19 @@ export default function Homework5() {
           catch your eye as it seems to be making an interesting claim: "World's
           Best Combination lock! 9/10 Combinatorialists recommend!" This doesn't
           make sense to you as Mathematicians are very careful with their
-          language in combinatorics. Describe the difference between a
-          combination and a permutation. Then use your answer to argue the
-          following claim: "Combination locks should be called Permutation
-          locks". Finally describe the function of an actual, mathematically
-          accurate, "Combination" lock.
+          language in combinatorics. Use this intuition to answer the following
+          questions:
+          <QuestionBox qid={"Q3 a"}>
+            Describe the difference between a combination and a permutation.
+          </QuestionBox>
+          <QuestionBox qid={"Q3 b"}>
+            Argue the following claim: "Combination locks should be called
+            Permutation locks".
+          </QuestionBox>
+          <QuestionBox qid={"Q3 c"}>
+            Describe the function of an actual, mathematically accurate,
+            "Combination" lock.
+          </QuestionBox>
         </QuestionBox>
         <QuestionBox qid={"Q4"}>
           The following questions involve solving for permutations or
@@ -109,29 +118,32 @@ export default function Homework5() {
             put their names on the shelf?
           </QuestionBox>
           <QuestionBox qid={"Q4 b"}>
-            You are working with a locksmith on repairing some{" "}
-            <Vocab
-              definition={
-                "Think of this as the typical way we think of combinations locks (Which are actually permutation locks)"
-              }
-            >
-              combination
-            </Vocab>{" "}
-            locks. You help sell repaired locks second-hand and guarantee that
-            the repaired locks retain at least half of their original number of
-            valid lock sequences or a refund is offered. One day a customer
-            comes in complaining that a lock that was sold to them was defective
-            and they want their money back. The customers says "Whenever I try a
-            combo with a 3 on the second cylinder, the lock never locks! I
-            deserve my money back for this!". They hand over the lock and allow
-            you to inspect it. The combo lock is very old and of a very odd
-            design. It has 4 total cylinders you can turn to make the lock
-            sequence. However, the cylinders are octagonal only allowing for 0
-            through 7 instead of the typical 0 through 9. The customers claim
-            checks out as no matter how many sequences you try, if cylinder two
-            is ever on 3 the lock sequence never allows the lock to close.
-            Investigate how many original arrangements this lock had when it was
-            new, then decide wether the defect violates the refund policy.
+            <Speak>
+              You are working with a locksmith on repairing some{" "}
+              <Vocab
+                definition={
+                  "Think of this as the typical way we think of combinations locks (Which are actually permutation locks)"
+                }
+              >
+                combination
+              </Vocab>{" "}
+              locks. You help sell repaired locks second-hand and guarantee that
+              the repaired locks retain at least half of their original number
+              of valid lock sequences or a refund is offered. One day a customer
+              comes in complaining that a lock that was sold to them was
+              defective and they want their money back. The customers says
+              "Whenever I try a combo with a 3 on the second cylinder, the lock
+              never locks! I deserve my money back for this!". They hand over
+              the lock and allow you to inspect it. The combo lock is very old
+              and of a very odd design. It has 4 total cylinders you can turn to
+              make the lock sequence. However, the cylinders are octagonal only
+              allowing for 0 through 7 instead of the typical 0 through 9. The
+              customers claim checks out. No matter how many sequences you try,
+              if cylinder two is ever on 3, the lock sequence never allows the
+              lock to close. Investigate how many original arrangements this
+              lock had when it was new, then decide wether the defect violates
+              the refund policy.
+            </Speak>
           </QuestionBox>
           <QuestionBox qid={"Q4 c"}>
             You are working as an event organizer for a large company. Any
@@ -151,16 +163,165 @@ export default function Homework5() {
           They storm off to their office where you catch a glimpse of a
           spreadsheet filled with red before they close the door. You decide to
           investigate a few patterns to help out your boss.
-          <QuestionBox qid={"Q5 a"}></QuestionBox>
-          <QuestionBox qid={"Q5 b"}></QuestionBox>
-          <QuestionBox qid={"Q5 c"}></QuestionBox>
+          <QuestionBox qid={"Q5 a"}>
+            Your boss mentioned the following: "How many locks do you come
+            across where less than half the cylinders don't work!" This gets you
+            wondering. What do you have to lose on the combo lock for your lock
+            to lose half of your lock sequences? Is it actually half the
+            cylinders? Investigate the following: If you have a combination lock
+            with 0-9 on each cylinder and 5 total cylinders, How many sequences
+            are lost if you lose just a single choice on one cylinder.
+          </QuestionBox>
+          <QuestionBox qid={"Q5 b"}>
+            On the same lock as before, how many lock sequences are lost if you
+            lose 2 entire cylinders?
+          </QuestionBox>
+          <QuestionBox qid={"Q5 c"}>
+            Given how the previous two answers came out, what do you have to
+            lose on a lock to lose exactly half your lock sequences?
+          </QuestionBox>
+          <QuestionBox qid={"Q5 d"}>
+            Given how your investigation went, explain to your boss why a refund
+            policy of half the combos is actually much easier to have happen
+            than they thought!
+          </QuestionBox>
         </QuestionBox>
+        <TopicBreak title="END LN18" />
+        <QuestionBox qid={"Q6"}>
+          <Speak>
+            Vandermonde's Identity, is a combinatorics identity that represents
+            the following equivalence on the Integers:
+          </Speak>
+          <MathJax>
+            {`$$
+          \\text{where: } 0 \\lt r \\lt m+n$$`}
+          </MathJax>
+          <MathJax>
+            {`$$
+        \\binom{m+n}{r} = \\sum_{k=0}^{r} \\binom{m}{k} \\binom{n}{r-k}
+        $$`}
+          </MathJax>
+          <Speak>
+            As an example of how its read, when can make groups between cats and
+            dogs. Given m dogs and n cats, making groups of r size would be m+n
+            choose r. This gives us the left hand side, however, the right hand
+            side is less obvious. Given m dogs and n cats, we can find the total
+            ways to make groups of r size by summing the ways to make groups of
+            only dogs from size 0 to k, and multiply it with the number of ways
+            to make groups of only cats of size r to 0. In a simplified manner,
+            the left hand side is trying to communicate the idea that making
+            groups of cats and dogs can be done by simply making groups out of
+            the dogs and cats combined or, what the right hand side is trying to
+            communicate, by finding all the ways to make a group filled with
+            just dogs and then find the number of ways we could fill the
+            remaining spots with just cats.
+          </Speak>
+          <Speak>
+            In the following sub-problems you will investigate a double counting
+            proof of Vandermonde's Identity
+          </Speak>
+          <QuestionBox qid={"Q6 a"}>
+            Investigate the left hand side of the identity and ensure it holds
+            for the following values:
+            <MathJax>{`$$
+          m=3,n=2,r=2
+          $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox qid={"Q6 b"}>
+            Investigate the right hand side of the identity and ensure it holds
+            for the same values:
+            <MathJax>{`$$
+          m=3,n=2,r=2
+          $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox qid={"Q6 c"}>
+            Draw Pascals Triangle out to the 5th row and use it to show that the
+            left and right hand sides of Vandermonde's Identity are equal, for
+            our previous values of m, n and r, by circling all entries that are
+            used and draw a line to connect the entries that are multiplied
+            together. Then place a square around the entry the represents the
+            answer.
+          </QuestionBox>
+          <QuestionBox qid={"Q6 d"}>
+            Having completed the previous parts, summarize the process used for
+            the right hand side of Vandermonde's Identity. Then, in your own
+            words, give an explanation as to why it performs the same action as
+            the left hand side.
+          </QuestionBox>
+        </QuestionBox>
+        <TopicBreak title="END LN19" />
+        <QuestionBox qid={"Q7"}>
+          George Cantor was famous for proving that there are different sizes of
+          infinity. More specifically, that while the set of Integers and Real
+          numbers are both infinite, the set of Real numbers is actually a
+          larger infinity. Using a Bijective argument, we can show this fact.
+          The following sub-problems will investigate this concept.
+          <QuestionBox qid={"Q7 a"}>
+            Prove that the domain of the Integers and the Codomain of just the
+            even integers are the same size by making a bijective function that
+            maps one to the other in the following sub-problems:
+            <QuestionBox qid={"Q7 a 1"}>
+              Give the function that maps all Integers to all Even Integers
+            </QuestionBox>
+            <QuestionBox qid={"Q7 a 2"}>
+              Explain why your function is injective
+            </QuestionBox>
+            <QuestionBox qid={"Q7 a 3"}>
+              Explain why your function is surjective
+            </QuestionBox>
+          </QuestionBox>
+          <QuestionBox qid={"Q7 b"}>
+            Explain why drawing the previous bjiection shows that the set of all
+            integers and the set of all even integers are the same size.
+          </QuestionBox>
+          <QuestionBox qid={"Q7 c"}>
+            Prove that the domains of the Integers and the Real numbers are not
+            the same size by explaining why it is impossible to make a bijective
+            function between them by answering the following:
+            <QuestionBox qid={"Q7 c 1"}>
+              Give an Injective function from the Integers to the Reals and then
+              explain why you cannot make one that is surjective
+            </QuestionBox>
+            <QuestionBox qid={"Q7 c 2"}>
+              Give a Surjective function from the Reals to the Integers and then
+              explain why you cannot make one that is injective.
+            </QuestionBox>
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox qid={"Q8"}>
+          The Pigeonhole Principle is a simple concept that states that if you
+          have more pigeons than pigeonholes, at least one pigeonhole will have
+          more than one pigeon. Put more generally, if you have a limited number
+          of slots and have more items to place in those slots than you have
+          slots, you will have to grapple with the resulting overflow. These
+          "overflows" lead to very interesting an non-intuitive facts. The
+          following sub-problems will display to you a few of them.
+          <QuestionBox qid={"Q8 a"}>
+            Explain why in any 27 word English sentence, at least 2 words must
+            start with the same letter.
+          </QuestionBox>
+          <QuestionBox qid={"Q8 b"}>
+            Explain why if you pick 5 numbers from the integers 1 to 8, then two
+            of them must add up to 9.
+          </QuestionBox>
+          <QuestionBox qid={"Q8 c"}>
+            Given only names with English letters, explain why it takes only 677
+            people to guarantee that at least 2 people have the same initials.
+          </QuestionBox>
+          <QuestionBox qid={"Q8 d"}>
+            Given a infinite container holding an infinite number of colored
+            balls, being either red, blue, black, or green, give the minimum of
+            grabs out of this drawer to make a pair of balls that is the same
+            color.
+          </QuestionBox>
+        </QuestionBox>
+        <TopicBreak title="END LN20" />
         <LinkButton color="success" to="">
           Written HW5 Turn In
         </LinkButton>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Programming Section" quote="Points: 40" />
+        <TitleBox title="Programming Section" quote="Points: 20" />
         <DirectoryTree filesAsJSON={{}} />
         <Speak>
           As a refresher, here is the helper video that goes from complete start
