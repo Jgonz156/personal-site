@@ -393,11 +393,13 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
         <TitleBox title="Programming Section" quote="Points: 20" />
         <DirectoryTree
           filesAsJSON={{
-            ".gitignore": <></>,
-            "README.md": <></>,
-            "court.py": <></>,
-            "test_court.py": <></>,
-            "proceedings.py": <></>,
+            "CMSI-2820-HW5": {
+              ".gitignore": <></>,
+              "README.md": <></>,
+              "court.py": <></>,
+              "test_court.py": <></>,
+              "proceedings.py": <></>,
+            },
           }}
         />
         <Speak>
