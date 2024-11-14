@@ -1,7 +1,7 @@
 import { DateTime } from "luxon"
 import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
-import DirectoryTree from "../../components/directory-tree"
+//import DirectoryTree from "../../components/directory-tree"
 import DueDateCalendar from "../../components/due-date-calendar"
 import LinkButton from "../../components/link-button"
 import QuestionBox from "../../components/question-box"
