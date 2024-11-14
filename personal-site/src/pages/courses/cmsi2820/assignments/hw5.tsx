@@ -1,7 +1,7 @@
 import { DateTime } from "luxon"
 import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
-//import DirectoryTree from "../../components/directory-tree"
+import DirectoryTree from "../../components/directory-tree"
 import DueDateCalendar from "../../components/due-date-calendar"
 import LinkButton from "../../components/link-button"
 import QuestionBox from "../../components/question-box"
@@ -17,7 +17,7 @@ export default function Homework5() {
     <CoursePage type="homework">
       <CourseBox>
         <TitleBox title="HW5: Order In The Court" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 11, 22, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2024, 11, 25, 23, 59)} />
         <TopicBox
           topics={[
             "Rule of Sums and Products",
@@ -413,6 +413,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           Programming HW5 Turn In
         </LinkButton>
       </CourseBox>
+      */}
       <CourseBox>
         <TitleBox title="Optional Section For Functions" quote="Points: 20" />
         <Speak>
@@ -421,108 +422,75 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           (However always remember that you can work out an alternate creative
           endeavour if you want to involve your hobbies! You can make creative
           works in any form such as games, drawings, paintings, dioramas,
-          sculptures, videos, fake blogs, memes, anything!) (For instance, while
-          I am working on this HW I am hungry and can imagine a number of ways
-          that you could organize a grocery store into sets and tuples. Are
-          shelves ordered? In what ways? what about bargain deal aisles, are
-          they unordered? I could make a set/tuple representation of all of
-          Ralphs!) (Just make sure to talk to me first!)
+          sculptures, videos, fake blogs, memes, anything!) (Just make sure to
+          talk to me first!)
         </Speak>
         <Speak>
-          We saw in class that Collections, while of course being responsible
-          for holding other types, was more complicated than simply picking a
-          basket to throw things in. When choosing to represent a collection of
-          items, the decision between using a set or tuple was more fundamental
-          than just needing to hold onto some values. Choosing a Set inherently
-          suggested that membership was all that mattered and that there was no
-          special meaning to being anywhere in the group. Choosing a Tuple
-          suggested that order was important and that your collections of
-          elements could not be understood in any other manner. With this said,
-          my suggestion for your creative endeavour is to really feel what the
-          difference between a set and a tuple is by taking something in your
-          hobby that is ordered and attempt to engage with it in an unordered
-          manner and take something that is normally unordered and engage with
-          it in an ordered manner. Document the results to me!
+          Functions are a bit too general as it stands right now to make a small
+          creative project out of. Since they can be used to
+          understand/define/simulate anything there is a distinct issue with
+          applying them, in that they apply themselves everywhere. So instead of
+          trying to "decode" something you enjoy into a bunch of tiny
+          interactions, I'd rather use this optional assignment for reflection
+          and sharing.
         </Speak>
         <Speak>
-          What does it mean to find something ordered in your hobby? Well, look
-          for something that is always done in the same manner or something that
-          is normally done with consistency and see what you can accomplish when
-          you do it inconsistently! To give some examples, say you like building
-          structures with Legos, what would happen if you bounced around the
-          booklet of build instructions? Could you still make the build? Is it
-          possible to assemble the varying built pieces together still? What
-          type of builds "survive" this change? If you play Volleyball, what
-          would happen if you allowed any one to go anywhere when a court
-          rotation is typically done? Can the game be salvaged? Do you
-          strategies change? If you are a musician, what would happen if you
-          played the notes of a song in a different order? Would it still sound
-          the same? Would it still be recognizable? Do certain songs "maintain"
-          their identity more than others?
+          Functions can be understood as a map from inputs to outputs. When you
+          put something in, you get something out. So I would like you to do the
+          same but for your hobby. Why do you enjoy your hobbies? When you put
+          your effort into your personal projects, what do you get out of them?
+          It is just the satisfaction of getting better? Do you like to make
+          works an sell them for extra spending cash? I would like you to take
+          this optional to give a brief reflection on why you keeping "using the
+          same function" over an over again (That function being your hobby!).
         </Speak>
         <Speak>
-          What about finding something unordered in your hobby? Search for
-          something that is typically done at any time or without conditions and
-          see how things change when you enforce consistency upon it! For
-          instance, if you absent mindedly scroll through your For You Page for
-          funny posts, how would your experience be different if you forced
-          yourself to go through the posts in alphabetical order by creator?
-          Would you still enjoy your FYP? Does it make it more or less enjoyable
-          to always see a certain content creator first? Would you end up
-          unfollowing/unsubscribing to certain people? If you like eating food
-          off your plate in any order, what would happen if you forced yourself
-          to always eat in a clockwise manner? Would you still enjoy your meal?
-          How would you change the plate to be more enjoyable under these
-          constraints? Would you always eat mixed-bowl style meals to get around
-          this? If you like to play video games with friends, what would happen
-          if the only way to close the game was to be successful first ("End on
-          a win")? How quick are certain games to get out of? How does adding
-          more people to your group change your odds of success? Would you start
-          avoiding certain game genres? Are certain genres of game unaffected?
+          Once you've reflected on your hobby, then we will represent the other
+          crucial part of a function, their "bodies". To reflect functions as
+          ordered instructions, I would like you to put together a small
+          guide/introduction of how to get into, and what someone might get out
+          of, your hobby! After all, its hard to know whether you should be
+          running a function or not unless you have some documentation!
         </Speak>
         <Speak>
-          Take the ordered and unordered experiences you get from your hobby and
-          write/show/display to me how they are different as a result.Explain to
-          me what the experience is normally like and then explain what specific
-          parts of that experience changes for better or for worse when you
-          "switch the collection type" around!
+          For instance, if I were to complete this optional, I would choose to
+          reflect on my hobby of rock climbing. I would begin by reflecting on
+          what I personally get out of it. This includes a number of things, but
+          in short it keeps me active, its difficulty means I am always faced
+          with a challenge to improve, and the focus required to follow a
+          difficult{" "}
+          <Vocab
+            definition={
+              "A beta in rock climbing is a set of move by move instructions for how you climb from the start to finish of a climb. These are usually used for difficult climbs where certain techniques may be required to reach the top"
+            }
+          >
+            beta
+          </Vocab>{" "}
+          is a good way to clear my mind of distractions that are bothering me
+          (like a meditation of sorts). Once I finished reflecting on what I get
+          out of rock climbing, I would then make a guide to help introduce
+          people to climbing. This could take the form of a cool flyer, a blog,
+          a fake advertisement for a company, or a video. This is where you can
+          get creative as for many hobbies there might be preferred or cool
+          introductions to them that are personalized. Since rock climbing is so
+          specific, I might create a montage of really mind bending moves you
+          wouldn't expect to get people drawn in!
         </Speak>
         <Speak>
-          For instance, I enjoy lecturing for this course, I am your professor
-          after all, and something that is typically ordered is how we go
-          through lecture. Everything builds on the next thing, so what would
-          happen if for one lecture I did the announcements at the end, the
-          recap in the middle, put examples out of order? Would the lecture
-          still be understandable? Would it still be enjoyable for me to teach
-          this way or for you to learn in those conditions? What kind of
-          lectures can survive this change? What I would do is try to lecture in
-          this manner and identify what parts of the lecture are still
-          successful and what parts are not and then I would write down how
-          making it unordered specifically changed it. Then I would identify
-          something that is typically unordered about my teaching, such as how I
-          pick students to answer questions, and I would see what would happen
-          if I always picked students in order from front of the class to back
-          of the class. Would that shift students around the classroom? Would is
-          make answering the question more or less stressful? Would more or less
-          people show up to class? I would then try this process out for a
-          lecture or two and then write down the changes I noticed that
-          specifically arose due to the change in picking students.
+          Due to the open ended, and mostly personal, nature of this optional, I
+          will be grading it purely on participation with the two major
+          components, the reflection and the guide/intro. Each will be worth 10
+          points.
         </Speak>
         <Speak>
-          I am only asking that you perform this investigation for one ordered
-          and one unordered experience in your hobby. If you want to do more
-          that is great and will get you more points! However, the main way to
-          gain points is to pick something interesting and be thoughtful in your
-          description (and theories that you come up with along the way) about
-          how swapping order for disorder and disorder for order changes the
-          experience! The more properties you include and the more operations
-          you find, the more points you earn!
+          Once you have completed your reflection and guide/intro, you can turn
+          it in via brightspace with the button below! If you have any questions
+          about this optional feel free to ask me!
         </Speak>
         <LinkButton color="success" to="">
-          Optional HW4 Turn in
+          Optional HW4 Turn in (Not linked yet)
         </LinkButton>
       </CourseBox>
-      */}
     </CoursePage>
   )
 }
