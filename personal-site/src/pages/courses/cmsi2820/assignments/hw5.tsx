@@ -1,7 +1,7 @@
 import { DateTime } from "luxon"
 import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
-//import DirectoryTree from "../../components/directory-tree"
+import DirectoryTree from "../../components/directory-tree"
 import DueDateCalendar from "../../components/due-date-calendar"
 import LinkButton from "../../components/link-button"
 import QuestionBox from "../../components/question-box"
@@ -288,24 +288,23 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
             proof of Vandermonde's Identity
           </Speak>
           <QuestionBox qid={"Q6 a"} points={4}>
-            Investigate the left hand side of the identity and ensure it holds
-            for the following values:
+            Investigate the left hand side of the identity using the following:
             <MathJax>{`$$
           m=3,n=2,r=2
           $$`}</MathJax>
           </QuestionBox>
           <QuestionBox qid={"Q6 b"} points={4}>
             Investigate the right hand side of the identity and ensure it holds
-            for the same values:
+            with the left hand side for the same values:
             <MathJax>{`$$
           m=3,n=2,r=2
           $$`}</MathJax>
           </QuestionBox>
           <QuestionBox qid={"Q6 c"} points={4}>
-            Draw Pascals Triangle out to the 5th row and use it to show that the
-            left and right hand sides of Vandermonde's Identity are equal, for
-            our previous values of m, n and r, by circling all entries that are
-            used and draw a line to connect the entries that are multiplied
+            Draw Pascal's Triangle out to the 5th row and use it to show that
+            the left and right hand sides of Vandermonde's Identity are equal,
+            for our previous values of m, n and r, by circling all entries that
+            are used and draw a line to connect the entries that are multiplied
             together. Then place a square around the entry the represents the
             answer.
           </QuestionBox>
@@ -346,11 +345,11 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
             the same size by explaining why it is impossible to make a bijective
             function between them by answering the following:
             <QuestionBox qid={"Q7 c 1"}>
-              Give an Injective function from the Integers to the Reals and then
+              Give an injective function from the Integers to the Reals and then
               explain why you cannot make one that is surjective
             </QuestionBox>
             <QuestionBox qid={"Q7 c 2"}>
-              Give a Surjective function from the Reals to the Integers and then
+              Give a surjective function from the Reals to the Integers and then
               explain why you cannot make one that is injective.
             </QuestionBox>
           </QuestionBox>
@@ -383,14 +382,24 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           </QuestionBox>
         </QuestionBox>
         <TopicBreak title="END LN20" />
-        <LinkButton color="success" to="">
-          Written HW5 Turn In (Not linked yet)
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=253279&db=303709"
+        >
+          Written HW5 Turn In
         </LinkButton>
       </CourseBox>
-      {/*
       <CourseBox>
         <TitleBox title="Programming Section" quote="Points: 20" />
-        <DirectoryTree filesAsJSON={{}} />
+        <DirectoryTree
+          filesAsJSON={{
+            ".gitignore": <></>,
+            "README.md": <></>,
+            "court.py": <></>,
+            "test_court.py": <></>,
+            "proceedings.py": <></>,
+          }}
+        />
         <Speak>
           As a refresher, here is the helper video that goes from complete start
           to finish for the process of receiving, setting up, and turning in
@@ -406,14 +415,20 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           Linked below is the GitHub Classroom assignment link and the
           Brightspace turn in link both as buttons
         </Speak>
-        <LinkButton color="success" to="">
+        <LinkButton
+          color="success"
+          to="https://classroom.github.com/a/CW3A2-10"
+        >
           GitHub Assignment
         </LinkButton>
-        <LinkButton color="success" to="">
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=303710&grpid=0&isprv=&bp=0&ou=253279"
+        >
           Programming HW5 Turn In
         </LinkButton>
       </CourseBox>
-      */}
+
       <CourseBox>
         <TitleBox title="Optional Section For Functions" quote="Points: 20" />
         <Speak>
@@ -487,8 +502,11 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           it in via brightspace with the button below! If you have any questions
           about this optional feel free to ask me!
         </Speak>
-        <LinkButton color="success" to="">
-          Optional HW4 Turn in (Not linked yet)
+        <LinkButton
+          color="success"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=303711&grpid=0&isprv=&bp=0&ou=253279"
+        >
+          Optional HW4 Turn in
         </LinkButton>
       </CourseBox>
     </CoursePage>
