@@ -576,12 +576,27 @@ export default function CMSI2820() {
                     },
                   ]}
                 />
-                {/*
+
                 <NotesCard
                   title="LN 23: Spanning the Globe"
-                  description=""
+                  description="In this lecture we cover a few more special graphs in the form of trees and forests. We then end the graph theory unit by investigating minimum spanning trees and how their solutions and structures represent many real-world problems."
                   notesSlug=""
+                  sectionRecordings={[
+                    {
+                      buttonText: "Section 1 Video",
+                      url: "https://lmula.zoom.us/rec/share/WHssoPHNAHXnDgnDzuCM7ee5YGFD6mSbK12KbX62wlyQ4Wp0DdGzMGbClSjjL2kU.V0vs1azQv0rWy3aV?startTime=1731607327000",
+                    },
+                    {
+                      buttonText: "Section 2 Video",
+                      url: "https://lmula.zoom.us/rec/share/BLSe-vT1XJfZ7sy6YaUz--QJMvt9bzG-LfFt5_6KAMTPiBXqVz6Y0dGO59yE2DZ_.9mhrJcBEKWc7Y25l?startTime=1731621005000",
+                    },
+                    {
+                      buttonText: "Section 3 Video",
+                      url: "https://lmula.zoom.us/rec/share/3BKQ0snBCjL1wAmawNk2r32AhGo75po0qkqxb8SXdeVId1W7s5S08YJl-rU2Id3s.CiCjb8OGTorZ0I_H?startTime=1731636345000",
+                    },
+                  ]}
                 />
+                {/*
                 <AssignmentCard
                   title="HW 6: (Warning: Graphic Content)"
                   description=""
@@ -605,7 +620,7 @@ export default function CMSI2820() {
                   title="LN 26: Set Theory 2"
                   description=""
                   notesSlug="/cmsi-2820/ln26"
-                />
+                /
                 <AssignmentCard
                   title="HW 7: Set Theory!"
                   description=""
