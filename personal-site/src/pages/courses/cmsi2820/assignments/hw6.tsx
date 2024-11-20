@@ -23,7 +23,16 @@ export default function Homework6() {
       </CourseBox>
       <CourseBox>
         <TitleBox title="Written Section" quote="Points: " />
-        <QuestionBox qid={"Q1"} points={"TBD"}></QuestionBox>
+        <QuestionBox qid={"Q1"} points={"TBD"}>
+          When Euler was young hes visited Königsberg and saw its magnificent
+          seven bridges. He came up with a game that we saw in class, can you
+          find a way to cross every bridge only once? We saw that in Königsberg
+          this could not be done, however in modern day Kaliningrad it can be
+          due to some remodeling. Now we will get practice with "Euler's Game"
+          on these seven graphs! Below, give the path that uses every edge only
+          once or state why it is impossible.
+          <QuestionBox qid={"Q1 a"} points={"TBD"}></QuestionBox>
+        </QuestionBox>
 
         <LinkButton color="success" to="">
           Written HW6 Turn In (Not Yet Available)

@@ -184,7 +184,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
             spell their names, how many arrangements would you have to search to
             put their names on the shelf?
           </QuestionBox>
-          <QuestionBox qid={"Q4 b"} points={5}>
+          <QuestionBox qid={"Q4 b"} points={10}>
             <Speak>
               You are working with a locksmith on repairing some{" "}
               <Vocab
@@ -212,6 +212,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
               the refund policy.
             </Speak>
           </QuestionBox>
+          {/*
           <QuestionBox qid={"Q4 c"} points={5}>
             You are working as an event organizer for a large company. Any
             upcoming company wide event involving all employees is coming up and
@@ -220,6 +221,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
             4 large event halls, each with their own capacity. The company has 8
             varying size departments that must fit into these event halls. TBC
           </QuestionBox>
+          */}
         </QuestionBox>
         <QuestionBox qid={"Q5"} points={"10 total"}>
           Continuing your job with the locksmith, you notice your boss in a bad

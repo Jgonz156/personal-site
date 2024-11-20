@@ -33,8 +33,15 @@ const personalInfo = [
     icon: <MeetingRoomIcon />,
   },
   {
-    value:
-      "Office Hours: M 5PM-7PM (Keck Lab), W 2PM-5PM, F 5PM-7PM (Keck Lab)",
+    value: "Office Hours (Keck Lab): M 5PM-7PM",
+    icon: <AccessTimeIcon />,
+  },
+  {
+    value: "Office Hours: W 2PM-5PM",
+    icon: <AccessTimeIcon />,
+  },
+  {
+    value: "Office Hours (Keck Lab): F 5PM-7PM",
     icon: <AccessTimeIcon />,
   },
   {
