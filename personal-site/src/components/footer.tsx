@@ -106,8 +106,8 @@ export default function Footer({
             color="neutral"
             to={"/"}
           >
-            <Tooltip title="Homepage">
-              <HomeIcon />
+            <Tooltip title="Homepage" arrow>
+              <HomeIcon fontSize="large" />
             </Tooltip>
           </Button>
         </Stack>

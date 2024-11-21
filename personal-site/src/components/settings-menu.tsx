@@ -10,8 +10,8 @@ export default function SettingsMenu() {
   return (
     <Dropdown>
       <MenuButton variant="plain" color="neutral">
-        <Tooltip title="Site Settings">
-          <SettingsIcon />
+        <Tooltip title="Site Settings" arrow>
+          <SettingsIcon fontSize="large" />
         </Tooltip>
       </MenuButton>
       <Menu

@@ -52,6 +52,7 @@ export default function NotesCard({
             color="primary"
             variant="soft"
             title={<Speak>Under Construction</Speak>}
+            arrow
           >
             <Sheet color="primary" variant="soft">
               <Button
@@ -85,6 +86,7 @@ export default function NotesCard({
                 title={
                   <Speak>Recording Failed, Please Watch Another Section</Speak>
                 }
+                arrow
               >
                 <Sheet color="primary" variant="soft">
                   <Button

@@ -108,17 +108,17 @@ export default function Homework5() {
             \\end{matrix}$$`}</MathJax>
             <Speak>
               Give the total numbers of possible 3-course-meals for each menu
-              and they say which menu has more potential 3-course-meals.
+              and then say which menu has more potential 3-course-meals.
             </Speak>
           </QuestionBox>
           <QuestionBox qid={"Q2 c"} points={4}>
-            You work for an airport and work with ground teams to procure
-            information about airplanes leaving and landing. Management has made
-            a new financial plan to charge airline companies based on the number
-            of unique aircraft that operate out of the hangars. You have
-            collected flight-logs and must give the unique number of aircraft
-            that have visited the airport. The flight logs are provided below:
-            flight-logs:
+            You work for an airport conglomerate and work with ground teams to
+            procure information about airplanes leaving and landing. Management
+            has made a new financial plan to charge airline companies based on
+            the number of unique aircraft that operate out of the hangars. You
+            have collected flight-logs and must give the unique number of
+            aircraft that have visited an airport. The flight logs are provided
+            below:
             <MathJax>{`$$\\begin{matrix}
 \\textbf{Flight} & \\textbf{From} & \\textbf{To} & \\textbf{Departure}  & \\textbf{Aircraft ID} \\\\
 AA123  & JFK & LAX & 08:00 & N123AA \\\\
@@ -271,7 +271,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
         $$`}
           </MathJax>
           <Speak>
-            As an example of how its read, when can make groups between cats and
+            As an example of how its read, we can make groups between cats and
             dogs. Given m dogs and n cats, making groups of r size would be m+n
             choose r. This gives us the left hand side, however, the right hand
             side is less obvious. Given m dogs and n cats, we can find the total
@@ -281,7 +281,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
             the left hand side is trying to communicate the idea that making
             groups of cats and dogs can be done by simply making groups out of
             the dogs and cats combined or, what the right hand side is trying to
-            communicate, by finding all the ways to make a group filled with
+            communicate is, by finding all the ways to make a group filled with
             just dogs and then find the number of ways we could fill the
             remaining spots with just cats.
           </Speak>
