@@ -62,6 +62,7 @@ export default function CMSI2820() {
             >
               <Sheet
                 sx={{
+                  m: 1,
                   width: "2rem",
                   height: "100%",
                   display: "flex",
@@ -71,6 +72,7 @@ export default function CMSI2820() {
               ></Sheet>
               <Sheet
                 sx={{
+                  m: 1,
                   width: "6rem",
                   height: "100%",
                   display: "flex",
@@ -82,6 +84,7 @@ export default function CMSI2820() {
               </Sheet>
               <Sheet
                 sx={{
+                  m: 1,
                   width: "10rem",
                   height: "100%",
                   display: "flex",
@@ -93,6 +96,7 @@ export default function CMSI2820() {
               </Sheet>
               <Sheet
                 sx={{
+                  m: 1,
                   width: "50rem",
                   height: "100%",
                   display: "flex",
@@ -653,29 +657,60 @@ export default function CMSI2820() {
                 />
                 */}
             </Standard>
-            {/*
-              <Standard
-                number={7}
-                title="Set Theory"
-                description="In this standard we will investigate the mathematical 
+
+            <Standard
+              number={7}
+              title="Set Theory"
+              description="In this standard we will investigate the mathematical 
                 underpinnings of Set theory."
-              >
-                <NotesCard
-                  title="LN 25: Set Theory 1"
-                  description=""
-                  notesSlug="/cmsi-2820/ln25"
-                />
-                <NotesCard
-                  title="LN 26: Set Theory 2"
-                  description=""
-                  notesSlug="/cmsi-2820/ln26"
-                /
+            >
+              <NotesCard
+                title="LN 24: Setting the Record Straight"
+                description="In this lecture we recap the semester of work to tie up our investigation of Type theory. We then contrast it against Set theory."
+                notesSlug=""
+                sectionRecordings={[
+                  {
+                    buttonText: "Section 1 Video",
+                    url: "https://lmula.zoom.us/rec/share/4DKmD7MaesufPb5tPXdc2aPBHRs5vmxqlO0o5QgNGkJHq9rC_P2uG_frrxAUDNgE.MUqwBzeYVyhWCH25?startTime=1732039249000",
+                  },
+                  {
+                    buttonText: "Section 2 Video",
+                    url: "https://lmula.zoom.us/rec/share/jcJX3szcmYoJmjIQzowl70cBH38QS1JKIbFoSrC2lUvPi2HdHgOtTsov-gFNwOvI.BvMPpQqc5_h4ihob?startTime=1732053050000",
+                  },
+                  {
+                    buttonText: "Section 3 Video",
+                    url: "https://lmula.zoom.us/rec/share/qQ8X2i4GzZgF_QQecM7P3J22sfEq2q1DO62dUZLFEWsC2wgxKVaOMHCbOmkwdZTv.GGwH8uDMQTDV28kI?startTime=1732068619000",
+                  },
+                ]}
+              />
+              <NotesCard
+                title="LN 25: Arguing the Point"
+                description="In this lecture we piece together all the proof techniques we learned to summarize argumentation and learn two more: Proof by Contradiction and Proof by Induction."
+                notesSlug=""
+                sectionRecordings={[
+                  {
+                    buttonText: "Section 1 Video",
+                    url: "https://lmula.zoom.us/rec/share/t-sVwRN5_n0asbcBD_cWlwD4Vzl_GzDCjeojFlcP7yoS2q1SYYaTIxdVZ8vZqBJT.S1exyVVC8GH8aWNq?startTime=1732212174000",
+                  },
+                  {
+                    buttonText: "Section 2 Video",
+                    url: "https://lmula.zoom.us/rec/share/0WSyGtRsA5xALt4srXzef6jLYGkHhTD21ntl84xQxaqtAhYMn6fDt3FuLw0dHYkV.jdQRPmspz2iKe-BZ?startTime=1732225744000",
+                  },
+                  {
+                    buttonText: "Section 3 Video",
+                    url: "https://lmula.zoom.us/rec/share/1oD31tvjBGmgcPLv1hs-0R5azK_kHpozSw74VVPjToGbulomYoFvc0twJLjZwbo7.WBk8DHgbrzCZ1vkK?startTime=1732241376000",
+                  },
+                ]}
+              />
+              {/*
                 <AssignmentCard
                   title="HW 7: Set Theory!"
                   description=""
                   assignmentSlug="/cmsi-2820/hw5"
                 />
-              </Standard>
+                */}
+            </Standard>
+            {/*
               <Standard
                 number={"SPECIAL"}
                 title="Extensions"

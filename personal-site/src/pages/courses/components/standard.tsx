@@ -1,7 +1,8 @@
-import { Button, Link, Sheet } from "@mui/joy"
+import { Button, Divider, Link, Sheet } from "@mui/joy"
 import React from "react"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import Speak from "./speak"
 
 export default function Standard({
   number,
@@ -17,11 +18,12 @@ export default function Standard({
   const [open, setOpen] = React.useState(false)
   return (
     <>
+      <Divider />
       <Link
         underline="none"
         component={Button}
         onClick={() => setOpen(!open)}
-        sx={{ width: "100%", p: 0.5 }}
+        sx={{ width: "100%" }}
       >
         <Sheet
           sx={{
@@ -54,7 +56,7 @@ export default function Standard({
               justifyContent: "center",
             }}
           >
-            {number}
+            <Speak>{number}</Speak>
           </Sheet>
           <Sheet
             sx={{
@@ -66,7 +68,7 @@ export default function Standard({
               justifyContent: "center",
             }}
           >
-            {title}
+            <Speak>{title}</Speak>
           </Sheet>
           <Sheet
             sx={{
@@ -78,25 +80,28 @@ export default function Standard({
               justifyContent: "center",
             }}
           >
-            {description}
+            <Speak>{description}</Speak>
           </Sheet>
         </Sheet>
       </Link>
       <Sheet>
         {open ? (
-          <Sheet
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              flexWrap: "wrap",
-              justifyContent: "space-around",
-              gap: 2,
-              marginTop: 2,
-              marginBottom: 2,
-            }}
-          >
-            {children}
-          </Sheet>
+          <>
+            <Divider />
+            <Sheet
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "space-around",
+                gap: 2,
+                marginTop: 2,
+                marginBottom: 2,
+              }}
+            >
+              {children}
+            </Sheet>
+          </>
         ) : null}
       </Sheet>
     </>
