@@ -9,6 +9,7 @@ import QuestionBox from "../../components/question-box"
 import Speak from "../../components/speak"
 import TitleBox from "../../components/title-box"
 import TopicBox from "../../components/topic-box"
+import TopicBreak from "../../components/topic-break"
 //import TopicBreak from "../../components/topic-break"
 //import Vocab from "../../components/vocab"
 
@@ -18,28 +19,78 @@ export default function Homework6() {
       <CourseBox>
         <TitleBox title="HW6: (Warning: Graphic Content)" />
         <DueDateCalendar dueDate={DateTime.local(2024, 12, 13, 23, 59)} />
-        <TopicBox topics={[]} />
+        <TopicBox
+          topics={[
+            "Graph Theory",
+            "Special Graphs",
+            "Isomorphism",
+            "Graph Operations",
+          ]}
+        />
         <Speak></Speak>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Written Section" quote="Points: " />
-        <QuestionBox qid={"Q1"} points={"TBD"}>
-          When Euler was young hes visited Königsberg and saw its magnificent
-          seven bridges. He came up with a game that we saw in class, can you
+        <TitleBox title="Written Section" quote="Points: 70" />
+        <QuestionBox qid={"Q1"} points={"10 total"}>
+          When Euler was young he visited Königsberg and saw seven magnificent
+          bridges. He came up with a game that we investigated in class, can you
           find a way to cross every bridge only once? We saw that in Königsberg
-          this could not be done, however in modern day Kaliningrad it can be
-          due to some remodeling. Now we will get practice with "Euler's Game"
-          on these seven graphs! Below, give the path that uses every edge only
-          once or state why it is impossible.
+          this could not be done, however an interesting note is that in modern
+          day Kaliningrad it can be due to some "remodeling" that took place. In
+          this problem we will get practice with "Euler's Game" on these
+          "cities" and their "bridges"! Below, give the path that uses every
+          edge only once or state why it is impossible.
           <QuestionBox qid={"Q1 a"} points={"TBD"}></QuestionBox>
         </QuestionBox>
-
+        <QuestionBox qid={"Q2"} points={"10 total"}>
+          When two graphs are "structurally" similar we say they are isomorphic
+          to one another. This means that the two graphs have the same number of
+          vertices and edges, and the edges are connected in the same way. This
+          is done via a labelling argument that models pair-making. In the
+          following sub-problems, investigate whether the two graphs are
+          isomorphic to one another.
+          <QuestionBox qid={"Q2 a"} points={"TBD"}></QuestionBox>
+        </QuestionBox>
+        <TopicBreak title="END LN20" />
+        <QuestionBox qid={"Q3"} points={"10 total"}>
+          Connected and disconnected graphs are those that are defined by the
+          ability to express them as a Graph Union or not. They can also be
+          defined in terms of a path existing between every node. In the
+          following matching problem, match the graph with the correct argument
+          for whether it is connected or disconnected.
+        </QuestionBox>
+        <QuestionBox qid={"Q4"} points={"10 total"}>
+          We saw a number of Graph operations in class that can be used to
+          create new graphs from old ones. In the following matching problem,
+          match the graph with the correct operation that was used to create it.
+        </QuestionBox>
+        <TopicBreak title="END LN21" />
+        <QuestionBox qid={"Q5"} points={"10 total"}>
+          Graphs can take on different properties and characteristics that can
+          alter there visual representation. These "special" graphs can be
+          complete, bipartite, tripartite, n-partite, etc. In the following
+          problem you are asked to draw a graph the adheres to the given
+          properties.
+        </QuestionBox>
+        <TopicBreak title="END LN22" />
+        <QuestionBox qid={"Q6"} points={"10 total"}>
+          Trees and forests are special types of graphs that are cycle free. In
+          the following problem you will be asked to argue in your own words why
+          certain explanations are true or false.
+        </QuestionBox>
+        <QuestionBox qid={"Q7"} points={"10 total"}>
+          Trees are sometimes investigated as the way to span an area minimally
+          (or equivalently, the way to connect all the vertices with the fewest
+          edges). In the following problem you will be asked about minimum
+          spanning trees.
+        </QuestionBox>
+        <TopicBreak title="END LN23" />
         <LinkButton color="success" to="">
           Written HW6 Turn In (Not Yet Available)
         </LinkButton>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Programming Section" quote="Points: 20" />
+        <TitleBox title="Programming Section" quote="Points: 30" />
         <DirectoryTree
           filesAsJSON={{
             "CMSI-2820-HW6": {
