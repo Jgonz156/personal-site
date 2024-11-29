@@ -1,6 +1,7 @@
 import { useColorScheme as useMaterialColorScheme } from "@mui/material/styles"
 import { useColorScheme as useJoyColorScheme, Button } from "@mui/joy"
-import React from "react"
+import React, { useContext } from "react"
+import { LightMode, SiteContext } from "./site-context"
 
 export function ModeToggle() {
   const { mode, setMode: setMaterialMode } = useMaterialColorScheme()
@@ -15,13 +16,20 @@ export function ModeToggle() {
   if (!mounted) {
     return null
   }
-
+  const { settings, dispatch } = useContext(SiteContext)
   return (
     <Button
       variant="outlined"
       onClick={() => {
         setMaterialMode(mode === "light" ? "dark" : "light")
         setJoyMode(mode === "light" ? "dark" : "light")
+        dispatch({
+          field: "LightMode",
+          value:
+            settings.LightMode === LightMode.Light
+              ? LightMode.Dark
+              : LightMode.Light,
+        })
       }}
     >
       {mode === "light" ? "Activate Dark Mode" : "Activate Light Mode"}

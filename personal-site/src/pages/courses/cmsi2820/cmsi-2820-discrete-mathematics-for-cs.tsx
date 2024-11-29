@@ -649,13 +649,11 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
-                <AssignmentCard
-                  title="HW 6: (Warning: Graphic Content)"
-                  description=""
-                  assignmentSlug="/cmsi-2820/hw6"
-                />
-                */}
+              <AssignmentCard
+                title="HW 6: (Warning: Graphic Content)"
+                description="In this homework we investigate all things Graph theory! This includes many types of graphs such as complete, bipartite, trees, and forests. We also investigate many of the properties and operations that can be performed such as isomorphisms, connectedness, and cycles."
+                assignmentSlug="/cmsi-2820/hw6"
+              />
             </Standard>
 
             <Standard
