@@ -15,7 +15,11 @@ import DirectoryTree from "../../components/directory-tree"
 export default function Homework0() {
   return (
     <>
-      <CoursePage type="homework">
+      <CoursePage
+        type="homework"
+        courseName="CMSI 2820: Discrete Mathematics for CS"
+        courseNumber={2820}
+      >
         <CourseBox>
           <TopicBreak title="What do Homeworks look like?" />
           <Speak>

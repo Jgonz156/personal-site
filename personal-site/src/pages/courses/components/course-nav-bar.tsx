@@ -4,7 +4,13 @@ import DescriptionIcon from "@mui/icons-material/Description"
 import HomeIcon from "@mui/icons-material/Home"
 import { Link as RouterLink } from "react-router-dom"
 
-export default function CourseNavBar() {
+export default function CourseNavBar({
+  courseName,
+  courseNumber,
+}: {
+  courseName: string
+  courseNumber: string | number
+}) {
   return (
     <Sheet
       sx={{
@@ -19,15 +25,15 @@ export default function CourseNavBar() {
     >
       <Button
         component={RouterLink}
-        to="/cmsi-2820"
+        to={`/cmsi-${courseNumber}`}
         color="primary"
         startDecorator={<HomeIcon />}
       >
-        CMSI 2820: Discrete Mathematics for CS
+        {courseName}
       </Button>
       <Button
         component={RouterLink}
-        to="/cmsi-2820/cheat-sheet"
+        to={`/cmsi-${courseNumber}/cheat-sheet`}
         color="success"
         startDecorator={<BackpackIcon />}
       >
@@ -35,7 +41,7 @@ export default function CourseNavBar() {
       </Button>
       <Button
         component={RouterLink}
-        to="/cmsi-2820/syllabus"
+        to={`/cmsi-${courseNumber}/syllabus`}
         color="warning"
         startDecorator={<DescriptionIcon />}
       >

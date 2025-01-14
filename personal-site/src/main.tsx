@@ -11,11 +11,11 @@ import {
   CssVarsProvider as JoyCssVarsProvider,
   extendTheme as joyExtendTheme,
 } from "@mui/joy"
-import CMSI2820 from "./pages/courses/cmsi2820/cmsi-2820-discrete-mathematics-for-cs.tsx"
-import { SiteContextProvider } from "./components/site-context.tsx"
+import { SiteContext, SiteContextProvider } from "./components/site-context.tsx"
 import "./index.css"
-import CheatSheet from "./pages/courses/cmsi2820/cheat-sheet.tsx"
-import Syllabus from "./pages/courses/cmsi2820/syllabus.tsx"
+import CMSI2820 from "./pages/courses/cmsi2820/cmsi-2820-discrete-mathematics-for-cs.tsx"
+import CheatSheet2820 from "./pages/courses/cmsi2820/cheat-sheet.tsx"
+import Syllabus2820 from "./pages/courses/cmsi2820/syllabus.tsx"
 import LN0 from "./pages/courses/cmsi2820/notes/standard-0-syllabus/ln0.tsx"
 import LN1 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln1.tsx"
 import LN2 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln2.tsx"
@@ -30,6 +30,7 @@ import LN10 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln10.tsx
 import LN11 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln11.tsx"
 import LN12 from "./pages/courses/cmsi2820/notes/standard-4-functions/ln12.tsx"
 import LN13 from "./pages/courses/cmsi2820/notes/standard-4-functions/ln13.tsx"
+import LN23 from "./pages/courses/cmsi2820/notes/standard-6-graph-theory/ln23.tsx"
 import HW0 from "./pages/courses/cmsi2820/assignments/hw0.tsx"
 import HW1 from "./pages/courses/cmsi2820/assignments/hw1.tsx"
 import HW2 from "./pages/courses/cmsi2820/assignments/hw2.tsx"
@@ -45,12 +46,15 @@ import { MathJaxContext } from "better-react-mathjax"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon"
 import CMSIX998 from "./pages/courses/cmsiX998/cmsi-X998-independent-study.tsx"
+import CMSI3510 from "./pages/courses/cmsi3510/cmsi-3510-operating-systems.tsx"
+import CheatSheet3510 from "./pages/courses/cmsi3510/cheat-sheet.tsx"
+import Syllabus3510 from "./pages/courses/cmsi3510/syllabus.tsx"
 
 const router = [
   { path: "/", element: <App /> },
   { path: "/cmsi-2820", element: <CMSI2820 /> },
-  { path: "/cmsi-2820/cheat-sheet", element: <CheatSheet /> },
-  { path: "/cmsi-2820/syllabus", element: <Syllabus /> },
+  { path: "/cmsi-2820/cheat-sheet", element: <CheatSheet2820 /> },
+  { path: "/cmsi-2820/syllabus", element: <Syllabus2820 /> },
   { path: "/cmsi-2820/ln0", element: <LN0 /> },
   { path: "/cmsi-2820/ln1", element: <LN1 /> },
   { path: "/cmsi-2820/ln2", element: <LN2 /> },
@@ -65,6 +69,7 @@ const router = [
   { path: "/cmsi-2820/ln11", element: <LN11 /> },
   { path: "/cmsi-2820/ln12", element: <LN12 /> },
   { path: "/cmsi-2820/ln13", element: <LN13 /> },
+  { path: "/cmsi-2820/ln23", element: <LN23 /> },
   { path: "/cmsi-2820/hw0", element: <HW0 /> },
   { path: "/cmsi-2820/hw1", element: <HW1 /> },
   { path: "/cmsi-2820/hw2", element: <HW2 /> },
@@ -77,6 +82,12 @@ const router = [
   { path: "/cmsi-2820/ex1", element: <EX1 /> },
   { path: "/cmsi-2820/ex2", element: <EX2 /> },
   { path: "/cmsi-X998", element: <CMSIX998 /> },
+  { path: "/cmsi-3510", element: <CMSI3510 /> },
+  { path: "/cmsi-3510/cheat-sheet", element: <CheatSheet3510 /> },
+  { path: "/cmsi-3510/syllabus", element: <Syllabus3510 /> },
+  { path: "/cmsi-3510/ln0", element: <LN0 /> },
+  { path: "/cmsi-3510/hw0", element: <HW0 /> },
+  { path: "/cmsi-3510/ex0", element: <EX0 /> },
 ]
 
 const materialTheme = materialExtendTheme()
@@ -103,7 +114,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               localeText={{
                 calendarWeekNumberHeaderText: "School Week",
                 calendarWeekNumberText: (weekNumber) => {
-                  const weekOffset = (weekNumber + 34) % 34
+                  const { settings } = React.useContext(SiteContext)
+                  const weekOffset = settings.FallSemester
+                    ? (weekNumber + 34) % 34
+                    : (weekNumber + 32) % 34
                   return weekOffset <= 0 || weekOffset > 16
                     ? ""
                     : weekOffset % 10 === 1 && weekOffset !== 11

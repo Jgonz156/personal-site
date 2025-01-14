@@ -13,7 +13,11 @@ import { MathJax } from "better-react-mathjax"
 
 export default function Homework2() {
   return (
-    <CoursePage type="homework">
+    <CoursePage
+      type="homework"
+      courseName="CMSI 2820: Discrete Mathematics for CS"
+      courseNumber={2820}
+    >
       <CourseBox>
         <TitleBox title="HW2: Counting Sheep" />
         <DueDateCalendar dueDate={DateTime.local(2024, 10, 4, 23, 59)} />

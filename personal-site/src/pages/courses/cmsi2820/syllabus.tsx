@@ -7,22 +7,26 @@ import {
   Chip,
   Divider,
   Sheet,
-} from "@mui/joy";
-import CoursePage from "../components/course-page";
-import { useState } from "react";
-import Speak from "../components/speak";
-import CourseInfoDump from "../../../components/course-info-dump";
-import StandardsDiagram from "../components/standard-diagram";
-import Vocab from "../components/vocab";
-import TopicBreak from "../components/topic-break";
-import TitleBox from "../components/title-box";
-import CourseBox from "../components/course-box";
-import CourseSchedule from "../components/course-schedule";
+} from "@mui/joy"
+import CoursePage from "../components/course-page"
+import { useState } from "react"
+import Speak from "../components/speak"
+import CourseInfoDump from "../../../components/course-info-dump"
+import StandardsDiagram from "../components/standard-diagram"
+import Vocab from "../components/vocab"
+import TopicBreak from "../components/topic-break"
+import TitleBox from "../components/title-box"
+import CourseBox from "../components/course-box"
+import CourseSchedule from "./course-schedule-2820"
 
 export default function Syllabus() {
-  const [tabState, setTabState] = useState("Introduction");
+  const [tabState, setTabState] = useState("Introduction")
   return (
-    <CoursePage type="syllabus">
+    <CoursePage
+      type="syllabus"
+      courseName="CMSI 2820: Discrete Mathematics for CS"
+      courseNumber={2820}
+    >
       <CourseBox>
         <Sheet
           sx={{
@@ -76,14 +80,16 @@ export default function Syllabus() {
           <>
             <Speak>
               My Name is Professor Julian Gonzalez, Welcome to CMSI 2820:
-              Discrete Mathematics for CS in Fall 2024!
+              Discrete Mathematics for CS!
             </Speak>
+            {/* 
             <Speak>
               While there are three different sections of this course, this site
               will be home for all of the sections. You can find out which
               section you are in via prowl, this course's modal popup on this
               site's homepage, or even below this text here in the syllabus.
             </Speak>
+            */}
             <Divider>
               <Chip>Prerequisites</Chip>
             </Divider>
@@ -98,28 +104,12 @@ export default function Syllabus() {
               <Speak>ENGR 1200</Speak>
             </Sheet>
             <CourseInfoDump
-              sectionNumber={1}
-              daysOfWeek={["Tuesday", "Thursday"]}
-              timeStart="9:55 AM"
-              timeEnd="11:35 AM"
-              building="Pereira"
-              roomNumber={201}
-            />
-            <CourseInfoDump
               sectionNumber={2}
               daysOfWeek={["Tuesday", "Thursday"]}
               timeStart="1:45 PM"
               timeEnd="3:25 PM"
               building="Pereira"
-              roomNumber={109}
-            />
-            <CourseInfoDump
-              sectionNumber={3}
-              daysOfWeek={["Tuesday", "Thursday"]}
-              timeStart="6:00 PM"
-              timeEnd="7:40 PM"
-              building="Seaver"
-              roomNumber={304}
+              roomNumber={206}
             />
             <Divider />
             <Speak>
@@ -247,7 +237,10 @@ export default function Syllabus() {
               pigeonhole principle, and inductive proof techniques.
             </Speak>
             <Speak>
-              You will learn about Graph theory, its representation in
+              You will learn about Graph theory, its contextualization with the
+              previous standards and engage with the following topics: simple
+              graphs, directed graphs, trees, paths, cycles, connectivity, graph
+              isomorphisms and more.
             </Speak>
             <Speak>
               You will briefly see how all previous learning objectives are
@@ -301,7 +294,7 @@ export default function Syllabus() {
             </Speak>
             <StandardsDiagram
               courseID="CMSI 2820: Discrete Mathematics for CS"
-              coursePointTotal={560}
+              coursePointTotal={480}
               standards={[
                 {
                   standardID: "Syllabus",
@@ -359,16 +352,8 @@ export default function Syllabus() {
                   ],
                 },
                 {
-                  standardID: "Set Theory",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 7", points: 100 },
-                    { id: "OHW 6", points: 20 },
-                  ],
-                },
-                {
                   standardID: "Final",
-                  exams: [{ id: "OEX", points: "10 per", standards: "[4-7]" }],
+                  exams: [{ id: "OEX", points: "10 per", standards: "[4-6]" }],
                 },
               ]}
             />
@@ -390,20 +375,20 @@ export default function Syllabus() {
               the beginning, you can always earn those points back later. That
               way older grades do not "hold back your grade". You can see the
               totals you are trying to earn as they are prefixed with "T: ". So
-              for the course, all your standards should reach 560 (7 standards *
+              for the course, all your standards should reach 480 (6 standards *
               80 points). For each standard, all your assignments should reach
               at least 80. I will take the point total and divide them by your
-              earned points to retrieve your grade for each standard and the
-              course overall.
+              earned points for that standard to retrieve your grade for each
+              standard and the course overall.
             </Speak>
             <Speak>
               Standards break the course into 2-week topic segments to help
-              divide up the course material. They technically begin on Monday's
-              to disperse the first lecture of the week on tuesday and any
-              assignments that week, however the real start will be Tuesday
-              since that is when class is held and I will introduce the new
-              standard. They end on the following weeks' Sunday (The maximum
-              unexcused extension length that will be explained below).
+              divide up the course material. They technically begin on Mondays
+              even if your section is Tuesday, Thursday. However, the starting
+              lecture will always introduce that we are in a new standard so
+              don't worry too much about that. They end on the following weeks'
+              Sunday (The maximum unexcused extension length that will be
+              explained below).
             </Speak>
             <TopicBreak title="Assignments" />
             <Speak>
@@ -425,11 +410,11 @@ export default function Syllabus() {
               time to work on a standard.
             </Speak>
             <Speak>
-              Inside normal "HW" is a written and programming portion. They
-              aren't displayed here for clarity as all the specifics of a
-              homework will be specified on its page (accessible from the Blue
-              Course Homepage button at the top of the screen). The written
-              portion will be made up of course work that is either
+              Inside normal Homeworks, denoted HW, is a written and programming
+              portion. They aren't displayed here for clarity as all the
+              specifics of a homework will be specified on its page (accessible
+              from the Blue Course Homepage button at the top of the screen).
+              The written portion will be made up of course work that is either
               not-applicable to Python, Work that is unnecessarily difficult to
               perform in Python, or work that cannot be performed or
               accomplished in Python. As an example, while it is possible to
@@ -445,16 +430,22 @@ export default function Syllabus() {
               are they distributed? How long do I have to complete an
               assignment? Exact date specifics will be provided in the
               "Schedule" sections, however, the general pattern is that the HW
-              will be released for a standard at the beginning of the 2 week
-              cycle a standard lives in. Thus you have a little less than 2
-              weeks (11 days) to complete each assignment (the very first
-              lecture on Tuesday the first week, till the due date the following
-              week friday). Can I ask for extensions? Yes! I have an automatic
-              HW extension policy that you may use without asking me. Since HW's
-              are due on friday's (but I don't grade till Monday) you can turn
-              in a HW on Saturday for a loss of 10 points, or wait till Sunday
-              and receive a loss of 15 more points. So Friday is all 100,
-              Saturday is 90, and Sunday is just 75.
+              will be released for a standard at the beginning of the next
+              standard and will be due on Fridays at 11:59 pm. Thus you have 2
+              weeks to complete each assignment. It will be based on the content
+              you've already seen in the previous 2 weeks, so in total you will
+              be exposed to the content for 4 weeks.
+            </Speak>
+            <Speak>
+              Can I ask for extensions? Yes! I have an automatic HW extension
+              policy that you may use without asking me. Since HW's are due on
+              friday's (but I don't grade till Monday) you can turn in a HW on
+              Saturday for a loss of 5 points on the section that was turned in
+              late, or wait till Sunday and receive a loss of 10 more points on
+              the section that was turned in late. So Friday is all 100,
+              Saturday is 90 (assuming you turned in the written and programming
+              on Saturday), and Sunday is just 70 (assuming you turned in the
+              written and programming sections on Sunday).
             </Speak>
             <TopicBreak title="Midterm and Final" />
             <Speak>
@@ -470,14 +461,15 @@ export default function Syllabus() {
               answering those questions is labeled in the diagram. So the exam
               is optional, but if I chose to take it will I have to take the
               whole thing? No, you only have to do all the questions relevant to
-              the standard you are trying to boost, the other questions will be
-              ignored if they are left empty.
+              the standard you are trying to boost. So if you are happy with
+              your point total in standard 1, you can ignore the midterm section
+              on it.
             </Speak>
             <TopicBreak title="Syllabus Standard" />
             <Speak>
               What about that first standard labeled Syllabus? Why is it so
               different than the others? This standard is special as it is only
-              going to last for the week of school and its goal is to
+              going to last for the first week of school and its goal is to
               familiarize yourself with all{" "}
               <Vocab
                 definition={
@@ -496,25 +488,6 @@ export default function Syllabus() {
               single standard!). How do I use these special points? I will keep
               track of every students special points, all you need to do is
               email me to use them!
-            </Speak>
-            <TopicBreak title="Student POV Example" />
-            <Speak>
-              This is a lot! So lets look at an example. Say we are currently 3
-              weeks into the semester with 70 points in standard 1: Logic, I
-              completed only the practice HW on week 1, and I wanna know where I
-              stand. This means we are in standard 2: Numbers, currently you are
-              assigned 1 homework for standard 2, an optional HW for standard 1,
-              and 3 special points usable. If you weren't happy with your point
-              total in standard 1 then you could use your 2 of your special
-              point to go from 70/80 (B) to 72/80 (B+) for free by emailing me.
-              You could save your special points and do the optional HW to earn
-              up to 20 points for standard 1 (This means you can get an A by
-              earning only half the points on the optional HW!). Or you could
-              Ignore the optional HW, save your special points for later, and
-              wait until the optional midterm comes around to get up to 10
-              points (Thats also an A for standard 1). You can't sit around and
-              do nothing however, because the upcoming friday is the due date
-              for the current standard 2 HW and the optional HW for standard 1.
             </Speak>
             <TopicBreak title="Turning Things In" />
             <Speak>
@@ -1021,5 +994,5 @@ Utilize the resources available through Emergency Management to help ensure that
         )}
       </CourseBox>
     </CoursePage>
-  );
+  )
 }

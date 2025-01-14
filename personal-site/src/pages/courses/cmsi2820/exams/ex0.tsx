@@ -10,7 +10,11 @@ import TopicBreak from "../../components/topic-break"
 export default function Exam0() {
   return (
     <>
-      <CoursePage type="exam">
+      <CoursePage
+        type="exam"
+        courseName="CMSI 2820: Discrete Mathematics for CS"
+        courseNumber={2820}
+      >
         <CourseBox>
           <TopicBreak title="What do Exam's Look Like?" />
           <Speak>

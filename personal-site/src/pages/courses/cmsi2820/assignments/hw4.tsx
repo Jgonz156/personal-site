@@ -14,7 +14,11 @@ import CodeBox from "../../components/code-box"
 
 export default function Homework4() {
   return (
-    <CoursePage type="homework">
+    <CoursePage
+      type="homework"
+      courseName="CMSI 2820: Discrete Mathematics for CS"
+      courseNumber={2820}
+    >
       <CourseBox>
         <TitleBox title="HW4: Silence of the Lambdas" />
         <DueDateCalendar dueDate={DateTime.local(2024, 11, 8, 8, 59)} />

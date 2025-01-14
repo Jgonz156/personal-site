@@ -6,6 +6,8 @@ export default function LectureNotes10() {
   return (
     <CoursePage
       type="notes"
+      courseName="CMSI 2820: Discrete Mathematics for CS"
+      courseNumber={2820}
       stepperInfo={{
         left: {
           lectureId: "LN10",

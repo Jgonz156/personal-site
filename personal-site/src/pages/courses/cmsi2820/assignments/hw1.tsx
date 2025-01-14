@@ -1,20 +1,24 @@
-import { DateTime } from "luxon";
-import CourseBox from "../../components/course-box";
-import CoursePage from "../../components/course-page";
-import DirectoryTree from "../../components/directory-tree";
-import DueDateCalendar from "../../components/due-date-calendar";
-import LinkButton from "../../components/link-button";
-import QuestionBox from "../../components/question-box";
-import Speak from "../../components/speak";
-import TitleBox from "../../components/title-box";
-import TopicBox from "../../components/topic-box";
-import Vocab from "../../components/vocab";
-import TopicBreak from "../../components/topic-break";
-import { MathJax } from "better-react-mathjax";
+import { DateTime } from "luxon"
+import CourseBox from "../../components/course-box"
+import CoursePage from "../../components/course-page"
+import DirectoryTree from "../../components/directory-tree"
+import DueDateCalendar from "../../components/due-date-calendar"
+import LinkButton from "../../components/link-button"
+import QuestionBox from "../../components/question-box"
+import Speak from "../../components/speak"
+import TitleBox from "../../components/title-box"
+import TopicBox from "../../components/topic-box"
+import Vocab from "../../components/vocab"
+import TopicBreak from "../../components/topic-break"
+import { MathJax } from "better-react-mathjax"
 
 export default function Homework1() {
   return (
-    <CoursePage type="homework">
+    <CoursePage
+      type="homework"
+      courseName="CMSI 2820: Discrete Mathematics for CS"
+      courseNumber={2820}
+    >
       <CourseBox>
         <TitleBox title="HW1: Think Class! Think!" />
         <DueDateCalendar dueDate={DateTime.local(2024, 9, 20, 23, 59)} />
@@ -380,5 +384,5 @@ export default function Homework1() {
         </LinkButton>
       </CourseBox>
     </CoursePage>
-  );
+  )
 }

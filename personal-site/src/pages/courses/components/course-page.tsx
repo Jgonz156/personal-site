@@ -8,6 +8,8 @@ export default function CoursePage({
   children,
   stepperInfo,
   footerInfo,
+  courseName,
+  courseNumber,
 }: {
   type: "notes" | "homework" | "exam" | "syllabus" | "cheat-sheet"
   children: React.ReactNode
@@ -32,6 +34,8 @@ export default function CoursePage({
     }
   }
   footerInfo?: any
+  courseName: string
+  courseNumber: string | number
 }) {
   return (
     <>
@@ -55,7 +59,7 @@ export default function CoursePage({
           gap: 4,
         }}
       >
-        <CourseNavBar />
+        <CourseNavBar courseName={courseName} courseNumber={courseNumber} />
         {children}
         {stepperInfo ? <CourseNavStepper stepperInfo={stepperInfo} /> : <></>}
       </Sheet>

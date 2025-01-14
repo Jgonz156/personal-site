@@ -6,21 +6,21 @@ import {
   ListItem,
   Sheet,
   Typography,
-} from "@mui/joy";
-import CourseCard from "./course-card";
-import { CourseStatusBadge, SiteContext } from "./site-context";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import FeedIcon from "@mui/icons-material/Feed";
-import SchoolIcon from "@mui/icons-material/School";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import React from "react";
-import CourseInfoDump from "./course-info-dump";
-import PaperCard from "./paper-card";
-import BookCard from "./book-card";
-import ProjectCard from "./project-card";
+} from "@mui/joy"
+import CourseCard from "./course-card"
+import { CourseStatusBadge, SiteContext } from "./site-context"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import FeedIcon from "@mui/icons-material/Feed"
+import SchoolIcon from "@mui/icons-material/School"
+import AccountTreeIcon from "@mui/icons-material/AccountTree"
+import React from "react"
+import CourseInfoDump from "./course-info-dump"
+import PaperCard from "./paper-card"
+import BookCard from "./book-card"
+import ProjectCard from "./project-card"
 
 export default function Home() {
-  const { settings, dispatch } = React.useContext(SiteContext);
+  const { settings, dispatch } = React.useContext(SiteContext)
   const courses = [
     {
       title: "Discrete Mathematics for CS",
@@ -80,28 +80,80 @@ export default function Home() {
             <Chip>Prerequisites</Chip>
           </Divider>
           <Sheet> CMSI 1010 or ENGR 160 or ENGR 1200</Sheet>
-
           <CourseInfoDump
             sectionNumber={1}
-            daysOfWeek={["Tuesday", "Thursday"]}
-            timeStart="9:55 AM"
-            timeEnd="11:35 AM"
-            building="Pereira"
-            roomNumber={201}
-          />
-          <CourseInfoDump
-            sectionNumber={2}
             daysOfWeek={["Tuesday", "Thursday"]}
             timeStart="1:45 PM"
             timeEnd="3:25 PM"
             building="Pereira"
-            roomNumber={109}
+            roomNumber={206}
           />
+        </Sheet>
+      ),
+    },
+    {
+      title: "Operating Systems",
+      code: "3510",
+      imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+      slug: "/cmsi-3510",
+      status: settings.Home.Courses.CMSI3510.StatusBadge,
+      openModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSI3510: {
+                ...settings.Home.Courses.CMSI3510,
+                ModalVisible: true,
+              },
+            },
+          },
+        }),
+      closeModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSI3510: {
+                ...settings.Home.Courses.CMSI3510,
+                ModalVisible: false,
+              },
+            },
+          },
+        }),
+      modalState: settings.Home.Courses.CMSI3510.ModalVisible,
+      courseCardDescription: (
+        <Sheet
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "wrap",
+            gap: 4,
+            alignItems: "center",
+          }}
+        >
+          <Sheet>
+            Operating Systems is a 4-unit/credit hour hands on course that
+            covers the foundational programming concepts related to, and
+            proliferated within, operating systems. Topics include Concurrent
+            Programming, Memory Management, File Systems, Process Scheduling,
+            and more. The course uses Rust as its primary language for examples,
+            activities, homeworks, and is supplemented by other languages where
+            necessary.
+          </Sheet>
+          <Divider>
+            <Chip>Prerequisites</Chip>
+          </Divider>
+          <Sheet> CMSI 2210 and/or CMSI 284 160 or EECE 3140</Sheet>
           <CourseInfoDump
-            sectionNumber={3}
-            daysOfWeek={["Tuesday", "Thursday"]}
-            timeStart="6:00 PM"
-            timeEnd="7:40 PM"
+            sectionNumber={1}
+            daysOfWeek={["Monday", "Wednesday"]}
+            timeStart="1:45 PM"
+            timeEnd="3:25 PM"
             building="Seaver"
             roomNumber={304}
           />
@@ -170,7 +222,7 @@ export default function Home() {
         </Sheet>
       ),
     },*/
-  ];
+  ]
   const selfPapers = [
     {
       title:
@@ -200,7 +252,7 @@ export default function Home() {
       imageSlug:
         "/paper-covers/PAPER-Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogeneous CPU Architectures-COVER.png",
     },
-  ];
+  ]
   //const otherPapers = [{}];
   const books = [
     {
@@ -245,6 +297,56 @@ export default function Home() {
         "/book-covers/ConcurrencyTheory-CalculiAndAutomataForModellingUntimedAndTimedConcurrentSystems.png",
     },
     {
+      title:
+        "Operating Systems and Middleware: Supporting Controlled Interaction",
+      authors: ["Hailperin, Max"],
+      pages: 559,
+      abstract: (
+        <>
+          <Typography>
+            Suppose you sit down at your computer to check your email. One of
+            the messages includes an attached document, which you are to edit.
+            You click the attachment, and it opens up in another window. After
+            you start edit- ing the document, you realize you need to leave for
+            a trip. You save the document in its partially edited state and shut
+            down the computer to save energy while you are gone. Upon returning,
+            you boot the computer back up, open the document, and continue
+            editing.
+          </Typography>
+          <Typography>
+            This scenario illustrates that computations interact. In fact, it
+            demonstrates at least three kinds of interactions between
+            computations. In each case, one computation provides data to
+            another. First, your email program retrieves new mail from the
+            server, using the Internet to bridge space. Sec- ond, your email
+            program provides the attachment to the word processor, using the
+            operating system's services to couple the two application pro-
+            grams. Third, the invocation of the word processor that is running
+            before your trip provides the partially edited document to the
+            invocation running after your return, using disk storage to bridge
+            time.
+          </Typography>
+          <Typography>
+            In this book, you will learn about all three kinds of interaction.
+            In all three cases, interesting software techniques are needed in
+            order to bring the computations into contact, yet keep them
+            sufficiently at arm's length that they don't compromise each other's
+            reliability. The exciting challenge, then, is supporting controlled
+            interaction. This includes support for computations that share a
+            single computer and interact with one another, as your email and
+            word processing programs do. It also includes support for data
+            storage and network communication. This book describes how all these
+            kinds of support are provided both by operating systems and by
+            additional software layered on top of operating systems, which is
+            known as middleware.
+          </Typography>
+        </>
+      ),
+      link: undefined,
+      imageSlug:
+        "/book-covers/OperatingSystemsAndMiddleware-SupportingControlledInteractions.png",
+    },
+    {
       title: "Parallel Programming: Concepts and Practice",
       authors: [
         "Schmidt, Bertil",
@@ -286,8 +388,8 @@ export default function Home() {
       link: undefined,
       imageSlug: "/book-covers/ParallelProgramming-ConceptsAndPractice.jpg",
     },
-  ];
-  const projects = [{}];
+  ]
+  const projects = [{}]
   return (
     <Sheet
       sx={{
@@ -440,5 +542,5 @@ export default function Home() {
         ))}
       </Sheet>
     </Sheet>
-  );
+  )
 }

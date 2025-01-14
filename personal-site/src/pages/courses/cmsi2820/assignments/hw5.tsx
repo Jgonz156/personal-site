@@ -14,7 +14,11 @@ import TopicBreak from "../../components/topic-break"
 
 export default function Homework5() {
   return (
-    <CoursePage type="homework">
+    <CoursePage
+      type="homework"
+      courseName="CMSI 2820: Discrete Mathematics for CS"
+      courseNumber={2820}
+    >
       <CourseBox>
         <TitleBox title="HW5: Order In The Court" />
         <DueDateCalendar dueDate={DateTime.local(2024, 11, 25, 23, 59)} />

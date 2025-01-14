@@ -23,7 +23,10 @@ export default function CMSI2820() {
           gap: 4,
         }}
       >
-        <CourseNavBar />
+        <CourseNavBar
+          courseName="CMSI 2820: Discrete Mathematics for CS"
+          courseNumber={2820}
+        />
         <Sheet
           sx={{
             display: "flex",
@@ -139,7 +142,7 @@ export default function CMSI2820() {
                 examSlug="/cmsi-2820/ex0"
               />
             </Standard>
-
+            {/* 
             <Standard
               number={1}
               title="Logic"
@@ -633,7 +636,7 @@ export default function CMSI2820() {
               <NotesCard
                 title="LN 23: Spanning the Globe"
                 description="In this lecture we cover a few more special graphs in the form of trees and forests. We then end the graph theory unit by investigating minimum spanning trees and how their solutions and structures represent many real-world problems."
-                notesSlug=""
+                notesSlug="/cmsi-2820/ln23"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -700,15 +703,12 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
                 <AssignmentCard
                   title="HW 7: Set Theory!"
                   description=""
                   assignmentSlug="/cmsi-2820/hw5"
                 />
-                */}
             </Standard>
-            {/*
               <Standard
                 number={"SPECIAL"}
                 title="Extensions"
@@ -738,7 +738,7 @@ export default function CMSI2820() {
                   examSlug="/cmsi-2820/ex2"
                 />
               </Standard>
-               */}
+              */}
           </Sheet>
         </Sheet>
       </Sheet>

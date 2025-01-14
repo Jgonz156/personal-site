@@ -24,7 +24,11 @@ const initialSettingsState = {
     Courses: {
       CMSI2820: {
         ModalVisible: false,
-        StatusBadge: CourseStatusBadge.UnderConstruction,
+        StatusBadge: CourseStatusBadge.InProgress,
+      },
+      CMSI3510: {
+        ModalVisible: false,
+        StatusBadge: CourseStatusBadge.InProgress,
       },
       CMSIX998: {
         ModalVisible: false,
@@ -34,7 +38,7 @@ const initialSettingsState = {
   },
   About: {},
   CurriculumVitae: {},
-  CMSI2820: {},
+  FallSemester: false,
 }
 
 type SettingsState = typeof initialSettingsState

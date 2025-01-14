@@ -10,7 +10,11 @@ import TopicBox from "../../components/topic-box"
 export default function Exam1() {
   return (
     <>
-      <CoursePage type="exam">
+      <CoursePage
+        type="exam"
+        courseName="CMSI 2820: Discrete Mathematics for CS"
+        courseNumber={2820}
+      >
         <CourseBox>
           <TitleBox title="Optional Midterm Exam 1" />
           <DueDateCalendar dueDate={DateTime.local(2024, 10, 20)} />
