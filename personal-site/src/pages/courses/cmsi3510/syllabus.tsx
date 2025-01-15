@@ -7,6 +7,7 @@ import {
   Chip,
   Divider,
   Sheet,
+  Typography,
 } from "@mui/joy"
 import CoursePage from "../components/course-page"
 import { useState } from "react"
@@ -17,7 +18,55 @@ import Vocab from "../components/vocab"
 import TopicBreak from "../components/topic-break"
 import TitleBox from "../components/title-box"
 import CourseBox from "../components/course-box"
-import CourseSchedule from "../cmsi2820/course-schedule-2820"
+import CourseSchedule from "./course-schedule-3510"
+import BookCard from "../../../components/book-card"
+
+const textbook = {
+  title: "Operating Systems and Middleware: Supporting Controlled Interaction",
+  authors: ["Hailperin, Max"],
+  pages: 559,
+  abstract: (
+    <>
+      <Typography>
+        Suppose you sit down at your computer to check your email. One of the
+        messages includes an attached document, which you are to edit. You click
+        the attachment, and it opens up in another window. After you start edit-
+        ing the document, you realize you need to leave for a trip. You save the
+        document in its partially edited state and shut down the computer to
+        save energy while you are gone. Upon returning, you boot the computer
+        back up, open the document, and continue editing.
+      </Typography>
+      <Typography>
+        This scenario illustrates that computations interact. In fact, it
+        demonstrates at least three kinds of interactions between computations.
+        In each case, one computation provides data to another. First, your
+        email program retrieves new mail from the server, using the Internet to
+        bridge space. Sec- ond, your email program provides the attachment to
+        the word processor, using the operating system's services to couple the
+        two application pro- grams. Third, the invocation of the word processor
+        that is running before your trip provides the partially edited document
+        to the invocation running after your return, using disk storage to
+        bridge time.
+      </Typography>
+      <Typography>
+        In this book, you will learn about all three kinds of interaction. In
+        all three cases, interesting software techniques are needed in order to
+        bring the computations into contact, yet keep them sufficiently at arm's
+        length that they don't compromise each other's reliability. The exciting
+        challenge, then, is supporting controlled interaction. This includes
+        support for computations that share a single computer and interact with
+        one another, as your email and word processing programs do. It also
+        includes support for data storage and network communication. This book
+        describes how all these kinds of support are provided both by operating
+        systems and by additional software layered on top of operating systems,
+        which is known as middleware.
+      </Typography>
+    </>
+  ),
+  link: "https://gustavus.edu/academics/departments/mathematics-computer-science-and-statistics/max/os-book/osm-rev1.2.1.pdf",
+  imageSlug:
+    "/book-covers/OperatingSystemsAndMiddleware-SupportingControlledInteractions.png",
+}
 
 export default function Syllabus() {
   const [tabState, setTabState] = useState("Introduction")
@@ -177,71 +226,62 @@ export default function Syllabus() {
           <>
             <Speak>
               The short-hand idea for what we are trying to accomplish is
-              gaining a rigorous foundation for the mathematics that underlies
-              Computer Science. However, Since Computer Science can be
-              understood as "teaching" computer's everything, we have an issue
-              of scope so let's narrow things down.
+              gaining a rigorous foundation of the foundation (Definitely not a
+              contrived manner of saying that) of computer software.
             </Speak>
             <Speak>
-              Many of the common problems you will solve and need to represent
-              both conceptually and in code have distinct patterns. These
-              distinct patterns come in many forms, but this course seeks to
-              give you an array of knowledge and tools to work with those
-              specifically discussed in Intuitionistic Propositional and
-              Predicate Logic, Number Theory, Type Theory, Combinatorics, Graph
-              Theory, and Set Theory.
+              As a software engineer the abstractions that build our modern day
+              devices have made us comfortable with much of what we do being
+              "magic". Your program just runs even though there was never any
+              machine code in sight. In this course, there is no "magic". We
+              will fully investigate the long and arduous pipeline that our
+              modern computing devices rely on to provide the services we engage
+              with everyday.
+            </Speak>
+            <Speak>
+              This course is designed to tackle the task of "demystifying"
+              Operating Systems by splitting our learning into three major
+              categories: Concurrent Programming, Computer Hardware, and the
+              actual Operating Systems themselves.
             </Speak>
             <Speak>
               Due to the tentative nature of this new course and its layout, I
               unfortunately cannot guarantee we will dive deeply into, or even
-              get to see all those topics. With that said, assuming all goes
-              well, the following learning outcomes listed below will be added
-              to your repertoire of skills.
+              get to see all the intricacies that Operating Systems are
+              responsible for managing, however we will do our best to add the
+              following skills to our repertoire:
             </Speak>
             <Speak>
-              You will learn the fundamentals of Intuitionistic Logic, how it
-              differs from other forms of logic such as Classical, how it takes
-              form in propositional reasoning, how it takes form in predicated
-              reasoning, how its higher-order extension functions, and how its
-              related to the foundations of Type Theory.
+              You will learn about the fundamental representations of concurrent
+              systems and how to program them in Rust. This includes the study
+              of threads, processes, and the synchronization primitives that are
+              used to manage them.
             </Speak>
             <Speak>
-              You will learn about the Boolean numbers and their relevance to
-              computer logic, Venn Diagrams, The Natural numbers and
-              operationalizing arithmetic operations on them such as addition
-              and multiplication, and new arithmetic operations relating to
-              modular arithmetic and integer division.
+              You will learn about the hardware that Operating Systems manage.
+              This includes the study of the CPU, Memory, I/O devices, and the
+              minor board components responsible for piping data around the
+              system.
             </Speak>
             <Speak>
-              You will learn about special collection constructs and their
-              mathematical counterparts, such as arrays as tuples, lists as
-              tuples, sets as sets, functions as sets, operators as relations,
-              and maps as partial functions as well as many of their constituent
-              operations and properties.
+              You will put together the knowledge of the previous two learning
+              outcomes to enable the understanding of how, why, and when
+              Operating systems are designed and implemented. This includes
+              managing scheduling, file systems, and memory management.
             </Speak>
             <Speak>
-              You will receive an undergraduate understanding of functions in
-              the context of the Lambda Calculus, the typed lambda calculus, and
-              a comparison to function as sets and how they compare.
+              Finally, You will learn how to engage with all the previous
+              learning outcomes through the Rust programming language. This
+              includes the study of the Rust language, its syntax, its idioms,
+              and how its design support the running of concurrent programs, the
+              ease of interfacing with hardware, and its use in developing
+              Linux.
             </Speak>
             <Speak>
-              You will learn about the study of combinatorics which includes
-              combinations, permutations, factorial algebra, "power
-              towers"/tetration and its higher-order counterparts, the
-              pigeonhole principle, and inductive proof techniques.
-            </Speak>
-            <Speak>
-              You will learn about Graph theory, its representation in
-            </Speak>
-            <Speak>
-              You will briefly see how all previous learning objectives are
-              recontextualized when interpreting it through Set Theory as
-              opposed to Type Theory.
-            </Speak>
-            <Speak>
-              Finally, you will get experience using Python to analyze, solve,
-              and engage with these theories common problems and algorithmic
-              solution techniques.
+              These learning outcomes not only give you a strong foundational
+              understanding and experience with Operating Systems, but also
+              provide the necessary context for your to forge further and
+              construct one of your own!
             </Speak>
           </>
         ) : tabState === "Required Materials" ? (
@@ -261,7 +301,15 @@ export default function Syllabus() {
               environment (I recommend and personally use Microsoft's VSCode),
               and internet access.
             </Speak>
-            <Speak>Textbook soon to come right here!</Speak>
+            <Sheet
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <BookCard {...textbook} />
+            </Sheet>
           </>
         ) : tabState === "Grading" ? (
           <>
@@ -275,81 +323,58 @@ export default function Syllabus() {
             <Speak>
               This is going to be rather "long-winded" but I promise this course
               system was constructed with the student at its heart. To entice
-              you to listen closer, this course features a total of 16
-              assignments. Not very enticing on its own, but what If I said that
-              9 of those were completely optional? Now that I've got you hooked,
-              lets break it down.
+              you to listen closer, this course features a total of 13
+              assignments and 3 in class activity days. While the activity days
+              are mandatory, what If I said that 7 of those assignments were
+              completely optional? Now that I've got you hooked, lets break it
+              down.
             </Speak>
             <StandardsDiagram
-              courseID="CMSI 2820: Discrete Mathematics for CS"
-              coursePointTotal={560}
+              courseID="CMSI 3510: Operating Systems"
+              coursePointTotal={240}
               standards={[
                 {
                   standardID: "Syllabus",
                   pointTotal: "0",
-                  assignments: [{ id: "HW 0", points: 3 }],
-                  exams: [{ id: "EX", points: 2, standards: "0" }],
+                  assignments: [
+                    { id: "HW 0", points: 3 },
+                    { id: "OHW 0", points: 1 },
+                  ],
+                  exams: [{ id: "EX", points: 1, standards: "0" }],
                 },
                 {
-                  standardID: "Logic",
-                  pointTotal: "80",
-                  assignments: [{ id: "HW 1", points: 100 }],
-                },
-                {
-                  standardID: "Numbers",
+                  standardID: "Concurrent Programming",
                   pointTotal: "80",
                   assignments: [
-                    { id: "HW 2", points: 100 },
+                    { id: "HW 1", points: 30 },
+                    { id: "HW 2", points: 30 },
+                    { id: "AC 1", points: 30 },
+                  ],
+                },
+                {
+                  standardID: "Computer Hardware",
+                  pointTotal: "80",
+                  assignments: [
+                    { id: "HW 3", points: 30 },
+                    { id: "HW 4", points: 30 },
+                    { id: "AC 2", points: 30 },
                     { id: "OHW 1", points: 20 },
                   ],
                 },
                 {
-                  standardID: "Collections",
+                  standardID: "Operating Systems",
                   pointTotal: "80",
                   assignments: [
-                    { id: "HW 3", points: 100 },
+                    { id: "HW 5", points: 30 },
+                    { id: "HW 6", points: 30 },
+                    { id: "AC 3", points: 30 },
                     { id: "OHW 2", points: 20 },
                   ],
                 },
                 {
-                  standardID: "Midterm",
-                  exams: [{ id: "OEX", points: "10 per", standards: "[1-3]" }],
-                },
-                {
-                  standardID: "Functions",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 4", points: 100 },
-                    { id: "OHW 3", points: 20 },
-                  ],
-                },
-                {
-                  standardID: "Combinatorics",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 5", points: 100 },
-                    { id: "OHW 4", points: 20 },
-                  ],
-                },
-                {
-                  standardID: "Graph Theory",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 6", points: 100 },
-                    { id: "OHW 5", points: 20 },
-                  ],
-                },
-                {
-                  standardID: "Set Theory",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 7", points: 100 },
-                    { id: "OHW 6", points: 20 },
-                  ],
-                },
-                {
                   standardID: "Final",
-                  exams: [{ id: "OEX", points: "10 per", standards: "[4-7]" }],
+                  assignments: [{ id: "OHW 3", points: 20 }],
+                  exams: [{ id: "OEX", points: "10 per", standards: "[1-3]" }],
                 },
               ]}
             />
@@ -371,20 +396,15 @@ export default function Syllabus() {
               the beginning, you can always earn those points back later. That
               way older grades do not "hold back your grade". You can see the
               totals you are trying to earn as they are prefixed with "T: ". So
-              for the course, all your standards should reach 560 (7 standards *
+              for the course, all your standards should reach 240 (3 standards *
               80 points). For each standard, all your assignments should reach
               at least 80. I will take the point total and divide them by your
               earned points to retrieve your grade for each standard and the
               course overall.
             </Speak>
             <Speak>
-              Standards break the course into 2-week topic segments to help
-              divide up the course material. They technically begin on Monday's
-              to disperse the first lecture of the week on tuesday and any
-              assignments that week, however the real start will be Tuesday
-              since that is when class is held and I will introduce the new
-              standard. They end on the following weeks' Sunday (The maximum
-              unexcused extension length that will be explained below).
+              Standards break the course into 5-week topic segments to help
+              divide up the course material.
             </Speak>
             <TopicBreak title="Assignments" />
             <Speak>
@@ -393,72 +413,113 @@ export default function Syllabus() {
               previous standard (This is incase things don't go well the first
               time, some of us need to see things more than once!). That is
               labeled "HW" and "OHW" respectively. The points earnable are
-              labeled with "P: ". The homework assignment is worth more than the
-              standard on purpose, as I do not believe small mistakes merit
-              failure in the grade book. Thus, you can "earn a B" on every
-              assignment and still pass the standard with an A. The "O" portion
-              of the second assignment is denoting that it is completely
+              labeled with "P: ". The homework assignments together are worth
+              more than the standard on purpose, as I do not believe small
+              mistakes merit failure in the grade book. Thus, you can "earn a B"
+              on every assignment and still pass the standard with an A. The "O"
+              portion of the second assignment is denoting that it is completely
               optional. You don't need to do that assignment if you are already
               happy with your point total in your previous standard. Why is the
               optional homework for the previous standard and not the current
-              one? This is because the standards follow a strict 2-week long
+              one? This is because due dates follow a strict 2-week long
               structure and this is to ensure you have at least 4 weeks worth of
-              time to work on a standard.
+              time to work on a standard. Thus you turn in the optional with the
+              following homework.
             </Speak>
             <Speak>
-              Inside normal "HW" is a written and programming portion. They
+              Inside normal "HW" is a brief reading portion that points toward
+              useful chapters in the textbook, the programming portion, and the
+              optional section for the previous standard at the bottom. They
               aren't displayed here for clarity as all the specifics of a
               homework will be specified on its page (accessible from the Blue
-              Course Homepage button at the top of the screen). The written
-              portion will be made up of course work that is either
-              not-applicable to Python, Work that is unnecessarily difficult to
-              perform in Python, or work that cannot be performed or
-              accomplished in Python. As an example, while it is possible to
-              work with venn diagrams through a graphical library with python,
-              this would be unnecessarily strenuous given that the problem is
-              only asking you to draw one (The difficulty of a HW should be
-              purely from the course material, not trying to turn in your
-              answers!). Otherwise all coursework will generally be in Python,
-              distributed via Github Classroom assignment repositories.
+              Course Homepage button at the top of the screen). The reading
+              portion will a small section that points toward chapters in the
+              textbook, or other media links, that are useful for the
+              programming section or give additional context to what we saw in
+              investigating the Scheduling problem, the reading section will
+              contain links to any potential YouTube videos, textbook chapters,
+              or other media I believe enhances your learning experience
+              regarding Scheduling. It might be there to help make the problem
+              more "digestible" or even discuss useful programming patterns to
+              keep in mind to prevent common issues.
             </Speak>
             <Speak>
               Now that we have an idea of what the assignments look like, when
               are they distributed? How long do I have to complete an
               assignment? Exact date specifics will be provided in the
               "Schedule" sections, however, the general pattern is that the HW
-              will be released for a standard at the beginning of the 2 week
-              cycle a standard lives in. Thus you have a little less than 2
-              weeks (11 days) to complete each assignment (the very first
-              lecture on Tuesday the first week, till the due date the following
-              week friday). Can I ask for extensions? Yes! I have an automatic
-              HW extension policy that you may use without asking me. Since HW's
-              are due on friday's (but I don't grade till Monday) you can turn
-              in a HW on Saturday for a loss of 10 points, or wait till Sunday
-              and receive a loss of 15 more points. So Friday is all 100,
-              Saturday is 90, and Sunday is just 75.
+              will be released following the end of seeing the material in
+              lecture, then you will have 2 weeks from then to turn it in. They
+              are always due on Fridays at the end of the day. The optional HW
+              for the previous standard will be released at the same time as the
+              first homework for the next one and it will be due with that
+              assignment.
             </Speak>
-            <TopicBreak title="Midterm and Final" />
+            <TopicBreak title="Late Policy" />
             <Speak>
-              The Midterm and Final Standards are special because they denote
-              special exams in this course. Within each is a single exam that is
-              completely optional. They are designed to give you a third
-              opportunity to gather points toward previous standards. If you
-              don't need the points, you can safely ignore these exams. However,
-              if you do want to take them, they are generally going to be small
-              and sectioned into a few problems per standard that the exam
-              covers. So for the Midterm there might be just 6 questions, 2 per
-              standard. The point total earnable toward a previous standard for
-              answering those questions is labeled in the diagram. So the exam
-              is optional, but if I chose to take it will I have to take the
-              whole thing? No, you only have to do all the questions relevant to
-              the standard you are trying to boost, the other questions will be
-              ignored if they are left empty.
+              Since all homeworks will be due on Fridays at the end of the day,
+              what happens if I turn something in on Saturday? Sunday? Monday?
+              Well the late policy is broken up into two systems, Excused and
+              Unexcused. The first is rather simple and what you are accustom
+              to, assuming you contact me early about a serious reason for why
+              you won't be able to make the due date, we can work out an
+              alternate schedule for you to perform your work. This could be due
+              to family issues disrupting school life, medical emergencies,
+              natural disasters, etc.
+            </Speak>
+            <Speak>
+              The Unexcused late policy however requires no form of
+              communication to me directly, if you turn something into me late
+              without notifying me I will assume you are taking advantage of
+              this systems instead. The policy is as follows: If you turn in an
+              assignment on Saturday it will lose 5 points regardless of the
+              content. If you turn it in on Sunday instead, you will receive the
+              minus 5 points from being after saturday and an additional lost of
+              10 points on top for turning it in on Sunday. If you turn it in on
+              Monday (Without using the Excused late policy system from above)
+              you will receive 0 points for the turn in. There is a 15 min grace
+              period at the end of each day where I will consider the assignment
+              on the previous day instead. So if its due on Friday at 11:59 PM
+              and you turn it in on Saturday at 12:07 AM, I will consider it on
+              Friday. However, were it to be turned in at 12:16 AM, I would
+              consider that on Saturday and you would receive the 5 point
+              deduction.
+            </Speak>
+            <TopicBreak title="Activities" />
+            <Speak>
+              Activities are mandatory in class participation days that are
+              special to this course! Whilst it is a large departure from the
+              rest of my system, I really would like you all to have a unique
+              and engaging hand on experience with the content. These days will
+              never require your computer, mobile devices, or even a pencil from
+              you. All I ask is your presence and I will provide all necessary
+              material to carry out the activity.
+            </Speak>
+            <Speak>
+              These days are designed to make you "feel" the content "in the
+              real world" wether it be through the emotions you'll feel, the
+              tasks you must complete, or the teamwork you must engage in.
+            </Speak>
+            <TopicBreak title="Final" />
+            <Speak>
+              The Final Standard is special because they denote a special exam
+              in this course. Within is a single exam that is completely
+              optional. it is designed to give you a third opportunity to gather
+              points toward previous standards. If you don't need the points,
+              you can safely ignore this exam. It will be sectioned into a few
+              problems per standard that the exam covers. The point total
+              earnable toward a previous standard for answering those questions
+              is labeled in the diagram. So the exam is optional, but if I chose
+              to take it will I have to take the whole thing? No, you only have
+              to do all the questions relevant to the standard you are trying to
+              boost, the other questions will be ignored if they are left
+              incomplete.
             </Speak>
             <TopicBreak title="Syllabus Standard" />
             <Speak>
               What about that first standard labeled Syllabus? Why is it so
               different than the others? This standard is special as it is only
-              going to last for the week of school and its goal is to
+              going to last for the first week of school and its goal is to
               familiarize yourself with all{" "}
               <Vocab
                 definition={
@@ -468,47 +529,28 @@ export default function Syllabus() {
                 this
               </Vocab>
               ! The point total to pass is 0 because I'm not going to force you
-              to engage with all this, but I will give a special benefit to
-              those who put the effort in (&lt;---- a consistent theme with this
-              course). If you complete the small practice HW you'll get a free 3
-              points to put into whatever standard you'd like! If you do the
-              practice exam you will get 2 more free points for the same purpose
-              (Looking at the table above, 5 points is an entire grade jump in a
-              single standard!). How do I use these special points? I will keep
-              track of every students special points, all you need to do is
+              to engage with all the "tutorial" tasks, but I will give a special
+              benefit to those who put the effort in (&lt;---- a consistent
+              theme with this course). If you complete the small practice HW
+              you'll get a free 3 points to put into whatever standard you'd
+              like! If you do the practice exam you will get 2 more free points
+              for the same purpose. How do I use these special points? I will
+              keep track of every students special points, all you need to do is
               email me to use them!
-            </Speak>
-            <TopicBreak title="Student POV Example" />
-            <Speak>
-              This is a lot! So lets look at an example. Say we are currently 3
-              weeks into the semester with 70 points in standard 1: Logic, I
-              completed only the practice HW on week 1, and I wanna know where I
-              stand. This means we are in standard 2: Numbers, currently you are
-              assigned 1 homework for standard 2, an optional HW for standard 1,
-              and 3 special points usable. If you weren't happy with your point
-              total in standard 1 then you could use your 2 of your special
-              point to go from 70/80 (B) to 72/80 (B+) for free by emailing me.
-              You could save your special points and do the optional HW to earn
-              up to 20 points for standard 1 (This means you can get an A by
-              earning only half the points on the optional HW!). Or you could
-              Ignore the optional HW, save your special points for later, and
-              wait until the optional midterm comes around to get up to 10
-              points (Thats also an A for standard 1). You can't sit around and
-              do nothing however, because the upcoming friday is the due date
-              for the current standard 2 HW and the optional HW for standard 1.
             </Speak>
             <TopicBreak title="Turning Things In" />
             <Speak>
-              Now that we know there are HW's and Exams, how do we turn
-              everything in? LMU uses the learning management system known as
-              Brightspace (Others include Google Classroom and Canvas). This is
-              where all your assignment "turn in's" will be located. This is
-              also where your exams will be held (they are all digital). This is
-              where you will find your grades and any other materials I cannot
-              legally post publicly on my course site. Assuming all goes well,
-              you will access Brightspace only for turning in your HW and taking
-              Exams. Everything else will be posted here on the current site
-              (jag.prof).
+              Now that we know there are HW's, activities, and an Exam, how do
+              we turn everything in? LMU uses the learning management system
+              known as Brightspace (Others include Google Classroom and Canvas).
+              This is where all your assignment "turn in's" will be located.
+              This is also where your exam will be held (it is all digital).
+              This is where you will find your grades and any other materials I
+              cannot legally post publicly on my course site. Assuming all goes
+              well, you will access Brightspace only for turning in your HW and
+              taking Exams. Everything else will be posted here on the current
+              site (jag.prof). The activities will be graded via attendance on
+              the day of the activity.
             </Speak>
           </>
         ) : tabState === "Schedule" ? (

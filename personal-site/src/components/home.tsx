@@ -342,7 +342,7 @@ export default function Home() {
           </Typography>
         </>
       ),
-      link: undefined,
+      link: "https://gustavus.edu/academics/departments/mathematics-computer-science-and-statistics/max/os-book/osm-rev1.2.1.pdf",
       imageSlug:
         "/book-covers/OperatingSystemsAndMiddleware-SupportingControlledInteractions.png",
     },

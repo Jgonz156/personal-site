@@ -13,81 +13,19 @@ import {
 } from "@mui/joy"
 import { SiteContext, SiteContextProvider } from "./components/site-context.tsx"
 import "./index.css"
-import CMSI2820 from "./pages/courses/cmsi2820/cmsi-2820-discrete-mathematics-for-cs.tsx"
-import CheatSheet2820 from "./pages/courses/cmsi2820/cheat-sheet.tsx"
-import Syllabus2820 from "./pages/courses/cmsi2820/syllabus.tsx"
-import LN0 from "./pages/courses/cmsi2820/notes/standard-0-syllabus/ln0.tsx"
-import LN1 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln1.tsx"
-import LN2 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln2.tsx"
-import LN3 from "./pages/courses/cmsi2820/notes/standard-1-logic/ln3.tsx"
-import LN4 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln4.tsx"
-import LN5 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln5.tsx"
-import LN6 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln6.tsx"
-import LN7 from "./pages/courses/cmsi2820/notes/standard-2-numbers/ln7.tsx"
-import LN8 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln8.tsx"
-import LN9 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln9.tsx"
-import LN10 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln10.tsx"
-import LN11 from "./pages/courses/cmsi2820/notes/standard-3-collections/ln11.tsx"
-import LN12 from "./pages/courses/cmsi2820/notes/standard-4-functions/ln12.tsx"
-import LN13 from "./pages/courses/cmsi2820/notes/standard-4-functions/ln13.tsx"
-import LN23 from "./pages/courses/cmsi2820/notes/standard-6-graph-theory/ln23.tsx"
-import HW0 from "./pages/courses/cmsi2820/assignments/hw0.tsx"
-import HW1 from "./pages/courses/cmsi2820/assignments/hw1.tsx"
-import HW2 from "./pages/courses/cmsi2820/assignments/hw2.tsx"
-import HW3 from "./pages/courses/cmsi2820/assignments/hw3.tsx"
-import HW4 from "./pages/courses/cmsi2820/assignments/hw4.tsx"
-import HW5 from "./pages/courses/cmsi2820/assignments/hw5.tsx"
-import HW6 from "./pages/courses/cmsi2820/assignments/hw6.tsx"
-import HW7 from "./pages/courses/cmsi2820/assignments/hw7.tsx"
-import EX0 from "./pages/courses/cmsi2820/exams/ex0.tsx"
-import EX1 from "./pages/courses/cmsi2820/exams/ex1.tsx"
-import EX2 from "./pages/courses/cmsi2820/exams/ex2.tsx"
 import { MathJaxContext } from "better-react-mathjax"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon"
+
+import CMSI2820Routes from "./pages/courses/cmsi2820/routes.tsx"
 import CMSIX998 from "./pages/courses/cmsiX998/cmsi-X998-independent-study.tsx"
-import CMSI3510 from "./pages/courses/cmsi3510/cmsi-3510-operating-systems.tsx"
-import CheatSheet3510 from "./pages/courses/cmsi3510/cheat-sheet.tsx"
-import Syllabus3510 from "./pages/courses/cmsi3510/syllabus.tsx"
+import CMSI3510Routes from "./pages/courses/cmsi3510/routes.tsx"
 
 const router = [
   { path: "/", element: <App /> },
-  { path: "/cmsi-2820", element: <CMSI2820 /> },
-  { path: "/cmsi-2820/cheat-sheet", element: <CheatSheet2820 /> },
-  { path: "/cmsi-2820/syllabus", element: <Syllabus2820 /> },
-  { path: "/cmsi-2820/ln0", element: <LN0 /> },
-  { path: "/cmsi-2820/ln1", element: <LN1 /> },
-  { path: "/cmsi-2820/ln2", element: <LN2 /> },
-  { path: "/cmsi-2820/ln3", element: <LN3 /> },
-  { path: "/cmsi-2820/ln4", element: <LN4 /> },
-  { path: "/cmsi-2820/ln5", element: <LN5 /> },
-  { path: "/cmsi-2820/ln6", element: <LN6 /> },
-  { path: "/cmsi-2820/ln7", element: <LN7 /> },
-  { path: "/cmsi-2820/ln8", element: <LN8 /> },
-  { path: "/cmsi-2820/ln9", element: <LN9 /> },
-  { path: "/cmsi-2820/ln10", element: <LN10 /> },
-  { path: "/cmsi-2820/ln11", element: <LN11 /> },
-  { path: "/cmsi-2820/ln12", element: <LN12 /> },
-  { path: "/cmsi-2820/ln13", element: <LN13 /> },
-  { path: "/cmsi-2820/ln23", element: <LN23 /> },
-  { path: "/cmsi-2820/hw0", element: <HW0 /> },
-  { path: "/cmsi-2820/hw1", element: <HW1 /> },
-  { path: "/cmsi-2820/hw2", element: <HW2 /> },
-  { path: "/cmsi-2820/hw3", element: <HW3 /> },
-  { path: "/cmsi-2820/hw4", element: <HW4 /> },
-  { path: "/cmsi-2820/hw5", element: <HW5 /> },
-  { path: "/cmsi-2820/hw6", element: <HW6 /> },
-  { path: "/cmsi-2820/hw7", element: <HW7 /> },
-  { path: "/cmsi-2820/ex0", element: <EX0 /> },
-  { path: "/cmsi-2820/ex1", element: <EX1 /> },
-  { path: "/cmsi-2820/ex2", element: <EX2 /> },
+  ...CMSI2820Routes,
   { path: "/cmsi-X998", element: <CMSIX998 /> },
-  { path: "/cmsi-3510", element: <CMSI3510 /> },
-  { path: "/cmsi-3510/cheat-sheet", element: <CheatSheet3510 /> },
-  { path: "/cmsi-3510/syllabus", element: <Syllabus3510 /> },
-  { path: "/cmsi-3510/ln0", element: <LN0 /> },
-  { path: "/cmsi-3510/hw0", element: <HW0 /> },
-  { path: "/cmsi-3510/ex0", element: <EX0 /> },
+  ...CMSI3510Routes,
 ]
 
 const materialTheme = materialExtendTheme()

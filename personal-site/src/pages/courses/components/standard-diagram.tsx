@@ -119,15 +119,6 @@ export default function StandardsDiagram({
           )}
         </Sheet>
       </Sheet>
-      <ImageBox
-        images={[
-          {
-            url: "/cmsi-2820/InitialGradingTable.jpg",
-            caption:
-              "Temporary Grading Table. The Grading system isn't temporary, just this awful image from a whiteboard in my office.",
-          },
-        ]}
-      />
     </>
   )
 }

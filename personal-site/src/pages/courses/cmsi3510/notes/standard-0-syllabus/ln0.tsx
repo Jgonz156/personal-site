@@ -22,7 +22,7 @@ export default function LectureNotes0() {
           lectureId: "HW0",
           buttonColor: "success",
           buttonName: "Practicing Homework",
-          buttonSlug: "/cmsi-2820/hw0",
+          buttonSlug: "/cmsi-3510/hw0",
         },
       }}
       footerInfo={
