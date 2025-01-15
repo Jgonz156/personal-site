@@ -1,5 +1,4 @@
 import { Sheet, Typography } from "@mui/joy"
-import ImageBox from "./image-box"
 
 export default function StandardsDiagram({
   standards,
