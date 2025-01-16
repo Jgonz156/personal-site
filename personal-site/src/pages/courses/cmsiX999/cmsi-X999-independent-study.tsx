@@ -1,11 +1,11 @@
-import { Sheet, Button } from "@mui/joy";
-import DescriptionIcon from "@mui/icons-material/Description";
-import HomeIcon from "@mui/icons-material/Home";
-import { Link as RouterLink } from "react-router-dom";
-import Footer from "../../../components/footer";
-import Speak from "../components/speak";
+import { Sheet, Button } from "@mui/joy"
+import DescriptionIcon from "@mui/icons-material/Description"
+import HomeIcon from "@mui/icons-material/Home"
+import { Link as RouterLink } from "react-router-dom"
+import Footer from "../../../components/footer"
+import Speak from "../components/speak"
 
-export default function CMSIX998() {
+export default function CMSIX999() {
   return (
     <>
       <Sheet
@@ -73,5 +73,5 @@ export default function CMSIX998() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }

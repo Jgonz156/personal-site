@@ -18,14 +18,16 @@ import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon"
 
 import CMSI2820Routes from "./pages/courses/cmsi2820/routes.tsx"
-import CMSIX998 from "./pages/courses/cmsiX998/cmsi-X998-independent-study.tsx"
+import CMSIX999 from "./pages/courses/cmsiX999/cmsi-X999-independent-study.tsx"
 import CMSI3510Routes from "./pages/courses/cmsi3510/routes.tsx"
+import CMSI5850Routes from "./pages/courses/cmsi5850/routes.tsx"
 
 const router = [
   { path: "/", element: <App /> },
   ...CMSI2820Routes,
-  { path: "/cmsi-X998", element: <CMSIX998 /> },
+  { path: "/cmsi-X998", element: <CMSIX999 /> },
   ...CMSI3510Routes,
+  ...CMSI5850Routes,
 ]
 
 const materialTheme = materialExtendTheme()

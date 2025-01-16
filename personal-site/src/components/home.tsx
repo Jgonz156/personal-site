@@ -166,7 +166,7 @@ export default function Home() {
       code: "X998",
       imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
       slug: "/cmsi-X998",
-      status: settings.Home.Courses.CMSIX998.StatusBadge,
+      status: settings.Home.Courses.cmsiX999.StatusBadge,
       openModal: () =>
         dispatch({
           field: "Home",
@@ -174,8 +174,8 @@ export default function Home() {
             ...settings.Home,
             Courses: {
               ...settings.Home.Courses,
-              CMSIX998: {
-                ...settings.Home.Courses.CMSIX998,
+              cmsiX999: {
+                ...settings.Home.Courses.cmsiX999,
                 ModalVisible: true,
               },
             },
@@ -188,14 +188,14 @@ export default function Home() {
             ...settings.Home,
             Courses: {
               ...settings.Home.Courses,
-              CMSIX998: {
-                ...settings.Home.Courses.CMSIX998,
+              cmsiX999: {
+                ...settings.Home.Courses.cmsiX999,
                 ModalVisible: false,
               },
             },
           },
         }),
-      modalState: settings.Home.Courses.CMSIX998.ModalVisible,
+      modalState: settings.Home.Courses.cmsiX999.ModalVisible,
       courseCardDescription: (
         <Sheet
           sx={{
