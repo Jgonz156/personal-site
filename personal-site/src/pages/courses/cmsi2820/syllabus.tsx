@@ -104,7 +104,7 @@ export default function Syllabus() {
               <Speak>ENGR 1200</Speak>
             </Sheet>
             <CourseInfoDump
-              sectionNumber={2}
+              sectionNumber={1}
               daysOfWeek={["Tuesday", "Thursday"]}
               timeStart="1:45 PM"
               timeEnd="3:25 PM"

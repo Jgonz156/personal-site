@@ -159,22 +159,8 @@ export default function CMSI2820() {
                   systems of logic, where they came from, how they were used, and 
                   what it even means to craft a valid line of reasoning."
                 notesSlug="/cmsi-2820/ln1"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/PLwKIyzTMabBtCxm-aT-7vswCLzer2D1mT-xySwyg6gL9K6m9aqzRo6F14o2zb4R.AFLsJSASj4l4z3LW?startTime=1724950470000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/jP73Zfg7O5sNzdquC72oUJ-1tPPjWPAhLB6S2Pxq4amaWcGmbxgZ66HsV0zPHOOo.tG4mpP4ukk7WgvFT?startTime=1724964485000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Tk5oWLFy66y96M5gOnO9Zp2E--QOQYPtkCt4skZXSw0qukH5q3IdQnVyz2VJwyp2.Hsgmo0dA0SOOO4zR?startTime=1724979866000",
-                  },
-                ]}
               />
-
+              {/* 
               <NotesCard
                 title="LN 2: Making Logical Connections"
                 description="This lecture will be an introduction to 
@@ -221,8 +207,9 @@ export default function CMSI2820() {
                   translating natural language into logic, and natural deduction proofs!"
                 assignmentSlug="/cmsi-2820/hw1"
               />
+              
             </Standard>
-
+            
             <Standard
               number={2}
               title="Numbers"
