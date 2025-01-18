@@ -2,8 +2,8 @@ import { Chip, Divider, Sheet } from "@mui/joy"
 import Footer from "../../../components/footer"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
+//import AssignmentCard from "../components/assignment-card"
+//import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 import Speak from "../components/speak"
@@ -110,119 +110,40 @@ export default function CMSI5850() {
                 Description
               </Sheet>
             </Sheet>
+
             <Standard
-              number={0}
-              title="Syllabus"
-              description="This standard is here to familiarize yourself with the layout
-                  of course information! It is not graded for quality but
-                  demonstrates where and how information is accessed! Clicking
-                  on any part of this row will dropdown the relevant
-                  information for the standard that is being covered in class."
+              number={1}
+              title="Theory, Logic, and Math"
+              description="In this standard we will investigate 4 major aspects of learning about programming languages: The study itself, the major theories of computer science it represents, the foundational math its built on, and the logic that it represents."
             >
               <NotesCard
-                title="LN 0: Reading Course Material!"
-                description="Here is a sample of what the lecture notes will look
-                            like! This one just explains the color coding I use
-                            for information and displays the small interactive
-                            modules I might have throughout the notes."
-                notesSlug="/cmsi-3510/ln0"
+                title="The Study of Programming Languages"
+                description="In these notes we will cover the basics of what a programming language is, the different types of programming languages, their many constituent components, and the meta aspects we use to evaluate them."
+                notesSlug="/cmsi-5850/the-study-of-programming-languages"
+                sectionRecordings={[
+                  {
+                    url: "https://lmula.zoom.us/rec/share/wDVHaa0UTzgHlK62gKl7inWJB3NqtQqwRz0KHvika5NZO25IYym6LoMSQhZc38bS.Oai9Yh1kdPT4i4SB",
+                    buttonText: "Audio Recording",
+                  },
+                ]}
               />
-              <AssignmentCard
-                title="HW 0: Practicing Homework"
-                description="This is a small assignment to get you familiar with
-                            the process of receiving and submitting assignments!"
-                assignmentSlug="/cmsi-3510/hw0"
+              <NotesCard
+                title="Theories in Computer Science"
+                description="In these notes we will cover the major theories of computer science. This includes Language, Automata, Computability, and Complexity Theory."
+                notesSlug="/cmsi-5850/theories-in-computer-science"
               />
-              <ExamCard
-                title="EX 0: Syllabus"
-                description="Exams are an important part of how you communicate
-                            your understanding of the material! Here you will
-                            take one on the most vital parts of the course
-                            syllabus! I promise its not hard."
-                examSlug="/cmsi-3510/ex0"
+              <NotesCard
+                title="Logic"
+                description="In these notes we will cover a wide basis of logic. This includes different Modal logics based on Higher order Classical Logic. We will also cover important measures of logical systems such as soundness, completeness, and decidability."
+                notesSlug="/cmsi-5850/logic"
+              />
+              <NotesCard
+                title="Foundations of Mathematics"
+                description="In these notes we will cover the foundational discrete mathematics that are used in computer science. This includes Set Theory, Relations, Functions, and more."
+                notesSlug="/cmsi-5850/foundations-of-mathematics"
               />
             </Standard>
             {/* 
-            <Standard
-              number={1}
-              title="Logic"
-              description="In this standard we will investigate the mathematical
-                  underpinnings of logical argumentation, deductive reasoning,
-                  and the symbology that is used to represent these ideas. This
-                  means taking a brief look at different systems of logic, a deeper
-                  dive into intuitionistic logic, and what that means for
-                  propositional and predicate reasoning"
-            >
-              <NotesCard
-                title="LN 1: Information and Its Consequences..."
-                description="This lecture will cover the basics of many different 
-                  systems of logic, where they came from, how they were used, and 
-                  what it even means to craft a valid line of reasoning."
-                notesSlug="/cmsi-2820/ln1"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/PLwKIyzTMabBtCxm-aT-7vswCLzer2D1mT-xySwyg6gL9K6m9aqzRo6F14o2zb4R.AFLsJSASj4l4z3LW?startTime=1724950470000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/jP73Zfg7O5sNzdquC72oUJ-1tPPjWPAhLB6S2Pxq4amaWcGmbxgZ66HsV0zPHOOo.tG4mpP4ukk7WgvFT?startTime=1724964485000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Tk5oWLFy66y96M5gOnO9Zp2E--QOQYPtkCt4skZXSw0qukH5q3IdQnVyz2VJwyp2.Hsgmo0dA0SOOO4zR?startTime=1724979866000",
-                  },
-                ]}
-              />
-
-              <NotesCard
-                title="LN 2: Making Logical Connections"
-                description="This lecture will be an introduction to 
-                  intuitionistic logic more formally. We will cover propositions, their 
-                  variables, compound formulas, and logical connectives."
-                notesSlug="/cmsi-2820/ln2"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/fYWflXiG0AQXlPMc-euVOauehDFiDyteNmdSggFmGXySfoU_sC_0dt4iGNb0fwTL.FLWNuYlzW16_IRRX?startTime=1725382524000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/3zceh-ULXuGwuRHuwuRoBpk14_gD9a_7Y9_EvZ4xyqMvH9Hx2nhzrAp6FYnezKxh.YkXxb-iXG6SHTVqA?startTime=1725396418000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Yf2GeeYwf3JFYh8tPNIBDuKbziJINqM-wloM7VWSzFII2qQ5EWhSfEULZDQLZzE.QVTY5ZR5896GpR53?startTime=1725411758000",
-                  },
-                ]}
-              />
-              <NotesCard
-                title="LN 3: Assumptions Make an Argument out of You and Me"
-                description="This lecture expands on propositional logic by 
-                  extending our inferential abilities for each of our logical
-                   connectives by exploring Natural Deduction"
-                notesSlug="/cmsi-2820/ln3"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/dUCxOlsnVgN30RaGnVABOG9ROXdCHEPhiO3DnieCOchspc5KHan_EYb6W_FqXp6z.u4qHArf88JxIhk3u?startTime=1725555439000",
-                  },
-                  { buttonText: "Section 2 Video", url: undefined },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Rg__u6lYojd0L3PQ_TJh6Gyjq0Ky4-_NozQQ7anGA2TAK1FFrp3hsuN_EDR4uapZ.G1RaYcvHM3MfLBkN?startTime=1725584600000",
-                  },
-                ]}
-              />
-              <AssignmentCard
-                title="HW 1: Think Class! Think!"
-                description="In this homework you will get practice with logical 
-                  terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, 
-                  translating natural language into logic, and natural deduction proofs!"
-                assignmentSlug="/cmsi-2820/hw1"
-              />
-            </Standard>
-
             <Standard
               number={2}
               title="Numbers"

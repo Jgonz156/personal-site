@@ -14,6 +14,8 @@ export default function CourseCard({
   openModal,
   closeModal,
   modalState,
+  gradeLevel,
+  color,
   children,
 }: {
   title: string
@@ -23,6 +25,8 @@ export default function CourseCard({
   openModal: () => void
   closeModal: () => void
   modalState: boolean
+  gradeLevel: string
+  color: "primary" | "success" | "warning" | "danger" | "neutral"
   children: React.ReactNode
 }) {
   return (
@@ -38,11 +42,11 @@ export default function CourseCard({
           <Typography fontWeight="md" textColor="neutral">
             {title}
           </Typography>
-          <Typography level="body-sm">California, USA</Typography>
+          <Typography level="body-sm">{gradeLevel}</Typography>
         </CardContent>
         <CardOverflow
           variant="soft"
-          color="primary"
+          color={color}
           sx={{
             px: 0.2,
             writingMode: "vertical-rl",
