@@ -284,45 +284,83 @@ export default function Syllabus() {
               standards={[
                 {
                   standardID: "Theory, Logic, and Math",
-                  pointTotal: "80",
-                  assignments: [{ id: "HW 1", points: 100 }],
+                  pointTotal: 80,
+                  homework: [
+                    {
+                      id: "HW 1",
+                      points: 100,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
+                  ],
                 },
                 {
                   standardID: "Languages",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 2", points: 100 },
-                    { id: "OHW 1", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 2", points: 100, gradedWith: "Languages" },
+                    {
+                      id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
                   ],
                 },
                 {
                   standardID: "Syntax",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 3", points: 100 },
-                    { id: "OHW 2", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 3", points: 100, gradedWith: "Syntax" },
+                    { id: "OHW 2", points: 20, gradedWith: "Languages" },
                   ],
                 },
                 {
                   standardID: "Semantics",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 4", points: 100 },
-                    { id: "OHW 3", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 4", points: 100, gradedWith: "Semantics" },
+                    { id: "OHW 3", points: 20, gradedWith: "Syntax" },
                   ],
                 },
                 {
                   standardID: "More Semantics",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 5", points: 100 },
-                    { id: "OHW 4", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 5", points: 100, gradedWith: "More Semantics" },
+                    { id: "OHW 4", points: 20, gradedWith: "Semantics" },
                   ],
                 },
                 {
                   standardID: "Final",
-                  assignments: [{ id: "OHW 5", points: 20 }],
-                  exams: [{ id: "OEX", points: "20 per", standards: "[1-5]" }],
+                  homework: [
+                    { id: "OHW 5", points: 20, gradedWith: "More Semantics" },
+                  ],
+                  exams: [
+                    {
+                      id: "OEX S1",
+                      points: 20,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
+                    {
+                      id: "OEX S2",
+                      points: 20,
+                      gradedWith: "Languages",
+                    },
+                    {
+                      id: "OEX S3",
+                      points: 20,
+                      gradedWith: "Syntax",
+                    },
+                    {
+                      id: "OEX S4",
+                      points: 20,
+                      gradedWith: "Semantics",
+                    },
+                    {
+                      id: "OEX S5",
+                      points: 20,
+                      gradedWith: "More Semantics",
+                    },
+                  ],
                 },
               ]}
             />

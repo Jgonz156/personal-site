@@ -335,46 +335,88 @@ export default function Syllabus() {
               standards={[
                 {
                   standardID: "Syllabus",
-                  pointTotal: "0",
-                  assignments: [
-                    { id: "HW 0", points: 3 },
-                    { id: "OHW 0", points: 1 },
+                  pointTotal: 0,
+                  homework: [
+                    { id: "HW 0", points: 3, gradedWith: "Syllabus" },
+                    { id: "OHW 0", points: 1, gradedWith: "Syllabus" },
                   ],
-                  exams: [{ id: "EX", points: 1, standards: "0" }],
+                  exams: [{ id: "EX S0", points: 1, gradedWith: "Syllabus" }],
                 },
                 {
                   standardID: "Concurrent Programming",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 1", points: 30 },
-                    { id: "HW 2", points: 30 },
-                    { id: "AC 1", points: 30 },
+                  pointTotal: 80,
+                  homework: [
+                    {
+                      id: "HW 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "HW 2",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "AC 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
                   ],
                 },
                 {
                   standardID: "Computer Hardware",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 3", points: 30 },
-                    { id: "HW 4", points: 30 },
-                    { id: "AC 2", points: 30 },
-                    { id: "OHW 1", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 3", points: 30, gradedWith: "Computer Hardware" },
+                    { id: "HW 4", points: 30, gradedWith: "Computer Hardware" },
+                    { id: "AC 2", points: 30, gradedWith: "Computer Hardware" },
+                    {
+                      id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Concurrent Programming",
+                    },
                   ],
                 },
                 {
                   standardID: "Operating Systems",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 5", points: 30 },
-                    { id: "HW 6", points: 30 },
-                    { id: "AC 3", points: 30 },
-                    { id: "OHW 2", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 5", points: 30, gradedWith: "Operating Systems" },
+                    { id: "HW 6", points: 30, gradedWith: "Operating Systems" },
+                    { id: "AC 3", points: 30, gradedWith: "Operating Systems" },
+                    {
+                      id: "OHW 2",
+                      points: 20,
+                      gradedWith: "Computer Hardware",
+                    },
                   ],
                 },
                 {
                   standardID: "Final",
-                  assignments: [{ id: "OHW 3", points: 20 }],
-                  exams: [{ id: "OEX", points: "10 per", standards: "[1-3]" }],
+                  homework: [
+                    {
+                      id: "OHW 3",
+                      points: 20,
+                      gradedWith: "Operating Systems",
+                    },
+                  ],
+                  exams: [
+                    {
+                      id: "OEX S1",
+                      points: 10,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "OEX S2",
+                      points: 10,
+                      gradedWith: "Computer Hardware",
+                    },
+                    {
+                      id: "OEX S3",
+                      points: 10,
+                      gradedWith: "Operating Systems",
+                    },
+                  ],
                 },
               ]}
             />

@@ -50,7 +50,7 @@ function ScheduleDay(
   )
 }
 
-export default function CourseSchedule() {
+export default function FallCourseSchedule() {
   const schedule = [
     {
       date: DateTime.local(2024, 8, 27).startOf("day"),
@@ -459,15 +459,15 @@ export default function CourseSchedule() {
           Legend
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="primary"> </Avatar>
-            <Typography> : Lecture Day</Typography>
+            <Typography> : Lecture</Typography>
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="success"> </Avatar>
-            <Typography> : Homework Due Day</Typography>
+            <Typography> : Homework</Typography>
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="danger"> </Avatar>
-            <Typography> : Exam Release/Due Day</Typography>
+            <Typography> : Exam</Typography>
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="warning"> </Avatar>
