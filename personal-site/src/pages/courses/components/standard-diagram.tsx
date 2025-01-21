@@ -128,7 +128,6 @@ export default function StandardsDiagram({
     const updatedFullAssignmentList = newState
       .map((s) => s.assignments)
       .reduce((p, c) => p?.concat(c ?? []) ?? [], [])
-    console.log(updatedFullAssignmentList)
     const afterGradedWith = newState.map((s) => {
       const gradedWithPoints =
         updatedFullAssignmentList
@@ -273,6 +272,7 @@ export default function StandardsDiagram({
                               onChange={(event) =>
                                 handleInputChange(event, standardID, id)
                               }
+                              type="number"
                               size="sm"
                               required
                               sx={{ width: "3rem" }}
@@ -316,6 +316,7 @@ export default function StandardsDiagram({
                               onChange={(event) =>
                                 handleInputChange(event, standardID, id)
                               }
+                              type="number"
                               size="sm"
                               required
                               sx={{ width: "3rem" }}
