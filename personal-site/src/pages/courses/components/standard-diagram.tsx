@@ -275,7 +275,9 @@ export default function StandardsDiagram({
                               type="number"
                               size="sm"
                               required
-                              sx={{ width: "3rem" }}
+                              sx={{
+                                width: "4rem",
+                              }}
                             />
                             <Typography>/{points}</Typography>
                           </Sheet>
@@ -319,7 +321,9 @@ export default function StandardsDiagram({
                               type="number"
                               size="sm"
                               required
-                              sx={{ width: "3rem" }}
+                              sx={{
+                                width: "4rem",
+                              }}
                             />
                             <Typography>/{points}</Typography>
                           </Sheet>
