@@ -100,7 +100,7 @@ export default function Homework0() {
         </CourseBox>
         <CourseBox>
           <TitleBox title="HW0: Practicing Homework!" />
-          <DueDateCalendar dueDate={DateTime.local(2024, 9, 3, 23, 59)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 1, 24, 23, 59)} />
           <TopicBox
             topics={[
               "There are no particular topics for this HW",
