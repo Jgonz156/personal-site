@@ -33,7 +33,9 @@ function ScheduleDay(
     <Sheet color="success" variant="soft" sx={scheduleDaySX}>
       <PickersDay day={day} {...otherProps} />
     </Sheet>
-  ) : dayInfo?.dayType === "midterm" || dayInfo?.dayType === "finals" ? (
+  ) : dayInfo?.dayType === "midterm" ||
+    dayInfo?.dayType === "finals" ||
+    dayInfo?.dayType === "activity" ? (
     <Sheet color="danger" variant="soft" sx={scheduleDaySX}>
       <PickersDay day={day} {...otherProps} />
     </Sheet>
@@ -114,8 +116,8 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 2, 12).startOf("day"),
-      quote: "Lecture Day (LN8)",
-      dayType: "lecture",
+      quote: "Activity Day 1!",
+      dayType: "activity",
       dayInfo: <></>,
     },
     {
@@ -126,25 +128,25 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 2, 17).startOf("day"),
-      quote: "Lecture Day (LN9)",
+      quote: "Lecture Day (LN8)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 2, 19).startOf("day"),
-      quote: "Lecture Day (LN10)",
+      quote: "Lecture Day (LN9)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 2, 24).startOf("day"),
-      quote: "Lecture Day (LN11)",
+      quote: "Lecture Day (LN10)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 2, 26).startOf("day"),
-      quote: "Lecture Day (LN12)",
+      quote: "Lecture Day (LN11)",
       dayType: "lecture",
       dayInfo: <></>,
     },
@@ -186,26 +188,26 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 3, 12).startOf("day"),
-      quote: "Lecture Day (LN13)",
+      quote: "Lecture Day (LN12)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 3, 12).startOf("day"),
-      quote: "Lecture Day (LN14)",
+      quote: "Lecture Day (LN13)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 3, 17).startOf("day"),
-      quote: "Lecture Day (LN15)",
+      quote: "Lecture Day (LN14)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 3, 19).startOf("day"),
-      quote: "Lecture Day (LN16)",
-      dayType: "lecture",
+      quote: "Activity Day 2!",
+      dayType: "activity",
       dayInfo: <></>,
     },
     {
@@ -216,13 +218,13 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 3, 24).startOf("day"),
-      quote: "Lecture Day (LN17)",
+      quote: "Lecture Day (LN15)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 3, 26).startOf("day"),
-      quote: "Lecture Day (LN18)",
+      quote: "Lecture Day (LN16)",
       dayType: "lecture",
       dayInfo: <></>,
     },
@@ -234,7 +236,7 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 4, 2).startOf("day"),
-      quote: "Lecture Day (LN19)",
+      quote: "Lecture Day (LN17)",
       dayType: "lecture",
       dayInfo: <></>,
     },
@@ -246,13 +248,13 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 4, 7).startOf("day"),
-      quote: "Lecture Day (LN20)",
+      quote: "Lecture Day (LN18)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 4, 9).startOf("day"),
-      quote: "Lecture Day (LN21)",
+      quote: "Lecture Day (LN19)",
       dayType: "lecture",
       dayInfo: <></>,
     },
@@ -284,13 +286,13 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 4, 21).startOf("day"),
-      quote: "Lecture Day (LN22)",
+      quote: "Lecture Day (LN20)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 4, 23).startOf("day"),
-      quote: "Lecture Day (LN23)",
+      quote: "Lecture Day (LN21)",
       dayType: "lecture",
       dayInfo: <></>,
     },
@@ -302,14 +304,14 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 4, 28).startOf("day"),
-      quote: "Lecture Day (LN24)",
+      quote: "Lecture Day (LN22)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 4, 30).startOf("day"),
-      quote: "Lecture Day (LN25)",
-      dayType: "lecture",
+      quote: "Activity Day 3!",
+      dayType: "activity",
       dayInfo: <></>,
     },
     {
@@ -320,13 +322,13 @@ export default function SpringCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 5, 5).startOf("day"),
-      quote: "Lecture Day (LN26)",
+      quote: "Lecture Day (LN23)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
       date: DateTime.local(2025, 5, 7).startOf("day"),
-      quote: "Lecture Day (LN27)",
+      quote: "Lecture Day (LN24)",
       dayType: "lecture",
       dayInfo: <></>,
     },
@@ -391,7 +393,7 @@ export default function SpringCourseSchedule() {
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="danger"> </Avatar>
-            <Typography> : Exam</Typography>
+            <Typography> : Exam / Activity</Typography>
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="warning"> </Avatar>
