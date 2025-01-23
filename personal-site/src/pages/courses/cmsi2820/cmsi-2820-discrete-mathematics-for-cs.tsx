@@ -172,25 +172,17 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/* 
+
               <NotesCard
                 title="LN 2: Making Logical Connections"
                 description="This lecture will be an introduction to 
                   intuitionistic logic more formally. We will cover propositions, their 
                   variables, compound formulas, and logical connectives."
-                notesSlug="/cmsi-2820/ln2"
+                notesSlug="" //"/cmsi-2820/ln2"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/fYWflXiG0AQXlPMc-euVOauehDFiDyteNmdSggFmGXySfoU_sC_0dt4iGNb0fwTL.FLWNuYlzW16_IRRX?startTime=1725382524000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/3zceh-ULXuGwuRHuwuRoBpk14_gD9a_7Y9_EvZ4xyqMvH9Hx2nhzrAp6FYnezKxh.YkXxb-iXG6SHTVqA?startTime=1725396418000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Yf2GeeYwf3JFYh8tPNIBDuKbziJINqM-wloM7VWSzFII2qQ5EWhSfEULZDQLZzE.QVTY5ZR5896GpR53?startTime=1725411758000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/ThlGZXhITdEj_P3SCgA_X8yNc-Wh4purugee0crzwk4gjzTu8TL86IO-a4UtzP78.6JJ9fJN9PJXm769w",
                   },
                 ]}
               />
@@ -199,19 +191,15 @@ export default function CMSI2820() {
                 description="This lecture expands on propositional logic by 
                   extending our inferential abilities for each of our logical
                    connectives by exploring Natural Deduction"
-                notesSlug="/cmsi-2820/ln3"
+                notesSlug="" //"/cmsi-2820/ln3"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/dUCxOlsnVgN30RaGnVABOG9ROXdCHEPhiO3DnieCOchspc5KHan_EYb6W_FqXp6z.u4qHArf88JxIhk3u?startTime=1725555439000",
-                  },
-                  { buttonText: "Section 2 Video", url: undefined },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Rg__u6lYojd0L3PQ_TJh6Gyjq0Ky4-_NozQQ7anGA2TAK1FFrp3hsuN_EDR4uapZ.G1RaYcvHM3MfLBkN?startTime=1725584600000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/bKl93UWXstUmA7pD9LMkvQA4Xo1_iI4Q0LMp3kJV77neaZ0UZxOrt-BmQd5A5itC.xPD2vr5EKaoSlg_-",
                   },
                 ]}
               />
+              {/* 
               <AssignmentCard
                 title="HW 1: Think Class! Think!"
                 description="In this homework you will get practice with logical 
