@@ -195,6 +195,7 @@ export default function StandardsDiagram({
           sx={{
             display: "flex",
             flexWrap: "wrap",
+            width: "100%",
             justifyContent: "space-evenly",
             alignItems: "center",
             gap: 4,
