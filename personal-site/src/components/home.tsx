@@ -379,6 +379,54 @@ export default function Home() {
         "/book-covers/ConcurrencyTheory-CalculiAndAutomataForModellingUntimedAndTimedConcurrentSystems.png",
     },
     {
+      title: "The Rust Programming Language",
+      authors: ["Klabnik, Steve", "Nichols, Carol"],
+      pages: 560,
+      abstract: (
+        <>
+          <Typography>
+            The Rust Programming Language, 2nd Edition is the official guide to
+            Rust 2021: an open source systems programming language that will
+            help you write faster, more reliable software. Rust provides control
+            of low-level details along with high-level ergonomics, allowing you
+            to improve productivity and eliminate the hassle traditionally
+            associated with low-level languages.
+          </Typography>
+          <Typography>
+            Klabnik and Nichols, alumni of the Rust Core Team, share their
+            knowledge to help you get the most out of Rust's features so that
+            you can create robust and scalable programs. You'll begin with
+            basics like creating functions, choosing data types, and binding
+            variables, then move on to more advanced concepts, such as:
+          </Typography>
+          <Typography>
+            Ownership and borrowing, lifetimes, generics, traits, and trait
+            objects to communicate your program's constraints to the compiler
+          </Typography>
+          <Typography>
+            Smart pointers and multithreading, and how ownership interacts with
+            them to enable fearless concurrency
+          </Typography>
+          <Typography>
+            How to use Cargo, Rust's built-in package manager, to build,
+            document your code, and manage dependencies
+          </Typography>
+          <Typography>
+            The best ways to test, handle errors, refactor, and take advantage
+            of expressive pattern matching
+          </Typography>
+          <Typography>
+            In addition to the countless code examples, you'll find three
+            chapters dedicated to building complete projects: a number-guessing
+            game, a Rust implementation of a command line tool, and a
+            multithreaded server.
+          </Typography>
+        </>
+      ),
+      link: "https://doc.rust-lang.org/stable/book/title-page.html",
+      imageSlug: "/book-covers/TheRustProgrammingLanguage2ndEdition.png",
+    },
+    {
       title:
         "Operating Systems and Middleware: Supporting Controlled Interaction",
       authors: ["Hailperin, Max"],

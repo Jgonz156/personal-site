@@ -167,7 +167,7 @@ export default function CMSI2820() {
                 notesSlug={""} //"/cmsi-2820/ln1"
                 sectionRecordings={[
                   {
-                    buttonText: "Recording",
+                    buttonText: "Class Recording",
                     url: "https://lmula.zoom.us/rec/share/8SEWlygCO6rBCPDuAMm8XupDUZLOHzFHjRuVm5y-hshQzKRxO6_-UIDAUP_7nnPd.lobxIKjJlT8zdTYu",
                   },
                 ]}
