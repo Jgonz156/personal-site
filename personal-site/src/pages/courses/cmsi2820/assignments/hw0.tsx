@@ -100,7 +100,7 @@ export default function Homework0() {
         </CourseBox>
         <CourseBox>
           <TitleBox title="HW0: Practicing Homework!" />
-          <DueDateCalendar dueDate={DateTime.local(2024, 9, 3, 23, 59)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 1, 24, 23, 59)} />
           <TopicBox
             topics={[
               "There are no particular topics for this HW",
@@ -177,7 +177,7 @@ export default function Homework0() {
           </Speak>
           <LinkButton
             color="success"
-            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684852/detailsview#684852"
+            to="https://brightspace.lmu.edu/d2l/le/calendar/267815/event/737629/detailsview#737629"
           >
             Written HW0 Turn In
           </LinkButton>
@@ -291,13 +291,13 @@ export default function Homework0() {
           </Speak>
           <LinkButton
             color="success"
-            to="https://classroom.github.com/a/q8fEFsGq"
+            to="https://classroom.github.com/a/L7qlAncP"
           >
             GitHub Assignment
           </LinkButton>
           <LinkButton
             color="success"
-            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684892/detailsview#684892"
+            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=267815&db=318851"
           >
             Programming HW0 Turn In
           </LinkButton>
@@ -323,7 +323,7 @@ export default function Homework0() {
           />
           <LinkButton
             color="success"
-            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684893/detailsview#684893"
+            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=318852&grpid=0&isprv=&bp=0&ou=267815"
           >
             Optional HW0 Turn in
           </LinkButton>

@@ -14,7 +14,6 @@ import { useState } from "react"
 import Speak from "../components/speak"
 import CourseInfoDump from "../../../components/course-info-dump"
 import StandardsDiagram from "../components/standard-diagram"
-import Vocab from "../components/vocab"
 import TopicBreak from "../components/topic-break"
 import TitleBox from "../components/title-box"
 import CourseBox from "../components/course-box"
@@ -23,49 +22,33 @@ import BookCard from "../../../components/book-card"
 
 const textbook = {
   title: "Operating Systems and Middleware: Supporting Controlled Interaction",
-  authors: ["Hailperin, Max"],
-  pages: 559,
+  authors: ["Slonneger, Kenneth", "Kurtz, Barry L."],
+  pages: 654,
   abstract: (
     <>
       <Typography>
-        Suppose you sit down at your computer to check your email. One of the
-        messages includes an attached document, which you are to edit. You click
-        the attachment, and it opens up in another window. After you start edit-
-        ing the document, you realize you need to leave for a trip. You save the
-        document in its partially edited state and shut down the computer to
-        save energy while you are gone. Upon returning, you boot the computer
-        back up, open the document, and continue editing.
+        This text developed out of our experiences teaching courses covering the
+        formal semantics of programming languages. Independently we both
+        developed laboratory exercises implementing small programming languages
+        in Prolog following denotational definitions. Prolog proved to be an
+        excellent tool for illustrating the formal semantics of programming
+        languages. We found that these laboratory exercises were highly
+        successful in motivating students since the hands-on experience helped
+        demystify the study of formal semantics. At a professional meeting we
+        became aware of each other's experiences with a laboratory approach to
+        semantics, and this book evolved from that conference.
       </Typography>
       <Typography>
-        This scenario illustrates that computations interact. In fact, it
-        demonstrates at least three kinds of interactions between computations.
-        In each case, one computation provides data to another. First, your
-        email program retrieves new mail from the server, using the Internet to
-        bridge space. Sec- ond, your email program provides the attachment to
-        the word processor, using the operating system's services to couple the
-        two application pro- grams. Third, the invocation of the word processor
-        that is running before your trip provides the partially edited document
-        to the invocation running after your return, using disk storage to
-        bridge time.
-      </Typography>
-      <Typography>
-        In this book, you will learn about all three kinds of interaction. In
-        all three cases, interesting software techniques are needed in order to
-        bring the computations into contact, yet keep them sufficiently at arm's
-        length that they don't compromise each other's reliability. The exciting
-        challenge, then, is supporting controlled interaction. This includes
-        support for computations that share a single computer and interact with
-        one another, as your email and word processing programs do. It also
-        includes support for data storage and network communication. This book
-        describes how all these kinds of support are provided both by operating
-        systems and by additional software layered on top of operating systems,
-        which is known as middleware.
+        Although this text has been carefully written so that the laboratory
+        activities can be omitted without loss of continuity, we hope that most
+        readers will try the laboratory approach and experience the same success
+        that we have observed in our classes.
       </Typography>
     </>
   ),
-  link: "https://gustavus.edu/academics/departments/mathematics-computer-science-and-statistics/max/os-book/osm-rev1.2.1.pdf",
+  link: "https://cdn.preterhuman.net/texts/science_and_technology/artificial_intelligence/Formal%20Syntax%20and%20Semantics%20of%20Programming%20Languages%20-%20Kenneth%20Slonneger.pdf",
   imageSlug:
-    "/book-covers/OperatingSystemsAndMiddleware-SupportingControlledInteractions.png",
+    "/book-covers/FormalSyntaxAndSemanticsOfProgrammingLanguages-ALaboratoryBasedApproach.png",
 }
 
 export default function Syllabus() {
@@ -73,8 +56,8 @@ export default function Syllabus() {
   return (
     <CoursePage
       type="syllabus"
-      courseName="CMSI 3510: Operating Systems"
-      courseNumber={3510}
+      courseName="CMSI 5850: Programming Language Foundations"
+      courseNumber={5850}
     >
       <CourseBox>
         <Sheet
@@ -128,10 +111,21 @@ export default function Syllabus() {
         {tabState === "Introduction" ? (
           <>
             <Speak>
-              My Name is Professor Julian Gonzalez, Welcome to CMSI 3510:
-              Operating Systems! This site is the home for our course!
-              Brightspace will be used in a more supporting manner.
+              My Name is Professor Julian Gonzalez, Welcome to CMSI 5850:
+              Programming Language Foundations. This site is where all our
+              course material will be found. Brightspace will be used in a more
+              supporting manner.
             </Speak>
+            <Speak>
+              The course was graciously provided by Dr. Ray Toal. It's material,
+              organization, and assignments are borrowed due to their very
+              intentional and careful design. I have made some personal
+              modifications related to meta-course aspects such as turning in
+              assignments via a different process and a different grading
+              scheme. I have also added a few more assignments to the course to
+              fully realize the grading system changes to the course.
+            </Speak>
+            {/* 
             <Divider>
               <Chip>Prerequisites</Chip>
             </Divider>
@@ -145,30 +139,33 @@ export default function Syllabus() {
               <Speak>CMSI 2210</Speak> and/or <Speak>CSMI 284</Speak> or
               <Speak>EECE 3140</Speak>
             </Sheet>
+            */}
             <CourseInfoDump
               sectionNumber={1}
-              daysOfWeek={["Monday", "Wednesday"]}
-              timeStart="1:45 PM"
-              timeEnd="3:25 PM"
+              daysOfWeek={["Thursday"]}
+              timeStart="6:00 PM"
+              timeEnd="8:30 PM"
               building="Seaver"
-              roomNumber={304}
+              roomNumber={211}
             />
             <Divider />
             <Speak>
               My contact information, which includes my office, office phone,
               and email, can be found in the footer of this site at all times on
-              any page. I prefer contact by email, but if you come by my office
-              and the door is open feel free to come in and chat!
+              any page. I prefer contact in person via office hours or finding
+              me in the lab space on campus, however I am always available via
+              email.
             </Speak>
             <Speak>
               This course description, as stated before in this course's modal
-              popup on the homepage, is a 4-unit/credit hour hands on course
-              that is designed to teach you the foundational principles of
-              developing directly at the lowest level on a computer. We will
-              engage with these topics in Rust, a popular systems level
-              language. The overarching topics we will cover are Concurrent
-              Programming, Computer Hardware, and how they come together to form
-              Operating Systems.
+              popup on the homepage, is a 4-unit/credit hour (3 units if its
+              CMSI 585) hands on course that is designed to teach you the
+              foundational principles behind Programming Languages. We will
+              engage with these in pure math and a few programming languages.
+              The overarching topics covered in this course include Language
+              Theory, Operational and Denotational Semantics, and important
+              cursory information such as Logic and Discrete Mathematical
+              Foundations.
             </Speak>
             <Speak>
               This course is a fully synchronous, in-person, lecture style
@@ -179,28 +176,19 @@ export default function Syllabus() {
               are free to ask questions or interrupt with inquiry at any time!
             </Speak>
             <Speak>
-              Course work takes the form of programming homeworks, some
-              mandatory in-class activities (I'll give you the dates well in
-              advance), and optional creative endeavors to help raise your
-              grade. It also includes an optional final to do the same.
-              Collaboration is encouraged! However, please turn in your own
-              homework (It makes the grading simpler). If you worked with others
-              or used outside sources for help you are not in trouble, just link
-              what you needed to succeed so that I have an accurate idea of
-              where you are, and everyone is, in the course.
+              Course work takes the form of Written homeworks, some programming
+              sections (I'll give you the dates well in advance), and an
+              optional Final. Collaboration is encouraged! However, please turn
+              in your own homework. If you worked with others or used outside
+              sources for help you are not in trouble, just link what you needed
+              to succeed so that I have an accurate idea of where you are, and
+              everyone is, in the course.
             </Speak>
             <Speak>
               With that in mind, work-load expectations are in line with the
-              University's credit hour policy. Since this is a 4 unit/credit
+              University's credit hour policy. Since this is a 3 unit/credit
               hour course, it is expected that you spend a minimum of 3 hours of
-              work per credit hour (12 hours per week for us). This course
-              encourages a technique called "chiseling" where a student works in
-              smaller "chunks" of work more often to reduce burn-out caused by
-              procrastination. To ensure that a student is supported with this
-              technique, homeworks have been modified with "checkpoints" so that
-              the student understands where their content is used and where the
-              understanding of material is needed to progress. Greater detail
-              will be provided in the assignments themselves.
+              work per credit hour (9 hours per week for us).
             </Speak>
             <Speak>
               This syllabus was specifically designed to group relevant
@@ -224,64 +212,28 @@ export default function Syllabus() {
           </>
         ) : tabState === "Learning Outcomes" ? (
           <>
+            <Speak>By the end of this course you will:</Speak>
             <Speak>
-              The short-hand idea for what we are trying to accomplish is
-              gaining a rigorous foundation of the foundation (Definitely not a
-              contrived manner of saying that) of computer software.
+              Mastered fundamental concepts that underlie programming language
+              syntax and semantics through a comparative study of several
+              languages and their features;
             </Speak>
             <Speak>
-              As a software engineer the abstractions that build our modern day
-              devices have made us comfortable with much of what we do being
-              "magic". Your program just runs even though there was never any
-              machine code in sight. In this course, there is no "magic". We
-              will fully investigate the long and arduous pipeline that our
-              modern computing devices rely on to provide the services we engage
-              with everyday.
+              Learned several new programming languages, language features, and
+              programming paradigms, with a focus on recent advances in
+              programming language technologies;
             </Speak>
             <Speak>
-              This course is designed to tackle the task of "demystifying"
-              Operating Systems by splitting our learning into three major
-              categories: Concurrent Programming, Computer Hardware, and the
-              actual Operating Systems themselves.
+              Become able to write formal syntactic definitions of programming
+              languages;
             </Speak>
             <Speak>
-              Due to the tentative nature of this new course and its layout, I
-              unfortunately cannot guarantee we will dive deeply into, or even
-              get to see all the intricacies that Operating Systems are
-              responsible for managing, however we will do our best to add the
-              following skills to our repertoire:
+              Become able to write denotational and operational semantic
+              definitions of programming languages;
             </Speak>
             <Speak>
-              You will learn about the fundamental representations of concurrent
-              systems and how to program them in Rust. This includes the study
-              of threads, processes, and the synchronization primitives that are
-              used to manage them.
-            </Speak>
-            <Speak>
-              You will learn about the hardware that Operating Systems manage.
-              This includes the study of the CPU, Memory, I/O devices, and the
-              minor board components responsible for piping data around the
-              system.
-            </Speak>
-            <Speak>
-              You will put together the knowledge of the previous two learning
-              outcomes to enable the understanding of how, why, and when
-              Operating systems are designed and implemented. This includes
-              managing scheduling, file systems, and memory management.
-            </Speak>
-            <Speak>
-              Finally, You will learn how to engage with all the previous
-              learning outcomes through the Rust programming language. This
-              includes the study of the Rust language, its syntax, its idioms,
-              and how its design support the running of concurrent programs, the
-              ease of interfacing with hardware, and its use in developing
-              Linux.
-            </Speak>
-            <Speak>
-              These learning outcomes not only give you a strong foundational
-              understanding and experience with Operating Systems, but also
-              provide the necessary context for your to forge further and
-              construct one of your own!
+              and Increase your mathematical maturity in domains related to
+              programming language theory.
             </Speak>
           </>
         ) : tabState === "Required Materials" ? (
@@ -289,17 +241,15 @@ export default function Syllabus() {
             <Speak>
               This course features ONE required material in the form of an
               online, FREE textbook. This textbook is an additional resource for
-              you, but this course is actually constructed from many different
-              sources, including 3 other textbooks!
+              you and homeworks will ask that you read chapters of the book that
+              contain relevant information to the assignments.
             </Speak>
             <Speak>
-              This following materials are required, but can be requested from
-              the university for no additional cost or can be found for FREE on
-              any internet capable devices: a device capable of unfettered
-              access to the terminal (typically any non-mobile computing device
-              like laptops or desktops), Rust, an interactive development
-              environment (I recommend and personally use Microsoft's VSCode),
-              and internet access.
+              This course also requires you to have a computer, consistent
+              internet access, an interactive development environment, and
+              knowledge of operating a terminal. The terminal the course will
+              use is Git Bash and Microsoft's VSCode for convenience, however
+              you are not required to do so as well.
             </Speak>
             <Sheet
               sx={{
@@ -323,58 +273,94 @@ export default function Syllabus() {
             <Speak>
               This is going to be rather "long-winded" but I promise this course
               system was constructed with the student at its heart. To entice
-              you to listen closer, this course features a total of 13
-              assignments and 3 in class activity days. While the activity days
-              are mandatory, what If I said that 7 of those assignments were
-              completely optional? Now that I've got you hooked, lets break it
-              down.
+              you to listen closer, this course features a total of 11
+              assignments and 3 in class activity days, but what If I said that
+              7 of those assignments were completely optional? Now that I've got
+              you hooked, lets break it down.
             </Speak>
             <StandardsDiagram
-              courseID="CMSI 3510: Operating Systems"
-              coursePointTotal={240}
+              courseID="CMSI 5850: Programming Language Foundations"
+              coursePointTotal={400}
               standards={[
                 {
-                  standardID: "Syllabus",
-                  pointTotal: "0",
-                  assignments: [
-                    { id: "HW 0", points: 3 },
-                    { id: "OHW 0", points: 1 },
-                  ],
-                  exams: [{ id: "EX", points: 1, standards: "0" }],
-                },
-                {
-                  standardID: "Concurrent Programming",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 1", points: 30 },
-                    { id: "HW 2", points: 30 },
-                    { id: "AC 1", points: 30 },
+                  standardID: "Theory, Logic, and Math",
+                  pointTotal: 80,
+                  homework: [
+                    {
+                      id: "HW 1",
+                      points: 100,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
                   ],
                 },
                 {
-                  standardID: "Computer Hardware",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 3", points: 30 },
-                    { id: "HW 4", points: 30 },
-                    { id: "AC 2", points: 30 },
-                    { id: "OHW 1", points: 20 },
+                  standardID: "Languages",
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 2", points: 100, gradedWith: "Languages" },
+                    {
+                      id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
                   ],
                 },
                 {
-                  standardID: "Operating Systems",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 5", points: 30 },
-                    { id: "HW 6", points: 30 },
-                    { id: "AC 3", points: 30 },
-                    { id: "OHW 2", points: 20 },
+                  standardID: "Syntax",
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 3", points: 100, gradedWith: "Syntax" },
+                    { id: "OHW 2", points: 20, gradedWith: "Languages" },
+                  ],
+                },
+                {
+                  standardID: "Semantics",
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 4", points: 100, gradedWith: "Semantics" },
+                    { id: "OHW 3", points: 20, gradedWith: "Syntax" },
+                  ],
+                },
+                {
+                  standardID: "More Semantics",
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 5", points: 100, gradedWith: "More Semantics" },
+                    { id: "OHW 4", points: 20, gradedWith: "Semantics" },
                   ],
                 },
                 {
                   standardID: "Final",
-                  assignments: [{ id: "OHW 3", points: 20 }],
-                  exams: [{ id: "OEX", points: "10 per", standards: "[1-3]" }],
+                  homework: [
+                    { id: "OHW 5", points: 20, gradedWith: "More Semantics" },
+                  ],
+                  exams: [
+                    {
+                      id: "OEX S1",
+                      points: 20,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
+                    {
+                      id: "OEX S2",
+                      points: 20,
+                      gradedWith: "Languages",
+                    },
+                    {
+                      id: "OEX S3",
+                      points: 20,
+                      gradedWith: "Syntax",
+                    },
+                    {
+                      id: "OEX S4",
+                      points: 20,
+                      gradedWith: "Semantics",
+                    },
+                    {
+                      id: "OEX S5",
+                      points: 20,
+                      gradedWith: "More Semantics",
+                    },
+                  ],
                 },
               ]}
             />
@@ -402,10 +388,6 @@ export default function Syllabus() {
               earned points to retrieve your grade for each standard and the
               course overall.
             </Speak>
-            <Speak>
-              Standards break the course into 5-week topic segments to help
-              divide up the course material.
-            </Speak>
             <TopicBreak title="Assignments" />
             <Speak>
               Inside each standard is an assignment that can earn you points
@@ -421,10 +403,10 @@ export default function Syllabus() {
               optional. You don't need to do that assignment if you are already
               happy with your point total in your previous standard. Why is the
               optional homework for the previous standard and not the current
-              one? This is because due dates follow a strict 2-week long
-              structure and this is to ensure you have at least 4 weeks worth of
-              time to work on a standard. Thus you turn in the optional with the
-              following homework.
+              one? This is because due dates follow a 2-week long structure and
+              this is to ensure you have at least 4 weeks worth of time to work
+              on a standard. Thus you turn in the optional with the following
+              homework.
             </Speak>
             <Speak>
               Inside normal "HW" is a brief reading portion that points toward
@@ -433,15 +415,11 @@ export default function Syllabus() {
               aren't displayed here for clarity as all the specifics of a
               homework will be specified on its page (accessible from the Blue
               Course Homepage button at the top of the screen). The reading
-              portion will a small section that points toward chapters in the
-              textbook, or other media links, that are useful for the
-              programming section or give additional context to what we saw in
-              investigating the Scheduling problem, the reading section will
-              contain links to any potential YouTube videos, textbook chapters,
-              or other media I believe enhances your learning experience
-              regarding Scheduling. It might be there to help make the problem
-              more "digestible" or even discuss useful programming patterns to
-              keep in mind to prevent common issues.
+              section will contain links to any potential YouTube videos,
+              textbook chapters, or other media I believe enhances your learning
+              experience. It might be there to help make the problem more
+              "digestible" or even discuss useful programming patterns to keep
+              in mind to prevent common issues.
             </Speak>
             <Speak>
               Now that we have an idea of what the assignments look like, when
@@ -472,39 +450,24 @@ export default function Syllabus() {
               communication to me directly, if you turn something into me late
               without notifying me I will assume you are taking advantage of
               this systems instead. The policy is as follows: If you turn in an
-              assignment on Saturday it will lose 5 points regardless of the
+              assignment on Saturday it will lose 10 points regardless of the
               content. If you turn it in on Sunday instead, you will receive the
-              minus 5 points from being after saturday and an additional lost of
-              10 points on top for turning it in on Sunday. If you turn it in on
-              Monday (Without using the Excused late policy system from above)
-              you will receive 0 points for the turn in. There is a 15 min grace
-              period at the end of each day where I will consider the assignment
-              on the previous day instead. So if its due on Friday at 11:59 PM
-              and you turn it in on Saturday at 12:07 AM, I will consider it on
-              Friday. However, were it to be turned in at 12:16 AM, I would
-              consider that on Saturday and you would receive the 5 point
-              deduction.
-            </Speak>
-            <TopicBreak title="Activities" />
-            <Speak>
-              Activities are mandatory in class participation days that are
-              special to this course! Whilst it is a large departure from the
-              rest of my system, I really would like you all to have a unique
-              and engaging hand on experience with the content. These days will
-              never require your computer, mobile devices, or even a pencil from
-              you. All I ask is your presence and I will provide all necessary
-              material to carry out the activity.
-            </Speak>
-            <Speak>
-              These days are designed to make you "feel" the content "in the
-              real world" wether it be through the emotions you'll feel, the
-              tasks you must complete, or the teamwork you must engage in.
+              minus 10 points from being after saturday and an additional lost
+              of 15 points on top for turning it in on Sunday. If you turn it in
+              on Monday (Without using the Excused late policy system from
+              above) you will receive 0 points for the turn in. There is a 15
+              min grace period at the end of each day where I will consider the
+              assignment on the previous day instead. So if its due on Friday at
+              11:59 PM and you turn it in on Saturday at 12:07 AM, I will
+              consider it on Friday. However, were it to be turned in at 12:16
+              AM, I would consider that on Saturday and you would receive the 10
+              point deduction.
             </Speak>
             <TopicBreak title="Final" />
             <Speak>
               The Final Standard is special because they denote a special exam
               in this course. Within is a single exam that is completely
-              optional. it is designed to give you a third opportunity to gather
+              optional. It is designed to give you a third opportunity to gather
               points toward previous standards. If you don't need the points,
               you can safely ignore this exam. It will be sectioned into a few
               problems per standard that the exam covers. The point total
@@ -514,29 +477,6 @@ export default function Syllabus() {
               to do all the questions relevant to the standard you are trying to
               boost, the other questions will be ignored if they are left
               incomplete.
-            </Speak>
-            <TopicBreak title="Syllabus Standard" />
-            <Speak>
-              What about that first standard labeled Syllabus? Why is it so
-              different than the others? This standard is special as it is only
-              going to last for the first week of school and its goal is to
-              familiarize yourself with all{" "}
-              <Vocab
-                definition={
-                  "In reference to all the information you are reading now, and the rest of the course site"
-                }
-              >
-                this
-              </Vocab>
-              ! The point total to pass is 0 because I'm not going to force you
-              to engage with all the "tutorial" tasks, but I will give a special
-              benefit to those who put the effort in (&lt;---- a consistent
-              theme with this course). If you complete the small practice HW
-              you'll get a free 3 points to put into whatever standard you'd
-              like! If you do the practice exam you will get 2 more free points
-              for the same purpose. How do I use these special points? I will
-              keep track of every students special points, all you need to do is
-              email me to use them!
             </Speak>
             <TopicBreak title="Turning Things In" />
             <Speak>
@@ -549,8 +489,7 @@ export default function Syllabus() {
               cannot legally post publicly on my course site. Assuming all goes
               well, you will access Brightspace only for turning in your HW and
               taking Exams. Everything else will be posted here on the current
-              site (jag.prof). The activities will be graded via attendance on
-              the day of the activity.
+              site (jag.prof).
             </Speak>
           </>
         ) : tabState === "Schedule" ? (

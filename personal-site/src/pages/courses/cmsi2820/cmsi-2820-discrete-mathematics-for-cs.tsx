@@ -126,6 +126,12 @@ export default function CMSI2820() {
                             for information and displays the small interactive
                             modules I might have throughout the notes."
                 notesSlug="/cmsi-2820/ln0"
+                sectionRecordings={[
+                  {
+                    buttonText: "Syllabus Day Video",
+                    url: "https://lmula.zoom.us/rec/share/c4g9iZTmiirRTSNAWpaWcabtqdyKO14sxyczRYN7jqA0XPB6b3QF5JSVTGnAk09s.GKI5YhMF5YFyjxHh",
+                  },
+                ]}
               />
               <AssignmentCard
                 title="HW 0: Practicing Homework"
@@ -142,7 +148,7 @@ export default function CMSI2820() {
                 examSlug="/cmsi-2820/ex0"
               />
             </Standard>
-            {/* 
+
             <Standard
               number={1}
               title="Logic"
@@ -158,7 +164,13 @@ export default function CMSI2820() {
                 description="This lecture will cover the basics of many different 
                   systems of logic, where they came from, how they were used, and 
                   what it even means to craft a valid line of reasoning."
-                notesSlug="/cmsi-2820/ln1"
+                notesSlug={""} //"/cmsi-2820/ln1"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/8SEWlygCO6rBCPDuAMm8XupDUZLOHzFHjRuVm5y-hshQzKRxO6_-UIDAUP_7nnPd.lobxIKjJlT8zdTYu",
+                  },
+                ]}
               />
               {/* 
               <NotesCard
@@ -207,9 +219,9 @@ export default function CMSI2820() {
                   translating natural language into logic, and natural deduction proofs!"
                 assignmentSlug="/cmsi-2820/hw1"
               />
-              
+              */}
             </Standard>
-            
+            {/*
             <Standard
               number={2}
               title="Numbers"

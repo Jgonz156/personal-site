@@ -9,7 +9,7 @@ import {
   Sheet,
 } from "@mui/joy"
 import CoursePage from "../components/course-page"
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Speak from "../components/speak"
 import CourseInfoDump from "../../../components/course-info-dump"
 import StandardsDiagram from "../components/standard-diagram"
@@ -17,10 +17,13 @@ import Vocab from "../components/vocab"
 import TopicBreak from "../components/topic-break"
 import TitleBox from "../components/title-box"
 import CourseBox from "../components/course-box"
-import CourseSchedule from "./course-schedule-2820"
+import { SiteContext } from "../../../components/site-context"
+import FallCourseSchedule from "./fall-course-schedule-2820"
+import SpringCourseSchedule from "./spring-course-schedule-2820"
 
 export default function Syllabus() {
   const [tabState, setTabState] = useState("Introduction")
+  const { settings } = useContext(SiteContext)
   return (
     <CoursePage
       type="syllabus"
@@ -298,62 +301,73 @@ export default function Syllabus() {
               standards={[
                 {
                   standardID: "Syllabus",
-                  pointTotal: "0",
-                  assignments: [{ id: "HW 0", points: 3 }],
-                  exams: [{ id: "EX", points: 2, standards: "0" }],
+                  pointTotal: 0,
+                  homework: [{ id: "HW 0", points: 3, gradedWith: "Syllabus" }],
+                  exams: [{ id: "EX S0", points: 2, gradedWith: "Syllabus" }],
                 },
                 {
                   standardID: "Logic",
-                  pointTotal: "80",
-                  assignments: [{ id: "HW 1", points: 100 }],
+                  pointTotal: 80,
+                  homework: [{ id: "HW 1", points: 100, gradedWith: "Logic" }],
                 },
                 {
                   standardID: "Numbers",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 2", points: 100 },
-                    { id: "OHW 1", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 2", points: 100, gradedWith: "Numbers" },
+                    { id: "OHW 1", points: 20, gradedWith: "Logic" },
                   ],
                 },
                 {
                   standardID: "Collections",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 3", points: 100 },
-                    { id: "OHW 2", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 3", points: 100, gradedWith: "Collections" },
+                    { id: "OHW 2", points: 20, gradedWith: "Numbers" },
                   ],
                 },
                 {
                   standardID: "Midterm",
-                  exams: [{ id: "OEX", points: "10 per", standards: "[1-3]" }],
+                  exams: [
+                    { id: "OEX S1", points: 10, gradedWith: "Logic" },
+                    { id: "OEX S2", points: 10, gradedWith: "Numbers" },
+                    { id: "OEX S3", points: 10, gradedWith: "Collections" },
+                  ],
                 },
                 {
                   standardID: "Functions",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 4", points: 100 },
-                    { id: "OHW 3", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 4", points: 100, gradedWith: "Functions" },
+                    { id: "OHW 3", points: 20, gradedWith: "Collections" },
                   ],
                 },
                 {
                   standardID: "Combinatorics",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 5", points: 100 },
-                    { id: "OHW 4", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 5", points: 100, gradedWith: "Combinatorics" },
+                    { id: "OHW 4", points: 20, gradedWith: "Functions" },
                   ],
                 },
                 {
                   standardID: "Graph Theory",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 6", points: 100 },
-                    { id: "OHW 5", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 6", points: 100, gradedWith: "Graph Theory" },
+                    { id: "OHW 5", points: 20, gradedWith: "Combinatorics" },
                   ],
                 },
                 {
                   standardID: "Final",
-                  exams: [{ id: "OEX", points: "10 per", standards: "[4-6]" }],
+                  homework: [
+                    { id: "OHW 6", points: 20, gradedWith: "Graph Theory" },
+                  ],
+                  exams: [
+                    { id: "OEX S4", points: 10, gradedWith: "Functions" },
+                    { id: "OEX S5", points: 10, gradedWith: "Combinatorics" },
+                    { id: "OEX S6", points: 10, gradedWith: "Graph Theory" },
+                  ],
                 },
               ]}
             />
@@ -505,7 +519,11 @@ export default function Syllabus() {
           </>
         ) : tabState === "Schedule" ? (
           <>
-            <CourseSchedule />
+            {settings.FallSemester ? (
+              <FallCourseSchedule />
+            ) : (
+              <SpringCourseSchedule />
+            )}
           </>
         ) : tabState === "Student Responsibilities" ? (
           <>

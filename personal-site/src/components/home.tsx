@@ -21,10 +21,24 @@ import ProjectCard from "./project-card"
 
 export default function Home() {
   const { settings, dispatch } = React.useContext(SiteContext)
-  const courses = [
+  const courses: {
+    title: string
+    code: string
+    gradeLevel: string
+    color: "primary" | "danger"
+    imageUrl: string
+    slug: string
+    status: CourseStatusBadge
+    openModal: () => void
+    closeModal: () => void
+    modalState: boolean
+    courseCardDescription: React.ReactNode
+  }[] = [
     {
       title: "Discrete Mathematics for CS",
       code: "2820",
+      gradeLevel: "Sophomore-Undergraduate",
+      color: "primary",
       imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
       slug: "/cmsi-2820",
       status: settings.Home.Courses.CMSI2820.StatusBadge,
@@ -94,6 +108,8 @@ export default function Home() {
     {
       title: "Operating Systems",
       code: "3510",
+      gradeLevel: "Junior-Undergraduate",
+      color: "primary",
       imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
       slug: "/cmsi-3510",
       status: settings.Home.Courses.CMSI3510.StatusBadge,
@@ -156,6 +172,72 @@ export default function Home() {
             timeEnd="3:25 PM"
             building="Seaver"
             roomNumber={304}
+          />
+        </Sheet>
+      ),
+    },
+    {
+      title: "Programming Language Foundations",
+      code: "5850",
+      gradeLevel: "Graduate",
+      color: "danger",
+      imageUrl: "/lmu-identity/LMU-Campus-Ariel.jpg",
+      slug: "/cmsi-5850",
+      status: settings.Home.Courses.CMSI5850.StatusBadge,
+      openModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSI5850: {
+                ...settings.Home.Courses.CMSI5850,
+                ModalVisible: true,
+              },
+            },
+          },
+        }),
+      closeModal: () =>
+        dispatch({
+          field: "Home",
+          value: {
+            ...settings.Home,
+            Courses: {
+              ...settings.Home.Courses,
+              CMSI5850: {
+                ...settings.Home.Courses.CMSI5850,
+                ModalVisible: false,
+              },
+            },
+          },
+        }),
+      modalState: settings.Home.Courses.CMSI5850.ModalVisible,
+      courseCardDescription: (
+        <Sheet
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flexWrap: "wrap",
+            gap: 4,
+            alignItems: "center",
+          }}
+        >
+          <Sheet>
+            Programming Language Foundations is a 4-unit/credit hour (3 if CMSI
+            585) course that covers the foundational mathematics that underlies
+            the realization and implementation of programming languages. Topics
+            include Lambda Calculus, Type Theory, Denotational Semantics,
+            Operational Semantics, and more. The course uses a variety of
+            languages for examples, and homeworks.
+          </Sheet>
+          <CourseInfoDump
+            sectionNumber={1}
+            daysOfWeek={["Thursday"]}
+            timeStart="6:00 PM"
+            timeEnd="8:30 PM"
+            building="Seaver"
+            roomNumber={211}
           />
         </Sheet>
       ),
@@ -295,6 +377,54 @@ export default function Home() {
       link: "https://link.springer.com/book/10.1007/1-84628-336-1",
       imageSlug:
         "/book-covers/ConcurrencyTheory-CalculiAndAutomataForModellingUntimedAndTimedConcurrentSystems.png",
+    },
+    {
+      title: "The Rust Programming Language",
+      authors: ["Klabnik, Steve", "Nichols, Carol"],
+      pages: 560,
+      abstract: (
+        <>
+          <Typography>
+            The Rust Programming Language, 2nd Edition is the official guide to
+            Rust 2021: an open source systems programming language that will
+            help you write faster, more reliable software. Rust provides control
+            of low-level details along with high-level ergonomics, allowing you
+            to improve productivity and eliminate the hassle traditionally
+            associated with low-level languages.
+          </Typography>
+          <Typography>
+            Klabnik and Nichols, alumni of the Rust Core Team, share their
+            knowledge to help you get the most out of Rust's features so that
+            you can create robust and scalable programs. You'll begin with
+            basics like creating functions, choosing data types, and binding
+            variables, then move on to more advanced concepts, such as:
+          </Typography>
+          <Typography>
+            Ownership and borrowing, lifetimes, generics, traits, and trait
+            objects to communicate your program's constraints to the compiler
+          </Typography>
+          <Typography>
+            Smart pointers and multithreading, and how ownership interacts with
+            them to enable fearless concurrency
+          </Typography>
+          <Typography>
+            How to use Cargo, Rust's built-in package manager, to build,
+            document your code, and manage dependencies
+          </Typography>
+          <Typography>
+            The best ways to test, handle errors, refactor, and take advantage
+            of expressive pattern matching
+          </Typography>
+          <Typography>
+            In addition to the countless code examples, you'll find three
+            chapters dedicated to building complete projects: a number-guessing
+            game, a Rust implementation of a command line tool, and a
+            multithreaded server.
+          </Typography>
+        </>
+      ),
+      link: "https://doc.rust-lang.org/stable/book/title-page.html",
+      imageSlug: "/book-covers/TheRustProgrammingLanguage2ndEdition.png",
     },
     {
       title:

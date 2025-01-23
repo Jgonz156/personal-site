@@ -50,376 +50,321 @@ function ScheduleDay(
   )
 }
 
-export default function CourseSchedule() {
+export default function FallCourseSchedule() {
   const schedule = [
     {
-      date: DateTime.local(2024, 8, 27).startOf("day"),
+      date: DateTime.local(2025, 1, 14).startOf("day"),
       quote: "Lecture Day (LN0)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 8, 28).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 8, 29).startOf("day"),
+      date: DateTime.local(2025, 1, 16).startOf("day"),
       quote: "Lecture Day (LN1)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 2).startOf("day"),
-      quote: "Labor Day!",
+      date: DateTime.local(2025, 1, 20).startOf("day"),
+      quote: "Martin Luther King Jr Day! HW0 Released!",
       dayType: "holiday",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 3).startOf("day"),
+      date: DateTime.local(2025, 1, 21).startOf("day"),
       quote: "Lecture Day (LN2)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 4).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 9, 5).startOf("day"),
+      date: DateTime.local(2025, 1, 23).startOf("day"),
       quote: "Lecture Day (LN3)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 8).startOf("day"),
-      quote: "HW0 Due",
+      date: DateTime.local(2025, 1, 24).startOf("day"),
+      quote: "HW0, OHW0, and EX0 Due, HW1 Released",
       dayType: "homework",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 10).startOf("day"),
+      date: DateTime.local(2025, 1, 28).startOf("day"),
       quote: "Lecture Day (LN4)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 11).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 9, 12).startOf("day"),
+      date: DateTime.local(2025, 1, 30).startOf("day"),
       quote: "Lecture Day (LN5)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 17).startOf("day"),
+      date: DateTime.local(2025, 2, 4).startOf("day"),
       quote: "Lecture Day (LN6)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 18).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 9, 19).startOf("day"),
+      date: DateTime.local(2025, 2, 6).startOf("day"),
       quote: "Lecture Day (LN7)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 20).startOf("day"),
-      quote: "HW1 Due",
+      date: DateTime.local(2025, 2, 7).startOf("day"),
+      quote: "HW1 Due and HW2 Released",
       dayType: "homework",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 24).startOf("day"),
+      date: DateTime.local(2025, 2, 11).startOf("day"),
       quote: "Lecture Day (LN8)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 9, 25).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 9, 26).startOf("day"),
+      date: DateTime.local(2025, 2, 13).startOf("day"),
       quote: "Lecture Day (LN9)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 1).startOf("day"),
+      date: DateTime.local(2025, 2, 18).startOf("day"),
       quote: "Lecture Day (LN10)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 2).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 10, 3).startOf("day"),
+      date: DateTime.local(2025, 2, 20).startOf("day"),
       quote: "Lecture Day (LN11)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 4).startOf("day"),
-      quote: "HW2 Due",
+      date: DateTime.local(2025, 2, 21).startOf("day"),
+      quote: "HW2 and OH1 Due, HW3 Released",
       dayType: "homework",
       dayInfo: <></>,
     },
 
     {
-      date: DateTime.local(2024, 10, 8).startOf("day"),
+      date: DateTime.local(2025, 2, 25).startOf("day"),
       quote: "Lecture Day (LN12)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 9).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 10, 10).startOf("day"),
+      date: DateTime.local(2025, 2, 27).startOf("day"),
       quote: "Lecture Day (LN13)",
       dayType: "lecture",
       dayInfo: <></>,
     },
-
     {
-      date: DateTime.local(2024, 10, 11).startOf("day"),
-      quote: "Autumn Day!",
+      date: DateTime.local(2025, 3, 3).startOf("day"),
+      quote: "Spring Break!",
       dayType: "holiday",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 14).startOf("day"),
+      date: DateTime.local(2025, 3, 4).startOf("day"),
+      quote: "Spring Break!",
+      dayType: "holiday",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 3, 5).startOf("day"),
+      quote: "Spring Break!",
+      dayType: "holiday",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 3, 6).startOf("day"),
+      quote: "Spring Break!",
+      dayType: "holiday",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 3, 7).startOf("day"),
+      quote: "Spring Break!",
+      dayType: "holiday",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 3, 9).startOf("day"),
       quote: "Midterm Release Day",
       dayType: "midterm",
       dayInfo: <></>,
     },
 
     {
-      date: DateTime.local(2024, 10, 15).startOf("day"),
+      date: DateTime.local(2025, 3, 11).startOf("day"),
       quote: "Lecture Day (LN14)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 16).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 10, 17).startOf("day"),
+      date: DateTime.local(2025, 3, 13).startOf("day"),
       quote: "Lecture Day (LN15)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 18).startOf("day"),
-      quote: "HW3 Due",
+      date: DateTime.local(2025, 3, 14).startOf("day"),
+      quote: "HW3 and OHW2 Due, HW4 Released",
       dayType: "homework",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 20).startOf("day"),
+      date: DateTime.local(2025, 3, 15).startOf("day"),
       quote: "Midterm Due",
       dayType: "midterm",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 22).startOf("day"),
+      date: DateTime.local(2025, 3, 18).startOf("day"),
       quote: "Lecture Day (LN16)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 23).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 10, 24).startOf("day"),
+      date: DateTime.local(2025, 3, 20).startOf("day"),
       quote: "Lecture Day (LN17)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 29).startOf("day"),
+      date: DateTime.local(2025, 3, 25).startOf("day"),
       quote: "Lecture Day (LN18)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 10, 30).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 10, 31).startOf("day"),
+      date: DateTime.local(2025, 3, 27).startOf("day"),
       quote: "Lecture Day (LN19)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 11, 1).startOf("day"),
-      quote: "HW4 Due",
+      date: DateTime.local(2025, 3, 28).startOf("day"),
+      quote: "HW4 and OHW3 Due, HW5 Released",
       dayType: "homework",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 11, 5).startOf("day"),
+      date: DateTime.local(2025, 3, 31).startOf("day"),
+      quote: "Cesar Chavez Day!",
+      dayType: "holiday",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 4, 1).startOf("day"),
       quote: "Lecture Day (LN20)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 11, 6).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 7).startOf("day"),
+      date: DateTime.local(2025, 4, 3).startOf("day"),
       quote: "Lecture Day (LN21)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 11, 12).startOf("day"),
+      date: DateTime.local(2025, 4, 8).startOf("day"),
       quote: "Lecture Day (LN22)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 11, 13).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 14).startOf("day"),
+      date: DateTime.local(2025, 4, 10).startOf("day"),
       quote: "Lecture Day (LN23)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 11, 15).startOf("day"),
-      quote: "HW5 Due",
+      date: DateTime.local(2025, 4, 11).startOf("day"),
+      quote: "HW5 and OHW4 Due, HW6 Released",
       dayType: "homework",
       dayInfo: <></>,
     },
+
     {
-      date: DateTime.local(2024, 11, 19).startOf("day"),
-      quote: "Lecture Day (LN24)",
-      dayType: "lecture",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 20).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 21).startOf("day"),
-      quote: "Lecture Day (LN25)",
-      dayType: "lecture",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 22).startOf("day"),
-      quote: "HW6 Due",
-      dayType: "homework",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 26).startOf("day"),
+      date: DateTime.local(2025, 4, 15).startOf("day"),
       quote:
-        "Normally There Is Class Today, but Have The Day Off In Thanks. Enjoy Thanksgiving!",
-      dayType: "NO CLASS",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 27).startOf("day"),
-      quote: "Thanksgiving!",
-      dayType: "holiday",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 11, 28).startOf("day"),
-      quote: "Thanksgiving!",
+        "NO CLASS! Normally There Is Class Today, However Enjoy Easter Break!",
       dayType: "holiday",
       dayInfo: <></>,
     },
 
     {
-      date: DateTime.local(2024, 11, 29).startOf("day"),
-      quote: "Thanksgiving!",
+      date: DateTime.local(2025, 4, 16).startOf("day"),
+      quote: "Easter Break!",
       dayType: "holiday",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 12, 3).startOf("day"),
+      date: DateTime.local(2025, 4, 17).startOf("day"),
+      quote: "Easter Break!",
+      dayType: "holiday",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 4, 18).startOf("day"),
+      quote: "Easter Break!",
+      dayType: "holiday",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 4, 22).startOf("day"),
+      quote: "Lecture Day (LN24)",
+      dayType: "lecture",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 4, 24).startOf("day"),
+      quote: "Lecture Day (LN25)",
+      dayType: "lecture",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 4, 29).startOf("day"),
       quote: "Lecture Day (LN26)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 12, 4).startOf("day"),
-      quote: "Office Hours 9 AM - 12 PM, 2 PM - 5 PM",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 12, 5).startOf("day"),
+      date: DateTime.local(2025, 5, 1).startOf("day"),
       quote: "Lecture Day (LN27)",
       dayType: "lecture",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 12, 9).startOf("day"),
+      date: DateTime.local(2025, 5, 2).startOf("day"),
+      quote: "HW6 and OHW5 Due",
+      dayType: "homework",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 5, 6).startOf("day"),
+      quote: "Lecture Day (NO MATERIAL)",
+      dayType: "lecture",
+      dayInfo: <></>,
+    },
+    {
+      date: DateTime.local(2025, 5, 8).startOf("day"),
       quote: "Final Release Day",
       dayType: "finals",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 12, 10).startOf("day"),
-      quote: "Finals Study Day 6 PM - 8 PM Seaver 304",
-      dayType: "office hours",
+      date: DateTime.local(2025, 5, 13).startOf("day"),
+      quote: "OHW6 Due",
+      dayType: "homework",
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2024, 12, 12).startOf("day"),
-      quote:
-        "Finals Study Day 8 AM - 10 AM Pereira 201 , 11 AM - 1 PM Pereira 109",
-      dayType: "office hours",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2024, 12, 13).startOf("day"),
+      date: DateTime.local(2025, 5, 14).startOf("day"),
       quote: "Final Due",
       dayType: "finals",
       dayInfo: <></>,
@@ -459,15 +404,15 @@ export default function CourseSchedule() {
           Legend
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="primary"> </Avatar>
-            <Typography> : Lecture Day</Typography>
+            <Typography> : Lecture</Typography>
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="success"> </Avatar>
-            <Typography> : Homework Due Day</Typography>
+            <Typography> : Homework</Typography>
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="danger"> </Avatar>
-            <Typography> : Exam Release/Due Day</Typography>
+            <Typography> : Exam</Typography>
           </Sheet>
           <Sheet sx={{ display: "flex", alignItems: "center" }}>
             <Avatar color="warning"> </Avatar>

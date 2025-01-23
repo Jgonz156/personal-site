@@ -1,7 +1,7 @@
 import CoursePage from "../../../components/course-page"
 import CourseBox from "../../../components/course-box"
 
-export default function TSPL() {
+export default function FM() {
   return (
     <CoursePage
       type="notes"
@@ -26,8 +26,8 @@ export default function TSPL() {
     >
       <CourseBox>
         <iframe
-          style={{ height: "33000px" }}
-          src="https://cs.lmu.edu/~ray/notes/plstudy/"
+          style={{ height: "38000px" }}
+          src="https://cs.lmu.edu/~ray/notes/mathreview/"
         />
       </CourseBox>
     </CoursePage>

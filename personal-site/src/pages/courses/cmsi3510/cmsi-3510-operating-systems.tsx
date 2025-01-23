@@ -144,66 +144,48 @@ export default function CMSI3510() {
               />
               */}
             </Standard>
-            {/* 
+
             <Standard
               number={1}
-              title="Logic"
-              description="In this standard we will investigate the mathematical
-                  underpinnings of logical argumentation, deductive reasoning,
-                  and the symbology that is used to represent these ideas. This
-                  means taking a brief look at different systems of logic, a deeper
-                  dive into intuitionistic logic, and what that means for
-                  propositional and predicate reasoning"
+              title="Concurrent Programming"
+              description="In this standard we will learn a brand new programming language called Rust!
+                Learning Rust requires us to engage with systems programming, memory management, and, most importantly, concurrency!
+                We will investigate, in Rust, how to create threads, synchronization primitives used to protect shared data, and modern concurrency
+                patterns to avoid common pitfalls, such as deadlocks, livelocks, data races, and more!"
             >
               <NotesCard
-                title="LN 1: Information and Its Consequences..."
-                description="This lecture will cover the basics of many different 
-                  systems of logic, where they came from, how they were used, and 
-                  what it even means to craft a valid line of reasoning."
-                notesSlug="/cmsi-2820/ln1"
+                title="LN 1: Shaking on the Rust"
+                description="In this lecture, we begin by getting a context for what Syntax and Semantics are in programming languages to 
+                    appropriately set ourselves up for learning Rust. We then take a 'sneak peak' at the Rust language as is solves the 
+                    Change Making Problem."
+                notesSlug="" //"/cmsi-3510/ln1"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/PLwKIyzTMabBtCxm-aT-7vswCLzer2D1mT-xySwyg6gL9K6m9aqzRo6F14o2zb4R.AFLsJSASj4l4z3LW?startTime=1724950470000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/jP73Zfg7O5sNzdquC72oUJ-1tPPjWPAhLB6S2Pxq4amaWcGmbxgZ66HsV0zPHOOo.tG4mpP4ukk7WgvFT?startTime=1724964485000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Tk5oWLFy66y96M5gOnO9Zp2E--QOQYPtkCt4skZXSw0qukH5q3IdQnVyz2VJwyp2.Hsgmo0dA0SOOO4zR?startTime=1724979866000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/4SAbrt2tDKdvgfyT2JM4o2s6zUuUTRFAgdK5M8B5a3-zH4VzJe5WYRhcVWOAFYIu.IrnfAEAivlXg4VLg",
                   },
                 ]}
               />
 
               <NotesCard
-                title="LN 2: Making Logical Connections"
-                description="This lecture will be an introduction to 
-                  intuitionistic logic more formally. We will cover propositions, their 
-                  variables, compound formulas, and logical connectives."
-                notesSlug="/cmsi-2820/ln2"
+                title="LN 2: Variable Variables"
+                description="In this lecture, we begin our full investigation of Rust by looking at the syntax and semantics of Variable Declarations.
+                    We cover on many topics including memory management, ownership, scope, and mutability. We then turn to VSCode to see examples."
+                notesSlug="" //"/cmsi-3510/ln2"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/fYWflXiG0AQXlPMc-euVOauehDFiDyteNmdSggFmGXySfoU_sC_0dt4iGNb0fwTL.FLWNuYlzW16_IRRX?startTime=1725382524000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/3zceh-ULXuGwuRHuwuRoBpk14_gD9a_7Y9_EvZ4xyqMvH9Hx2nhzrAp6FYnezKxh.YkXxb-iXG6SHTVqA?startTime=1725396418000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Yf2GeeYwf3JFYh8tPNIBDuKbziJINqM-wloM7VWSzFII2qQ5EWhSfEULZDQLZzE.QVTY5ZR5896GpR53?startTime=1725411758000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/t1gABkU0lL08yFbLsvjebh3-NqhtBJxXXUwQAZfhuXJ_J6Z5Y5HrliQfDImwq88.tlwFBTqGt12lfOtX",
                   },
                 ]}
               />
+              {/* 
               <NotesCard
                 title="LN 3: Assumptions Make an Argument out of You and Me"
                 description="This lecture expands on propositional logic by 
                   extending our inferential abilities for each of our logical
                    connectives by exploring Natural Deduction"
-                notesSlug="/cmsi-2820/ln3"
+                notesSlug="/cmsi-3510/ln3"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -221,10 +203,11 @@ export default function CMSI3510() {
                 description="In this homework you will get practice with logical 
                   terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, 
                   translating natural language into logic, and natural deduction proofs!"
-                assignmentSlug="/cmsi-2820/hw1"
+                assignmentSlug="/cmsi-3510/hw1"
               />
+                */}
             </Standard>
-
+            {/* 
             <Standard
               number={2}
               title="Numbers"
@@ -235,7 +218,7 @@ export default function CMSI3510() {
               <NotesCard
                 title="LN 4: Primitive Beginnings"
                 description="In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory"
-                notesSlug="/cmsi-2820/ln4"
+                notesSlug="/cmsi-3510/ln4"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -252,7 +235,7 @@ export default function CMSI3510() {
               <NotesCard
                 title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
                 description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
-                notesSlug="/cmsi-2820/ln5"
+                notesSlug="/cmsi-3510/ln5"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -272,7 +255,7 @@ export default function CMSI3510() {
               <NotesCard
                 title="LN 6: The Integers, The Booleans' Infinite In-laws"
                 description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
-                notesSlug="/cmsi-2820/ln6"
+                notesSlug="/cmsi-3510/ln6"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -293,7 +276,7 @@ export default function CMSI3510() {
                 title="LN 7: Division without Decimals? Positive Numbers that Add 
                   to Zero? What is this Place?!?"
                 description="In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic."
-                notesSlug="/cmsi-2820/ln7"
+                notesSlug="/cmsi-3510/ln7"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -312,7 +295,7 @@ export default function CMSI3510() {
               <AssignmentCard
                 title="HW 2: Counting Sheep"
                 description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
-                assignmentSlug="/cmsi-2820/hw2"
+                assignmentSlug="/cmsi-3510/hw2"
               />
             </Standard>
 
@@ -326,7 +309,7 @@ export default function CMSI3510() {
               <NotesCard
                 title="LN 8: Getting Our Types in a Row"
                 description="In this lecture we formally investigate product types in type theory including their properties, operations, and how they are used to build up more complex types."
-                notesSlug="/cmsi-2820/ln8"
+                notesSlug="/cmsi-3510/ln8"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -346,7 +329,7 @@ export default function CMSI3510() {
               <NotesCard
                 title="LN 9: Settling In"
                 description="In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators."
-                notesSlug="/cmsi-2820/ln9"
+                notesSlug="/cmsi-3510/ln9"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -395,7 +378,7 @@ export default function CMSI3510() {
               <AssignmentCard
                 title="HW 3: Storage Wars"
                 description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
-                assignmentSlug="/cmsi-2820/hw3"
+                assignmentSlug="/cmsi-3510/hw3"
               />
             </Standard>
 
@@ -408,7 +391,7 @@ export default function CMSI3510() {
               <ExamCard
                 title="EX 1: Midterm Exam"
                 description="This exam is 15 questions total and worth 30 points. It covers logic, numbers, and collections."
-                examSlug="/cmsi-2820/ex1"
+                examSlug="/cmsi-3510/ex1"
               />
             </Standard>
 
@@ -500,7 +483,7 @@ export default function CMSI3510() {
               <AssignmentCard
                 title="HW 4: Silence of the Lambdas"
                 description="In this homework we practice lambdas, their reductions, their properties, and their creation!"
-                assignmentSlug="/cmsi-2820/hw4"
+                assignmentSlug="/cmsi-3510/hw4"
               />
             </Standard>
             <Standard
@@ -566,7 +549,7 @@ export default function CMSI3510() {
               <AssignmentCard
                 title="HW 5: Order in the Court!"
                 description="In this homework we investigate counting, combinations, permutations, and the many tools and intuitions that can be pulled from them!"
-                assignmentSlug="/cmsi-2820/hw5"
+                assignmentSlug="/cmsi-3510/hw5"
               />
             </Standard>
 
@@ -638,7 +621,7 @@ export default function CMSI3510() {
               <NotesCard
                 title="LN 23: Spanning the Globe"
                 description="In this lecture we cover a few more special graphs in the form of trees and forests. We then end the graph theory unit by investigating minimum spanning trees and how their solutions and structures represent many real-world problems."
-                notesSlug="/cmsi-2820/ln23"
+                notesSlug="/cmsi-3510/ln23"
                 sectionRecordings={[
                   {
                     buttonText: "Section 1 Video",
@@ -657,7 +640,7 @@ export default function CMSI3510() {
               <AssignmentCard
                 title="HW 6: (Warning: Graphic Content)"
                 description="In this homework we investigate all things Graph theory! This includes many types of graphs such as complete, bipartite, trees, and forests. We also investigate many of the properties and operations that can be performed such as isomorphisms, connectedness, and cycles."
-                assignmentSlug="/cmsi-2820/hw6"
+                assignmentSlug="/cmsi-3510/hw6"
               />
             </Standard>
 
@@ -708,7 +691,7 @@ export default function CMSI3510() {
                 <AssignmentCard
                   title="HW 7: Set Theory!"
                   description=""
-                  assignmentSlug="/cmsi-2820/hw5"
+                  assignmentSlug="/cmsi-3510/hw5"
                 />
             </Standard>
               <Standard
@@ -720,12 +703,12 @@ export default function CMSI3510() {
                 <NotesCard
                   title="LN 27: Pure Discrete Mathematics and Artificial Intelligence"
                   description=""
-                  notesSlug="/cmsi-2820/ln25"
+                  notesSlug="/cmsi-3510/ln25"
                 />
                 <NotesCard
                   title="LN 28: Games and Systems Architecture Pipelines"
                   description=""
-                  notesSlug="/cmsi-2820/ln26"
+                  notesSlug="/cmsi-3510/ln26"
                 />
               </Standard>
               <Standard
@@ -737,7 +720,7 @@ export default function CMSI3510() {
                 <ExamCard
                   title="EX 2: FINAL Exam"
                   description=""
-                  examSlug="/cmsi-2820/ex2"
+                  examSlug="/cmsi-3510/ex2"
                 />
               </Standard>
               */}

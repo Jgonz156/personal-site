@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/joy"
 import CoursePage from "../components/course-page"
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Speak from "../components/speak"
 import CourseInfoDump from "../../../components/course-info-dump"
 import StandardsDiagram from "../components/standard-diagram"
@@ -18,10 +18,60 @@ import Vocab from "../components/vocab"
 import TopicBreak from "../components/topic-break"
 import TitleBox from "../components/title-box"
 import CourseBox from "../components/course-box"
-import CourseSchedule from "./course-schedule-3510"
 import BookCard from "../../../components/book-card"
+import FallCourseSchedule from "../cmsi2820/fall-course-schedule-2820"
+import SpringCourseSchedule from "./spring-course-schedule-3510"
+import { SiteContext } from "../../../components/site-context"
 
-const textbook = {
+const CPTextbook = {
+  title: "The Rust Programming Language",
+  authors: ["Klabnik, Steve", "Nichols, Carol"],
+  pages: 560,
+  abstract: (
+    <>
+      <Typography>
+        The Rust Programming Language, 2nd Edition is the official guide to Rust
+        2021: an open source systems programming language that will help you
+        write faster, more reliable software. Rust provides control of low-level
+        details along with high-level ergonomics, allowing you to improve
+        productivity and eliminate the hassle traditionally associated with
+        low-level languages.
+      </Typography>
+      <Typography>
+        Klabnik and Nichols, alumni of the Rust Core Team, share their knowledge
+        to help you get the most out of Rust's features so that you can create
+        robust and scalable programs. You'll begin with basics like creating
+        functions, choosing data types, and binding variables, then move on to
+        more advanced concepts, such as:
+      </Typography>
+      <Typography>
+        Ownership and borrowing, lifetimes, generics, traits, and trait objects
+        to communicate your program's constraints to the compiler
+      </Typography>
+      <Typography>
+        Smart pointers and multithreading, and how ownership interacts with them
+        to enable fearless concurrency
+      </Typography>
+      <Typography>
+        How to use Cargo, Rust's built-in package manager, to build, document
+        your code, and manage dependencies
+      </Typography>
+      <Typography>
+        The best ways to test, handle errors, refactor, and take advantage of
+        expressive pattern matching
+      </Typography>
+      <Typography>
+        In addition to the countless code examples, you'll find three chapters
+        dedicated to building complete projects: a number-guessing game, a Rust
+        implementation of a command line tool, and a multithreaded server.
+      </Typography>
+    </>
+  ),
+  link: "https://doc.rust-lang.org/stable/book/title-page.html",
+  imageSlug: "/book-covers/TheRustProgrammingLanguage2ndEdition.png",
+}
+
+const OSTextbook = {
   title: "Operating Systems and Middleware: Supporting Controlled Interaction",
   authors: ["Hailperin, Max"],
   pages: 559,
@@ -70,6 +120,7 @@ const textbook = {
 
 export default function Syllabus() {
   const [tabState, setTabState] = useState("Introduction")
+  const { settings } = useContext(SiteContext)
   return (
     <CoursePage
       type="syllabus"
@@ -304,11 +355,12 @@ export default function Syllabus() {
             <Sheet
               sx={{
                 display: "flex",
-                justifyContent: "center",
+                justifyContent: "space-evenly",
                 alignItems: "center",
               }}
             >
-              <BookCard {...textbook} />
+              <BookCard {...CPTextbook} />
+              <BookCard {...OSTextbook} />
             </Sheet>
           </>
         ) : tabState === "Grading" ? (
@@ -335,46 +387,88 @@ export default function Syllabus() {
               standards={[
                 {
                   standardID: "Syllabus",
-                  pointTotal: "0",
-                  assignments: [
-                    { id: "HW 0", points: 3 },
-                    { id: "OHW 0", points: 1 },
+                  pointTotal: 0,
+                  homework: [
+                    { id: "HW 0", points: 3, gradedWith: "Syllabus" },
+                    { id: "OHW 0", points: 1, gradedWith: "Syllabus" },
                   ],
-                  exams: [{ id: "EX", points: 1, standards: "0" }],
+                  exams: [{ id: "EX S0", points: 1, gradedWith: "Syllabus" }],
                 },
                 {
                   standardID: "Concurrent Programming",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 1", points: 30 },
-                    { id: "HW 2", points: 30 },
-                    { id: "AC 1", points: 30 },
+                  pointTotal: 80,
+                  homework: [
+                    {
+                      id: "HW 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "HW 2",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "AC 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
                   ],
                 },
                 {
                   standardID: "Computer Hardware",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 3", points: 30 },
-                    { id: "HW 4", points: 30 },
-                    { id: "AC 2", points: 30 },
-                    { id: "OHW 1", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 3", points: 30, gradedWith: "Computer Hardware" },
+                    { id: "HW 4", points: 30, gradedWith: "Computer Hardware" },
+                    { id: "AC 2", points: 30, gradedWith: "Computer Hardware" },
+                    {
+                      id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Concurrent Programming",
+                    },
                   ],
                 },
                 {
                   standardID: "Operating Systems",
-                  pointTotal: "80",
-                  assignments: [
-                    { id: "HW 5", points: 30 },
-                    { id: "HW 6", points: 30 },
-                    { id: "AC 3", points: 30 },
-                    { id: "OHW 2", points: 20 },
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 5", points: 30, gradedWith: "Operating Systems" },
+                    { id: "HW 6", points: 30, gradedWith: "Operating Systems" },
+                    { id: "AC 3", points: 30, gradedWith: "Operating Systems" },
+                    {
+                      id: "OHW 2",
+                      points: 20,
+                      gradedWith: "Computer Hardware",
+                    },
                   ],
                 },
                 {
                   standardID: "Final",
-                  assignments: [{ id: "OHW 3", points: 20 }],
-                  exams: [{ id: "OEX", points: "10 per", standards: "[1-3]" }],
+                  homework: [
+                    {
+                      id: "OHW 3",
+                      points: 20,
+                      gradedWith: "Operating Systems",
+                    },
+                  ],
+                  exams: [
+                    {
+                      id: "OEX S1",
+                      points: 10,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "OEX S2",
+                      points: 10,
+                      gradedWith: "Computer Hardware",
+                    },
+                    {
+                      id: "OEX S3",
+                      points: 10,
+                      gradedWith: "Operating Systems",
+                    },
+                  ],
                 },
               ]}
             />
@@ -555,7 +649,11 @@ export default function Syllabus() {
           </>
         ) : tabState === "Schedule" ? (
           <>
-            <CourseSchedule />
+            {settings.FallSemester ? (
+              <FallCourseSchedule />
+            ) : (
+              <SpringCourseSchedule />
+            )}
           </>
         ) : tabState === "Student Responsibilities" ? (
           <>
