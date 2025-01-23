@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/joy"
 import CoursePage from "../components/course-page"
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Speak from "../components/speak"
 import CourseInfoDump from "../../../components/course-info-dump"
 import StandardsDiagram from "../components/standard-diagram"
@@ -18,8 +18,10 @@ import Vocab from "../components/vocab"
 import TopicBreak from "../components/topic-break"
 import TitleBox from "../components/title-box"
 import CourseBox from "../components/course-box"
-import CourseSchedule from "./course-schedule-3510"
 import BookCard from "../../../components/book-card"
+import FallCourseSchedule from "../cmsi2820/fall-course-schedule-2820"
+import SpringCourseSchedule from "./spring-course-schedule-3510"
+import { SiteContext } from "../../../components/site-context"
 
 const textbook = {
   title: "Operating Systems and Middleware: Supporting Controlled Interaction",
@@ -70,6 +72,7 @@ const textbook = {
 
 export default function Syllabus() {
   const [tabState, setTabState] = useState("Introduction")
+  const { settings } = useContext(SiteContext)
   return (
     <CoursePage
       type="syllabus"
@@ -597,7 +600,11 @@ export default function Syllabus() {
           </>
         ) : tabState === "Schedule" ? (
           <>
-            <CourseSchedule />
+            {settings.FallSemester ? (
+              <FallCourseSchedule />
+            ) : (
+              <SpringCourseSchedule />
+            )}
           </>
         ) : tabState === "Student Responsibilities" ? (
           <>
