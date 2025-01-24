@@ -131,6 +131,12 @@ export default function CMSI5850() {
                 title="Theories in Computer Science"
                 description="In these notes we will cover the major theories of computer science. This includes Language, Automata, Computability, and Complexity Theory."
                 notesSlug="/cmsi-5850/theories-in-computer-science"
+                sectionRecordings={[
+                  {
+                    url: "https://lmula.zoom.us/rec/share/ZipenMRIxbpF7uodT5oK3f-3GbAzyWoAfJXsjdkynckrZJAtqznUWJn6pLzS7YWv.jGzunmjIEcOVkEVA",
+                    buttonText: "Class Recording",
+                  },
+                ]}
               />
               <NotesCard
                 title="Logic"
