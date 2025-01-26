@@ -11,6 +11,7 @@ import TopicBox from "../../components/topic-box"
 import Vocab from "../../components/vocab"
 import TopicBreak from "../../components/topic-break"
 import { MathJax } from "better-react-mathjax"
+import ImageBox from "../../components/image-box"
 
 export default function Homework1() {
   return (
@@ -21,7 +22,7 @@ export default function Homework1() {
     >
       <CourseBox>
         <TitleBox title="HW1: Think Class! Think!" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 9, 20, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 2, 7, 23, 59)} />
         <TopicBox
           topics={[
             "Intuitionistic Logic",
@@ -46,7 +47,7 @@ export default function Homework1() {
         </Speak>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Written Section" quote="Points: 70" />
+        <TitleBox title="Written Section" quote="Points: 75" />
         <Speak>
           We saw in LN1 that logic is a wide and varied field with many
           interpretations. Here we will keep things simple with our mental model
@@ -119,7 +120,7 @@ export default function Homework1() {
           it is analogous to declaring something that doesn't exist! So, in the
           following homework make sure not to make this mistake!
         </Speak>
-
+        {/* 
         <QuestionBox points={"10 total"} qid="Q1">
           <MathJax
             inline
@@ -154,14 +155,49 @@ export default function Homework1() {
             Evaluate: "John does not like the word 'jalapenos'" (Note the n)
           </QuestionBox>
         </QuestionBox>
-
+*/}
+        <QuestionBox points={"10 total"} qid="Q1">
+          <MathJax inline>
+            {`Given the following Image, based on the popular Children's Book Series I Spy
+            , evaluate the following propositions. The reality that we are working with is
+             the image below, nothing more and nothing less.
+            Evaluate the propositions in that context as only one of the following,
+             \\(T:True,\\text{ } F:False,\\text{ or }\\bot :Absurd\\), and explain your reasoning`}
+          </MathJax>
+          <ImageBox
+            images={[{ url: "/public/cmsi-2820/HW1-ISPY.png", caption: "" }]}
+          />
+          <QuestionBox points={1} qid="Q1 a">
+            Evaluate: "There are exactly 2 Nutcrackers."
+          </QuestionBox>
+          <QuestionBox points={1} qid="Q1 b">
+            Evaluate: "In between 2 oranges there is a christmas tree."
+          </QuestionBox>
+          <QuestionBox points={1} qid="Q1 c">
+            Evaluate: "There are 4 planes."
+          </QuestionBox>
+          <QuestionBox points={1} qid="Q1 d">
+            Evaluate: "There is a hairbrush." (Careful)
+          </QuestionBox>
+          <QuestionBox points={2} qid="Q1 e">
+            Evaluate: "There is a red coin with a Snow Man on it."
+          </QuestionBox>
+          <QuestionBox points={2} qid="Q1 f">
+            Evaluate: "There is no such thing as a pine cone."
+          </QuestionBox>
+          <QuestionBox points={2} qid="Q1 g">
+            Evaluate: "There is a little Santa."
+          </QuestionBox>
+        </QuestionBox>
+        {/**
         <QuestionBox points={5} qid="Q2">
           As we saw in lecture the phrase, "I am something unknowable" provided
           a real challenge for evaluation. Restate and explain the issues
           evaluating this statement as True or False and then provide an
           explanation as to why we need absurdity in our logical system.
         </QuestionBox>
-        <QuestionBox points={5} qid="Q3">
+         */}
+        <QuestionBox points={5} qid="Q2">
           The mental image we made in lecture is valuable as it helps us
           organize graphically what is occurring in reality. Redraw a different
           version of the same visual model with the following requirements:
@@ -171,7 +207,6 @@ export default function Homework1() {
           \\text{3. One "Interaction" between each of those "Things"} \\\\
           \\text{4. The visual model clearly divides reality from absurdity} \\\\
           \\text{5. The visual model does not include previously discussed "Things"} \\\\
-
           \\end{matrix}$$`}</MathJax>
         </QuestionBox>
 
@@ -195,25 +230,29 @@ export default function Homework1() {
           been adjusted to reflect this and those problems have been moved to
           LN3's section.
         </Speak>
-        <QuestionBox points={"8 total"} qid="Q4">
-          In class we saw four logical connectives that we can use to form
-          larger compound propositions. In your own words, give a brief
-          explanation as to how each of these logical connectives operate and
-          give an example usage for each.
-          <QuestionBox points={2} qid={"Q4 a"}>
-            Describe and give an example of Logical Equivalence
+        <QuestionBox points={"10 total"} qid="Q3">
+          In class we saw 5 logical connectives that we can use to form larger
+          compound propositions. In your own words, give a brief explanation as
+          to how each of these logical connectives operate and give an example
+          usage for each.
+          <QuestionBox points={2} qid={"Q3 a"}>
+            Describe and give an example of Logical Equivalence. (Make sure to
+            specify some reality)
           </QuestionBox>
-          <QuestionBox points={2} qid={"Q4 b"}>
+          <QuestionBox points={2} qid={"Q3 b"}>
             Describe and give an example of Negation.
           </QuestionBox>
-          <QuestionBox points={2} qid={"Q4 c"}>
+          <QuestionBox points={2} qid={"Q3 c"}>
             Describe and give an example of Conjunction.
           </QuestionBox>
-          <QuestionBox points={2} qid={"Q4 d"}>
+          <QuestionBox points={2} qid={"Q3 d"}>
             Describe and give an example of Disjunction.
           </QuestionBox>
+          <QuestionBox points={2} qid={"Q3 d"}>
+            Describe and give an example of Implication.
+          </QuestionBox>
         </QuestionBox>
-        <QuestionBox points={"12 total"} qid="Q5">
+        <QuestionBox points={"12 total"} qid="Q4">
           <MathJax>{`Given the following finite context below, evaluate whether the
           following compound propositions are True, False, or Absurd. Since we
           have not defined the exact order of operations (PEMDAS) I will define it now.
@@ -227,45 +266,43 @@ export default function Homework1() {
           A:True \\\\
           B:False 
           \\end{cases}$$`}</MathJax>
-          <QuestionBox points={1} qid={"Q5 a"}>
+          <QuestionBox points={1} qid={"Q4 a"}>
             <MathJax>{`$$A\\land \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 b"}>
+          <QuestionBox points={1} qid={"Q4 b"}>
             <MathJax>{`$$B\\lor \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 c"}>
+          <QuestionBox points={1} qid={"Q4 c"}>
             <MathJax>{`$$(B \\lor A) \\land B$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 d"}>
+          <QuestionBox points={1} qid={"Q4 d"}>
             <MathJax>{`$$\\neg(A \\land B)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 e"}>
+          <QuestionBox points={1} qid={"Q4 e"}>
             <MathJax>{`$$(A \\lor \\bot) \\lor B$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={1} qid={"Q5 f"}>
+          <QuestionBox points={1} qid={"Q4 f"}>
             <MathJax>{`$$\\neg(A \\lor B) \\equiv (\\neg A \\land \\neg B)$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={2} qid={"Q5 g"}>
+          <QuestionBox points={2} qid={"Q4 g"}>
             <MathJax>{`$$\\bot\\equiv \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={2} qid={"Q5 h"}>
+          <QuestionBox points={2} qid={"Q4 h"}>
             <MathJax>{`$$\\neg \\bot$$`}</MathJax>
           </QuestionBox>
-          <QuestionBox points={2} qid={"Q5 i"}>
+          <QuestionBox points={2} qid={"Q4 i"}>
             <MathJax>{`$$((A \\lor B) \\land A) \\equiv ((A \\land B) \\lor B)$$`}</MathJax>
           </QuestionBox>
         </QuestionBox>
-        <QuestionBox points={5} qid={"Q6"}>
+        <QuestionBox points={5} qid={"Q5"}>
           Interestingly, logical connectives can be used to explain properties
           of one another. We saw that in class we could use logical equivalence
           to help define the operation of other operators and that negation
-          allowed us to "flip" from positive information to negative
-          information. We know that Conjunction and Disjunction are duals and
-          are opposites. With that information, can you write the compound
-          propositions that display that Conjunction and Disjunction are duals
-          (Opposites)? (It helps to investigate this in cases)
+          allowed us to "flip" from True to False. With that said, Can you write
+          the compound propositions that displays that Conjunction and
+          Disjunction are duals (Opposites)? (It helps to investigate this with
+          a truth table)
         </QuestionBox>
-
         <TopicBreak title="END OF LN2" />
         <Speak>
           In LN3 we built off our new set of operators we were using to
@@ -275,10 +312,91 @@ export default function Homework1() {
           series of new pieces of information to our limited, finite
           contexts/realities.
         </Speak>
-        <QuestionBox points={2} qid="Q7">
-          Similar to question Q4, give an explanation in your own words and an
-          example usage of the Implication operator.
+        <QuestionBox points={"5 total"} qid="Q6">
+          As we saw in lecture, propositions can declare affirmative (positive)
+          information about reality or non-affirmative (negative) information
+          about reality. In the following question you will be asked about this
+          distinction.
+          <QuestionBox points={2} qid="Q6 a">
+            Explain what positive information is in your own words and give an
+            example of its use.
+          </QuestionBox>
+          <QuestionBox points={3} qid="Q6 b">
+            Explain what Negative information is in your own words and give an
+            example of its use.
+          </QuestionBox>
         </QuestionBox>
+        <QuestionBox points={"10 total"} qid="Q7">
+          In class we saw that logical connectives act as "information glue" and
+          can connect pre-existing propositions together to form larger ones.
+          Below you are given a list of propositional variables assigned to
+          propositions and you are tasked with combining them together using a
+          given compound proposition as a blueprint. Give the resulting compound
+          proposition as an English statement for your answer. (Don't worry if
+          the resulting propositions are true, false, or absurd as some of them
+          say very funny things!)
+          <MathJax>{`$$\\begin{matrix}
+          A \\equiv \\text{"It is a nice day today."} \\\\
+          B \\equiv \\text{"There is no way today is Friday."} \\\\
+          C \\equiv \\text{"I like the cold."} \\\\
+          D \\equiv \\text{"Housing prices are low."} \\\\
+          E \\equiv \\text{"Homework is due."} \\\\
+          F \\equiv \\text{"It is not winter."} \\\\
+          G \\equiv \\text{"It is summer."} \\\\
+          \\end{matrix}$$`}</MathJax>
+          <QuestionBox points={2} qid="Q7 a">
+            <MathJax>{`$$
+            D \\to C
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={2} qid="Q7 b">
+            <MathJax>{`$$
+            A \\to (B \\land D)
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={2} qid="Q7 c">
+            <MathJax>{`$$
+            G \\equiv \\neg F
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={2} qid="Q7 d">
+            <MathJax>{`$$
+            E \\equiv \\neg B
+            $$`}</MathJax>
+          </QuestionBox>
+          <QuestionBox points={2} qid="Q7 e">
+            <MathJax>{`$$
+            (A \\land B) \\equiv (\\neg E \\land G)
+            $$`}</MathJax>
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={"15 total"} qid="Q8">
+          In class we spoke at length about the philosophy surrounding the
+          creation and use of logic systems. In the following question you will
+          be asked to comment on why specific design decisions for
+          Intuitionistic logic were made.
+          <QuestionBox points={5} qid="Q8 a">
+            Why is it beneficial for Intuitionistic logic to recognize the
+            "limited Knowledge" of individuals and what is the atypical
+            foundational atomic that we gain as a result?
+          </QuestionBox>
+          <QuestionBox points={5} qid="Q8 b">
+            Why is it beneficial for Intuitionistic logic to distinguish between
+            positive and negative information?
+          </QuestionBox>
+          <QuestionBox points={5} qid="Q8 c">
+            Explain what is meant by referring to Classical Logic as the "Logic
+            of God" and Intuitionistic Logic as the "Logic of People"
+          </QuestionBox>
+        </QuestionBox>
+        <QuestionBox points={3} qid="Q9">
+          Given that realities allow us to contextualize our reasoning and that
+          everyone has a different one associated with their own experiences,
+          give an example of a reality that you have and how it might differ
+          from someone else's by showing how it would change a proposition from
+          True to False or vice versa in the respective realities.
+        </QuestionBox>
+        {/** 
         <QuestionBox points={"28 total"} qid="Q8">
           As we saw in class, Natural Deduction's inference rules give us the
           ability to produce new information into our finite contexts. The
@@ -309,6 +427,7 @@ export default function Homework1() {
             <MathJax>{`$$\\text{Show that given } \\neg(A \\land B) \\text{ you can deduce } (\\neg A \\lor \\neg B)$$`}</MathJax>
           </QuestionBox>
         </QuestionBox>
+        */}
         <TopicBreak title="END OF LN3" />
         <Speak>
           Whew! That was a lot about logic, and unfortunately for the purposes
@@ -329,13 +448,13 @@ export default function Homework1() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=295184&grpid=0&isprv=0&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=319885&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Written HW1 Turn In
         </LinkButton>
       </CourseBox>
       <CourseBox>
-        <TitleBox title="Programming Section" quote="Points: 30" />
+        <TitleBox title="Programming Section" quote="Points: 25" />
         <DirectoryTree
           filesAsJSON={{
             "CMSI-2820-HW1": {
@@ -372,13 +491,13 @@ export default function Homework1() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://classroom.github.com/a/Uei9osAT"
+          to="https://classroom.github.com/a/rYvKRVOv"
         >
           GitHub Assignment
         </LinkButton>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=295185&grpid=0&isprv=&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=319886&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Programming HW1 Turn In
         </LinkButton>

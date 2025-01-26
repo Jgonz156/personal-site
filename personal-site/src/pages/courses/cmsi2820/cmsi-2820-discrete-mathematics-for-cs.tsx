@@ -199,7 +199,6 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/* 
               <AssignmentCard
                 title="HW 1: Think Class! Think!"
                 description="In this homework you will get practice with logical 
@@ -207,7 +206,6 @@ export default function CMSI2820() {
                   translating natural language into logic, and natural deduction proofs!"
                 assignmentSlug="/cmsi-2820/hw1"
               />
-              */}
             </Standard>
             {/*
             <Standard
