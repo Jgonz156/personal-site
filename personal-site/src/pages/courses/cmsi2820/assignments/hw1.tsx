@@ -165,7 +165,7 @@ export default function Homework1() {
              \\(T:True,\\text{ } F:False,\\text{ or }\\bot :Absurd\\), and explain your reasoning`}
           </MathJax>
           <ImageBox
-            images={[{ url: "/public/cmsi-2820/HW1-ISPY.png", caption: "" }]}
+            images={[{ url: "/cmsi-2820/HW1-ISPY.png", caption: "" }]}
           />
           <QuestionBox points={1} qid="Q1 a">
             Evaluate: "There are exactly 2 Nutcrackers."
