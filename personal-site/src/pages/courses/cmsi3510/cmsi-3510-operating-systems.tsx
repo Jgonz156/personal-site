@@ -2,7 +2,7 @@ import { Chip, Divider, Sheet } from "@mui/joy"
 import Footer from "../../../components/footer"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import CourseNavBar from "../components/course-nav-bar"
-//import AssignmentCard from "../components/assignment-card"
+import AssignmentCard from "../components/assignment-card"
 //import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
@@ -127,13 +127,14 @@ export default function CMSI3510() {
                             modules I might have throughout the notes."
                 notesSlug="/cmsi-3510/ln0"
               />
-              {/* 
+
               <AssignmentCard
-                title="HW 0: Practicing Homework"
+                title="HW 0: Simple Rust Calculator"
                 description="This is a small assignment to get you familiar with
                             the process of receiving and submitting assignments!"
                 assignmentSlug="/cmsi-3510/hw0"
               />
+              {/* 
               <ExamCard
                 title="EX 0: Syllabus"
                 description="Exams are an important part of how you communicate
