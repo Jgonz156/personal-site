@@ -338,8 +338,8 @@ export default function Syllabus() {
         ) : tabState === "Required Materials" ? (
           <>
             <Speak>
-              This course features ONE required material in the form of an
-              online, FREE textbook. This textbook is an additional resource for
+              This course features TWO required materials in the form of online,
+              FREE textbooks. These textbooks are an additional resource for
               you, but this course is actually constructed from many different
               sources, including 3 other textbooks!
             </Speak>
