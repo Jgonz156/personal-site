@@ -3,7 +3,7 @@ import Footer from "../../../components/footer"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import CourseNavBar from "../components/course-nav-bar"
 import AssignmentCard from "../components/assignment-card"
-//import ExamCard from "../components/exam-card"
+import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 import Speak from "../components/speak"
@@ -134,7 +134,6 @@ export default function CMSI3510() {
                             the process of receiving and submitting assignments!"
                 assignmentSlug="/cmsi-3510/hw0"
               />
-              {/* 
               <ExamCard
                 title="EX 0: Syllabus"
                 description="Exams are an important part of how you communicate
@@ -143,7 +142,6 @@ export default function CMSI3510() {
                             syllabus! I promise its not hard."
                 examSlug="/cmsi-3510/ex0"
               />
-              */}
             </Standard>
 
             <Standard
