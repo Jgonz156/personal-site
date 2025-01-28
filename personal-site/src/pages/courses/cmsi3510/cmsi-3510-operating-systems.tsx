@@ -179,25 +179,20 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/* 
+
               <NotesCard
-                title="LN 3: Assumptions Make an Argument out of You and Me"
-                description="This lecture expands on propositional logic by 
-                  extending our inferential abilities for each of our logical
-                   connectives by exploring Natural Deduction"
-                notesSlug="/cmsi-3510/ln3"
+                title="LN 3: What's in Your Memory?"
+                description="In this lecture, we take a deeper look at memory handling in rust with the stack and the heap. We also investigate the
+                    concept of references and how they are used in Rust's Ownership system to manage memory."
+                notesSlug="" //"/cmsi-3510/ln3"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/dUCxOlsnVgN30RaGnVABOG9ROXdCHEPhiO3DnieCOchspc5KHan_EYb6W_FqXp6z.u4qHArf88JxIhk3u?startTime=1725555439000",
-                  },
-                  { buttonText: "Section 2 Video", url: undefined },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Rg__u6lYojd0L3PQ_TJh6Gyjq0Ky4-_NozQQ7anGA2TAK1FFrp3hsuN_EDR4uapZ.G1RaYcvHM3MfLBkN?startTime=1725584600000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/YvSIlIIb0-J_RumpDYa6dwnXqakZrBJL8niULm1nr82YNpCmOlHkpxclvUpnlAjz.8MeI0i1MdqcNWkgA",
                   },
                 ]}
               />
+              {/* 
               <AssignmentCard
                 title="HW 1: Think Class! Think!"
                 description="In this homework you will get practice with logical 
