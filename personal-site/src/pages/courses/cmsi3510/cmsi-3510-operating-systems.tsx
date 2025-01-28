@@ -2,8 +2,8 @@ import { Chip, Divider, Sheet } from "@mui/joy"
 import Footer from "../../../components/footer"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import CourseNavBar from "../components/course-nav-bar"
-//import AssignmentCard from "../components/assignment-card"
-//import ExamCard from "../components/exam-card"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 import Speak from "../components/speak"
@@ -127,9 +127,9 @@ export default function CMSI3510() {
                             modules I might have throughout the notes."
                 notesSlug="/cmsi-3510/ln0"
               />
-              {/* 
+
               <AssignmentCard
-                title="HW 0: Practicing Homework"
+                title="HW 0: Simple Rust Calculator"
                 description="This is a small assignment to get you familiar with
                             the process of receiving and submitting assignments!"
                 assignmentSlug="/cmsi-3510/hw0"
@@ -142,7 +142,6 @@ export default function CMSI3510() {
                             syllabus! I promise its not hard."
                 examSlug="/cmsi-3510/ex0"
               />
-              */}
             </Standard>
 
             <Standard

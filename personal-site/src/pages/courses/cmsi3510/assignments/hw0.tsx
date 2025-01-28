@@ -37,29 +37,19 @@ export default function Homework0() {
             information describing the assignment when necessary. For
             convenience I will also point out where, and which, files have TODO
             sections in them so that you don't have to go "digging" to complete
-            your homework.
+            your homework. (In Rust we actually use the "unimplemented!()" macro
+            rather than TODO as a comment, but the idea is the same)
           </Speak>
           <Speak>
             You will always simply be given an existing repository and then you
             will be directed to fill in the "skeleton". This does NOT mean I
             won't ever ask you to do things, like making your own function,
             class, or other advanced data structures, just that It will be clear
-            where and what you are trying to do and I won't ask you to preform
-            "design" level work. What I mean by that is I will never ask you to
-            "architect" an entire repository from scratch on your own. I may ask
-            you to import and use certain libraries if that becomes necessary
-            for an assignment (Some massive libraries in Python the CS
-            department regularly uses are SciKitLearn, Pandas, NumPy, PyGame,
-            PyTorch, SimPy, and maybe a few more I can't remember right now).
-            However, if we do need a library then I will provide a short{" "}
-            <Vocab
-              definition={
-                "A usually additional, small explanation of something"
-              }
-            >
-              "blurb"
-            </Vocab>{" "}
-            about how to use it on the Homework page it is relevant to.
+            where and what you are trying to do. Normally I would mention some
+            information about imports here, but since we are using Rust, we
+            don't have to worry about that! (Yay!) Rust natively handles
+            "imports" via external crates and the toml file. So you'll never
+            have to add any crates directly! They will be added on first build!
           </Speak>
           <Speak>
             At the bottom of most homeworks you will find the optional homework
@@ -78,7 +68,7 @@ export default function Homework0() {
           </Speak>
         </CourseBox>
         <CourseBox>
-          <TitleBox title="HW0: Practicing Homework!" />
+          <TitleBox title="HW0: Simple Rust Calculator" />
           <DueDateCalendar dueDate={DateTime.local(2025, 1, 31, 23, 59)} />
           <TopicBox
             topics={[
@@ -88,12 +78,12 @@ export default function Homework0() {
             ]}
           />
           <Speak>
-            This homework assignment is about letting me learn a little about
-            you! The questions I asked here are important to me as they give me
-            a "feel" for who I'm talking to in class. As I said in class I am
-            very conversational and you can't have a proper conversation with
-            someone you know nothing about! I mean you can, they just aren't as
-            fun!
+            This homework assignment is about getting used to the flow of
+            receiving our code skeleton as a template repository from GitHub
+            Classroom. The content of this homework will be to make a simple
+            calculator function in rust. It is a very simple problem, since we
+            are only trying to get familiar with the process of receiving,
+            completing, and turning in HW.
           </Speak>
         </CourseBox>
         <CourseBox>
@@ -107,33 +97,49 @@ export default function Homework0() {
             It will also outline the sections of the textbook that are relevant
             to the information covered in class.
           </Speak>
-
-          <QuestionBox qid={"R1"}></QuestionBox>
-          <QuestionBox qid={"R2"}></QuestionBox>
+          <Speak>
+            For instance, in this homework I would like you to begin reading the
+            rust language book! (Linked in the required resources section of the
+            syllabus) Specifically, I would like you to read what is specified
+            below!
+          </Speak>
+          <QuestionBox qid={"R1"}>
+            In "The Rust Language Book", read Foreword, Introduction, and Ch 1:
+            Getting Started
+          </QuestionBox>
         </CourseBox>
         <CourseBox>
-          <TitleBox title="Programming Section" quote="Points: 1" />
+          <TitleBox title="Programming Section" quote="Points: 3" />
           <DirectoryTree
             filesAsJSON={{
               "CMSI-3510-HW0": {
                 ".gitignore": <></>,
-                "questions.rs": <></>,
+                hw0: {
+                  "Cargo.toml": <></>,
+                  src: {
+                    "add.rs": <></>,
+                    "divide.rs": <></>,
+                    "multiply.rs": <></>,
+                    "subtract.rs": <></>,
+                    "lib.rs": <></>,
+                    "main.rs": <></>,
+                  },
+                },
                 "README.md": <></>,
-                "test_questions.rs": <></>,
               },
             }}
           />
           <Speak>
             For the programming section of this homework we will be getting used
             to the flow of receiving our code skeleton as a template repository
-            from GitHub Classroom.
+            from GitHub Classroom and using cargo doc to generate the
+            documentation site for all the information in the homework.
           </Speak>
 
           <Speak>
-            The content of this homework will be to make a PyTest unit test
-            pass. It is a very simple problem, since we are only trying to get
-            familiar with the process of receiving, completing, and turning in
-            HW.
+            The content of this homework will be to make all the unit tests pass
+            for the calculator functions in the "src" folder. Running the cargo
+            test command should have all the tests pass.
           </Speak>
           <Speak>
             NOTE!!! Pass this point make sure you are signed into the github
@@ -145,28 +151,14 @@ export default function Homework0() {
             ANOTHER NOTE!!! If at any point you are following the instruction
             down below and are finding it difficult, you don't remember how this
             works, or you've never done this before; I have made a video
-            tutorial displaying the entire process from start to finish on
-            Brightspace! A link to it is provided via the button below
+            tutorial displaying the entire process from start to finish. A link
+            to it is provided via the button below
           </Speak>
           <LinkButton
             color="success"
-            to="https://lmula.zoom.us/rec/share/LHMwk2fFto5pKnfMEKK5ZBdiwkRO0WacAkDyfbdqMrDz8Eo9dwyFlnYq5a_I8iX3.aa-YDE0MpCpp2sK8"
+            to="https://lmula.zoom.us/rec/share/qZJRL5B3_zx8vvp2ei9qfijhG6Yjqr0g_pap6h6THg_ffJ7_cuuvjdKq-xMF5g0P.rbEK6SGsg5zYXxMi"
           >
             Helper Video
-          </LinkButton>
-          <Speak>
-            Below you will find an amazing guide designed by Dr. Forney that
-            helps get all your software in order! He likes using MyPy which is
-            an additional feature library that we do NOT need for this course so
-            feel free to ignore that portion of the guide, but installing it
-            anyway is good for the future and won't interfere with our course
-            material. This guide is found in the button below!
-          </Speak>
-          <LinkButton
-            color="success"
-            to="https://forns.lmu.build/classes/tutorials/python-dev-setup.html"
-          >
-            Dr. Forney's Python Setup Guide!
           </LinkButton>
           <Speak>
             Since, via GitHub Classrooms rules, you are joining the class for
@@ -184,25 +176,22 @@ export default function Homework0() {
           </Speak>
           <Speak>
             Once you've accepted the assignment, clone the repository locally to
-            your device and use the IDE of your choice to edit the file to pass
-            the unit test.
+            your device and run "cargo doc --open" to generate the site for
+            engaging with the HWs. After reading the docs, use the IDE of your
+            choice to edit the files to pass the unit tests.
           </Speak>
           <Speak>
-            To run the unit test, open a terminal (VSCode's built in terminal is
-            convenient here), ensure your working directory is on the same
+            To run the unit tests, open a terminal (VSCode's built in terminal
+            is convenient here), ensure your working directory is on the same
             <Vocab
               definition={
-                "Keep in mind that your terminal lives in your devices file structure system! The level you are on refers to the depth of the folder you are in! If you aren't sure where you terminal instance is located, use pwd (print working directory) to see which folder you are in. If you aren't in the right spot remember to use cd (change directory) to navigate to the correct folder (We want pwd to display that we are in the cloned repo folder made by the git clone operation!)!"
+                "Keep in mind that your terminal lives in your devices file structure system! The level you are on refers to the depth of the folder you are in! If you aren't sure where you terminal instance is located, use pwd (print working directory) to see which folder you are in. If you aren't in the right spot remember to use cd (change directory) to navigate to the correct folder!"
               }
             >
               "level"
             </Vocab>{" "}
-            as the Python files, and type the "pytest" command into your
-            terminal and hit enter. If the command is not found make sure to
-            install it via Python's Package Manager "pip" by doing "pip install
-            pytest" and then try again. If that still doesn't work, it means the
-            terminal doesn't have the command aliased, which is ok! Just run
-            this command instead "python -m pytest"
+            as the src folder inside the hw0 folder, and type the "cargo test"
+            command into your terminal and hit enter.
           </Speak>
           <Speak>
             Once you are passing all the tests make sure to use your git
@@ -211,9 +200,8 @@ export default function Homework0() {
             me so I can grade. However, as an extra step, go to brightspace and
             find the "Programming" HW0 assignment and just turn in a small
             message as an indicator to me you are done! (I need you to do this
-            so I can track what time YOU say you finished your HW! Otherwise, I
-            might accidentally take points away thinking you turned it in on
-            Sunday! Save those 25 points!)
+            so I can track any special accommodations coming from the excused
+            late policy!)
           </Speak>
           <Speak>
             You can find the GitHub Classroom assignment link as a button below
@@ -221,13 +209,13 @@ export default function Homework0() {
           </Speak>
           <LinkButton
             color="success"
-            to="https://classroom.github.com/a/q8fEFsGq"
+            to="https://classroom.github.com/a/fwMU5CuG"
           >
             GitHub Assignment
           </LinkButton>
           <LinkButton
             color="success"
-            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684892/detailsview#684892"
+            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=320136&grpid=0&isprv=0&bp=0&ou=267829"
           >
             Programming HW0 Turn In
           </LinkButton>
@@ -236,24 +224,24 @@ export default function Homework0() {
           <TitleBox title="Optional Section" quote="Points: 1" />
           <Speak>
             The creative endeavor i'd like you to embark on for this homework is
-            simple. Since this Homework has all been about you, i'd like you to
-            submit to me something you identify with. Whether its an arts and
-            crafts project you are working on, a painting you are making, a game
-            you love to play, a meme account you like to follow, a video of a
-            search algorithm you like to watch work, or anything that you
-            publicly enjoy and are fine sharing with me. Whatever it happens to
-            be, give me a snap shot of it with no explanation. Just send a
-            picture, a pdf, or whatever format Brightspace will let you turn in.
-            As an example I have provided a meme that a student showed me that I
-            probably laughed a little too hard at. Do this, and you get your
-            special point!
+            simple. I'd like you to submit to me something you identify with.
+            Whether its an arts and crafts project you are working on, a
+            painting you are making, a game you love to play, a meme account you
+            like to follow, a video of a search algorithm you like to watch
+            work, or anything that you publicly enjoy and are fine sharing with
+            me. Whatever it happens to be, give me a snap shot of it with no
+            explanation. Just send a picture, a pdf, or whatever format
+            Brightspace will let you turn in. As an example I have provided a
+            meme Dr. Toal showed me about handling strings in Rust. If you don't
+            get it, don't worry! I didn't either! However it hit me much later
+            in the semester after I had been working with Rust for a while!
           </Speak>
           <ImageBox
-            images={[{ url: "/cmsi-2820/HW0-Meme.jpg", caption: undefined }]}
+            images={[{ url: "/cmsi-3510/HW0-Meme.jpg", caption: undefined }]}
           />
           <LinkButton
             color="success"
-            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/684893/detailsview#684893"
+            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=320137&grpid=0&isprv=0&bp=0&ou=267829"
           >
             Optional HW0 Turn in
           </LinkButton>

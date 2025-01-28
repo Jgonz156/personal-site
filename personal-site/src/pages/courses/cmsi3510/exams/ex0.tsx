@@ -89,7 +89,7 @@ export default function Exam0() {
           <Speak>
             If I do make a question that requires outside information or tools I
             will state that they do and that you are allowed to use them. For
-            instance, I might give a question about a fragment Python code. You
+            instance, I might give a question about a fragment of Rust code. You
             are always allowed to use python to "test" your choices if testing
             is relevant to the question.
           </Speak>
@@ -102,13 +102,13 @@ export default function Exam0() {
           <Speak>The exam has unlimited attempts and no timer.</Speak>
           <Speak>
             The exam will cover the topics of what my only classroom rule is,
-            contact information, course standards, and LMU student services
+            course standards, grading, and syllabus material.
           </Speak>
-          <Speak>This exam is worth in total 2 points</Speak>
+          <Speak>This exam is worth in total 1 point</Speak>
           <Speak>This exam has 5 questions</Speak>
-          <DueDateCalendar dueDate={DateTime.local(2024, 9, 3)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 1, 31)} />
           <LinkButton
-            to="https://brightspace.lmu.edu/d2l/le/calendar/253279/event/685321/detailsview#685321"
+            to="https://brightspace.lmu.edu/d2l/lms/quizzing/user/quiz_summary.d2l?qi=110926&ou=267829"
             color="danger"
           >
             To the Exam!
