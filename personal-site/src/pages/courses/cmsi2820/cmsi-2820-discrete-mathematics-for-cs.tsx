@@ -226,27 +226,19 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
-                description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
+                description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unique properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
                 notesSlug="/cmsi-2820/ln5"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/NAHDMgiuE48tbICq4YlGrkzlSkfhhkzMSYg1SaSPtQYRgqRDVnhSFsf8rXbo-5z6.cK2Q3xRad8ZNxBFW?startTime=1726160876000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/qay0FeEkmNL2ed4_F7GnxcItuvSx3o2GfdXYG0KVUx3Rk85g2UfXk5IrUWKnmS4C.0AVSCeqJT5QcuyI4?startTime=1726173876000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/OkdHJey2Y11oJXbmoBT7z3p_uz0bucBrkhT9CE0IG0UB73F9rSYvzzxjUqgeR57h.kTt6m5331rq8T5UF?startTime=1726189501000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/0rNh3gTT7xvJRIot2uPsBBfRWFfQRWYE93UQHBbNMt5ym0WZ1jtwUFbag6bl7Oo.Jlbr5DZI_7oIgT1s",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 6: The Integers, The Booleans' Infinite In-laws"
                 description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
