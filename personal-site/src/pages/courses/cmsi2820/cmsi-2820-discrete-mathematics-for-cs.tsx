@@ -207,7 +207,7 @@ export default function CMSI2820() {
                 assignmentSlug="/cmsi-2820/hw1"
               />
             </Standard>
-            {/*
+
             <Standard
               number={2}
               title="Numbers"
@@ -218,20 +218,15 @@ export default function CMSI2820() {
               <NotesCard
                 title="LN 4: Primitive Beginnings"
                 description="In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory"
-                notesSlug="/cmsi-2820/ln4"
+                notesSlug="" //"/cmsi-2820/ln4"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/Nnq1vR_A7N0udysBLXGO5i_R1Rw7tCt51aI_qQlTFt0SkLURe_BO3t8kxLID2AGR.ik5kYUMp6v6AXfPM?startTime=1725987844000",
-                  },
-                  { buttonText: "Section 2 Video", url: undefined },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/dSZvWy6wjuW-AJqTSVBICPpe3nbNuQ4K1C75ibNieCiv23D8hWclWZHJGTK22j5r.k1umb0BaJKrwLxIY?startTime=1726016703000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/CkztfjgKK_68NCSGwAkdgO-a3I7WddLyWAhXSY5laQsAwqMs9CXKweHEl2w8oGZV.BqyxNG51s1wuIG_c",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
                 description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
@@ -296,9 +291,11 @@ export default function CMSI2820() {
                 title="HW 2: Counting Sheep"
                 description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
                 assignmentSlug="/cmsi-2820/hw2"
+                
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={3}
               title="Collections"
