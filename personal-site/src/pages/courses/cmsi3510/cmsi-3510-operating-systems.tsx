@@ -191,6 +191,17 @@ export default function CMSI3510() {
                   },
                 ]}
               />
+              <NotesCard
+                title="LN 4: Functionally Perfect"
+                description="In this lecture, we see all that functions have to offer in Rust and their unique Ownership management. Everything from associated functions, to closures, and more!"
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/2Q3r7IktcYGQ8ViojFh3rjdxnSxjz8eWGoyYqPiB4yZS15AOkYPD8mYpJV_fcKc7.TN9z82Jg04W99qAD",
+                  },
+                ]}
+              />
               {/* 
               <AssignmentCard
                 title="HW 1: Think Class! Think!"
