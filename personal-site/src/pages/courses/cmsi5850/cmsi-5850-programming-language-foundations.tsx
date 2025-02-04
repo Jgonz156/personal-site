@@ -142,6 +142,12 @@ export default function CMSI5850() {
                 title="Logic"
                 description="In these notes we will cover a wide basis of logic. This includes different Modal logics based on Higher order Classical Logic. We will also cover important measures of logical systems such as soundness, completeness, and decidability."
                 notesSlug="/cmsi-5850/logic"
+                sectionRecordings={[
+                  {
+                    url: "https://lmula.zoom.us/rec/share/HLB-CWGlc7FSiWoUh4ZvE1MglBdfKA-_nBO7c4Sd0L1wRTCERATx7HUHQIe_a4mj.0qw_jAYuTQMJb68W",
+                    buttonText: "Class Recording",
+                  },
+                ]}
               />
               <NotesCard
                 title="Foundations of Mathematics"
