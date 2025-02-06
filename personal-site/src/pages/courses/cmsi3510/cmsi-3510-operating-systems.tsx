@@ -202,6 +202,17 @@ export default function CMSI3510() {
                   },
                 ]}
               />
+              <NotesCard
+                title="LN 5: Optimal Struct Structure"
+                description="In this lecture we round off our foundational knowledge of Rust itself with structs, traits, and lifetimes. We investigate how they interact with one another to create a memory safe and comprehensive OOP system."
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Lecture Recording",
+                    url: "https://lmula.zoom.us/rec/share/63bvw49CF5MnE-GkkFQrE2cUbcVg1KwB-Tongk3LH6Mz1vxdvBhi53Lw3p0Xt54f.Naur2iSVWxwUrHLD",
+                  },
+                ]}
+              />
               <AssignmentCard
                 title="HW 1: Doughmain Expansion"
                 description="In this homework you are tasked with solidifying your Rust programming skills by taking on a small file system
