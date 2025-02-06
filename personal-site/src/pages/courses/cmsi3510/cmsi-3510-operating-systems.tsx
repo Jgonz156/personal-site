@@ -202,15 +202,12 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/* 
               <AssignmentCard
-                title="HW 1: Think Class! Think!"
-                description="In this homework you will get practice with logical 
-                  terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, 
-                  translating natural language into logic, and natural deduction proofs!"
+                title="HW 1: Doughmain Expansion"
+                description="In this homework you are tasked with solidifying your Rust programming skills by taking on a small file system
+                simulator and its incomplete terminal commands! You'll get to practice structs, ownership, and references!"
                 assignmentSlug="/cmsi-3510/hw1"
               />
-                */}
             </Standard>
             {/* 
             <Standard
