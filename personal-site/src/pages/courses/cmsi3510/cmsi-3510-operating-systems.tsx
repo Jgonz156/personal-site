@@ -213,6 +213,20 @@ export default function CMSI3510() {
                   },
                 ]}
               />
+              <NotesCard
+                title="LN 6: Hanging by a Thread"
+                description="In this lecture we begin our investigation of concurrent programming by starting from the beginning 
+                with a brief history of computer hardware as it relates to the OS and a large picture of how our hardware makes it
+                 all the way down to threads. We then investigate how to create threads in Rust and briefly introduce some of the 
+                 oddities of Concurrent Programming."
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/B7avnb0HLyqGqvZqo3RqitEfpOxD81Zu0U-W1bZYJqu3yRgVi5691XcTUC5SeTyh.HAj4GfCt3mtMIyMh",
+                  },
+                ]}
+              />
               <AssignmentCard
                 title="HW 1: Doughmain Expansion"
                 description="In this homework you are tasked with solidifying your Rust programming skills by taking on a small file system
