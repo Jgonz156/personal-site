@@ -20,7 +20,7 @@ export default function Homework2() {
     >
       <CourseBox>
         <TitleBox title="HW2: Counting Sheep" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 10, 4, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 2, 21, 23, 59)} />
         <TopicBox
           topics={[
             "Type Theory",
@@ -377,7 +377,7 @@ export default function Homework2() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=298255&grpid=0&isprv=0&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=321823&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Written HW2 Turn In
         </LinkButton>
@@ -411,13 +411,13 @@ export default function Homework2() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://classroom.github.com/a/7kgo4Hdc"
+          to="https://classroom.github.com/a/Vg64vMxo"
         >
           GitHub Assignment
         </LinkButton>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=298256&grpid=0&isprv=0&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=321824&grpid=0&isprv=0&bp=0&ou=267815s"
         >
           Programming HW2 Turn In
         </LinkButton>
@@ -462,7 +462,7 @@ export default function Homework2() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=298257&grpid=0&isprv=&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=321825&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Optional HW1 Turn in
         </LinkButton>

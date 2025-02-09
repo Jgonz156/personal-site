@@ -255,24 +255,16 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 7: Division without Decimals? Positive Numbers that Add 
                   to Zero? What is this Place?!?"
                 description="In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic."
-                notesSlug="/cmsi-2820/ln7"
+                notesSlug="" //"/cmsi-2820/ln7"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/VcEoNu-g8JPooH3-cGYnk43Irnge4ssGNKcp4Hvw23fi-g9WAtwRl4AsIeuAaj-h.6r84e9a6x5Pg0KYW?startTime=1726765262000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/y6aeTwpsdfBMd55omdG9vknGQjT_U9bNaxCWt4xmyH8B9KpuDYX2iXhs6jysTObQ.WfaL-kVTcXFgCpSw?startTime=1726778516000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/ncGAMmwVCpCWXPCgmceRLHL07FVA_vD6a31HMEFTUytHkBzHEoGW-00teeoUZt6k.0IlFidW3IJ_OaZcO?startTime=1726794112000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/7i9_86GIbu8nRZVx44xT4pP3vE3AnJHO4543WyrhoIiLbcz1nxmPYdoqxBiQkCWu.44k5Cm8slhu2Ms6Z",
                   },
                 ]}
               />
@@ -280,9 +272,7 @@ export default function CMSI2820() {
                 title="HW 2: Counting Sheep"
                 description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
                 assignmentSlug="/cmsi-2820/hw2"
-                
               />
-              */}
             </Standard>
             {/*
             <Standard
