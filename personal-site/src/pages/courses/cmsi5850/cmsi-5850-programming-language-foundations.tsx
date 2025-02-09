@@ -2,7 +2,7 @@ import { Chip, Divider, Sheet } from "@mui/joy"
 import Footer from "../../../components/footer"
 import AutoStoriesIcon from "@mui/icons-material/AutoStories"
 import CourseNavBar from "../components/course-nav-bar"
-//import AssignmentCard from "../components/assignment-card"
+import AssignmentCard from "../components/assignment-card"
 //import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
@@ -153,6 +153,17 @@ export default function CMSI5850() {
                 title="Foundations of Mathematics"
                 description="In these notes we will cover the foundational discrete mathematics that are used in computer science. This includes Set Theory, Relations, Functions, and more."
                 notesSlug="/cmsi-5850/foundations-of-mathematics"
+                sectionRecordings={[
+                  {
+                    url: "https://lmula.zoom.us/rec/share/g89z2nwqVnbZYRwAxOquW4RFAo4gTxG8NRZzl7V3Ho6-aK8zV13msI5l_agCmSci.Ny09bw5nGOuxKBLH",
+                    buttonText: "Class Recording",
+                  },
+                ]}
+              />
+              <AssignmentCard
+                title="HW 1: Digging to Bedrock"
+                description="In this homework you will get practice all the foundational tools (Sets, Functions, Numbers, Logic) we need to build up our future formal mechanisms that define Programming Languages."
+                assignmentSlug="/cmsi-5850/hw1"
               />
             </Standard>
             {/* 
