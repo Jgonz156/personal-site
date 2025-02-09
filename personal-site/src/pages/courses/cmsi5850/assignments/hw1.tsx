@@ -8,10 +8,6 @@ import LinkButton from "../../components/link-button"
 import DueDateCalendar from "../../components/due-date-calendar"
 import { DateTime } from "luxon"
 import { MathJax } from "better-react-mathjax"
-import ImageBox from "../../components/image-box"
-import TopicBreak from "../../components/topic-break"
-import Vocab from "../../components/vocab"
-import { Link } from "react-router-dom"
 
 export default function Homework1() {
   return (
