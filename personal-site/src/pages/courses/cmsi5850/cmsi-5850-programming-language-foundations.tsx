@@ -47,6 +47,11 @@ export default function CMSI5850() {
             assignments, dates, etc. This is a "living" page. It will continue
             to expand as we move forward into the semester!
           </Speak>
+          <Speak>
+            The table is interactive to help reduce clutter on the homepage.
+            Click on a row in the table to have it expand its relevant course
+            modules!
+          </Speak>
           <Sheet
             sx={{
               display: "flex",
