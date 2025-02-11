@@ -274,7 +274,7 @@ export default function CMSI2820() {
                 assignmentSlug="/cmsi-2820/hw2"
               />
             </Standard>
-            {/*
+
             <Standard
               number={3}
               title="Collections"
@@ -284,24 +284,17 @@ export default function CMSI2820() {
             >
               <NotesCard
                 title="LN 8: Getting Our Types in a Row"
-                description="In this lecture we formally investigate product types in type theory including their properties, operations, and how they are used to build up more complex types."
-                notesSlug="/cmsi-2820/ln8"
+                description="In this lecture we formally investigate tuples (also known as product types in type theory)
+                 including their properties, operations, and how they are used to build up more complex types."
+                notesSlug="" //"/cmsi-2820/ln8"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/Bbvz-ndaWE15IMuqdU_wW3vrsWRSExQxruGrDMQAkmXEPbgmjEU-DkTwfTgOUZQi.aWuxRPu06-Wz-hCO?startTime=1727197036000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/i-XmrkrF02aYQY2-UvCR1A_DxJYnlQyRdU4Czq6kY3aBcWi0jdnxcujZ2bFT4UrK.mlFvyG810yMMV-05?startTime=1727210730000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/33Kdp481DquJZRqKZPYiMh5TEkFRZ7bNwu6aHntLJu3b9Qtd99yBmiL8_q6urLFp.Da2vD4LhVUW_CqBS?startTime=1727226146000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/ZSlLoZv-VMFSJ9LT-ClURz3b3o6qnczv2eakacrfOB7I9kbiMonr68AKMsi-JGQY.mJbD75iYfvZc598k",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 9: Settling In"
                 description="In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators."
@@ -356,8 +349,9 @@ export default function CMSI2820() {
                 description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
                 assignmentSlug="/cmsi-2820/hw3"
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={"MIDTERM"}
               title="Standards 1-3"
