@@ -238,6 +238,19 @@ export default function CMSI3510() {
                 simulator and its incomplete terminal commands! You'll get to practice structs, ownership, and references!"
                 assignmentSlug="/cmsi-3510/hw1"
               />
+              <NotesCard
+                title="LN 7: Out of Order"
+                description="In this lecture we sharpen our understanding of threads by investigating parallel and concurrent programming theory. 
+                By investigating Partitioning, Communication, Synchronization, and Load Balancing we can identify, summarize, and alleviate
+                the many pitfalls of out of order programming."
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/RsBnzDn_jjW9uqCfNL8x7hrBPXi-HVxYpz0BjfiEALw7SFbcN7nExN-Iql4oNAnD.LFmrzqrKPlNFkpob",
+                  },
+                ]}
+              />
             </Standard>
             {/* 
             <Standard
