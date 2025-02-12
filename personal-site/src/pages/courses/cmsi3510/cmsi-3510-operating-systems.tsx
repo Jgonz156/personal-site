@@ -7,6 +7,7 @@ import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 import Speak from "../components/speak"
+import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
   return (
@@ -250,6 +251,11 @@ export default function CMSI3510() {
                     url: "https://lmula.zoom.us/rec/share/RsBnzDn_jjW9uqCfNL8x7hrBPXi-HVxYpz0BjfiEALw7SFbcN7nExN-Iql4oNAnD.LFmrzqrKPlNFkpob",
                   },
                 ]}
+              />
+              <ActivityCard
+                title="AC 1: Getting Folded"
+                description="In this in class activity, we use Competitive Origami to learn data and task partitioning for parallel programming."
+                activitySlug="/cmsi-3510/ac1"
               />
             </Standard>
             {/* 
