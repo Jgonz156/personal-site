@@ -171,98 +171,48 @@ export default function CMSI5850() {
                 assignmentSlug="/cmsi-5850/hw1"
               />
             </Standard>
-            {/* 
+
             <Standard
               number={2}
-              title="Numbers"
-              description="In this standard we will investigate the mathematical
-                  underpinnings of numbers! Yep, you heard me right! We will be 
-                  going over the arithmetic of the Booleans and the Integers."
+              title="Language Theory"
+              description="In this standard we will investigate the foundation of languages through generative and recognition based techniques."
             >
               <NotesCard
-                title="LN 4: Primitive Beginnings"
-                description="In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory"
-                notesSlug="/cmsi-2820/ln4"
+                title="Language Theory"
+                description="In this lecture we recap the fundamental components of a language and use it as a spring board to introduce new tools
+                for formally defining the utterances that make them up. This includes Generative techniques like Generative Grammars and Recognition techniques like Finite Automata."
+                notesSlug="/cmsi-5850/language-theory"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/Nnq1vR_A7N0udysBLXGO5i_R1Rw7tCt51aI_qQlTFt0SkLURe_BO3t8kxLID2AGR.ik5kYUMp6v6AXfPM?startTime=1725987844000",
-                  },
-                  { buttonText: "Section 2 Video", url: undefined },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/dSZvWy6wjuW-AJqTSVBICPpe3nbNuQ4K1C75ibNieCiv23D8hWclWZHJGTK22j5r.k1umb0BaJKrwLxIY?startTime=1726016703000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/JJNAARUw8j-5u9tbDPTOGxNvIlAzmtROVqKGK-yB59t9tALqdIb7lS-r5LwlUJsJ.mmkHOxAmYp2hzk7B",
                   },
                 ]}
               />
 
               <NotesCard
-                title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
-                description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
-                notesSlug="/cmsi-2820/ln5"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/NAHDMgiuE48tbICq4YlGrkzlSkfhhkzMSYg1SaSPtQYRgqRDVnhSFsf8rXbo-5z6.cK2Q3xRad8ZNxBFW?startTime=1726160876000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/qay0FeEkmNL2ed4_F7GnxcItuvSx3o2GfdXYG0KVUx3Rk85g2UfXk5IrUWKnmS4C.0AVSCeqJT5QcuyI4?startTime=1726173876000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/OkdHJey2Y11oJXbmoBT7z3p_uz0bucBrkhT9CE0IG0UB73F9rSYvzzxjUqgeR57h.kTt6m5331rq8T5UF?startTime=1726189501000",
-                  },
-                ]}
+                title="Syntax"
+                description="In this lecture we perform a deep dive into the study of Syntax. We directly use CFGs for building
+                 up our programming languages as opposed to formal ones. We'll see how syntax defines Lexical and Phrase structures, ASTs, CSTs, and more!"
+                notesSlug="/cmsi-5850/syntax"
               />
 
               <NotesCard
-                title="LN 6: The Integers, The Booleans' Infinite In-laws"
-                description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
-                notesSlug="/cmsi-2820/ln6"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/uBKHYk01Mb8dvxse5WFs-47eaBpH72XfHHFaPgPGJEv2GYBbcY6jOiUgMtw7ts2H.gHkahQAfPSlDtqqk?startTime=1726592078000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: undefined,
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: undefined,
-                  },
-                ]}
+                title="Semantics"
+                description="In this lecture we build on our skills creating, organizing, and delineating between our utterances, we can now see how to
+                 assign them meaning! In Semantics we will investigate the many formal mechanisms for assigning meaning to our Syntax. This includes 
+                 different versions of Operational and Denotational Semantics."
+                notesSlug="/cmsi-5850/semantics"
               />
-
-              <NotesCard
-                title="LN 7: Division without Decimals? Positive Numbers that Add 
-                  to Zero? What is this Place?!?"
-                description="In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic."
-                notesSlug="/cmsi-2820/ln7"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/VcEoNu-g8JPooH3-cGYnk43Irnge4ssGNKcp4Hvw23fi-g9WAtwRl4AsIeuAaj-h.6r84e9a6x5Pg0KYW?startTime=1726765262000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/y6aeTwpsdfBMd55omdG9vknGQjT_U9bNaxCWt4xmyH8B9KpuDYX2iXhs6jysTObQ.WfaL-kVTcXFgCpSw?startTime=1726778516000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/ncGAMmwVCpCWXPCgmceRLHL07FVA_vD6a31HMEFTUytHkBzHEoGW-00teeoUZt6k.0IlFidW3IJ_OaZcO?startTime=1726794112000",
-                  },
-                ]}
-              />
+              {/* 
               <AssignmentCard
                 title="HW 2: Counting Sheep"
                 description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
                 assignmentSlug="/cmsi-2820/hw2"
               />
+              */}
             </Standard>
-
+            {/* 
             <Standard
               number={3}
               title="Collections"
