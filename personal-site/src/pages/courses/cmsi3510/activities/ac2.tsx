@@ -6,7 +6,7 @@ import TopicBox from "../../components/topic-box"
 export default function Activity2() {
   return (
     <CoursePage
-      type="homework"
+      type="syllabus"
       courseName="CMSI 3510: Operating Systems"
       courseNumber={3510}
     >

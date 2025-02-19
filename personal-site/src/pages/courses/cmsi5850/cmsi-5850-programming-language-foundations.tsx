@@ -152,6 +152,10 @@ export default function CMSI5850() {
                     url: "https://lmula.zoom.us/rec/share/HLB-CWGlc7FSiWoUh4ZvE1MglBdfKA-_nBO7c4Sd0L1wRTCERATx7HUHQIe_a4mj.0qw_jAYuTQMJb68W",
                     buttonText: "Class Recording",
                   },
+                  {
+                    url: "https://lmula.zoom.us/rec/share/yRldtFSKZLC2L3BMDQBS7hE7NptYZt3G66j-o-e-eOJXdX5WTTXejXMVEAB0Px0L.tfpo9P0k1ZTOk0st",
+                    buttonText: "Helper Video",
+                  },
                 ]}
               />
               <NotesCard

@@ -7,6 +7,7 @@ import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 import Speak from "../components/speak"
+import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
   return (
@@ -237,6 +238,24 @@ export default function CMSI3510() {
                 description="In this homework you are tasked with solidifying your Rust programming skills by taking on a small file system
                 simulator and its incomplete terminal commands! You'll get to practice structs, ownership, and references!"
                 assignmentSlug="/cmsi-3510/hw1"
+              />
+              <NotesCard
+                title="LN 7: Out of Order"
+                description="In this lecture we sharpen our understanding of threads by investigating parallel and concurrent programming theory. 
+                By investigating Partitioning, Communication, Synchronization, and Load Balancing we can identify, summarize, and alleviate
+                the many pitfalls of out of order programming."
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/RsBnzDn_jjW9uqCfNL8x7hrBPXi-HVxYpz0BjfiEALw7SFbcN7nExN-Iql4oNAnD.LFmrzqrKPlNFkpob",
+                  },
+                ]}
+              />
+              <ActivityCard
+                title="AC 1: Getting Folded"
+                description="In this in class activity, we use Competitive Origami to learn data and task partitioning for parallel programming."
+                activitySlug="/cmsi-3510/ac1"
               />
             </Standard>
             {/* 

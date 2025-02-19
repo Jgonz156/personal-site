@@ -450,16 +450,28 @@ export default function Syllabus() {
               you've already seen in the previous 2 weeks, so in total you will
               be exposed to the content for 4 weeks.
             </Speak>
+            <TopicBreak title="Extensions and Late Policy" />
             <Speak>
-              Can I ask for extensions? Yes! I have an automatic HW extension
-              policy that you may use without asking me. Since HW's are due on
-              friday's (but I don't grade till Monday) you can turn in a HW on
-              Saturday for a loss of 5 points on the section that was turned in
-              late, or wait till Sunday and receive a loss of 10 more points on
-              the section that was turned in late. So Friday is all 100,
-              Saturday is 90 (assuming you turned in the written and programming
-              on Saturday), and Sunday is just 70 (assuming you turned in the
-              written and programming sections on Sunday).
+              Can I ask for extensions? Yes! I have an automatic (unexcused) HW
+              extension policy that you may use without asking me. Since HW's
+              are due on friday's (but I don't grade till Monday) you can turn
+              in a section of the HW on Saturday for a loss of 5 points on the
+              section that was turned in late, or wait till Sunday and receive a
+              loss of 10 more points on the section that was turned in late. So
+              Friday is all 100, Saturday is 90 (assuming you turned in the
+              written and programming on Saturday), and Sunday is just 70
+              (assuming you turned in the written and programming sections on
+              Sunday). However, if you are turning things in late in an
+              unexcused manner (You didn't email me) then if a section is turned
+              in on Monday it will be a 0.
+            </Speak>
+            <Speak>
+              Is there anyway to ask for a longer extension? Yes! If there is a
+              medical emergency, family matter, or obtuse life situation
+              occurring outside of your academics you are always allowed to
+              email me for an excused extension. Life happens and I understand
+              that, so I provide this as a custom way for us to "move life out
+              of the way" of your studies.
             </Speak>
             <TopicBreak title="Midterm and Final" />
             <Speak>
