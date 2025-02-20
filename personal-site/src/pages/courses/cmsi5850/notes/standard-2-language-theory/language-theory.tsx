@@ -26,7 +26,7 @@ export default function LT() {
     >
       <CourseBox>
         <iframe
-          style={{ height: "38000px" }}
+          style={{ height: "34000px" }}
           src="https://cs.lmu.edu/~ray/notes/languagetheory/"
         />
       </CourseBox>

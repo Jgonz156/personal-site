@@ -26,7 +26,7 @@ export default function SE() {
     >
       <CourseBox>
         <iframe
-          style={{ height: "33000px" }}
+          style={{ height: "17500px" }}
           src="https://cs.lmu.edu/~ray/notes/semantics/"
         />
       </CourseBox>

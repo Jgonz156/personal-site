@@ -26,7 +26,7 @@ export default function SY() {
     >
       <CourseBox>
         <iframe
-          style={{ height: "29000px" }}
+          style={{ height: "35000px" }}
           src="https://cs.lmu.edu/~ray/notes/syntax/"
         />
       </CourseBox>
