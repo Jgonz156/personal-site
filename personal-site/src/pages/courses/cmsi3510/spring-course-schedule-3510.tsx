@@ -187,7 +187,7 @@ export default function SpringCourseSchedule() {
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2025, 3, 12).startOf("day"),
+      date: DateTime.local(2025, 3, 10).startOf("day"),
       quote: "Lecture Day (LN12)",
       dayType: "lecture",
       dayInfo: <></>,
