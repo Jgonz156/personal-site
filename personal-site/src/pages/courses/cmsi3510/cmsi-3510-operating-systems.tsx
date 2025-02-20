@@ -214,7 +214,7 @@ export default function CMSI3510() {
                 notesSlug="" //"/cmsi-3510/ln4"
                 sectionRecordings={[
                   {
-                    buttonText: "Lecture Recording",
+                    buttonText: "Office Recording",
                     url: "https://lmula.zoom.us/rec/share/63bvw49CF5MnE-GkkFQrE2cUbcVg1KwB-Tongk3LH6Mz1vxdvBhi53Lw3p0Xt54f.Naur2iSVWxwUrHLD",
                   },
                 ]}
@@ -258,31 +258,24 @@ export default function CMSI3510() {
                 activitySlug="/cmsi-3510/ac1"
               />
             </Standard>
-            {/* 
+
             <Standard
               number={2}
-              title="Numbers"
-              description="In this standard we will investigate the mathematical
-                  underpinnings of numbers! Yep, you heard me right! We will be 
-                  going over the arithmetic of the Booleans and the Integers."
+              title="Computer Hardware"
+              description="In this standard we will investigate the major hardware components of our computers that OSs are built to manage! This includes the CPU, Memory, Storage, and I/O devices!"
             >
               <NotesCard
-                title="LN 4: Primitive Beginnings"
-                description="In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory"
-                notesSlug="/cmsi-3510/ln4"
+                title="LN 8: ICUP, I See You Process"
+                description="In this lecture we begin our deep dive into computer hardware by breaking down the CPU! We will discover ISAs, Registers, ALUs, and more!"
+                notesSlug="" //"/cmsi-3510/ln4"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/Nnq1vR_A7N0udysBLXGO5i_R1Rw7tCt51aI_qQlTFt0SkLURe_BO3t8kxLID2AGR.ik5kYUMp6v6AXfPM?startTime=1725987844000",
-                  },
-                  { buttonText: "Section 2 Video", url: undefined },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/dSZvWy6wjuW-AJqTSVBICPpe3nbNuQ4K1C75ibNieCiv23D8hWclWZHJGTK22j5r.k1umb0BaJKrwLxIY?startTime=1726016703000",
+                    buttonText: "Office Recording",
+                    url: "https://lmula.zoom.us/rec/share/dAyaVTji9fAzNWLI2y2fZNLoucRVt42e0f3wCz-rd0DUJr1pOq79vrt_GHYhMUfu.BYxgTadtvhvWbLmD",
                   },
                 ]}
               />
-
+              {/* 
               <NotesCard
                 title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
                 description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
@@ -348,8 +341,9 @@ export default function CMSI3510() {
                 description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
                 assignmentSlug="/cmsi-3510/hw2"
               />
+               */}
             </Standard>
-
+            {/* 
             <Standard
               number={3}
               title="Collections"
