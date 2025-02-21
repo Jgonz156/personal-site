@@ -235,7 +235,7 @@ export default function Homework1() {
             </QuestionBox>
             <QuestionBox points={1} qid={"Q6 g"}>
               <MathJax>{`$$
-              \\{ x,y,z \\}^3 - \\{ s |~|s| \\leq \\} \\neq \\varnothing
+              \\{ x,y,z \\}^3 - \\{ s |~|s| \\leq 3 \\} \\neq \\varnothing
               $$`}</MathJax>
             </QuestionBox>
             <QuestionBox points={1} qid={"Q6 h"}>
