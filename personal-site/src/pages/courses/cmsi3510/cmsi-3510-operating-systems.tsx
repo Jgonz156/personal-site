@@ -287,6 +287,18 @@ export default function CMSI3510() {
                   },
                 ]}
               />
+              <NotesCard
+                title="LN 10: Scheduling Calls"
+                description="In this lecture we dive into the intricacies of when and when not to context switch between processes. This problem
+                concerns our users expectations, our processes to complete, and the direct hardware we are using! This is the Scheduling problem!"
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/45aT98S27iQ7490z9_FOB1uBFoZqnERCfHQs70DPQtyWUT2XtFJgWA0TmQ4UGr2i.Gje4CAkIBfxNJ0Vq",
+                  },
+                ]}
+              />
               {/* 
               <NotesCard
                 title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
