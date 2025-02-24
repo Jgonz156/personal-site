@@ -199,6 +199,12 @@ export default function CMSI5850() {
                 description="In this lecture we perform a deep dive into the study of Syntax. We directly use CFGs for building
                  up our programming languages as opposed to formal ones. We'll see how syntax defines Lexical and Phrase structures, ASTs, CSTs, and more!"
                 notesSlug="/cmsi-5850/syntax"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/9sfzpX4g9uLK7FM90CniOf03-dE1vhTSwYCb_FGAULaHOWvbRYvACQ09y2Au4s4d.Js18zfX0cbHMavVd",
+                  },
+                ]}
               />
 
               <NotesCard
