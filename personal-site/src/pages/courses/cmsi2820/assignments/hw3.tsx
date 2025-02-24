@@ -19,7 +19,7 @@ export default function Homework3() {
     >
       <CourseBox>
         <TitleBox title="HW3: Storage Wars" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 10, 18, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 3, 14, 23, 59)} />
         <TopicBox
           topics={[
             "Collections",

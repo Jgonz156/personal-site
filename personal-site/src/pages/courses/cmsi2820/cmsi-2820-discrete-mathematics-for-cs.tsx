@@ -294,23 +294,15 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 9: Settling In"
                 description="In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators."
-                notesSlug="/cmsi-2820/ln9"
+                notesSlug="" //"/cmsi-2820/ln9"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/erdo4qPD6oZSrFKmmzTem33djxaYIa2oG3LJy0e4l4bKC1_f4mZSoKgBFbC-xRdt.mdplW412Khj3FV7i?startTime=1727370035000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/9QQu1DhsecGIaIEd6fCXNmWm28jB24khPgD96aiEQUaIt7BLu2QLW1Juf2kpilxF.i1_hyU-C9fA6CykF?startTime=1727383354000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/6Gk4s0BKwJXi2fQq7zKspqEcxfjKtC49pW33eB4WveiQPRpW0owPZDtpbVskttlY.7DL0i-PFs6IQAUeE?startTime=1727398767000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/RRnG6wlSbvo8EXS62M6WEH1O1CWkZQ3wT55_nHoAEr7hmEzuDrk21ltPH88HlBsF.f31z5f_N6NeiuR97",
                   },
                 ]}
               />
@@ -344,6 +336,7 @@ export default function CMSI2820() {
                   },
                 ]}
               />
+              {/** 
               <AssignmentCard
                 title="HW 3: Storage Wars"
                 description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
