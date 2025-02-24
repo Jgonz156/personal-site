@@ -275,6 +275,18 @@ export default function CMSI3510() {
                   },
                 ]}
               />
+              <NotesCard
+                title="LN 9: ...Processing Title..."
+                description="In this lecture we view the many different, unique yet important perspectives of different portions of the OS and hardware to answer
+                the most important question about our OSs, what is a process?"
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Home Recording",
+                    url: "https://lmula.zoom.us/rec/share/smE98r67BEta7uTdfWrkFpqiKyPKzjAwbck3RoGCdYFuIGCR5I3BJKxoWDpXT8KT.ueG3O7kqC0Iy73U-",
+                  },
+                ]}
+              />
               {/* 
               <NotesCard
                 title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
