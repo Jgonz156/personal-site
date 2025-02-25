@@ -308,7 +308,7 @@ export default function CMSI2820() {
               />
               <NotesCard
                 title="LN 10: Settling Down"
-                description="We continue our investigation of Sets by practicing some of the many common operations found between."
+                description="We continue our investigation of Sets by practicing some of the many common operations found between them."
                 notesSlug=""
                 sectionRecordings={[
                   {
