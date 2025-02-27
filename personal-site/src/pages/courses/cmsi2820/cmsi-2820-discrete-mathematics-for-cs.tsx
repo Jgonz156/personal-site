@@ -312,16 +312,8 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/LhY2fBS8tI7v2Y5xKJOQKLNYmuCMpeUQjbjxanPepH3RtOC1ORgMuBnk7hYV2V0v.l18jmOgltVIPcVc5?startTime=1727801980000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/XY1wXoXTAs75dqMJ_IXvErcGG6NNCT7r4XeokH9DIkN_X09yeDKTyH6SWyWkatpI.fzSNRI3CPXoq_CED?startTime=1727815510000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Y2XgeF3nXN0sVjjowBh2DvYMpSYOt9Z_RQXWEHMsRjf_XPHMM_FHVUEroIGq_aZz.mdb31HubOWe4GcZk?startTime=1727830787000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/N-FBU7ygSP3JbFiAjtFg9V6HAhrLgZJMBCMNbHL7O5PAXONDov_Doxy2SSBNK46J.QkG1SNcEz-nGM69V",
                   },
                 ]}
               />
@@ -331,8 +323,8 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Lecture Video",
-                    url: "https://lmula.zoom.us/rec/share/q9pc-SZYFPqCfIRHLN34TETFFIQr5X2WyQfUoVWZCgz8rgMlTnbD5aoXp1Wwad5F.faOp366tebP8UMf2?startTime=1727984621000",
+                    buttonText: "Class Video",
+                    url: "",
                   },
                 ]}
               />
