@@ -288,7 +288,7 @@ export default function CMSI3510() {
                 ]}
               />
               <NotesCard
-                title="LN 10: Scheduling Calls"
+                title="LN 10: Out of Context"
                 description="In this lecture we dive into the intricacies of when and when not to context switch between processes. This problem
                 concerns our users expectations, our processes to complete, and the direct hardware we are using! This is the Scheduling problem!"
                 notesSlug="" //"/cmsi-3510/ln4"
@@ -296,6 +296,19 @@ export default function CMSI3510() {
                   {
                     buttonText: "Class Recording",
                     url: "https://lmula.zoom.us/rec/share/45aT98S27iQ7490z9_FOB1uBFoZqnERCfHQs70DPQtyWUT2XtFJgWA0TmQ4UGr2i.Gje4CAkIBfxNJ0Vq",
+                  },
+                ]}
+              />
+              <NotesCard
+                title="LN 11: Scheduling Calls"
+                description="In this lecture we continue our investigation of scheduling by learning many of the techniques used by Batch, Interactive, and even Real time systems!
+                These include straightforward techniques like using a simple queue (FCFS) all the way to using multi-queue round robin techniques that rely
+                on an internal lottery!"
+                notesSlug="" //"/cmsi-3510/ln4"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/R-gLVoDjrwfxKJuHAo_UEFb7llFcTurqAoLlhx7ZffPB0rdRBtxDF7eJbJ_EPkJR.g9sFSIHPLuYmMYn9",
                   },
                 ]}
               />
