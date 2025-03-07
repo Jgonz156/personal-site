@@ -204,6 +204,10 @@ export default function CMSI5850() {
                     buttonText: "Class Recording",
                     url: "https://lmula.zoom.us/rec/share/9sfzpX4g9uLK7FM90CniOf03-dE1vhTSwYCb_FGAULaHOWvbRYvACQ09y2Au4s4d.Js18zfX0cbHMavVd",
                   },
+                  {
+                    buttonText: "Video Recording",
+                    url: "https://lmula.zoom.us/rec/share/WbVlyDl52PECsVgGy5Bw9UHXCQk2V3JvH4Cn7OCjcwMLzxLVmpF7qCAOVo51SI4y.IP7ZtG_SMP8_m4Be",
+                  },
                 ]}
               />
 
@@ -213,14 +217,18 @@ export default function CMSI5850() {
                  assign them meaning! In Semantics we will investigate the many formal mechanisms for assigning meaning to our Syntax. This includes 
                  different versions of Operational and Denotational Semantics."
                 notesSlug="/cmsi-5850/semantics"
+                sectionRecordings={[
+                  {
+                    buttonText: "Video Recording",
+                    url: "https://lmula.zoom.us/rec/share/FwGAv46tr5O9iam-dlbRA9YygN4ZOcz4r6A24LjxVp1L6Ku10bOp74g7laV6XQe4.T5jMbQ4KeI6O_RtM",
+                  },
+                ]}
               />
-              {/* 
               <AssignmentCard
-                title="HW 2: Counting Sheep"
-                description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
-                assignmentSlug="/cmsi-2820/hw2"
+                title="HW 2: Syntax R Us"
+                description="In this homework you will get practice with grammars, ASTs, and error checking!"
+                assignmentSlug="/cmsi-5850/hw2"
               />
-              */}
             </Standard>
             {/* 
             <Standard

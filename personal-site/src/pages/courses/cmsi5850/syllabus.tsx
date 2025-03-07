@@ -21,7 +21,8 @@ import CourseSchedule from "./course-schedule-5850"
 import BookCard from "../../../components/book-card"
 
 const textbook = {
-  title: "Operating Systems and Middleware: Supporting Controlled Interaction",
+  title:
+    "Formal Syntax and Semantics of Programming Languages: A Laboratory Based Approach",
   authors: ["Slonneger, Kenneth", "Kurtz, Barry L."],
   pages: 654,
   abstract: (

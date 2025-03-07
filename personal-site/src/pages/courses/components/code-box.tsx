@@ -5,11 +5,13 @@ export default function CodeBox({
   line,
   width,
   height,
+  language,
 }: {
   code: string
   line?: number
   width?: string
   height?: string
+  language?: string
 }) {
   return (
     <Sheet
@@ -25,7 +27,7 @@ export default function CodeBox({
       <Editor
         height={height ? height : "80vh"}
         width={width ? width : "100%"}
-        defaultLanguage="python"
+        defaultLanguage={language ? language : "python"}
         defaultValue={code}
         theme="vs-dark"
         line={line}
