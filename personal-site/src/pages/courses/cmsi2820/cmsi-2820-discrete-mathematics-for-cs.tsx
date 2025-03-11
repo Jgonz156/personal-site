@@ -324,32 +324,16 @@ export default function CMSI2820() {
                 sectionRecordings={[
                   {
                     buttonText: "Class Video",
-                    url: "",
+                    url: "https://lmula.zoom.us/rec/share/u1SNLHehsuPm4WK18vCWMix4fCd4LCHFlmAe7sIRL2DkHUp-V1XZ8i21TvGQAd9M.Y2WX7tQz76qAy4I6",
                   },
                 ]}
               />
-              {/** 
               <AssignmentCard
                 title="HW 3: Storage Wars"
                 description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
                 assignmentSlug="/cmsi-2820/hw3"
               />
-              */}
             </Standard>
-            {/*
-            <Standard
-              number={"MIDTERM"}
-              title="Standards 1-3"
-              description="This is the optional midterm exam that covers the first 
-                three standards."
-            >
-              <ExamCard
-                title="EX 1: Midterm Exam"
-                description="This exam is 15 questions total and worth 30 points. It covers logic, numbers, and collections."
-                examSlug="/cmsi-2820/ex1"
-              />
-            </Standard>
-
             <Standard
               number={4}
               title="Functions"
@@ -364,19 +348,12 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/vXeGKyE1dLZe6K_tbgkpKgcc2V8BAPOomC3e-NRKOo_vaezz90u6IFHCyurdMrej.QigqUt9W4guooHrC?startTime=1728406977000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/GjsEvU6dNc5v-g0ij4EcYNW399P_W9p44VkPMIeXPHRphQl0OeaedT9RiZk5qC_b.ggOaWWYYrFQROyT-?startTime=1728420502000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/5mf2e5YfCoTOHrH6P0aA8dshV46cgPsplJ8ocjSFp6ksfFc6WeOr36sgOx5wtTpP.a-4WERd0px2BkpZ3?startTime=1728435902000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/k37q2Q4dJIqhkJYtbIWPdiL5DjppV2xj1-PfXZUiqXxqvuo0IycAT014ROqN9tDI.iVT4VGhYiyfxmSWm",
                   },
                 ]}
               />
+              {/*
               <NotesCard
                 title="LN 13: Free Range Variables"
                 description="In this lecture we continue our work with Lambdas by investigating how variables interact with functions. We discover being bound and free, how to substitute variables, and how to reduce functions formally using proper substitution."
@@ -440,7 +417,22 @@ export default function CMSI2820() {
                 description="In this homework we practice lambdas, their reductions, their properties, and their creation!"
                 assignmentSlug="/cmsi-2820/hw4"
               />
+              */}
             </Standard>
+            {/*
+            <Standard
+              number={"MIDTERM"}
+              title="Standards 1-3"
+              description="This is the optional midterm exam that covers the first 
+                three standards."
+            >
+              <ExamCard
+                title="EX 1: Midterm Exam"
+                description="This exam is 15 questions total and worth 30 points. It covers logic, numbers, and collections."
+                examSlug="/cmsi-2820/ex1"
+              />
+            </Standard>
+
             <Standard
               number={5}
               title="Combinatorics"

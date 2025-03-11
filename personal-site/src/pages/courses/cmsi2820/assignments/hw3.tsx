@@ -19,7 +19,7 @@ export default function Homework3() {
     >
       <CourseBox>
         <TitleBox title="HW3: Storage Wars" />
-        <DueDateCalendar dueDate={DateTime.local(2025, 3, 14, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 3, 21, 23, 59)} />
         <TopicBox
           topics={[
             "Collections",
@@ -38,13 +38,13 @@ export default function Homework3() {
           operators.
         </QuestionBox>
         <TopicBreak title="END OF LN8" />
-        <QuestionBox qid={"Q2"} points={5}>
+        <QuestionBox qid={"Q2"} points={7}>
           What is the most fundamental property of a set and summarize the
           differences between sets and tuples (Discuss the table we made in
           class). Give an example of a set and a tuple when contrasting the two.
         </QuestionBox>
         <TopicBreak title="END OF LN9" />
-        <QuestionBox qid={"Q3"} points={5}>
+        <QuestionBox qid={"Q3"} points={8}>
           We discussed previously how performing logic was contained within
           performing algebra on the integers. Put another way we discovered that
           the operations of the logical connectives were the same as the
@@ -55,6 +55,7 @@ export default function Homework3() {
           integers?
         </QuestionBox>
         <TopicBreak title="END OF LN10" />
+        {/** 
         <QuestionBox qid={"Q4"} points={5}>
           We discussed how abstract algebra described operations in terms of
           properties. We then saw new properties that describe the behavior of
@@ -64,9 +65,10 @@ export default function Homework3() {
           commutative? Explain why or why not by using examples.
         </QuestionBox>
         <TopicBreak title="END OF LN11" />
+        */}
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=253279&db=299877"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=324269&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Written HW3 Turn In
         </LinkButton>
@@ -121,13 +123,13 @@ export default function Homework3() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://classroom.github.com/a/LqxxHjBK"
+          to="https://classroom.github.com/a/OlEZ2Apv"
         >
           GitHub Assignment
         </LinkButton>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=299878&grpid=0&isprv=&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=324270&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Programming HW3 Turn In
         </LinkButton>
@@ -184,7 +186,7 @@ export default function Homework3() {
         </Speak>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=299879&grpid=0&isprv=&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=324271&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Optional HW2 Turn in
         </LinkButton>
