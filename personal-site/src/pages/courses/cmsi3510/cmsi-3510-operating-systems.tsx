@@ -312,27 +312,33 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/* 
+
               <NotesCard
-                title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
-                description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unqie properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
-                notesSlug="/cmsi-3510/ln5"
+                title="LN 12: Don't Starve"
+                description="In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact
+                with them incorrectly to form a new universe of problems referred to as Deadlocking!
+                "
+                notesSlug="" //"/cmsi-3510/ln12"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/NAHDMgiuE48tbICq4YlGrkzlSkfhhkzMSYg1SaSPtQYRgqRDVnhSFsf8rXbo-5z6.cK2Q3xRad8ZNxBFW?startTime=1726160876000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/qay0FeEkmNL2ed4_F7GnxcItuvSx3o2GfdXYG0KVUx3Rk85g2UfXk5IrUWKnmS4C.0AVSCeqJT5QcuyI4?startTime=1726173876000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/OkdHJey2Y11oJXbmoBT7z3p_uz0bucBrkhT9CE0IG0UB73F9rSYvzzxjUqgeR57h.kTt6m5331rq8T5UF?startTime=1726189501000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/mjhyMtqzKS-Lw3e1AbTATQE86NS93sgBtmjuZxIFXtJJGaRjIJ2owRhO5vsnd9tr.nMizuUreLDV3x3ye",
                   },
                 ]}
               />
-
+              <NotesCard
+                title="LN 13: How I Met Your Memory"
+                description="In this lecture we investigate different memory hardware technologies, how they are used, their advantages, and their disadvantages to
+                set up a foundation for understanding Processes fit into memory. This includes volatility, speed, size, cost, and more!"
+                notesSlug="" //"/cmsi-3510/ln13"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/EELBDsdX9tvxFkQ1mRoqrDN5jtrqi9oCOc713K7iOk8Jqe1AA2K68U9iUaMpwCC1.HO4P_1zh6dqlglb8",
+                  },
+                ]}
+              />
+              {/* 
               <NotesCard
                 title="LN 6: The Integers, The Booleans' Infinite In-laws"
                 description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
