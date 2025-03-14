@@ -230,90 +230,51 @@ export default function CMSI5850() {
                 assignmentSlug="/cmsi-5850/hw2"
               />
             </Standard>
-            {/* 
+
             <Standard
               number={3}
-              title="Collections"
-              description="In this standard we will investigate the mathematical
-                  underpinnings of mathematical structures that hold other primitives! 
-                  This includes working with tuples, sets, and their many operations."
+              title="Syntax"
+              description="In this standard we will take the previously learned language theory as a formalization tool
+              for creating processes to standardize our approach to learning and making programming language syntax."
             >
               <NotesCard
-                title="LN 8: Getting Our Types in a Row"
-                description="In this lecture we formally investigate product types in type theory including their properties, operations, and how they are used to build up more complex types."
-                notesSlug="/cmsi-2820/ln8"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/Bbvz-ndaWE15IMuqdU_wW3vrsWRSExQxruGrDMQAkmXEPbgmjEU-DkTwfTgOUZQi.aWuxRPu06-Wz-hCO?startTime=1727197036000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/i-XmrkrF02aYQY2-UvCR1A_DxJYnlQyRdU4Czq6kY3aBcWi0jdnxcujZ2bFT4UrK.mlFvyG810yMMV-05?startTime=1727210730000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/33Kdp481DquJZRqKZPYiMh5TEkFRZ7bNwu6aHntLJu3b9Qtd99yBmiL8_q6urLFp.Da2vD4LhVUW_CqBS?startTime=1727226146000",
-                  },
-                ]}
+                title="Ohm"
+                description="In these notes a full, top-to-bottom, coverage of the Ohm Js library is given. This includes the syntax, the rules, the semantics, and the many tools that can be used to create and manipulate grammars."
+                notesSlug="/cmsi-5850/ohm"
               />
 
               <NotesCard
-                title="LN 9: Settling In"
-                description="In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators."
-                notesSlug="/cmsi-2820/ln9"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/erdo4qPD6oZSrFKmmzTem33djxaYIa2oG3LJy0e4l4bKC1_f4mZSoKgBFbC-xRdt.mdplW412Khj3FV7i?startTime=1727370035000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/9QQu1DhsecGIaIEd6fCXNmWm28jB24khPgD96aiEQUaIt7BLu2QLW1Juf2kpilxF.i1_hyU-C9fA6CykF?startTime=1727383354000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/6Gk4s0BKwJXi2fQq7zKspqEcxfjKtC49pW33eB4WveiQPRpW0owPZDtpbVskttlY.7DL0i-PFs6IQAUeE?startTime=1727398767000",
-                  },
-                ]}
+                title="Astro"
+                description="In these notes is a case-study of the Astro programming language. We will use it as a real-world example of how to put grammars, ASTs, and Semantics into practice."
+                notesSlug="/cmsi-5850/astro"
+              />
+
+              <NotesCard
+                title="Bella"
+                description="In these notes is another case-study. This time for the Bella programming language. We will use it as a real-world example of how handle a syntactically and semantically more complex use case for our tools."
+                notesSlug="/cmsi-5850/bella"
+              />
+
+              <NotesCard
+                title="Operational Semantics"
+                description="In this lecture we perform a deep dive into the operational approach of defining the meaning of programs. This includes 3 different major approaches called COS, SOS (small-step), and Natural Semantics (Big-Step)."
+                notesSlug="/cmsi-5850/operational-semantics"
               />
               <NotesCard
-                title="LN 10: Settling Down"
-                description="We continue our investigation of Sets by practicing some of the many common operations found between."
-                notesSlug=""
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/LhY2fBS8tI7v2Y5xKJOQKLNYmuCMpeUQjbjxanPepH3RtOC1ORgMuBnk7hYV2V0v.l18jmOgltVIPcVc5?startTime=1727801980000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/XY1wXoXTAs75dqMJ_IXvErcGG6NNCT7r4XeokH9DIkN_X09yeDKTyH6SWyWkatpI.fzSNRI3CPXoq_CED?startTime=1727815510000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/Y2XgeF3nXN0sVjjowBh2DvYMpSYOt9Z_RQXWEHMsRjf_XPHMM_FHVUEroIGq_aZz.mdb31HubOWe4GcZk?startTime=1727830787000",
-                  },
-                ]}
+                title="Lambda Calculus"
+                description="In this lecture, we walk in the footsteps of Alonzo Church (Alan Turing's PhD advisor) and investigate a formal theory for functions. Church's formal theory is called the lambda calculus and seeks to define all of mathematics formally with only functions. (Take that Set Theory!)"
+                notesSlug="/cmsi-5850/lambda-calculus"
               />
-              <NotesCard
-                title="LN 11: Relationship Counseling"
-                description="We end our look at Collections by learning about relations. Typically represented as sets of tuples, we will investigate the properties of relationships between instances within a type."
-                notesSlug=""
-                sectionRecordings={[
-                  {
-                    buttonText: "Lecture Video",
-                    url: "https://lmula.zoom.us/rec/share/q9pc-SZYFPqCfIRHLN34TETFFIQr5X2WyQfUoVWZCgz8rgMlTnbD5aoXp1Wwad5F.faOp366tebP8UMf2?startTime=1727984621000",
-                  },
-                ]}
-              />
+
+              {/*}
               <AssignmentCard
                 title="HW 3: Storage Wars"
                 description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
                 assignmentSlug="/cmsi-2820/hw3"
               />
+              */}
             </Standard>
-
+            {/* 
             <Standard
               number={"MIDTERM"}
               title="Standards 1-3"
