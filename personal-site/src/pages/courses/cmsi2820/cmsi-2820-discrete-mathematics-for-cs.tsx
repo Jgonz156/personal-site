@@ -210,6 +210,12 @@ export default function CMSI2820() {
                   terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, 
                   translating natural language into logic, and natural deduction proofs!"
                 assignmentSlug="/cmsi-2820/hw1"
+                homeworkHelpRecordings={[
+                  {
+                    buttonText: "Answers and Explanations",
+                    url: "https://lmula.zoom.us/rec/share/BqXixRrtgA-gcYEGKF-U4UuFLjRDqBw_CnYjK5zuPwOErfmR5jbmeKPkPnc5t7g.iR2liSP0tOHfH827",
+                  },
+                ]}
               />
             </Standard>
 
@@ -272,6 +278,12 @@ export default function CMSI2820() {
                 title="HW 2: Counting Sheep"
                 description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
                 assignmentSlug="/cmsi-2820/hw2"
+                homeworkHelpRecordings={[
+                  {
+                    buttonText: "Answers and Explanations",
+                    url: "https://lmula.zoom.us/rec/share/3hFRr2it1PXbG-XgburFJrBgqNH1WbFR-5HLkL8Gntb7c7XFWqxuo0tBMLY7nDOl.6O02MMbeyPAT9ikz",
+                  },
+                ]}
               />
             </Standard>
 
