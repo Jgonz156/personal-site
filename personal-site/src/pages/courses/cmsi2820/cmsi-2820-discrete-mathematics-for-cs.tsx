@@ -377,42 +377,40 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
               <NotesCard
                 title="LN 14: Supplying and Consuming Lambdas"
                 description="In this lecture we start by recapping proper substitution and then officially define the formal alpha, beta, and gamma conversion rules. After we go over some nomenclature for functions and how to identify suppliers, consumers, and the like."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
+                    buttonText: "Last Semester Section 1 Video",
                     url: "https://lmula.zoom.us/rec/share/M-Q4w9o-9ZwAkkZ8aFQJQln7gLKvVkkAcZOwBCPXQ1R7qLAIM6eo9Hb2oUrYl7RT.53DRR5KWubqPDt1A?startTime=1729011698000",
                   },
                   {
-                    buttonText: "Section 2 Video",
+                    buttonText: "Last Semester Section 2 Video",
                     url: "https://lmula.zoom.us/rec/share/MBsV4n6c941fnIe9z17qKhz-ZqhQmYp6LROyRc1VKA0TCpdacT4bIHitWxPGhNXb.N-f2cND7NSiCPUZI?startTime=1729025363000",
                   },
                   {
-                    buttonText: "Section 3 Video",
+                    buttonText: "Last Semester Section 3 Video",
                     url: "https://lmula.zoom.us/rec/share/5mVa6kDx_8ozDqSmZvN1DXasjGRrZv2Yf5-pjsY4FAzwXATNkCtstHzL02N7Mh41.oAKBo7LxhNVpFw5o",
                   },
                 ]}
               />
-
               <NotesCard
                 title="LN 15: In the Domain of Sheep"
                 description="In this lecture we investigate the patterns that can be found in a lambdas inputs and outputs. We cover domain, codomain, image, pre-image and how an investigation into them gives us three function classes: Injective, Surjective, and Bijective"
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
+                    buttonText: "Last Semester Section 1 Video",
                     url: "https://lmula.zoom.us/rec/share/HIdQ6-URRZZCuTjhTQcY_DIxZLYHoEVJenFNVgemiQv-e6Ika8mdqAjmeP9R_4V3.mefUEt9tHARLzW4_?startTime=1729184582000",
                   },
                   {
-                    buttonText: "Section 2 Video",
+                    buttonText: "Last Semester Section 2 Video",
                     url: "https://lmula.zoom.us/rec/share/81I4FSyqGlphg499OH6K7SGm0GJkNcKzKLyUAG3hewAApI12S5WuKW1qlhp0UMNd.I6Qwggd9GnsSVcDj?startTime=1729198100000",
                   },
                   {
-                    buttonText: "Section 3 Video",
+                    buttonText: "Last Semester Section 3 Video",
                     url: "https://lmula.zoom.us/rec/share/tevUmc_LCdP9UZJSXX98LysG5F9x5TEjwQAIv1dL-xbXquUPK-cIRBnF7AvyKse3.6_fBLQ3U4TIzHomt?startTime=1729213895000",
                   },
                 ]}
@@ -422,9 +420,8 @@ export default function CMSI2820() {
                 description="In this homework we practice lambdas, their reductions, their properties, and their creation!"
                 assignmentSlug="/cmsi-2820/hw4"
               />
-              */}
             </Standard>
-            {/*
+
             <Standard
               number={"MIDTERM"}
               title="Standards 1-3"
@@ -449,7 +446,7 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Lecture Video",
+                    buttonText: "Last Semester Lecture Video",
                     url: "https://lmula.zoom.us/rec/share/Znj8oZh4iFYH-55h2IQaCwPJiJKmrj-RfsIybETYR_8765SOA-BhkmR6d4lZtIo3.W_DGK5Rxqa87ymFC?startTime=1729652001000",
                   },
                 ]}
@@ -461,12 +458,12 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Lecture Video",
+                    buttonText: "Last Semester Lecture Video",
                     url: "https://lmula.zoom.us/rec/share/Yl7uACGPQUyKOWb6z11fMeMiEkNR-DBctVPKRQAtZ33AgFcFTdUdJf7xMeamaLAE.txpI1KGSkHbTQret",
                   },
                 ]}
               />
-
+              {/*}
               <NotesCard
                 title="LN 18: Double Jeopardy"
                 description="In this lecture we investigate Pascal's triangle and many of its hidden properties and patterns. We develop our understanding of combinations using Pascal's Triangle to explore a new proof technique called Double Counting."
@@ -503,8 +500,9 @@ export default function CMSI2820() {
                 description="In this homework we investigate counting, combinations, permutations, and the many tools and intuitions that can be pulled from them!"
                 assignmentSlug="/cmsi-2820/hw5"
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={6}
               title="Graph Theory"

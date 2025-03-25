@@ -21,7 +21,7 @@ export default function Homework4() {
     >
       <CourseBox>
         <TitleBox title="HW4: Silence of the Lambdas" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 11, 8, 8, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 4, 4, 11, 59)} />
         <TopicBox
           topics={[
             "Lambda Calculus",
@@ -220,7 +220,7 @@ def B(f, y, x):
         <TopicBreak title="END OF LN15" />
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=253279&db=302484"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=325618&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Written HW4 Turn In
         </LinkButton>
@@ -366,9 +366,9 @@ def B(f, y, x):
         </Speak>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=302485&grpid=0&isprv=&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=325620&grpid=0&isprv=0&bp=0&ou=267815"
         >
-          Optional HW3 Turn in
+          Optional HW4 Turn in
         </LinkButton>
       </CourseBox>
     </CoursePage>

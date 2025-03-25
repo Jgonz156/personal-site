@@ -17,7 +17,7 @@ export default function Exam1() {
       >
         <CourseBox>
           <TitleBox title="Optional Midterm Exam 1" />
-          <DueDateCalendar dueDate={DateTime.local(2024, 10, 20)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 3, 31)} />
           <TopicBox topics={["S1: Logic", "S2: Numbers", "S3: Collections"]} />
           <Speak>
             Welcome to the optional midterm exam! Its closer to a quiz than
@@ -74,7 +74,7 @@ export default function Exam1() {
           </Speak>
           <Speak>This exam has 5 questions</Speak>
           <LinkButton
-            to="https://brightspace.lmu.edu/d2l/lms/quizzing/user/quiz_summary.d2l?ou=253279&qi=105678&cfql=0"
+            to="https://brightspace.lmu.edu/d2l/lms/quizzing/quizzing.d2l?ou=267815&qi=111975"
             color="danger"
           >
             EX1 S1
@@ -103,7 +103,7 @@ export default function Exam1() {
           </Speak>
           <Speak>This exam has 5 questions</Speak>
           <LinkButton
-            to="https://brightspace.lmu.edu/d2l/lms/quizzing/user/quiz_summary.d2l?qi=105679&ou=253279"
+            to="https://brightspace.lmu.edu/d2l/lms/quizzing/quizzing.d2l?ou=267815&qi=112139"
             color="danger"
           >
             EX1 S2
@@ -116,7 +116,7 @@ export default function Exam1() {
               "Tuples",
               "Sets",
               "Collection Operations",
-              "Equivalence Relations",
+              "Logical Quantification",
             ]}
           />
           <Speak>
@@ -133,7 +133,7 @@ export default function Exam1() {
           </Speak>
           <Speak>This exam has 5 questions</Speak>
           <LinkButton
-            to="https://brightspace.lmu.edu/d2l/lms/quizzing/user/quiz_summary.d2l?qi=105680&ou=253279"
+            to="https://brightspace.lmu.edu/d2l/lms/quizzing/quizzing.d2l?ou=267815&qi=112140"
             color="danger"
           >
             EX1 S3
