@@ -247,6 +247,12 @@ export default function CMSI5850() {
                 title="Astro"
                 description="In these notes is a case-study of the Astro programming language. We will use it as a real-world example of how to put grammars, ASTs, and Semantics into practice."
                 notesSlug="/cmsi-5850/astro"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/nmHIGbna8phlXuNAYUELQiLK7kwl_Nf2h8sGCplKJ97C34PIOaO0pQtA4-eb4Meb.uWLPwAIgq2E1gG8X",
+                  },
+                ]}
               />
 
               <NotesCard
@@ -264,15 +270,19 @@ export default function CMSI5850() {
                 title="Lambda Calculus"
                 description="In this lecture, we walk in the footsteps of Alonzo Church (Alan Turing's PhD advisor) and investigate a formal theory for functions. Church's formal theory is called the lambda calculus and seeks to define all of mathematics formally with only functions. (Take that Set Theory!)"
                 notesSlug="/cmsi-5850/lambda-calculus"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/dD23eJ_bLAW9tsefxz_p6gKmp0vcpb4PeubSdI2C9h0XmRZ7OUgwfdpxpIVUuBBL.yU58pRMNadlOCLWP",
+                  },
+                ]}
               />
 
-              {/*}
               <AssignmentCard
-                title="HW 3: Storage Wars"
-                description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
-                assignmentSlug="/cmsi-2820/hw3"
+                title="HW 3: Do Semantics Dream of Electric Lambdas?"
+                description="In this homework we practice the Lambda Calculus, its reductions, and its properties. We also practice writing Natural (Big-Step) and Structural (small-step) operational semantics."
+                assignmentSlug="/cmsi-5850/hw3"
               />
-              */}
             </Standard>
             {/* 
             <Standard
