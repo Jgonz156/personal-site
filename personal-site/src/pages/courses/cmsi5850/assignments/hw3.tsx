@@ -7,11 +7,8 @@ import TopicBox from "../../components/topic-box"
 import LinkButton from "../../components/link-button"
 import DueDateCalendar from "../../components/due-date-calendar"
 import { DateTime } from "luxon"
-import { MathJax } from "better-react-mathjax"
 import { Typography } from "@mui/joy"
 import BookCard from "../../../../components/book-card"
-import Vocab from "../../components/vocab"
-import CodeBox from "../../components/code-box"
 
 const textbook = {
   title:
