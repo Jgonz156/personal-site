@@ -338,6 +338,30 @@ export default function CMSI3510() {
                   },
                 ]}
               />
+              <NotesCard
+                title="LN 14: Continuous Fragmentation"
+                description="In this lecture we investigate memory allocation! We begin with studying contiguous memory allocation techniques like fixed and dynamic partitioning.
+                We then use these techniques to investigate the problem of fragmentation and setup the foundation for virtual memory!"
+                notesSlug="" //"/cmsi-3510/ln13"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/NiQ9Dn92YMJWQb12sSWJwXHuN_3tDem86UQymlXSf_vPILcXTw2Qh1TzQlluxzC2.gMCpnMvcdhXgJa4E",
+                  },
+                ]}
+              />
+              <NotesCard
+                title="LN 15: Infinite Memory... Sort of"
+                description="In this lecture we continue looking into memory allocation. We begin with Virtual Memory and how it is used to
+                create the illusion of infinite memory! We then investigate how this illusion is created, and maintained, by a new non-contiguous allocation technique called paging!"
+                notesSlug="" //"/cmsi-3510/ln13"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/b7LYFJknPXpAvWfnbMN5yktMTiKYA-g2xeMc57mFT5UvnDQWqz4rGUXA1h_U_sn9.TdKdllpBDbnMuIwp",
+                  },
+                ]}
+              />
               {/* 
               <NotesCard
                 title="LN 6: The Integers, The Booleans' Infinite In-laws"

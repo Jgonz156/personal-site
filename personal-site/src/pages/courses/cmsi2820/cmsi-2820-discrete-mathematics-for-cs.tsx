@@ -449,6 +449,10 @@ export default function CMSI2820() {
                     buttonText: "Last Semester Lecture Video",
                     url: "https://lmula.zoom.us/rec/share/Znj8oZh4iFYH-55h2IQaCwPJiJKmrj-RfsIybETYR_8765SOA-BhkmR6d4lZtIo3.W_DGK5Rxqa87ymFC?startTime=1729652001000",
                   },
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/UnuJG28F--9trHhmg323C4Bwb_fFWiOjVN5QvZUFBr6vdKURS19DVh8e1YrJbqo5.xjrslAazWYU78mOF",
+                  },
                 ]}
               />
 
@@ -460,6 +464,10 @@ export default function CMSI2820() {
                   {
                     buttonText: "Last Semester Lecture Video",
                     url: "https://lmula.zoom.us/rec/share/Yl7uACGPQUyKOWb6z11fMeMiEkNR-DBctVPKRQAtZ33AgFcFTdUdJf7xMeamaLAE.txpI1KGSkHbTQret",
+                  },
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/XzXNtDLlIyYH7xs7xviknQklAcjryxvuIp0fdQJdop5C0IMwXCL1kV6Dy__sBI9r.LjoqGEdtsbxCQ9q6",
                   },
                 ]}
               />
