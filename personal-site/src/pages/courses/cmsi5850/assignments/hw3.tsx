@@ -139,6 +139,12 @@ export default function Homework3() {
             completed by forking the Replit starter project linked in the button
             below. Fill in the missing portions as instructed by the comments.
             Note that I've included a full set of unit tests for you.
+            <LinkButton
+              color="primary"
+              to="https://replit.com/@rtoal/585-Homework-3-Starter-Code"
+            >
+              Replit Starter Project!
+            </LinkButton>
           </QuestionBox>
           <QuestionBox points={9} qid="Q2">
             Problem 1.4.3 in Slonneger and Kurtz
