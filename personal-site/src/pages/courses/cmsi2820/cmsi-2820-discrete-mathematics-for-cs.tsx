@@ -471,27 +471,18 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*}
               <NotesCard
                 title="LN 18: Double Jeopardy"
                 description="In this lecture we investigate Pascal's triangle and many of its hidden properties and patterns. We develop our understanding of combinations using Pascal's Triangle to explore a new proof technique called Double Counting."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/qskFNAeKoGCs2I1mbaZZ4yeKWyA19urXjekBcolV6aj9em5e_mkkuPaaK0Vj2tIW.idzQGwGUvCvukfAf?startTime=1730221148000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/6ETWci7YYQhFbXPcvAnhOY5ncpXZU8ld2m-fmLOnCfbvR1NHDV4ntMt1DftTRcgN.aDxDgfo02_IPbqOP?startTime=1730234887000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/BgHVZfTLrM3pBEIgYSpwASnMnCcALwYWfI7qan8RvnrG2yUKkCL6EqaW2zGR15Xg.W4h3jC0NP5mxSdha?startTime=1730250507000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/jf1V879kfVv-tQ267L6zqB1Qy0yipn_nnGAsEU0AlhbucafzjSCeMLkJ6IR1gkB9.QeKimwuZyyOot89V",
                   },
                 ]}
               />
-
+              {/*}
               <NotesCard
                 title="LN 19: Bijection Your Honor!"
                 description="In this lecture we learn how to leverage bijective functions to solve an interesting class of combinatorics problems and introduce the pigeonhole principle."
