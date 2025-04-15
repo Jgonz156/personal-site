@@ -482,15 +482,18 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*}
               <NotesCard
                 title="LN 19: Bijection Your Honor!"
                 description="In this lecture we learn how to leverage bijective functions to solve an interesting class of combinatorics problems and introduce the pigeonhole principle."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Lecture Video",
-                    url: "https://lmula.zoom.us/rec/share/UeUrUcJASOdXuromubzXAUa-an3Eic5TJ958lIH4XEuozDoXWVvVPgBBj56IFnmM.xQhqXL16cAXK0jye",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/mAX-CELZ_41JkKGoZvof6gdUOey_dgrDgPfmkfcaGEjbanKWEisYfrpKrX9531gJ._qJDARP3IcALOmcw",
+                  },
+                  {
+                    buttonText: "Pigeonhole Principle Video Skip To 01:01:50",
+                    url: "https://lmula.zoom.us/rec/share/pS2cFHtY9itqFQOnR562Uu-MXVYsNFejIjkaKa_QCShu-GOHG8nt0Z9ld7ICybxA.Gs5IBv5YLlRhMTtM?startTime=1730544531000",
                   },
                 ]}
               />
@@ -499,7 +502,6 @@ export default function CMSI2820() {
                 description="In this homework we investigate counting, combinations, permutations, and the many tools and intuitions that can be pulled from them!"
                 assignmentSlug="/cmsi-2820/hw5"
               />
-              */}
             </Standard>
             {/*
             <Standard
