@@ -52,7 +52,7 @@ export default function Homework3() {
       >
         <CourseBox>
           <TitleBox title="HW3: Do Semantics Dream of Electric Lambdas?" />
-          <DueDateCalendar dueDate={DateTime.local(2025, 4, 25, 23, 59)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 5, 2, 23, 59)} />
           <TopicBox topics={["Lambda Calculus", "Operational Semantics"]} />
           <Speak>With this assignment you will demonstrate:</Speak>
           <Speak>
