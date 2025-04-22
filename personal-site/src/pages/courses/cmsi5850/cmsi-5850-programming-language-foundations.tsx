@@ -275,18 +275,16 @@ export default function CMSI5850() {
                     buttonText: "Class Recording",
                     url: "https://lmula.zoom.us/rec/share/dD23eJ_bLAW9tsefxz_p6gKmp0vcpb4PeubSdI2C9h0XmRZ7OUgwfdpxpIVUuBBL.yU58pRMNadlOCLWP",
                   },
+                  {
+                    buttonText: "Class Recording - Continued",
+                    url: "https://lmula.zoom.us/rec/share/1ZFG_lGP_p8VVmXEscZg9Bxk_TdoW-cAaZ_6BGxMDVQfoXaeCV3qokNwEtj3zyUe.QC-AIBoLxd-7I2Ir",
+                  },
                 ]}
               />
               <AssignmentCard
                 title="HW 3: Do Semantics Dream of Electric Lambdas?"
                 description="In this homework we practice the Lambda Calculus, its reductions, and its properties. We also practice writing Natural (Big-Step) and Structural (small-step) operational semantics."
                 assignmentSlug="/cmsi-5850/hw3"
-                sectionRecordings={[
-                  {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/1ZFG_lGP_p8VVmXEscZg9Bxk_TdoW-cAaZ_6BGxMDVQfoXaeCV3qokNwEtj3zyUe.QC-AIBoLxd-7I2Ir",
-                  },
-                ]}
               />
             </Standard>
             {/* 
