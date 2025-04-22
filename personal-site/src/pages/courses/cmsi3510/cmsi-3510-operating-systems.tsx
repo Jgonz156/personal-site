@@ -362,6 +362,30 @@ export default function CMSI3510() {
                   },
                 ]}
               />
+              <NotesCard
+                title="LN 16: Paging Dr. Seg"
+                description="In this lecture we finish our investigation of memory allocation by covering a comprehensive example of paging and seeing some real world examples of how
+                modern systems must adapt the paging technique to work with current hardware and LAS sizes. Lastly, we finish by briefly covering segmentation and how it is used with paging to create our modern systems."
+                notesSlug="" //"/cmsi-3510/ln13"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/ytTcMxNEReEfUF7S-RycWjoOpz6aTFzx20FLhRrLJ6vwZ1v4TUX15K6FiCFIzfT5.VewM1G_22tdztE7z",
+                  },
+                ]}
+              />
+              <NotesCard
+                title="LN 17: Hindsight's on Port 2020"
+                description="In this lecture we cover the final topic of this standard, I/O devices! We'll start with a brief history of data transfer standards, cover the major techniques (Block, Character, Network, etc), 
+                upgrade our visual model of the hardware, and finish by laying the foundation for the use of direct memory access (DMA) in modern systems!"
+                notesSlug="" //"/cmsi-3510/ln13"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/VCXLqT5j7Uu2AnqpdzFFAMChp9_hvDFAoLwoUAUTzLdzevk9lqVnU_q-xyGcSIkV.RsCHfe34PHsvCuU4",
+                  },
+                ]}
+              />
               {/* 
               <NotesCard
                 title="LN 6: The Integers, The Booleans' Infinite In-laws"
