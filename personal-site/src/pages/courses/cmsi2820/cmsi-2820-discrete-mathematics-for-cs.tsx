@@ -503,7 +503,7 @@ export default function CMSI2820() {
                 assignmentSlug="/cmsi-2820/hw5"
               />
             </Standard>
-            {/*
+
             <Standard
               number={6}
               title="Graph Theory"
@@ -516,19 +516,12 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/gh9M9Mr8vWy2cZ7QkxYhp7mT_dZMeDcyv-3cZaEivvElSvP4IRAUrUKw-vt-r_np.wqKczhxy-oiTjdMG?startTime=1730829588000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/LuyleXemMtEysQSbZhxmvPWHoknhP3iemSTfaOj6awnxwsoq90FPAyYewx-_5EZZ.sYNGb_KIJIi9Qusl?startTime=1730843339000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/hc4JSVNUzrhtr0WYWvFZ5mdOpD2yeCHIdgIvX2xjpw_Qocmg8rdrDq8cgSR4G8Su.mP-QZuUQ6ZtN3bZJ?startTime=1730858832000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/OMtZk2P-o9n1JNoeB3s8LrEMVu7jltKoo5JdzpiCBXI59dZpklt4Jaj0E5L8yow.8wZyq_ugnlYra1Pw",
                   },
                 ]}
               />
+              {/*
               <NotesCard
                 title="LN 21: Connecting with Nature"
                 description="In this lecture we investigate how the alterations to the formal graph definition propagate to change our visuals. We take a look at isomorphisms, connectedness, and the handshaking Lemma."
@@ -593,8 +586,9 @@ export default function CMSI2820() {
                 description="In this homework we investigate all things Graph theory! This includes many types of graphs such as complete, bipartite, trees, and forests. We also investigate many of the properties and operations that can be performed such as isomorphisms, connectedness, and cycles."
                 assignmentSlug="/cmsi-2820/hw6"
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={7}
               title="Set Theory"
