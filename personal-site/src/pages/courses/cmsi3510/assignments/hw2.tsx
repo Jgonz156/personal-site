@@ -134,11 +134,17 @@ export default function Homework2() {
             You can find the GitHub Classroom assignment link as a button below
             and the Brightspace turn in link next to it.
           </Speak>
-          <LinkButton color="success" to="">
+          <LinkButton
+            color="success"
+            to="https://classroom.github.com/a/kMX_-LqG"
+          >
             GitHub Assignment
           </LinkButton>
-          <LinkButton color="success" to="">
-            Programming HW1 Turn In
+          <LinkButton
+            color="success"
+            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=328311&grpid=0&isprv=0&bp=0&ou=267829"
+          >
+            Programming HW2 Turn In
           </LinkButton>
         </CourseBox>
       </CoursePage>

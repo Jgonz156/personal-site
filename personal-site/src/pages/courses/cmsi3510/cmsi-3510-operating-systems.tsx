@@ -386,53 +386,12 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/* 
-              <NotesCard
-                title="LN 6: The Integers, The Booleans' Infinite In-laws"
-                description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
-                notesSlug="/cmsi-3510/ln6"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/uBKHYk01Mb8dvxse5WFs-47eaBpH72XfHHFaPgPGJEv2GYBbcY6jOiUgMtw7ts2H.gHkahQAfPSlDtqqk?startTime=1726592078000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: undefined,
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: undefined,
-                  },
-                ]}
-              />
-
-              <NotesCard
-                title="LN 7: Division without Decimals? Positive Numbers that Add 
-                  to Zero? What is this Place?!?"
-                description="In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic."
-                notesSlug="/cmsi-3510/ln7"
-                sectionRecordings={[
-                  {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/VcEoNu-g8JPooH3-cGYnk43Irnge4ssGNKcp4Hvw23fi-g9WAtwRl4AsIeuAaj-h.6r84e9a6x5Pg0KYW?startTime=1726765262000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/y6aeTwpsdfBMd55omdG9vknGQjT_U9bNaxCWt4xmyH8B9KpuDYX2iXhs6jysTObQ.WfaL-kVTcXFgCpSw?startTime=1726778516000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/ncGAMmwVCpCWXPCgmceRLHL07FVA_vD6a31HMEFTUytHkBzHEoGW-00teeoUZt6k.0IlFidW3IJ_OaZcO?startTime=1726794112000",
-                  },
-                ]}
-              />
               <AssignmentCard
-                title="HW 2: Counting Sheep"
-                description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
+                title="HW 2: Life of Pie"
+                description="In this homework you will get practice with concurrent programming paradigms in the form of making pizza from scratch! Prepare to 
+                engage with threads, synchronization primitives, async/await, and more!"
                 assignmentSlug="/cmsi-3510/hw2"
               />
-               */}
             </Standard>
             {/* 
             <Standard
