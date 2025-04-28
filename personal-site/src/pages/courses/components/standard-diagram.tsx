@@ -43,25 +43,29 @@ export default function StandardsDiagram({
     }))
   )
 
-  const standardLetter = (points: number) => {
+  const standardLetter = (points: number, totalPoints: number) => {
+    if (!totalPoints) return "N/A"
+
+    const step = totalPoints / 10
+
     switch (true) {
-      case points === 80:
+      case points >= totalPoints:
         return "A"
-      case points >= 72:
+      case points >= totalPoints - step:
         return "A-"
-      case points >= 64:
+      case points >= totalPoints - 2 * step:
         return "B+"
-      case points >= 56:
+      case points >= totalPoints - 3 * step:
         return "B"
-      case points >= 48:
+      case points >= totalPoints - 4 * step:
         return "B-"
-      case points >= 40:
+      case points >= totalPoints - 5 * step:
         return "C+"
-      case points >= 32:
+      case points >= totalPoints - 6 * step:
         return "C"
-      case points >= 24:
+      case points >= totalPoints - 7 * step:
         return "C-"
-      case points >= 16:
+      case points >= totalPoints - 8 * step:
         return "D"
       default:
         return "F"
@@ -235,7 +239,8 @@ export default function StandardsDiagram({
                         Letter Grade:{" "}
                         {standardLetter(
                           pointState.find((s) => s.standardID === standardID)
-                            ?.currentPoints ?? 0
+                            ?.currentPoints ?? 0,
+                          pointTotal
                         )}
                       </Typography>
                     ) : (
