@@ -265,6 +265,12 @@ export default function CMSI5850() {
                 title="Operational Semantics"
                 description="In this lecture we perform a deep dive into the operational approach of defining the meaning of programs. This includes 3 different major approaches called COS, SOS (small-step), and Natural Semantics (Big-Step)."
                 notesSlug="/cmsi-5850/operational-semantics"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/BznVBBZJG1YxmxhXbEaW37e6OqxAvfStlRMFpmGBW3tS1BIX7BMpIE1a71OcFom6.GgDuTkUvy9VPTGvP",
+                  },
+                ]}
               />
               <NotesCard
                 title="Lambda Calculus"

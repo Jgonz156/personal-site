@@ -312,7 +312,6 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-
               <NotesCard
                 title="LN 12: Don't Starve"
                 description="In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact
@@ -383,6 +382,19 @@ export default function CMSI3510() {
                   {
                     buttonText: "Class Video",
                     url: "https://lmula.zoom.us/rec/share/VCXLqT5j7Uu2AnqpdzFFAMChp9_hvDFAoLwoUAUTzLdzevk9lqVnU_q-xyGcSIkV.RsCHfe34PHsvCuU4",
+                  },
+                ]}
+              />
+
+              <NotesCard
+                title="LN 18: IOU"
+                description="In this lecture we cover the software fundamentals of developing I/O systems. We cover the critical software principles we follow, the approaches used to make those ideals real, and then the implementation of those principals on modern systems.
+                We cover device independence, buffering, spooling, and more."
+                notesSlug="" //"/cmsi-3510/ln13"
+                sectionRecordings={[
+                  {
+                    buttonText: "Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/16t0RtM5rJLTQ00kvgG2pbY6pvS-pU9YmWk5Y1WNKUPagqORf7Rxk2qA82A3yssg.RWthfGVf-Dqkj0Wo",
                   },
                 ]}
               />
