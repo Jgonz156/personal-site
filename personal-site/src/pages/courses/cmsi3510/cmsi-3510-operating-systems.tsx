@@ -312,7 +312,6 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-
               <NotesCard
                 title="LN 12: Don't Starve"
                 description="In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact
@@ -362,53 +361,49 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/* 
               <NotesCard
-                title="LN 6: The Integers, The Booleans' Infinite In-laws"
-                description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
-                notesSlug="/cmsi-3510/ln6"
+                title="LN 16: Paging Dr. Seg"
+                description="In this lecture we finish our investigation of memory allocation by covering a comprehensive example of paging and seeing some real world examples of how
+                modern systems must adapt the paging technique to work with current hardware and LAS sizes. Lastly, we finish by briefly covering segmentation and how it is used with paging to create our modern systems."
+                notesSlug="" //"/cmsi-3510/ln13"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/uBKHYk01Mb8dvxse5WFs-47eaBpH72XfHHFaPgPGJEv2GYBbcY6jOiUgMtw7ts2H.gHkahQAfPSlDtqqk?startTime=1726592078000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/ytTcMxNEReEfUF7S-RycWjoOpz6aTFzx20FLhRrLJ6vwZ1v4TUX15K6FiCFIzfT5.VewM1G_22tdztE7z",
                   },
+                ]}
+              />
+              <NotesCard
+                title="LN 17: Hindsight's on Port 2020"
+                description="In this lecture we cover the final topic of this standard, I/O devices! We'll start with a brief history of data transfer standards, cover the major techniques (Block, Character, Network, etc), 
+                upgrade our visual model of the hardware, and finish by laying the foundation for the use of direct memory access (DMA) in modern systems!"
+                notesSlug="" //"/cmsi-3510/ln13"
+                sectionRecordings={[
                   {
-                    buttonText: "Section 2 Video",
-                    url: undefined,
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: undefined,
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/VCXLqT5j7Uu2AnqpdzFFAMChp9_hvDFAoLwoUAUTzLdzevk9lqVnU_q-xyGcSIkV.RsCHfe34PHsvCuU4",
                   },
                 ]}
               />
 
               <NotesCard
-                title="LN 7: Division without Decimals? Positive Numbers that Add 
-                  to Zero? What is this Place?!?"
-                description="In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic."
-                notesSlug="/cmsi-3510/ln7"
+                title="LN 18: IOU"
+                description="In this lecture we cover the software fundamentals of developing I/O systems. We cover the critical software principles we follow, the approaches used to make those ideals real, and then the implementation of those principals on modern systems.
+                We cover device independence, buffering, spooling, and more."
+                notesSlug="" //"/cmsi-3510/ln13"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/VcEoNu-g8JPooH3-cGYnk43Irnge4ssGNKcp4Hvw23fi-g9WAtwRl4AsIeuAaj-h.6r84e9a6x5Pg0KYW?startTime=1726765262000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/y6aeTwpsdfBMd55omdG9vknGQjT_U9bNaxCWt4xmyH8B9KpuDYX2iXhs6jysTObQ.WfaL-kVTcXFgCpSw?startTime=1726778516000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/ncGAMmwVCpCWXPCgmceRLHL07FVA_vD6a31HMEFTUytHkBzHEoGW-00teeoUZt6k.0IlFidW3IJ_OaZcO?startTime=1726794112000",
+                    buttonText: "Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/16t0RtM5rJLTQ00kvgG2pbY6pvS-pU9YmWk5Y1WNKUPagqORf7Rxk2qA82A3yssg.RWthfGVf-Dqkj0Wo",
                   },
                 ]}
               />
               <AssignmentCard
-                title="HW 2: Counting Sheep"
-                description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
+                title="HW 2: Life of Pie"
+                description="In this homework you will get practice with concurrent programming paradigms in the form of making pizza from scratch! Prepare to 
+                engage with threads, synchronization primitives, async/await, and more!"
                 assignmentSlug="/cmsi-3510/hw2"
               />
-               */}
             </Standard>
             {/* 
             <Standard

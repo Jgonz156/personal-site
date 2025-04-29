@@ -381,6 +381,7 @@ export default function Syllabus() {
               completely optional? Now that I've got you hooked, lets break it
               down.
             </Speak>
+            {/*
             <StandardsDiagram
               courseID="CMSI 3510: Operating Systems"
               coursePointTotal={240}
@@ -467,6 +468,74 @@ export default function Syllabus() {
                       id: "OEX S3",
                       points: 10,
                       gradedWith: "Operating Systems",
+                    },
+                  ],
+                },
+              ]}
+            />
+            */}
+            <StandardsDiagram
+              courseID="CMSI 3510: Operating Systems"
+              coursePointTotal={100}
+              standards={[
+                {
+                  standardID: "Syllabus",
+                  pointTotal: 0,
+                  homework: [
+                    { id: "HW 0", points: 3, gradedWith: "Syllabus" },
+                    { id: "OHW 0", points: 1, gradedWith: "Syllabus" },
+                  ],
+                  exams: [{ id: "EX S0", points: 1, gradedWith: "Syllabus" }],
+                },
+                {
+                  standardID: "Concurrent Programming",
+                  pointTotal: 50,
+                  homework: [
+                    {
+                      id: "HW 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "AC 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                  ],
+                },
+                {
+                  standardID: "Computer Hardware",
+                  pointTotal: 50,
+                  homework: [
+                    { id: "HW 2", points: 30, gradedWith: "Computer Hardware" },
+                    { id: "AC 2", points: 30, gradedWith: "Computer Hardware" },
+                    {
+                      id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Concurrent Programming",
+                    },
+                  ],
+                },
+                {
+                  standardID: "Final",
+                  homework: [
+                    {
+                      id: "OHW 2",
+                      points: 20,
+                      gradedWith: "Operating Systems",
+                    },
+                    { id: "AC 3", points: 30, gradedWith: "Final" },
+                  ],
+                  exams: [
+                    {
+                      id: "OEX S1",
+                      points: 10,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "OEX S2",
+                      points: 10,
+                      gradedWith: "Computer Hardware",
                     },
                   ],
                 },

@@ -21,7 +21,7 @@ export default function Homework5() {
     >
       <CourseBox>
         <TitleBox title="HW5: Order In The Court" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 11, 25, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 5, 2, 23, 59)} />
         <TopicBox
           topics={[
             "Rule of Sums and Products",
@@ -390,7 +390,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
         <TopicBreak title="END LN20" />
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=253279&db=303709"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=327521&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Written HW5 Turn In
         </LinkButton>
@@ -425,13 +425,13 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
         </Speak>
         <LinkButton
           color="success"
-          to="https://classroom.github.com/a/CW3A2-10"
+          to="https://classroom.github.com/a/QltRx4ud"
         >
           GitHub Assignment
         </LinkButton>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=303710&grpid=0&isprv=&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=327523&grpid=0&isprv=0&bp=0&ou=267815s"
         >
           Programming HW5 Turn In
         </LinkButton>
@@ -512,7 +512,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
         </Speak>
         <LinkButton
           color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=303711&grpid=0&isprv=&bp=0&ou=253279"
+          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=327522&grpid=0&isprv=0&bp=0&ou=267815"
         >
           Optional HW4 Turn in
         </LinkButton>

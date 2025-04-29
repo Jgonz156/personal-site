@@ -471,35 +471,29 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*}
               <NotesCard
                 title="LN 18: Double Jeopardy"
                 description="In this lecture we investigate Pascal's triangle and many of its hidden properties and patterns. We develop our understanding of combinations using Pascal's Triangle to explore a new proof technique called Double Counting."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/qskFNAeKoGCs2I1mbaZZ4yeKWyA19urXjekBcolV6aj9em5e_mkkuPaaK0Vj2tIW.idzQGwGUvCvukfAf?startTime=1730221148000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/6ETWci7YYQhFbXPcvAnhOY5ncpXZU8ld2m-fmLOnCfbvR1NHDV4ntMt1DftTRcgN.aDxDgfo02_IPbqOP?startTime=1730234887000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/BgHVZfTLrM3pBEIgYSpwASnMnCcALwYWfI7qan8RvnrG2yUKkCL6EqaW2zGR15Xg.W4h3jC0NP5mxSdha?startTime=1730250507000",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/jf1V879kfVv-tQ267L6zqB1Qy0yipn_nnGAsEU0AlhbucafzjSCeMLkJ6IR1gkB9.QeKimwuZyyOot89V",
                   },
                 ]}
               />
-
               <NotesCard
                 title="LN 19: Bijection Your Honor!"
                 description="In this lecture we learn how to leverage bijective functions to solve an interesting class of combinatorics problems and introduce the pigeonhole principle."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Lecture Video",
-                    url: "https://lmula.zoom.us/rec/share/UeUrUcJASOdXuromubzXAUa-an3Eic5TJ958lIH4XEuozDoXWVvVPgBBj56IFnmM.xQhqXL16cAXK0jye",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/mAX-CELZ_41JkKGoZvof6gdUOey_dgrDgPfmkfcaGEjbanKWEisYfrpKrX9531gJ._qJDARP3IcALOmcw",
+                  },
+                  {
+                    buttonText: "Pigeonhole Principle Video Skip To 01:01:50",
+                    url: "https://lmula.zoom.us/rec/share/pS2cFHtY9itqFQOnR562Uu-MXVYsNFejIjkaKa_QCShu-GOHG8nt0Z9ld7ICybxA.Gs5IBv5YLlRhMTtM?startTime=1730544531000",
                   },
                 ]}
               />
@@ -508,9 +502,8 @@ export default function CMSI2820() {
                 description="In this homework we investigate counting, combinations, permutations, and the many tools and intuitions that can be pulled from them!"
                 assignmentSlug="/cmsi-2820/hw5"
               />
-              */}
             </Standard>
-            {/*
+
             <Standard
               number={6}
               title="Graph Theory"
@@ -523,39 +516,24 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/gh9M9Mr8vWy2cZ7QkxYhp7mT_dZMeDcyv-3cZaEivvElSvP4IRAUrUKw-vt-r_np.wqKczhxy-oiTjdMG?startTime=1730829588000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/LuyleXemMtEysQSbZhxmvPWHoknhP3iemSTfaOj6awnxwsoq90FPAyYewx-_5EZZ.sYNGb_KIJIi9Qusl?startTime=1730843339000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/hc4JSVNUzrhtr0WYWvFZ5mdOpD2yeCHIdgIvX2xjpw_Qocmg8rdrDq8cgSR4G8Su.mP-QZuUQ6ZtN3bZJ?startTime=1730858832000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/OMtZk2P-o9n1JNoeB3s8LrEMVu7jltKoo5JdzpiCBXI59dZpklt4Jaj0E5L8yow.8wZyq_ugnlYra1Pw",
                   },
                 ]}
               />
+
               <NotesCard
                 title="LN 21: Connecting with Nature"
                 description="In this lecture we investigate how the alterations to the formal graph definition propagate to change our visuals. We take a look at isomorphisms, connectedness, and the handshaking Lemma."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/m7fGV1QaucjdlM3mFPtKo2TDk0hCNNRcLq3iUYPo17VWXbN-Ys9bvuXkG9I1OnEX.OTpNPVmppGSjEmw8?startTime=1731002382000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/hVQw21hJ2xVJfxhbp3_HA_a9ragRjI0IxxxbIdq1tFLj-7g3781jQPBI753TC4-i.UX7321B4hCmggABv?startTime=1731016162000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/LBhF400-cSb8A-0LGu6NQ1rZuGtXSPx88IdOLrFb1fg4w3rd7kRSpcyO_Twc72J5.48wnJyuYC_QYCFg8?startTime=1731031580000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/a5IHTtaqxUisu3Q1sMtHIbjrJHEtBSkaDyMhc5n6wNnlVU6EXSHogVmjKjXiHOSC.FEf7rYYSxW4f2tuG",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 22: Looking Over Edges"
                 description="In this lecture we take a look at special graphs (Complete, Bipartite, Euler, Hamiltonian) and their special properties. We also take a look at cycles as a useful tool for analyzing graph properties."
@@ -600,8 +578,9 @@ export default function CMSI2820() {
                 description="In this homework we investigate all things Graph theory! This includes many types of graphs such as complete, bipartite, trees, and forests. We also investigate many of the properties and operations that can be performed such as isomorphisms, connectedness, and cycles."
                 assignmentSlug="/cmsi-2820/hw6"
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={7}
               title="Set Theory"

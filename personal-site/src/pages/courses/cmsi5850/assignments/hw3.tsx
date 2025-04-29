@@ -52,7 +52,7 @@ export default function Homework3() {
       >
         <CourseBox>
           <TitleBox title="HW3: Do Semantics Dream of Electric Lambdas?" />
-          <DueDateCalendar dueDate={DateTime.local(2025, 4, 25, 23, 59)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 5, 2, 23, 59)} />
           <TopicBox topics={["Lambda Calculus", "Operational Semantics"]} />
           <Speak>With this assignment you will demonstrate:</Speak>
           <Speak>
@@ -139,6 +139,12 @@ export default function Homework3() {
             completed by forking the Replit starter project linked in the button
             below. Fill in the missing portions as instructed by the comments.
             Note that I've included a full set of unit tests for you.
+            <LinkButton
+              color="primary"
+              to="https://replit.com/@rtoal/585-Homework-3-Starter-Code"
+            >
+              Replit Starter Project!
+            </LinkButton>
           </QuestionBox>
           <QuestionBox points={9} qid="Q2">
             Problem 1.4.3 in Slonneger and Kurtz

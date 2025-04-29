@@ -265,6 +265,12 @@ export default function CMSI5850() {
                 title="Operational Semantics"
                 description="In this lecture we perform a deep dive into the operational approach of defining the meaning of programs. This includes 3 different major approaches called COS, SOS (small-step), and Natural Semantics (Big-Step)."
                 notesSlug="/cmsi-5850/operational-semantics"
+                sectionRecordings={[
+                  {
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/BznVBBZJG1YxmxhXbEaW37e6OqxAvfStlRMFpmGBW3tS1BIX7BMpIE1a71OcFom6.GgDuTkUvy9VPTGvP",
+                  },
+                ]}
               />
               <NotesCard
                 title="Lambda Calculus"
@@ -275,9 +281,12 @@ export default function CMSI5850() {
                     buttonText: "Class Recording",
                     url: "https://lmula.zoom.us/rec/share/dD23eJ_bLAW9tsefxz_p6gKmp0vcpb4PeubSdI2C9h0XmRZ7OUgwfdpxpIVUuBBL.yU58pRMNadlOCLWP",
                   },
+                  {
+                    buttonText: "Class Recording - Continued",
+                    url: "https://lmula.zoom.us/rec/share/1ZFG_lGP_p8VVmXEscZg9Bxk_TdoW-cAaZ_6BGxMDVQfoXaeCV3qokNwEtj3zyUe.QC-AIBoLxd-7I2Ir",
+                  },
                 ]}
               />
-
               <AssignmentCard
                 title="HW 3: Do Semantics Dream of Electric Lambdas?"
                 description="In this homework we practice the Lambda Calculus, its reductions, and its properties. We also practice writing Natural (Big-Step) and Structural (small-step) operational semantics."
