@@ -404,6 +404,11 @@ export default function CMSI3510() {
                 engage with threads, synchronization primitives, async/await, and more!"
                 assignmentSlug="/cmsi-3510/hw2"
               />
+              <ActivityCard
+                title="AC 2: Saved by The Schedule"
+                description="In this in class activity, we use grade school worksheets as a vehicle for learning all about job timing!"
+                activitySlug="/cmsi-3510/ac2"
+              />
             </Standard>
             {/* 
             <Standard
