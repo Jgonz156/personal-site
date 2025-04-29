@@ -82,7 +82,7 @@ export default function Activity1() {
           allows.
         </Speak>
         <Speak>
-          The preparation will see the proctor split the participants into to
+          The preparation will see the proctor split the participants into two
           equal halves. These will be the members of Team 1 and Team 2.
           (Recommended manner to split the participants is by location in
           classroom, just split it in half simply.)
