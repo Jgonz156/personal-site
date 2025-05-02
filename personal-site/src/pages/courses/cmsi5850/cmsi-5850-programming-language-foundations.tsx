@@ -273,6 +273,11 @@ export default function CMSI5850() {
                 ]}
               />
               <NotesCard
+                title="Denotational Semantics"
+                description="In this lecture we take a look at a denotational approach of defining the meaning of programs. This includes defining syntactic and semantics domains and the functions that map between them."
+                notesSlug="/cmsi-5850/denotational-semantics"
+              />
+              <NotesCard
                 title="Lambda Calculus"
                 description="In this lecture, we walk in the footsteps of Alonzo Church (Alan Turing's PhD advisor) and investigate a formal theory for functions. Church's formal theory is called the lambda calculus and seeks to define all of mathematics formally with only functions. (Take that Set Theory!)"
                 notesSlug="/cmsi-5850/lambda-calculus"
