@@ -10,6 +10,7 @@ import A from "./standard-3-syntax/astro.tsx"
 import B from "./standard-3-syntax/bella.tsx"
 import OS from "./standard-3-syntax/operational-semantics.tsx"
 import LC from "./standard-3-syntax/lambda-calculus.tsx"
+import DS from "./standard-3-syntax/denotational-semantics.tsx"
 
 const CMSI5850LectureRoutes = [
   { path: "/cmsi-5850/the-study-of-programming-languages", element: <TSPL /> },
@@ -23,6 +24,7 @@ const CMSI5850LectureRoutes = [
   { path: "/cmsi-5850/astro", element: <A /> },
   { path: "/cmsi-5850/bella", element: <B /> },
   { path: "/cmsi-5850/operational-semantics", element: <OS /> },
+  { path: "/cmsi-5850/denotational-semantics", element: <DS /> },
   { path: "/cmsi-5850/lambda-calculus", element: <LC /> },
 ]
 
