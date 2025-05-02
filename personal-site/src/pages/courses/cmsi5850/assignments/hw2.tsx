@@ -343,6 +343,89 @@ console.log(93.8 * {x} << x.r[z])`}
             Written HW2 Turn In
           </LinkButton>
         </CourseBox>
+        {/*}
+        <CourseBox>
+          <TitleBox
+            title="Optional Section For Theory, Logic, and Math"
+            quote="Points: 20"
+          />
+          <Speak>
+            In this optional section you will be working on a small beginner
+            Rust project of your choosing! After looking around for some fun
+            project ideas, I found this great article from ZTM.io's Jayson
+            Lennon!
+          </Speak>
+          <LinkButton
+            color="success"
+            to="https://zerotomastery.io/blog/rust-practice-projects/"
+          >
+            Jayson Lennon's Rust Practice Projects
+          </LinkButton>
+          <Speak>
+            Whilst the intermediate and advanced projects are certainly "out of
+            our league" at the moment, the beginner projects Jayson lays out are
+            insightful, simple, and fun!
+          </Speak>
+          <Speak>
+            For this optional I want you to read that article and pick one of
+            the beginner projects that Jayson recommends! Complete the basic
+            implementation of the project and then provide at least 5 to 10 unit
+            tests that display your implementations working as expected.
+          </Speak>
+          <Speak>
+            I have made an empty Github assignment for you to pull and create
+            your Rust project from scratch (This is out of convenience so that I
+            can use Github classroom to collate all your projects rather than go
+            through being added to all the repos). Feel free to architect your
+            project as you choose, however at a minimum you must have at least 5
+            unit tests that are run and pass with the cargo test command.
+          </Speak>
+          <Speak>
+            Additionally, provide a brief README.md file that explains what
+            project you chose and how to interact with it. If you are doing
+            anything "non-standard" that is Ok, just document that in the
+            README.md.
+          </Speak>
+          <Speak>
+            Since the repository is private, feel free after you are done to
+            copy it over into a public repository to show off on your Github!
+          </Speak>
+          <Speak>
+            Earning points in this optional is not as rigid since you may pick
+            your own project. With that said, to earn full points you must fully
+            implement one of the beginner projects as stated by Jayson, have a
+            README.md, and have at a minimum 5 unit tests pass with the cargo
+            test command. You do not have to do any of the add-ons or extensions
+            that Jayson recommends.
+          </Speak>
+          <Speak>
+            As an example, if you did the beginner project about remaking core
+            terminal utilities than I would expect to be able to run your
+            version of echo, cat, ls, find, and grep, that I could figure out
+            where to start by looking at your project README (Your commands
+            don't need to be terminal integrated or anything, but there
+            functionality should be intact through whatever medium you choose),
+            and that I could clone the repository to run cargo test and see at
+            least 5 passes (In this case one for each command).
+          </Speak>
+          <Speak>
+            Below are buttons that link to the Brightspace turn in and the empty
+            Github assignment repository to pull and work in respectively.
+          </Speak>
+          <LinkButton
+            color="success"
+            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=328348&grpid=0&isprv=0&bp=0&ou=267829"
+          >
+            Optional HW1 Turn in
+          </LinkButton>
+          <LinkButton
+            color="success"
+            to="https://classroom.github.com/a/CS11VMb4"
+          >
+            Github Optional Assignment
+          </LinkButton>
+        </CourseBox>
+        */}
       </CoursePage>
     </>
   )

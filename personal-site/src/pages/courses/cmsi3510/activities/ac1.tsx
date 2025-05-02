@@ -1,3 +1,4 @@
+//import { Sheet } from "@mui/joy"
 import CourseBox from "../../components/course-box"
 import CoursePage from "../../components/course-page"
 import LinkButton from "../../components/link-button"
@@ -263,6 +264,110 @@ export default function Activity1() {
           activity to working with threads in a program?
         </QuestionBox>
       </CourseBox>
+      {/*}
+      <CourseBox>
+              <TitleBox title="Activity 1 Alternate Assignment" quote="Points: 30" />
+              <Speak>
+                For those of you who could unfortunately not make it to the activity,
+                you can make up the points by completing this alternate assignment!
+                This assignment takes the form of watching a video and answering some
+                questions via turning in a PDF to a Brightspace assignment.
+              </Speak>
+              <Speak>
+                Begin by watching this video from the YouTube channel Core Dumped! The
+                video covers the same topic as we did in the activity: Scheduling.
+                George, the host, does a great job explaining the algorithms and their
+                issues. Whilst watching, try to keep the 3 major machine types we
+                discussed in class in mind to answer the questions below: Batch,
+                Interactive, and Real-Time Systems.
+              </Speak>
+              <Sheet sx={{ display: "flex", justifyContent: "center" }}>
+                <Sheet
+                  sx={{ width: "70%", position: "relative", paddingTop: "39.375%" }}
+                >
+                  <iframe
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      //border: 0,
+                    }}
+                    src="https://www.youtube.com/embed/O2tV9q6784k"
+                    title="The Fancy Algorithms That Make Your Computer Feel Smoother"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                </Sheet>
+              </Sheet>
+              <Speak>
+                Give your answers to the following questions below and turn them in to
+                the Brightspace assignment linked via the button at the bottom of the
+                page!
+              </Speak>
+              <QuestionBox qid="Q1">
+                What specific scheduling algorithms mentioned in the video would be
+                most appropriate for each system type (Batch, Interactive, and
+                Real-Time), and why? Provide specific examples of applications where
+                each would be optimal. (Since Real-Time scheduling techniques are not
+                brought up directly, consider what algorithms would work best for
+                these systems)
+              </QuestionBox>
+      
+              <QuestionBox qid="Q2">
+                The video mentions different metrics like turnaround time, waiting
+                time, and throughput. Explain how the relative importance of these
+                metrics shifts across Batch, Interactive, and Real-Time systems.
+              </QuestionBox>
+      
+              <QuestionBox qid="Q3">
+                Suppose you're designing an operating system for a hospital's medical
+                equipment. What equipment in the hospital would you prioritize as
+                batch, interactive, or real-time ? Justify your answers and explain
+                which scheduling techniques would be most appropriate.
+              </QuestionBox>
+      
+              <QuestionBox qid="Q4">
+                Compare and contrast how starvation might occur in each system type.
+                How do the scheduling algorithms for each type attempt to prevent
+                starvation?
+              </QuestionBox>
+      
+              <QuestionBox qid="Q5">
+                How might modern multi-core processors change the scheduling
+                approaches discussed in the video? Consider how parallelism affects
+                each system type differently.
+              </QuestionBox>
+      
+              <QuestionBox qid="Q6">
+                The video discusses the concept of preemption. How does the importance
+                and implementation of preemption differ between Batch, Interactive,
+                and Real-Time systems?
+              </QuestionBox>
+      
+              <QuestionBox qid="Q7">
+                The video mentions predicting CPU bursts to optimize scheduling. You
+                do not have to come up with a mathematical solution like in the video,
+                however, consider all 3 system types and how you would go about
+                predicting the CPU bursts for each. What factors would you consider?
+              </QuestionBox>
+      
+              <QuestionBox qid="Q8">
+                If you were to create a visual metaphor or analogy to explain the
+                differences between the three system types to someone with no
+                technical background, what would it be and why?
+              </QuestionBox>
+      
+              <LinkButton
+                to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=328748&grpid=0&isprv=0&bp=0&ou=267829"
+                color="success"
+              >
+                Alternate Assignment Submission
+              </LinkButton>
+            </CourseBox>
+      */}
     </CoursePage>
   )
 }

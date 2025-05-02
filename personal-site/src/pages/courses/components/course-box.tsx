@@ -33,6 +33,7 @@ export default function CourseBox({
         sx={{
           display: "flex",
           flexDirection: "column",
+          //alignItems: "center",
           p: 4,
           borderRadius: 12,
           gap: 4,
