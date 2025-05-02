@@ -26,7 +26,7 @@ export default function DS() {
     >
       <CourseBox>
         <iframe
-          style={{ height: "10200px" }}
+          style={{ height: "10300px" }}
           src="https://cs.lmu.edu/~ray/notes/densem/"
         />
       </CourseBox>

@@ -276,12 +276,6 @@ export default function CMSI5850() {
                 title="Denotational Semantics"
                 description="In this lecture we take a look at a denotational approach of defining the meaning of programs. This includes defining syntactic and semantics domains and the functions that map between them."
                 notesSlug="/cmsi-5850/denotational-semantics"
-                sectionRecordings={[
-                  {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/BznVBBZJG1YxmxhXbEaW37e6OqxAvfStlRMFpmGBW3tS1BIX7BMpIE1a71OcFom6.GgDuTkUvy9VPTGvP",
-                  },
-                ]}
               />
               <NotesCard
                 title="Lambda Calculus"
