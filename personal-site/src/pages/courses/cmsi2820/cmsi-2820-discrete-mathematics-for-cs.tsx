@@ -533,23 +533,15 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 22: Looking Over Edges"
                 description="In this lecture we take a look at special graphs (Complete, Bipartite, Euler, Hamiltonian) and their special properties. We also take a look at cycles as a useful tool for analyzing graph properties."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/l-B17k-nJJAOfiR2Ct-oz8uDLq56MTYE53N2lumA_taa9XFG9PqOhl0GqJQ6bfbG.vstJjz0QAxHt_kWn?startTime=1731434403000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/owgtVAQQq5GgP9kbGKY3B1o1ER1mKknVbBlRlhtyjz2bOfUNzt6PNURIZTwAaCay.waBdAuT9kEDlOrTB?startTime=1731448352000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/5CD5XlM3IVQfEYTMFdSYTO_WAFkxkScR2qWwz8saBDQCTw6YCypGVlhaF_l9I3da.9czCZsfer3BEl1B3?startTime=1731463566000",
+                    buttonText: "Class Video",
+                    url: "https://lmula.zoom.us/rec/share/5glOexOxHO-Njtau_6WjBd0pSDLZJRLqU9TtU7aQdpnqem6Yd1fJQNlMT00K4h1t.pqhPW_USaJWQS2BZ",
                   },
                 ]}
               />
@@ -560,16 +552,8 @@ export default function CMSI2820() {
                 notesSlug="/cmsi-2820/ln23"
                 sectionRecordings={[
                   {
-                    buttonText: "Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/WHssoPHNAHXnDgnDzuCM7ee5YGFD6mSbK12KbX62wlyQ4Wp0DdGzMGbClSjjL2kU.V0vs1azQv0rWy3aV?startTime=1731607327000",
-                  },
-                  {
-                    buttonText: "Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/BLSe-vT1XJfZ7sy6YaUz--QJMvt9bzG-LfFt5_6KAMTPiBXqVz6Y0dGO59yE2DZ_.9mhrJcBEKWc7Y25l?startTime=1731621005000",
-                  },
-                  {
-                    buttonText: "Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/3BKQ0snBCjL1wAmawNk2r32AhGo75po0qkqxb8SXdeVId1W7s5S08YJl-rU2Id3s.CiCjb8OGTorZ0I_H?startTime=1731636345000",
+                    buttonText: "Last Class Video!",
+                    url: "https://lmula.zoom.us/rec/share/o3ZQUz9I48qTurfLe0zJDzKxA5hPgMI9ffJeG3FbGfpyM4TgSRYzW7n6vgf3fcAG.s4Ks3fa_DAK_J73e",
                   },
                 ]}
               />
@@ -578,7 +562,6 @@ export default function CMSI2820() {
                 description="In this homework we investigate all things Graph theory! This includes many types of graphs such as complete, bipartite, trees, and forests. We also investigate many of the properties and operations that can be performed such as isomorphisms, connectedness, and cycles."
                 assignmentSlug="/cmsi-2820/hw6"
               />
-              */}
             </Standard>
             {/*
             <Standard
