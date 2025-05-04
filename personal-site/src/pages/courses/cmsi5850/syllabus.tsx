@@ -281,6 +281,75 @@ export default function Syllabus() {
             </Speak>
             <StandardsDiagram
               courseID="CMSI 5850: Programming Language Foundations"
+              coursePointTotal={240}
+              standards={[
+                {
+                  standardID: "Theory, Logic, and Math",
+                  pointTotal: 80,
+                  homework: [
+                    {
+                      id: "HW 1",
+                      points: 100,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
+                  ],
+                },
+                {
+                  standardID: "Languages and Syntax",
+                  pointTotal: 80,
+                  homework: [
+                    {
+                      id: "HW 2",
+                      points: 100,
+                      gradedWith: "Languages and Syntax",
+                    },
+                    {
+                      id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
+                  ],
+                },
+                {
+                  standardID: "Semantics",
+                  pointTotal: 80,
+                  homework: [
+                    { id: "HW 3", points: 100, gradedWith: "Semantics" },
+                    {
+                      id: "OHW 2",
+                      points: 20,
+                      gradedWith: "Languages and Syntax",
+                    },
+                  ],
+                },
+                {
+                  standardID: "Final",
+                  homework: [
+                    { id: "OHW 3", points: 20, gradedWith: "Semantics" },
+                  ],
+                  exams: [
+                    {
+                      id: "OEX S1",
+                      points: 20,
+                      gradedWith: "Theory, Logic, and Math",
+                    },
+                    {
+                      id: "OEX S2",
+                      points: 20,
+                      gradedWith: "Languages and Syntax",
+                    },
+                    {
+                      id: "OEX S3",
+                      points: 20,
+                      gradedWith: "Semantics",
+                    },
+                  ],
+                },
+              ]}
+            />
+            {/*}
+            <StandardsDiagram
+              courseID="CMSI 5850: Programming Language Foundations"
               coursePointTotal={400}
               standards={[
                 {
@@ -365,6 +434,7 @@ export default function Syllabus() {
                 },
               ]}
             />
+            */}
             <Speak>
               Above, you can see a "snapshot" of the entire course assignment
               structure and the grading table that is used to determine your
