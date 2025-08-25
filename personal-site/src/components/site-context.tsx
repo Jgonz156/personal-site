@@ -42,7 +42,7 @@ const initialSettingsState = {
   },
   About: {},
   CurriculumVitae: {},
-  FallSemester: false,
+  FallSemester: true,
 }
 
 type SettingsState = typeof initialSettingsState

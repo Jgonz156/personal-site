@@ -7,7 +7,7 @@ import ExamCard from "../components/exam-card"
 import NotesCard from "../components/notes-card"
 import Standard from "../components/standard"
 import Speak from "../components/speak"
-import ActivityCard from "../components/activity-card"
+//import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
   return (
