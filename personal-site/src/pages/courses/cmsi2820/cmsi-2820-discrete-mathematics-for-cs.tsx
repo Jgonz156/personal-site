@@ -131,12 +131,13 @@ export default function CMSI2820() {
                             for information and displays the small interactive
                             modules I might have throughout the notes."
                 notesSlug="/cmsi-2820/ln0"
-                sectionRecordings={[
-                  {
-                    buttonText: "Syllabus Day Video",
-                    url: "https://lmula.zoom.us/rec/share/c4g9iZTmiirRTSNAWpaWcabtqdyKO14sxyczRYN7jqA0XPB6b3QF5JSVTGnAk09s.GKI5YhMF5YFyjxHh",
-                  },
-                ]}
+
+                //sectionRecordings={[
+                //  {
+                //    buttonText: "Syllabus Day Video",
+                //    url: "https://lmula.zoom.us/rec/share/c4g9iZTmiirRTSNAWpaWcabtqdyKO14sxyczRYN7jqA0XPB6b3QF5JSVTGnAk09s.GKI5YhMF5YFyjxHh",
+                //  },
+                //]}
               />
               <AssignmentCard
                 title="HW 0: Practicing Homework"
@@ -153,7 +154,7 @@ export default function CMSI2820() {
                 examSlug="/cmsi-2820/ex0"
               />
             </Standard>
-
+            {/*
             <Standard
               number={1}
               title="Logic"
@@ -563,7 +564,7 @@ export default function CMSI2820() {
                 assignmentSlug="/cmsi-2820/hw6"
               />
             </Standard>
-            {/*
+            
             <Standard
               number={7}
               title="Set Theory"
