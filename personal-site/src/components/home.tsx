@@ -97,10 +97,18 @@ export default function Home() {
           <CourseInfoDump
             sectionNumber={1}
             daysOfWeek={["Tuesday", "Thursday"]}
-            timeStart="1:45 PM"
-            timeEnd="3:25 PM"
+            timeStart="9:55 AM"
+            timeEnd="11:35 PM"
             building="Pereira"
-            roomNumber={206}
+            roomNumber={207}
+          />
+          <CourseInfoDump
+            sectionNumber={2}
+            daysOfWeek={["Tuesday", "Thursday"]}
+            timeStart="6:00 PM"
+            timeEnd="7:40 PM"
+            building="Pereira"
+            roomNumber={207}
           />
         </Sheet>
       ),

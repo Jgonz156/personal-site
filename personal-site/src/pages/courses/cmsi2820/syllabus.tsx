@@ -109,10 +109,18 @@ export default function Syllabus() {
             <CourseInfoDump
               sectionNumber={1}
               daysOfWeek={["Tuesday", "Thursday"]}
-              timeStart="1:45 PM"
-              timeEnd="3:25 PM"
+              timeStart="9:55 AM"
+              timeEnd="11:35 PM"
               building="Pereira"
-              roomNumber={206}
+              roomNumber={207}
+            />
+            <CourseInfoDump
+              sectionNumber={2}
+              daysOfWeek={["Tuesday", "Thursday"]}
+              timeStart="6:00 PM"
+              timeEnd="7:40 PM"
+              building="Pereira"
+              roomNumber={207}
             />
             <Divider />
             <Speak>
@@ -297,74 +305,6 @@ export default function Syllabus() {
             </Speak>
             <StandardsDiagram
               courseID="CMSI 2820: Discrete Mathematics for CS"
-              coursePointTotal={400}
-              standards={[
-                {
-                  standardID: "Syllabus",
-                  pointTotal: 0,
-                  homework: [{ id: "HW 0", points: 3, gradedWith: "Syllabus" }],
-                  exams: [{ id: "EX S0", points: 2, gradedWith: "Syllabus" }],
-                },
-                {
-                  standardID: "Logic",
-                  pointTotal: 80,
-                  homework: [{ id: "HW 1", points: 100, gradedWith: "Logic" }],
-                },
-                {
-                  standardID: "Numbers",
-                  pointTotal: 80,
-                  homework: [
-                    { id: "HW 2", points: 100, gradedWith: "Numbers" },
-                    { id: "OHW 1", points: 20, gradedWith: "Logic" },
-                  ],
-                },
-                {
-                  standardID: "Collections",
-                  pointTotal: 80,
-                  homework: [
-                    { id: "HW 3", points: 100, gradedWith: "Collections" },
-                    { id: "OHW 2", points: 20, gradedWith: "Numbers" },
-                  ],
-                },
-                {
-                  standardID: "Midterm",
-                  exams: [
-                    { id: "OEX S1", points: 10, gradedWith: "Logic" },
-                    { id: "OEX S2", points: 10, gradedWith: "Numbers" },
-                    { id: "OEX S3", points: 10, gradedWith: "Collections" },
-                  ],
-                },
-                {
-                  standardID: "Functions",
-                  pointTotal: 80,
-                  homework: [
-                    { id: "HW 4", points: 100, gradedWith: "Functions" },
-                    { id: "OHW 3", points: 20, gradedWith: "Collections" },
-                  ],
-                },
-                {
-                  standardID: "Combinatorics",
-                  pointTotal: 80,
-                  homework: [
-                    { id: "HW 5", points: 100, gradedWith: "Combinatorics" },
-                    { id: "OHW 4", points: 20, gradedWith: "Functions" },
-                  ],
-                },
-                {
-                  standardID: "Final",
-                  homework: [
-                    { id: "OHW 5", points: 20, gradedWith: "Combinatorics" },
-                  ],
-                  exams: [
-                    { id: "OEX S4", points: 10, gradedWith: "Functions" },
-                    { id: "OEX S5", points: 10, gradedWith: "Combinatorics" },
-                  ],
-                },
-              ]}
-            />
-            {/*}
-            <StandardsDiagram
-              courseID="CMSI 2820: Discrete Mathematics for CS"
               coursePointTotal={480}
               standards={[
                 {
@@ -439,7 +379,6 @@ export default function Syllabus() {
                 },
               ]}
             />
-            */}
             <Speak>
               Above, you can see a "snapshot" of the entire course assignment
               structure and the grading table that is used to determine your
