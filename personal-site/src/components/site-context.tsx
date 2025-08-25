@@ -32,7 +32,7 @@ const initialSettingsState = {
       },
       CMSI5850: {
         ModalVisible: false,
-        StatusBadge: CourseStatusBadge.InProgress,
+        StatusBadge: CourseStatusBadge.Waiting,
       },
       cmsiX999: {
         ModalVisible: false,
