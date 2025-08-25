@@ -303,11 +303,6 @@ export default function Syllabus() {
                       points: 100,
                       gradedWith: "Languages and Syntax",
                     },
-                    {
-                      id: "OHW 1",
-                      points: 20,
-                      gradedWith: "Theory, Logic, and Math",
-                    },
                   ],
                 },
                 {
@@ -315,32 +310,24 @@ export default function Syllabus() {
                   pointTotal: 80,
                   homework: [
                     { id: "HW 3", points: 100, gradedWith: "Semantics" },
-                    {
-                      id: "OHW 2",
-                      points: 20,
-                      gradedWith: "Languages and Syntax",
-                    },
                   ],
                 },
                 {
                   standardID: "Final",
-                  homework: [
-                    { id: "OHW 3", points: 20, gradedWith: "Semantics" },
-                  ],
                   exams: [
                     {
                       id: "OEX S1",
-                      points: 20,
+                      points: 40,
                       gradedWith: "Theory, Logic, and Math",
                     },
                     {
                       id: "OEX S2",
-                      points: 20,
+                      points: 40,
                       gradedWith: "Languages and Syntax",
                     },
                     {
                       id: "OEX S3",
-                      points: 20,
+                      points: 40,
                       gradedWith: "Semantics",
                     },
                   ],

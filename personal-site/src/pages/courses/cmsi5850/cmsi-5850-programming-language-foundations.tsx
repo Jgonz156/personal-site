@@ -173,6 +173,12 @@ export default function CMSI5850() {
                 title="HW 1: Digging to Bedrock"
                 description="In this homework you will get practice all the foundational tools (Sets, Functions, Numbers, Logic) we need to build up our future formal mechanisms that define Programming Languages."
                 assignmentSlug="/cmsi-5850/hw1"
+                homeworkHelpRecordings={[
+                  {
+                    buttonText: "Answers",
+                    url: "/cmsi-5850/hw1-ans",
+                  },
+                ]}
               />
             </Standard>
 
@@ -228,6 +234,12 @@ export default function CMSI5850() {
                 title="HW 2: Syntax R Us"
                 description="In this homework you will get practice with grammars, ASTs, and error checking!"
                 assignmentSlug="/cmsi-5850/hw2"
+                homeworkHelpRecordings={[
+                  {
+                    buttonText: "Answers",
+                    url: "/cmsi-5850/hw2-ans",
+                  },
+                ]}
               />
             </Standard>
 
@@ -302,6 +314,12 @@ export default function CMSI5850() {
                 title="HW 3: Do Semantics Dream of Electric Lambdas?"
                 description="In this homework we practice the Lambda Calculus, its reductions, and its properties. We also practice writing Natural (Big-Step) and Structural (small-step) operational semantics."
                 assignmentSlug="/cmsi-5850/hw3"
+                homeworkHelpRecordings={[
+                  {
+                    buttonText: "Answers",
+                    url: "/cmsi-5850/hw3-ans",
+                  },
+                ]}
               />
             </Standard>
             {/* 
