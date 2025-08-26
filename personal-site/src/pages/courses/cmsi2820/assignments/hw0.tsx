@@ -100,7 +100,7 @@ export default function Homework0() {
         </CourseBox>
         <CourseBox>
           <TitleBox title="HW0: Practicing Homework!" />
-          <DueDateCalendar dueDate={DateTime.local(2025, 1, 24, 23, 59)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 9, 5)} />
           <TopicBox
             topics={[
               "There are no particular topics for this HW",
@@ -175,11 +175,8 @@ export default function Homework0() {
             me on BrightSpace in the "Written" HW0 assignment linked with the
             button below!
           </Speak>
-          <LinkButton
-            color="success"
-            to="https://brightspace.lmu.edu/d2l/le/calendar/267815/event/737629/detailsview#737629"
-          >
-            Written HW0 Turn In
+          <LinkButton color="success" to="">
+            Written HW0 Turn In (Broken Due to Brightspace Maintenance)
           </LinkButton>
         </CourseBox>
         <CourseBox>
@@ -291,15 +288,12 @@ export default function Homework0() {
           </Speak>
           <LinkButton
             color="success"
-            to="https://classroom.github.com/a/L7qlAncP"
+            to="https://classroom.github.com/a/RsHo51aJ"
           >
             GitHub Assignment
           </LinkButton>
-          <LinkButton
-            color="success"
-            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=267815&db=318851"
-          >
-            Programming HW0 Turn In
+          <LinkButton color="success" to="">
+            Programming HW0 Turn In (Broken Due to Brightspace Maintenance)
           </LinkButton>
         </CourseBox>
         <CourseBox>
@@ -321,11 +315,8 @@ export default function Homework0() {
           <ImageBox
             images={[{ url: "/cmsi-2820/HW0-Meme.jpg", caption: undefined }]}
           />
-          <LinkButton
-            color="success"
-            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=318852&grpid=0&isprv=&bp=0&ou=267815"
-          >
-            Optional HW0 Turn in
+          <LinkButton color="success" to="">
+            Optional HW0 Turn in (Broken Due to Brightspace Maintenance)
           </LinkButton>
         </CourseBox>
       </CoursePage>

@@ -106,12 +106,9 @@ export default function Exam0() {
           </Speak>
           <Speak>This exam is worth in total 2 points</Speak>
           <Speak>This exam has 5 questions</Speak>
-          <DueDateCalendar dueDate={DateTime.local(2024, 9, 3)} />
-          <LinkButton
-            to="https://brightspace.lmu.edu/d2l/lms/quizzing/user/quiz_summary.d2l?qi=110746&ou=267815"
-            color="danger"
-          >
-            To the Exam!
+          <DueDateCalendar dueDate={DateTime.local(2025, 9, 6)} />
+          <LinkButton to="" color="danger">
+            To the Exam! (Broken Due to Brightspace Maintenance)
           </LinkButton>
         </CourseBox>
       </CoursePage>
