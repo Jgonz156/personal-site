@@ -350,7 +350,7 @@ export default function FallCourseSchedule() {
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2025, 11, 21).startOf("day"),
+      date: DateTime.local(2025, 12, 5).startOf("day"),
       quote: "HW6 Due",
       dayType: "homework",
       dayInfo: <></>,
@@ -413,7 +413,8 @@ export default function FallCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 12, 11).startOf("day"),
-      quote: "Finals Study Day 8 AM - 10 AM Pereira 207",
+      quote:
+        "Finals Study Day 8 AM - 10 AM Pereira 207, 11 AM - 1 PM Pereira 127",
       dayType: "office hours",
       dayInfo: <></>,
     },

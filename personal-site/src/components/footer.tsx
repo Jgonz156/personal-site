@@ -33,7 +33,7 @@ const personalInfo = [
     icon: <MeetingRoomIcon />,
   },
   {
-    value: "Office Hours: T, Th 3:30 PM - 5 PM",
+    value: "Office Hours: M, W @ 2 PM - 5 PM",
     icon: <AccessTimeIcon />,
   },
   {

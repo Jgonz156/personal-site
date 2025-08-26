@@ -172,14 +172,14 @@ export default function Home() {
           <Divider>
             <Chip>Prerequisites</Chip>
           </Divider>
-          <Sheet> CMSI 2210 and/or CMSI 284 160 or EECE 3140</Sheet>
+          <Sheet> CMSI 2210 and/or CMSI 284 or EECE 3140</Sheet>
           <CourseInfoDump
             sectionNumber={1}
-            daysOfWeek={["Monday", "Wednesday"]}
+            daysOfWeek={["Tuesday", "Thursday"]}
             timeStart="1:45 PM"
             timeEnd="3:25 PM"
-            building="Seaver"
-            roomNumber={304}
+            building="Pereira"
+            roomNumber={127}
           />
         </Sheet>
       ),
