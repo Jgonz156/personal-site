@@ -69,7 +69,7 @@ export default function Homework0() {
         </CourseBox>
         <CourseBox>
           <TitleBox title="HW0: Simple Rust Calculator" />
-          <DueDateCalendar dueDate={DateTime.local(2025, 1, 31, 23, 59)} />
+          <DueDateCalendar dueDate={DateTime.local(2025, 9, 5, 23, 59)} />
           <TopicBox
             topics={[
               "There are no particular topics for this HW",
@@ -209,15 +209,12 @@ export default function Homework0() {
           </Speak>
           <LinkButton
             color="success"
-            to="https://classroom.github.com/a/fwMU5CuG"
+            to="https://classroom.github.com/a/0GOtOTyd"
           >
             GitHub Assignment
           </LinkButton>
-          <LinkButton
-            color="success"
-            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=320136&grpid=0&isprv=0&bp=0&ou=267829"
-          >
-            Programming HW0 Turn In
+          <LinkButton color="success" to="">
+            Programming HW0 Turn In (Broken due to Brightspace Maintenance)
           </LinkButton>
         </CourseBox>
         <CourseBox>
@@ -239,11 +236,8 @@ export default function Homework0() {
           <ImageBox
             images={[{ url: "/cmsi-3510/HW0-Meme.jpg", caption: undefined }]}
           />
-          <LinkButton
-            color="success"
-            to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=320137&grpid=0&isprv=0&bp=0&ou=267829"
-          >
-            Optional HW0 Turn in
+          <LinkButton color="success" to="">
+            Optional HW0 Turn in (Broken due to Brightspace Maintenance)
           </LinkButton>
         </CourseBox>
       </CoursePage>
