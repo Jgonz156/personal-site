@@ -131,13 +131,16 @@ export default function CMSI2820() {
                             for information and displays the small interactive
                             modules I might have throughout the notes."
                 notesSlug="/cmsi-2820/ln0"
-
-                //sectionRecordings={[
-                //  {
-                //    buttonText: "Syllabus Day Video",
-                //    url: "https://lmula.zoom.us/rec/share/c4g9iZTmiirRTSNAWpaWcabtqdyKO14sxyczRYN7jqA0XPB6b3QF5JSVTGnAk09s.GKI5YhMF5YFyjxHh",
-                //  },
-                //]}
+                sectionRecordings={[
+                  {
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/3iEbR7PiI_dBr3oDvLGwqYmSA0qGqs_9kocP4XGCWv5SxRJnvRHelkyE4igMzfiq.nIdDB2ZvC91Qvqro",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/9qmFdR3h-5cFv4MjIwiZKEc2m0fJmMeCkdby0Uu-ZEIVtAXdWL1o3K0MaQuNqZgk.1kF7BKtlrqS0rQ6p",
+                  },
+                ]}
               />
               <AssignmentCard
                 title="HW 0: Practicing Homework"
