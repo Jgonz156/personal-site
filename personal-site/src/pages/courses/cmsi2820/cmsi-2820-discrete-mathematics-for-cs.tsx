@@ -157,31 +157,30 @@ export default function CMSI2820() {
                 examSlug="/cmsi-2820/ex0"
               />
             </Standard>
-            {/*
             <Standard
               number={1}
               title="Logic"
               description="In this standard we will investigate the mathematical
-                  underpinnings of logical argumentation, deductive reasoning,
-                  and the symbology that is used to represent these ideas. This
-                  means taking a brief look at different systems of logic, a deeper
-                  dive into intuitionistic logic, and what that means for
-                  propositional and predicate reasoning"
+              underpinnings of logical argumentation, deductive reasoning,
+              and the symbology that is used to represent these ideas. This
+              means taking a brief look at different systems of logic, a deeper
+              dive into intuitionistic logic, and what that means for
+              propositional and predicate reasoning"
             >
               <NotesCard
                 title="LN 1: Information and Its Consequences..."
                 description="This lecture will cover the basics of many different 
-                  systems of logic, where they came from, how they were used, and 
-                  what it even means to craft a valid line of reasoning."
+                systems of logic, where they came from, how they were used, and 
+                what it even means to craft a valid line of reasoning."
                 notesSlug={""} //"/cmsi-2820/ln1"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/8SEWlygCO6rBCPDuAMm8XupDUZLOHzFHjRuVm5y-hshQzKRxO6_-UIDAUP_7nnPd.lobxIKjJlT8zdTYu",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/la1mVbpnFfHVRdVJe_vdt_WHC-LDcuIF4ivMezQHrBq6W-MSLYHbMlDHwSn1fIlr.VSrqNa_WtWEt1VI8",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 2: Making Logical Connections"
                 description="This lecture will be an introduction to 
@@ -221,8 +220,9 @@ export default function CMSI2820() {
                   },
                 ]}
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={2}
               title="Numbers"
