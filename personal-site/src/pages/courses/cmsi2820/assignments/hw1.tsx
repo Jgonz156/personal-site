@@ -13,6 +13,13 @@ import TopicBreak from "../../components/topic-break"
 import { MathJax } from "better-react-mathjax"
 import ImageBox from "../../components/image-box"
 
+const HW_BS_WRITTEN_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802236/detailsview#802236"
+const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/bE384tPa"
+const HW_BS_PROGRAMMING_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802237/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+//const HW_BS_OPTIONAL_TURN_IN_LINK = null // No optional for this HW
+
 export default function Homework1() {
   return (
     <CoursePage
@@ -72,11 +79,7 @@ export default function Homework1() {
           of declarative statements we accept as fact. Sometimes its{" "}
           <Vocab
             definition={
-              <>
-                <Speak>
-                  Declarative statements that tell you how reality is
-                </Speak>
-              </>
+              <Speak>Declarative statements that tell you how reality is</Speak>
             }
           >
             Positive Information
@@ -84,11 +87,9 @@ export default function Homework1() {
           like the first sentence or its{" "}
           <Vocab
             definition={
-              <>
-                <Speak>
-                  Declarative statements that tell you how reality isn't
-                </Speak>
-              </>
+              <Speak>
+                Declarative statements that tell you how reality isn't
+              </Speak>
             }
           >
             Negative information
@@ -446,10 +447,7 @@ export default function Homework1() {
           discrete however so we move forward from here ready to take on
           Numbers!
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=319885&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_WRITTEN_TURN_IN_LINK}>
           Written HW1 Turn In
         </LinkButton>
       </CourseBox>
@@ -489,16 +487,10 @@ export default function Homework1() {
           Linked below is the GitHub Classroom assignment link and the
           Brightspace turn in link both as buttons
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/rYvKRVOv"
-        >
+        <LinkButton color="success" to={HW_GH_ASSIGNMENT_LINK}>
           GitHub Assignment
         </LinkButton>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=319886&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_PROGRAMMING_TURN_IN_LINK}>
           Programming HW1 Turn In
         </LinkButton>
       </CourseBox>

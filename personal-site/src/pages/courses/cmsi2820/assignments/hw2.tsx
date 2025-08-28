@@ -11,6 +11,14 @@ import QuestionBox from "../../components/question-box"
 import TopicBreak from "../../components/topic-break"
 import { MathJax } from "better-react-mathjax"
 
+const HW_BS_WRITTEN_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802238/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/UB2L6HVO"
+const HW_BS_PROGRAMMING_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802239/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+const HW_BS_OPTIONAL_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802240/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+
 export default function Homework2() {
   return (
     <CoursePage
@@ -375,10 +383,7 @@ export default function Homework2() {
           operators as a base to investigate and explore new Types and new
           operators for Grouping and Ordering our instances!
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=321823&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_WRITTEN_TURN_IN_LINK}>
           Written HW2 Turn In
         </LinkButton>
       </CourseBox>
@@ -409,16 +414,10 @@ export default function Homework2() {
           Linked below is the GitHub Classroom assignment link and the
           Brightspace turn in link both as buttons
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/Vg64vMxo"
-        >
+        <LinkButton color="success" to={HW_GH_ASSIGNMENT_LINK}>
           GitHub Assignment
         </LinkButton>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=321824&grpid=0&isprv=0&bp=0&ou=267815s"
-        >
+        <LinkButton color="success" to={HW_BS_PROGRAMMING_TURN_IN_LINK}>
           Programming HW2 Turn In
         </LinkButton>
       </CourseBox>
@@ -460,10 +459,7 @@ export default function Homework2() {
           Give me an intuitionistic argument for why you are right by arguing
           that other stances lead to absurdities or falsehoods!
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=321825&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_OPTIONAL_TURN_IN_LINK}>
           Optional HW1 Turn in
         </LinkButton>
       </CourseBox>

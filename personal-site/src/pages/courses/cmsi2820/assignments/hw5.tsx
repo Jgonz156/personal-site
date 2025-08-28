@@ -12,6 +12,14 @@ import { MathJax } from "better-react-mathjax"
 import Vocab from "../../components/vocab"
 import TopicBreak from "../../components/topic-break"
 
+const HW_BS_WRITTEN_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802246/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/GKzh8XdU"
+const HW_BS_PROGRAMMING_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802247/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+const HW_BS_OPTIONAL_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802252/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+
 export default function Homework5() {
   return (
     <CoursePage
@@ -388,10 +396,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           </QuestionBox>
         </QuestionBox>
         <TopicBreak title="END LN20" />
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=327521&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_WRITTEN_TURN_IN_LINK}>
           Written HW5 Turn In
         </LinkButton>
       </CourseBox>
@@ -423,16 +428,10 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           Linked below is the GitHub Classroom assignment link and the
           Brightspace turn in link both as buttons
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/QltRx4ud"
-        >
+        <LinkButton color="success" to={HW_GH_ASSIGNMENT_LINK}>
           GitHub Assignment
         </LinkButton>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=327523&grpid=0&isprv=0&bp=0&ou=267815s"
-        >
+        <LinkButton color="success" to={HW_BS_PROGRAMMING_TURN_IN_LINK}>
           Programming HW5 Turn In
         </LinkButton>
       </CourseBox>
@@ -510,10 +509,7 @@ AC707  & YYZ & LAX & 08:30  & N123AA \\\\
           it in via brightspace with the button below! If you have any questions
           about this optional feel free to ask me!
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=327522&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_OPTIONAL_TURN_IN_LINK}>
           Optional HW4 Turn in
         </LinkButton>
       </CourseBox>

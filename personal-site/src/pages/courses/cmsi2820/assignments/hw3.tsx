@@ -10,6 +10,14 @@ import TitleBox from "../../components/title-box"
 import TopicBox from "../../components/topic-box"
 import TopicBreak from "../../components/topic-break"
 
+const HW_BS_WRITTEN_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802241/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/3GjUTguV"
+const HW_BS_PROGRAMMING_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802242/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+const HW_BS_OPTIONAL_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802243/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+
 export default function Homework3() {
   return (
     <CoursePage
@@ -66,10 +74,7 @@ export default function Homework3() {
         </QuestionBox>
         <TopicBreak title="END OF LN11" />
         */}
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=324269&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_WRITTEN_TURN_IN_LINK}>
           Written HW3 Turn In
         </LinkButton>
       </CourseBox>
@@ -121,16 +126,10 @@ export default function Homework3() {
           Linked below is the GitHub Classroom assignment link and the
           Brightspace turn in link both as buttons
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/OlEZ2Apv"
-        >
+        <LinkButton color="success" to={HW_GH_ASSIGNMENT_LINK}>
           GitHub Assignment
         </LinkButton>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=324270&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_PROGRAMMING_TURN_IN_LINK}>
           Programming HW3 Turn In
         </LinkButton>
       </CourseBox>
@@ -184,10 +183,7 @@ export default function Homework3() {
           The more properties you include and the more operations you find, the
           more points you earn!
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=324271&grpid=0&isprv=0&bp=0&ou=267815"
-        >
+        <LinkButton color="success" to={HW_BS_OPTIONAL_TURN_IN_LINK}>
           Optional HW2 Turn in
         </LinkButton>
       </CourseBox>
