@@ -213,13 +213,6 @@ export default function FallCourseSchedule() {
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2025, 10, 12).startOf("day"),
-      quote: "Midterm Release Day",
-      dayType: "midterm",
-      dayInfo: <></>,
-    },
-
-    {
       date: DateTime.local(2025, 10, 14).startOf("day"),
       quote: "Lecture Day (LN13)",
       dayType: "lecture",
@@ -241,12 +234,6 @@ export default function FallCourseSchedule() {
       date: DateTime.local(2025, 10, 17).startOf("day"),
       quote: "HW3 Due",
       dayType: "homework",
-      dayInfo: <></>,
-    },
-    {
-      date: DateTime.local(2025, 10, 18).startOf("day"),
-      quote: "Midterm Due",
-      dayType: "midterm",
       dayInfo: <></>,
     },
     {
@@ -438,84 +425,82 @@ export default function FallCourseSchedule() {
   )
 
   return (
-    <>
+    <Sheet
+      sx={{
+        display: "flex",
+        gap: 4,
+        flexWrap: "wrap",
+        justifyContent: "space-evenly",
+        alignItems: "center",
+      }}
+    >
       <Sheet
+        variant="outlined"
         sx={{
+          borderRadius: 12,
+          p: 4,
           display: "flex",
-          gap: 4,
-          flexWrap: "wrap",
-          justifyContent: "space-evenly",
-          alignItems: "center",
+          flexDirection: "column",
+          gap: 2,
         }}
       >
-        <Sheet
-          variant="outlined"
-          sx={{
-            borderRadius: 12,
-            p: 4,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
-          Legend
-          <Sheet sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar color="primary"> </Avatar>
-            <Typography> : Lecture</Typography>
-          </Sheet>
-          <Sheet sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar color="success"> </Avatar>
-            <Typography> : Homework</Typography>
-          </Sheet>
-          <Sheet sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar color="danger"> </Avatar>
-            <Typography> : Exam / Activity</Typography>
-          </Sheet>
-          <Sheet sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar color="warning"> </Avatar>
-            <Typography> : Holiday</Typography>
-          </Sheet>
-          <Sheet sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar color="neutral"> </Avatar>
-            <Typography> : Office Hours</Typography>
-          </Sheet>
+        Legend
+        <Sheet sx={{ display: "flex", alignItems: "center" }}>
+          <Avatar color="primary"> </Avatar>
+          <Typography> : Lecture</Typography>
         </Sheet>
-        <DateCalendar
-          showDaysOutsideCurrentMonth
-          fixedWeekNumber={6}
-          views={["day"]}
-          displayWeekNumber
-          value={currentDate}
-          onChange={(selectedDate) => {
-            setCurrentDate(selectedDate.startOf("day"))
-            currentDateInfo = schedule?.find(
-              ({ date }) =>
-                date.startOf("day").toISODate() ===
-                currentDate.startOf("day").toISODate()
-            )
-          }}
-          sx={{ m: 0 }}
-          slots={{ day: ScheduleDay }}
-          slotProps={{ day: { schedule } as any }}
-        />
-
-        {currentDateInfo ? (
-          <Sheet sx={{ display: "flex", gap: 4, flexDirection: "column" }}>
-            <TitleBox
-              title={`${currentDateInfo.date.toFormat("DDD")}`}
-              quote={`${currentDateInfo.quote}`}
-            />
-            <Speak>{currentDateInfo.dayInfo}</Speak>
-          </Sheet>
-        ) : (
-          <Sheet sx={{ display: "flex", gap: 4, flexDirection: "column" }}>
-            <TitleBox
-              title={`${currentDate.toFormat("DDD")}`}
-              quote={`No Info On Selected Date`}
-            />
-          </Sheet>
-        )}
+        <Sheet sx={{ display: "flex", alignItems: "center" }}>
+          <Avatar color="success"> </Avatar>
+          <Typography> : Homework</Typography>
+        </Sheet>
+        <Sheet sx={{ display: "flex", alignItems: "center" }}>
+          <Avatar color="danger"> </Avatar>
+          <Typography> : Exam / Activity</Typography>
+        </Sheet>
+        <Sheet sx={{ display: "flex", alignItems: "center" }}>
+          <Avatar color="warning"> </Avatar>
+          <Typography> : Holiday</Typography>
+        </Sheet>
+        <Sheet sx={{ display: "flex", alignItems: "center" }}>
+          <Avatar color="neutral"> </Avatar>
+          <Typography> : Office Hours</Typography>
+        </Sheet>
       </Sheet>
-    </>
+      <DateCalendar
+        showDaysOutsideCurrentMonth
+        fixedWeekNumber={6}
+        views={["day"]}
+        displayWeekNumber
+        value={currentDate}
+        onChange={(selectedDate) => {
+          setCurrentDate(selectedDate.startOf("day"))
+          currentDateInfo = schedule?.find(
+            ({ date }) =>
+              date.startOf("day").toISODate() ===
+              currentDate.startOf("day").toISODate()
+          )
+        }}
+        sx={{ m: 0 }}
+        slots={{ day: ScheduleDay }}
+        slotProps={{ day: { schedule } as any }}
+      />
+
+      {currentDateInfo ? (
+        <Sheet sx={{ display: "flex", gap: 4, flexDirection: "column" }}>
+          <TitleBox
+            title={`${currentDateInfo.date.toFormat("DDD")}`}
+            quote={`${currentDateInfo.quote}`}
+          />
+          <Speak>{currentDateInfo.dayInfo}</Speak>
+        </Sheet>
+      ) : (
+        <Sheet sx={{ display: "flex", gap: 4, flexDirection: "column" }}>
+          <TitleBox
+            title={`${currentDate.toFormat("DDD")}`}
+            quote={`No Info On Selected Date`}
+          />
+        </Sheet>
+      )}
+    </Sheet>
   )
 }

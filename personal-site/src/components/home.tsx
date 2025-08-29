@@ -480,7 +480,7 @@ export default function Home() {
           </Typography>
         </>
       ),
-      link: "https://gustavus.edu/academics/departments/mathematics-computer-science-and-statistics/max/os-book/osm-rev1.2.1.pdf",
+      link: "https://ia902302.us.archive.org/27/items/osm-rev1.2/osm-rev1.2.pdf",
       imageSlug:
         "/book-covers/OperatingSystemsAndMiddleware-SupportingControlledInteractions.png",
     },

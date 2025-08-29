@@ -149,7 +149,7 @@ export default function CMSI3510() {
                 examSlug="/cmsi-3510/ex0"
               />
             </Standard>
-            {/*
+
             <Standard
               number={1}
               title="Concurrent Programming"
@@ -171,7 +171,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 2: Variable Variables"
                 description="In this lecture, we begin our full investigation of Rust by looking at the syntax and semantics of Variable Declarations.
@@ -257,8 +257,9 @@ export default function CMSI3510() {
                 description="In this in class activity, we use Competitive Origami to learn data and task partitioning for parallel programming."
                 activitySlug="/cmsi-3510/ac1"
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={2}
               title="Computer Hardware"
