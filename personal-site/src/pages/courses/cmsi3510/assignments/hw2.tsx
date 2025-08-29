@@ -9,6 +9,11 @@ import DueDateCalendar from "../../components/due-date-calendar"
 import { DateTime } from "luxon"
 import DirectoryTree from "../../components/directory-tree"
 
+const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/gu_K8XCD"
+const HW_BS_PROGRAMMING_TURN_IN_LINK = ""
+const HW_BS_OPTIONAL_TURN_IN_LINK = ""
+const HW_GH_OPTIONAL_ASSIGNMENT_LINK = ""
+
 export default function Homework2() {
   return (
     <CoursePage
@@ -129,16 +134,10 @@ export default function Homework2() {
           You can find the GitHub Classroom assignment link as a button below
           and the Brightspace turn in link next to it.
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/kMX_-LqG"
-        >
+        <LinkButton color="success" to={HW_GH_ASSIGNMENT_LINK}>
           GitHub Assignment
         </LinkButton>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=328311&grpid=0&isprv=0&bp=0&ou=267829"
-        >
+        <LinkButton color="success" to={HW_BS_PROGRAMMING_TURN_IN_LINK}>
           Programming HW2 Turn In
         </LinkButton>
       </CourseBox>
@@ -209,16 +208,10 @@ export default function Homework2() {
           Below are buttons that link to the Brightspace turn in and the empty
           Github assignment repository to pull and work in respectively.
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=328348&grpid=0&isprv=0&bp=0&ou=267829"
-        >
+        <LinkButton color="success" to={HW_BS_OPTIONAL_TURN_IN_LINK}>
           Optional HW1 Turn in
         </LinkButton>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/CS11VMb4"
-        >
+        <LinkButton color="success" to={HW_GH_OPTIONAL_ASSIGNMENT_LINK}>
           Github Optional Assignment
         </LinkButton>
       </CourseBox>

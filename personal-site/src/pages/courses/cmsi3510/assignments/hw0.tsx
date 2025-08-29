@@ -12,6 +12,10 @@ import DueDateCalendar from "../../components/due-date-calendar"
 import { DateTime } from "luxon"
 import DirectoryTree from "../../components/directory-tree"
 
+const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/0GOtOTyd"
+const HW_BS_PROGRAMMING_TURN_IN_LINK = ""
+const HW_BS_OPTIONAL_TURN_IN_LINK = ""
+
 export default function Homework0() {
   return (
     <CoursePage
@@ -204,14 +208,11 @@ export default function Homework0() {
           You can find the GitHub Classroom assignment link as a button below
           and the Brightspace turn in link next to it.
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/0GOtOTyd"
-        >
+        <LinkButton color="success" to={HW_GH_ASSIGNMENT_LINK}>
           GitHub Assignment
         </LinkButton>
-        <LinkButton color="success" to="">
-          Programming HW0 Turn In (Broken due to Brightspace Maintenance)
+        <LinkButton color="success" to={HW_BS_PROGRAMMING_TURN_IN_LINK}>
+          Programming HW0 Turn In
         </LinkButton>
       </CourseBox>
       <CourseBox>
@@ -233,8 +234,8 @@ export default function Homework0() {
         <ImageBox
           images={[{ url: "/cmsi-3510/HW0-Meme.jpg", caption: undefined }]}
         />
-        <LinkButton color="success" to="">
-          Optional HW0 Turn in (Broken due to Brightspace Maintenance)
+        <LinkButton color="success" to={HW_BS_OPTIONAL_TURN_IN_LINK}>
+          Optional HW0 Turn in
         </LinkButton>
       </CourseBox>
     </CoursePage>

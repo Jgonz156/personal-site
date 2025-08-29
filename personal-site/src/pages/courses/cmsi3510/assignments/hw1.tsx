@@ -9,6 +9,9 @@ import DueDateCalendar from "../../components/due-date-calendar"
 import { DateTime } from "luxon"
 import DirectoryTree from "../../components/directory-tree"
 
+const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/qN_FYjrX"
+const HW_BS_PROGRAMMING_TURN_IN_LINK = ""
+
 export default function Homework1() {
   return (
     <CoursePage
@@ -116,16 +119,10 @@ export default function Homework1() {
           You can find the GitHub Classroom assignment link as a button below
           and the Brightspace turn in link next to it.
         </Speak>
-        <LinkButton
-          color="success"
-          to="https://classroom.github.com/a/ygGT__dB"
-        >
+        <LinkButton color="success" to={HW_GH_ASSIGNMENT_LINK}>
           GitHub Assignment
         </LinkButton>
-        <LinkButton
-          color="success"
-          to="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=321492&grpid=0&isprv=0&bp=0&ou=267829"
-        >
+        <LinkButton color="success" to={HW_BS_PROGRAMMING_TURN_IN_LINK}>
           Programming HW1 Turn In
         </LinkButton>
       </CourseBox>
