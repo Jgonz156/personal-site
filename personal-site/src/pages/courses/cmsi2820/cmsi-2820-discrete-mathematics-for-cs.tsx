@@ -178,6 +178,10 @@ export default function CMSI2820() {
                     buttonText: "Morning Lecture Video",
                     url: "https://lmula.zoom.us/rec/share/la1mVbpnFfHVRdVJe_vdt_WHC-LDcuIF4ivMezQHrBq6W-MSLYHbMlDHwSn1fIlr.VSrqNa_WtWEt1VI8",
                   },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/Us5GGUeYdLSG5WDWjtft6SEZNtD5MkjHSUQpDXcDddv838vIgFSxT7kv0SF4efva.-AdnoFRwX86rah5s",
+                  },
                 ]}
               />
               {/*
@@ -194,6 +198,7 @@ export default function CMSI2820() {
                   },
                 ]}
               />
+              
               <NotesCard
                 title="LN 3: Assumptions Make an Argument out of You and Me"
                 description="This lecture expands on propositional logic by 
