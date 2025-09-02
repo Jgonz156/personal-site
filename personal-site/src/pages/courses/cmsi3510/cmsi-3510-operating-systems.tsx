@@ -171,7 +171,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 2: Variable Variables"
                 description="In this lecture, we begin our full investigation of Rust by looking at the syntax and semantics of Variable Declarations.
@@ -180,11 +180,11 @@ export default function CMSI3510() {
                 sectionRecordings={[
                   {
                     buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/t1gABkU0lL08yFbLsvjebh3-NqhtBJxXXUwQAZfhuXJ_J6Z5Y5HrliQfDImwq88.tlwFBTqGt12lfOtX",
+                    url: "https://lmula.zoom.us/rec/share/kjMnUIcFQVQ7QrMh5UrnymAG0V095yx8-TWOHypDAZdBDLL_S49LlAve2vn2SEZy.I_AsMpWdjIhr2-eO",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 3: What's in Your Memory?"
                 description="In this lecture, we take a deeper look at memory handling in rust with the stack and the heap. We also investigate the
