@@ -184,7 +184,6 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
               <NotesCard
                 title="LN 2: Making Logical Connections"
                 description="This lecture will be an introduction to 
@@ -193,12 +192,12 @@ export default function CMSI2820() {
                 notesSlug="" //"/cmsi-2820/ln2"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/ThlGZXhITdEj_P3SCgA_X8yNc-Wh4purugee0crzwk4gjzTu8TL86IO-a4UtzP78.6JJ9fJN9PJXm769w",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/5ACLmSUYpzWpazd-ZQ4RqJfYuqh0_sf8DPfsLQMeUD_UfwRIFyEQ14Xt0K1v2tH3.xROcwPRCEZ8r4pMy",
                   },
                 ]}
               />
-              
+              {/*
               <NotesCard
                 title="LN 3: Assumptions Make an Argument out of You and Me"
                 description="This lecture expands on propositional logic by 
