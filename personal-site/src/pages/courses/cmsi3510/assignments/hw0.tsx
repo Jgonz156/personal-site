@@ -13,8 +13,10 @@ import { DateTime } from "luxon"
 import DirectoryTree from "../../components/directory-tree"
 
 const HW_GH_ASSIGNMENT_LINK = "https://classroom.github.com/a/0GOtOTyd"
-const HW_BS_PROGRAMMING_TURN_IN_LINK = ""
-const HW_BS_OPTIONAL_TURN_IN_LINK = ""
+const HW_BS_PROGRAMMING_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802212/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"
+const HW_BS_OPTIONAL_TURN_IN_LINK =
+  "https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802216/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"
 
 export default function Homework0() {
   return (
