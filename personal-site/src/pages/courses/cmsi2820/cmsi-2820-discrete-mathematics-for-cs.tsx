@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 
 export default function CMSI2820() {
   return (
@@ -195,9 +195,13 @@ export default function CMSI2820() {
                     buttonText: "Morning Lecture Video",
                     url: "https://lmula.zoom.us/rec/share/5ACLmSUYpzWpazd-ZQ4RqJfYuqh0_sf8DPfsLQMeUD_UfwRIFyEQ14Xt0K1v2tH3.xROcwPRCEZ8r4pMy",
                   },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/creQEn57bmIyHHDjGKuddsuQCcLlWZ8iGfx6x8yjXZcwhB55_fSBtCiPQ7HDi2b2.fdx39azQk01i5Mke",
+                  },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 3: Assumptions Make an Argument out of You and Me"
                 description="This lecture expands on propositional logic by 
@@ -206,25 +210,29 @@ export default function CMSI2820() {
                 notesSlug="" //"/cmsi-2820/ln3"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/bKl93UWXstUmA7pD9LMkvQA4Xo1_iI4Q0LMp3kJV77neaZ0UZxOrt-BmQd5A5itC.xPD2vr5EKaoSlg_-",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/oxiLgZxaAisLZyMTGM6xTv4-94B3EFDjMq5EVFZmyw1vJrcdS673xSf-uyKKZBFJ.rXdaBSVWCIl1rPsT",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/LV_VKhAAQjlzb6bFjxJXz2Vz6ttU-2kNJRdrIvsysGYleweYPu4fo5MmFqNpXxJq.mxszqiD1yaT8KECa",
                   },
                 ]}
               />
+
               <AssignmentCard
                 title="HW 1: Think Class! Think!"
                 description="In this homework you will get practice with logical 
                   terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, 
                   translating natural language into logic, and natural deduction proofs!"
                 assignmentSlug="/cmsi-2820/hw1"
-                homeworkHelpRecordings={[
-                  {
-                    buttonText: "Answers and Explanations",
-                    url: "https://lmula.zoom.us/rec/share/BqXixRrtgA-gcYEGKF-U4UuFLjRDqBw_CnYjK5zuPwOErfmR5jbmeKPkPnc5t7g.iR2liSP0tOHfH827",
-                  },
-                ]}
+                //homeworkHelpRecordings={[
+                //  {
+                //    buttonText: "Answers and Explanations",
+                //    url: "https://lmula.zoom.us/rec/share/BqXixRrtgA-gcYEGKF-U4UuFLjRDqBw_CnYjK5zuPwOErfmR5jbmeKPkPnc5t7g.iR2liSP0tOHfH827",
+                //  },
+                //]}
               />
-              */}
             </Standard>
             {/*
             <Standard
@@ -657,5 +665,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }
