@@ -9,7 +9,14 @@ export default function Vocab({
 }) {
   return (
     <>
-      <Tooltip describeChild title={definition} variant="soft" color="success">
+      <Tooltip
+        describeChild
+        title={definition}
+        variant="soft"
+        color="success"
+        arrow
+        sx={{ width: "50%" }}
+      >
         <Typography variant="soft" color="success" sx={{ borderRadius: 6 }}>
           {children}
         </Typography>

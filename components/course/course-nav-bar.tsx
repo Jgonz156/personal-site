@@ -1,8 +1,8 @@
-import { Sheet, Button } from "@mui/joy"
-import BackpackIcon from "@mui/icons-material/Backpack"
-import DescriptionIcon from "@mui/icons-material/Description"
-import HomeIcon from "@mui/icons-material/Home"
-import RouterLink from "next/link"
+import { Sheet, Button } from "@mui/joy";
+import BackpackIcon from "@mui/icons-material/Backpack";
+import DescriptionIcon from "@mui/icons-material/Description";
+import HomeIcon from "@mui/icons-material/Home";
+import RouterLink from "next/link";
 
 export default function CourseNavBar() {
   return (
@@ -42,5 +42,5 @@ export default function CourseNavBar() {
         Syllabus
       </Button>
     </Sheet>
-  )
+  );
 }

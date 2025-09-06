@@ -1,5 +1,5 @@
-import { Button, Card, CardContent, Sheet, Typography } from "@mui/joy"
-import RouterLink from "next/link"
+import { Button, Card, CardContent, Sheet, Typography } from "@mui/joy";
+import RouterLink from "next/link";
 
 export default function ExamCard({
   title,
@@ -7,10 +7,10 @@ export default function ExamCard({
   examSlug,
   studyHelpRecordings,
 }: Readonly<{
-  title: string
-  description: string
-  examSlug: string
-  studyHelpRecordings?: { url: string; buttonText: string }[]
+  title: string;
+  description: string;
+  examSlug: string;
+  studyHelpRecordings?: { url: string; buttonText: string }[];
 }>) {
   return (
     <Card
@@ -61,5 +61,5 @@ export default function ExamCard({
         )}
       </Sheet>
     </Card>
-  )
+  );
 }

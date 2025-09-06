@@ -1,7 +1,7 @@
-import { Sheet } from "@mui/joy"
-import CourseNavBar from "./course-nav-bar"
-import CourseNavStepper from "./course-nav-stepper"
-import Footer from "../global/footer"
+import { Sheet } from "@mui/joy";
+import Footer from "@/components/global/footer";
+import CourseNavBar from "./course-nav-bar";
+import CourseNavStepper from "./course-nav-stepper";
 
 export default function CoursePage({
   type,
@@ -9,29 +9,29 @@ export default function CoursePage({
   stepperInfo,
   footerInfo,
 }: {
-  type: "notes" | "homework" | "exam" | "syllabus" | "cheat-sheet"
-  children: React.ReactNode
+  type: "notes" | "homework" | "exam" | "syllabus" | "cheat-sheet";
+  children: React.ReactNode;
   stepperInfo?: {
     left?: {
-      lectureId: string | number
-      buttonName: any
-      buttonSlug: string
-      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
-    }
+      lectureId: string | number;
+      buttonName: any;
+      buttonSlug: string;
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral";
+    };
     middle?: {
-      lectureId: string | number
-      buttonName: any
-      buttonSlug: string
-      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
-    }
+      lectureId: string | number;
+      buttonName: any;
+      buttonSlug: string;
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral";
+    };
     right?: {
-      lectureId: string | number
-      buttonName: any
-      buttonSlug: string
-      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
-    }
-  }
-  footerInfo?: any
+      lectureId: string | number;
+      buttonName: any;
+      buttonSlug: string;
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral";
+    };
+  };
+  footerInfo?: any;
 }) {
   return (
     <>
@@ -61,5 +61,5 @@ export default function CoursePage({
       </Sheet>
       <Footer>{footerInfo}</Footer>
     </>
-  )
+  );
 }

@@ -1,6 +1,13 @@
-import { Button, Card, CardContent, Sheet, Tooltip, Typography } from "@mui/joy"
-import RouterLink from "next/link"
-import Speak from "./speak"
+import {
+  Button,
+  Card,
+  CardContent,
+  Sheet,
+  Tooltip,
+  Typography,
+} from "@mui/joy";
+import RouterLink from "next/link";
+import Speak from "./speak";
 
 export default function NotesCard({
   title,
@@ -8,10 +15,10 @@ export default function NotesCard({
   notesSlug,
   sectionRecordings,
 }: Readonly<{
-  title: string
-  description: string
-  notesSlug: string
-  sectionRecordings?: { url?: string; buttonText: string }[]
+  title: string;
+  description: string;
+  notesSlug: string;
+  sectionRecordings?: { url?: string; buttonText: string }[];
 }>) {
   return (
     <Card
@@ -52,6 +59,7 @@ export default function NotesCard({
             color="primary"
             variant="soft"
             title={<Speak>Under Construction</Speak>}
+            arrow
           >
             <Sheet color="primary" variant="soft">
               <Button
@@ -85,6 +93,7 @@ export default function NotesCard({
                 title={
                   <Speak>Recording Failed, Please Watch Another Section</Speak>
                 }
+                arrow
               >
                 <Sheet color="primary" variant="soft">
                   <Button
@@ -97,12 +106,12 @@ export default function NotesCard({
                   </Button>
                 </Sheet>
               </Tooltip>
-            )
+            );
           })
         ) : (
           <></>
         )}
       </Sheet>
     </Card>
-  )
+  );
 }

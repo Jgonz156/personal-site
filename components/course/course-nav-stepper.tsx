@@ -1,29 +1,29 @@
-import { Sheet, Stepper, Step, StepIndicator, Button } from "@mui/joy"
-import RouterLink from "next/link"
+import { Sheet, Stepper, Step, StepIndicator, Button } from "@mui/joy";
+import RouterLink from "next/link";
 
 export default function CourseNavStepper({
   stepperInfo,
 }: Readonly<{
   stepperInfo: {
     left?: {
-      lectureId: string | number
-      buttonName: any
-      buttonSlug: string
-      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
-    }
+      lectureId: string | number;
+      buttonName: any;
+      buttonSlug: string;
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral";
+    };
     middle?: {
-      lectureId: string | number
-      buttonName: any
-      buttonSlug: string
-      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
-    }
+      lectureId: string | number;
+      buttonName: any;
+      buttonSlug: string;
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral";
+    };
     right?: {
-      lectureId: string | number
-      buttonName: any
-      buttonSlug: string
-      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral"
-    }
-  }
+      lectureId: string | number;
+      buttonName: any;
+      buttonSlug: string;
+      buttonColor: "danger" | "success" | "primary" | "warning" | "neutral";
+    };
+  };
 }>) {
   return (
     <Sheet
@@ -109,5 +109,5 @@ export default function CourseNavStepper({
         )}
       </Stepper>
     </Sheet>
-  )
+  );
 }

@@ -1,7 +1,8 @@
-import { IconButton, Sheet } from "@mui/joy";
-import React from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { Button, Divider, Link, Sheet } from "@mui/joy"
+import React from "react"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import Speak from "./speak"
 
 export default function Standard({
   number,
@@ -9,32 +10,84 @@ export default function Standard({
   description,
   children,
 }: Readonly<{
-  number: number | string;
-  title: string;
-  description: string;
-  children: React.ReactNode;
+  number: number | string
+  title: string
+  description: string
+  children: React.ReactNode
 }>) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false)
   return (
     <>
-      <tr>
-        <td>
-          <IconButton
-            variant="plain"
-            color="neutral"
-            size="sm"
-            onClick={() => setOpen(!open)}
+      <Divider />
+      <Link
+        underline="none"
+        component={Button}
+        onClick={() => setOpen(!open)}
+        sx={{ width: "100%" }}
+      >
+        <Sheet
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-evenly",
+            alignItems: "center",
+          }}
+        >
+          <Sheet
+            sx={{
+              m: 1,
+              width: "2rem",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </td>
-        <td>{number}</td>
-        <td>{title}</td>
-        <td>{description}</td>
-      </tr>
-      <tr>
+          </Sheet>
+          <Sheet
+            sx={{
+              m: 1,
+              width: "6rem",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Speak>{number}</Speak>
+          </Sheet>
+          <Sheet
+            sx={{
+              m: 1,
+              width: "10rem",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Speak>{title}</Speak>
+          </Sheet>
+          <Sheet
+            sx={{
+              m: 1,
+              width: "50rem",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Speak>{description}</Speak>
+          </Sheet>
+        </Sheet>
+      </Link>
+      <Sheet>
         {open ? (
-          <td colSpan={4}>
+          <>
+            <Divider />
             <Sheet
               sx={{
                 display: "flex",
@@ -48,9 +101,9 @@ export default function Standard({
             >
               {children}
             </Sheet>
-          </td>
+          </>
         ) : null}
-      </tr>
+      </Sheet>
     </>
-  );
+  )
 }

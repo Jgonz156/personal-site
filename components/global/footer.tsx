@@ -8,19 +8,19 @@ import {
   Tooltip,
   Typography,
   useColorScheme,
-} from "@mui/joy"
+} from "@mui/joy";
 
-import RouterLink from "next/link"
+import RouterLink from "next/link";
 
-import PlaceIcon from "@mui/icons-material/Place"
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom"
-import EmailIcon from "@mui/icons-material/Email"
-import PhoneIcon from "@mui/icons-material/Phone"
+import PlaceIcon from "@mui/icons-material/Place";
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
 //import SmartphoneIcon from "@mui/icons-material/Smartphone"
-import GitHubIcon from "@mui/icons-material/GitHub"
-import HomeIcon from "@mui/icons-material/Home"
-import SettingsMenu from "./settings-menu"
-import AccessTimeIcon from "@mui/icons-material/AccessTime"
+import GitHubIcon from "@mui/icons-material/GitHub";
+import HomeIcon from "@mui/icons-material/Home";
+import SettingsMenu from "./settings-menu";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 const personalInfo = [
   {
@@ -54,12 +54,12 @@ const personalInfo = [
     icon: <GitHubIcon />,
     link: "https://github.com/Jgonz156",
   },
-]
+];
 
 export default function Footer({
   children,
 }: Readonly<{ children?: React.ReactNode }>) {
-  const { mode } = useColorScheme()
+  const { mode } = useColorScheme();
 
   return (
     <Sheet
@@ -115,13 +115,10 @@ export default function Footer({
           link ? (
             <Link key={i} href={link}>
               <Chip
-                //key={i}
                 variant="outlined"
                 color="neutral"
                 size="lg"
                 startDecorator={icon}
-                //endDecorator={<CheckIcon fontSize="md" />}
-                //onClick={() => alert("You clicked the Joy Chip!")}
               >
                 <Typography level="body-sm" fontWeight="md">
                   {value}
@@ -135,8 +132,6 @@ export default function Footer({
               color="neutral"
               size="lg"
               startDecorator={icon}
-              //endDecorator={<CheckIcon fontSize="md" />}
-              //onClick={() => alert("You clicked the Joy Chip!")}
             >
               <Typography level="body-sm" fontWeight="md">
                 {value}
@@ -147,5 +142,5 @@ export default function Footer({
       </Stack>
       {children ? <Sheet>{children}</Sheet> : <></>}
     </Sheet>
-  )
+  );
 }

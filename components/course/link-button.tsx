@@ -1,14 +1,14 @@
-import { Button, Sheet } from "@mui/joy"
-import RouterLink from "next/link"
+import { Button, Sheet } from "@mui/joy";
+import RouterLink from "next/link";
 
 export default function LinkButton({
   to,
   children,
   color,
 }: {
-  to: string
-  children: any
-  color: "neutral" | "warning" | "success" | "danger" | "primary"
+  to: string;
+  children: any;
+  color: "neutral" | "warning" | "success" | "danger" | "primary";
 }) {
   return (
     <>
@@ -24,5 +24,5 @@ export default function LinkButton({
         </Button>
       </Sheet>
     </>
-  )
+  );
 }

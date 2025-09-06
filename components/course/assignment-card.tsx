@@ -1,5 +1,5 @@
-import { Button, Card, CardContent, Sheet, Typography } from "@mui/joy"
-import RouterLink from "next/link"
+import { Button, Card, CardContent, Sheet, Typography } from "@mui/joy";
+import RouterLink from "next/link";
 
 export default function AssignmentCard({
   title,
@@ -7,10 +7,10 @@ export default function AssignmentCard({
   assignmentSlug,
   homeworkHelpRecordings,
 }: {
-  title: string
-  description: string
-  assignmentSlug: string
-  homeworkHelpRecordings?: { url: string; buttonText: string }[]
+  title: string;
+  description: string;
+  assignmentSlug: string;
+  homeworkHelpRecordings?: { url: string; buttonText: string }[];
 }) {
   return (
     <Card
@@ -61,5 +61,5 @@ export default function AssignmentCard({
         )}
       </Sheet>
     </Card>
-  )
+  );
 }

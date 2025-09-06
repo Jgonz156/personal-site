@@ -1,8 +1,8 @@
-import { MathJax } from "better-react-mathjax"
-import CourseBox from "../components/course-box"
-import CoursePage from "../components/course-page"
-import Speak from "../components/speak"
-import TopicBreak from "../components/topic-break"
+import { MathJax } from "better-react-mathjax";
+import CourseBox from "@/components/course/course-box";
+import CoursePage from "@/components/course/course-page";
+import Speak from "@/components/course/speak";
+import TopicBreak from "@/components/course/topic-break";
 
 export default function CheatSheet() {
   return (
@@ -53,5 +53,5 @@ export default function CheatSheet() {
         \\end{matrix}$$`}</MathJax>
       </CourseBox>
     </CoursePage>
-  )
+  );
 }
