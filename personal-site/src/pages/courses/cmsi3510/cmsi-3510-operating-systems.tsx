@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 //import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
@@ -184,7 +184,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 3: What's in Your Memory?"
                 description="In this lecture, we take a deeper look at memory handling in rust with the stack and the heap. We also investigate the
@@ -193,10 +193,11 @@ export default function CMSI3510() {
                 sectionRecordings={[
                   {
                     buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/YvSIlIIb0-J_RumpDYa6dwnXqakZrBJL8niULm1nr82YNpCmOlHkpxclvUpnlAjz.8MeI0i1MdqcNWkgA",
+                    url: "https://lmula.zoom.us/rec/share/vIHJBrCLXM8ebcnX31HA740Zb4qvQVLnKvDBmsBWG3grlpuCrE1VB-1JKpSnorix.LZcOx0vuDeDf4pIA",
                   },
                 ]}
               />
+              {/*
               <NotesCard
                 title="LN 4: Functionally Perfect"
                 description="In this lecture, we see all that functions have to offer in Rust and their unique Ownership management. Everything from associated functions, to closures, and more!"
@@ -417,5 +418,5 @@ export default function CMSI3510() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }
