@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
+import { Chip, Divider, Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
 //import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
@@ -197,7 +197,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 4: Functionally Perfect"
                 description="In this lecture, we see all that functions have to offer in Rust and their unique Ownership management. Everything from associated functions, to closures, and more!"
@@ -205,10 +205,11 @@ export default function CMSI3510() {
                 sectionRecordings={[
                   {
                     buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/2Q3r7IktcYGQ8ViojFh3rjdxnSxjz8eWGoyYqPiB4yZS15AOkYPD8mYpJV_fcKc7.TN9z82Jg04W99qAD",
+                    url: "https://lmula.zoom.us/rec/share/A3hNYuklxD_Ta0IXrOACt82YzZKSP_v_DUH7_GQ93mqcVNNCujlsffNezt-kj24K.uSrxcSad1PmCMNCE",
                   },
                 ]}
               />
+              {/*
               <NotesCard
                 title="LN 5: Optimal Struct Structure"
                 description="In this lecture we round off our foundational knowledge of Rust itself with structs, traits, and lifetimes. We investigate how they interact with one another to create a memory safe and comprehensive OOP system."
@@ -418,5 +419,5 @@ export default function CMSI3510() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }
