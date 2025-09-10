@@ -37,7 +37,7 @@ export default function CheatSheet() {
         \\text{python -m pytest} & \\text{>>>python -m pytest} \\\\
         \\end{matrix}$$`}</MathJax>
       </CourseBox>
-      {/* 
+
       <CourseBox>
         <TopicBreak title="Logic" />
         <MathJax>{`\\[\\top:Reality, \\bot:Absurdity, T:True, F:False\\]`}</MathJax>
@@ -57,7 +57,6 @@ export default function CheatSheet() {
         F & F & T & T & F & F & T\\\\
         \\end{matrix}$$`}</MathJax>
       </CourseBox>
-      */}
     </CoursePage>
   )
 }
