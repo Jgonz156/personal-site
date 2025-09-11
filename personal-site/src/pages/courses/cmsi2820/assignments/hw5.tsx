@@ -29,7 +29,7 @@ export default function Homework5() {
     >
       <CourseBox>
         <TitleBox title="HW5: Order In The Court" />
-        <DueDateCalendar dueDate={DateTime.local(2025, 5, 2, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 11, 14, 23, 59)} />
         <TopicBox
           topics={[
             "Rule of Sums and Products",

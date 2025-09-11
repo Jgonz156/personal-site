@@ -29,7 +29,7 @@ export default function Homework1() {
     >
       <CourseBox>
         <TitleBox title="HW1: Think Class! Think!" />
-        <DueDateCalendar dueDate={DateTime.local(2025, 2, 7, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 9, 19, 23, 59)} />
         <TopicBox
           topics={[
             "Intuitionistic Logic",

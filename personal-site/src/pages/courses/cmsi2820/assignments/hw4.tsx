@@ -28,7 +28,7 @@ export default function Homework4() {
     >
       <CourseBox>
         <TitleBox title="HW4: Silence of the Lambdas" />
-        <DueDateCalendar dueDate={DateTime.local(2025, 4, 4, 11, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 10, 31, 11, 59)} />
         <TopicBox
           topics={[
             "Lambda Calculus",

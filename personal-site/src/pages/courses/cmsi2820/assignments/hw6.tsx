@@ -29,7 +29,7 @@ export default function Homework6() {
     >
       <CourseBox>
         <TitleBox title="HW6: (Warning: Graphic Content)" />
-        <DueDateCalendar dueDate={DateTime.local(2024, 12, 13, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 12, 5, 23, 59)} />
         <TopicBox
           topics={[
             "Graph Theory",

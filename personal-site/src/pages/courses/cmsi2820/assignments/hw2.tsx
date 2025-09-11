@@ -28,7 +28,7 @@ export default function Homework2() {
     >
       <CourseBox>
         <TitleBox title="HW2: Counting Sheep" />
-        <DueDateCalendar dueDate={DateTime.local(2025, 2, 21, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 10, 3, 23, 59)} />
         <TopicBox
           topics={[
             "Type Theory",
