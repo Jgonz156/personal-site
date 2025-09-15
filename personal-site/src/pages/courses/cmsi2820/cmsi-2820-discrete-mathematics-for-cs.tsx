@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 
 export default function CMSI2820() {
   return (
@@ -257,19 +257,23 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 5: Meet The Booleans, Don't Worry There's only Two of Them"
                 description="In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unique properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory."
                 notesSlug="/cmsi-2820/ln5"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/0rNh3gTT7xvJRIot2uPsBBfRWFfQRWYE93UQHBbNMt5ym0WZ1jtwUFbag6bl7Oo.Jlbr5DZI_7oIgT1s",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/rtu2cddWBUsCvvN5ql0XY9wlIgwWckxumi3wvjv1bETt9I-AEeTt_v-tHavCq_Jj.GJpvl1qwfq7kdk1W",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/e9EbKJF21fd8PfnyR4uJolVh4MSga_zbFwcIk6atPhAb3fIalkw5Ey25G9V0MbJl.np-_-OvGtieC8mhs",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 6: The Integers, The Booleans' Infinite In-laws"
                 description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
@@ -670,5 +674,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }
