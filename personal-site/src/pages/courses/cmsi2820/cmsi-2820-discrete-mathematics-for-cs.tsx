@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
+import { Chip, Divider, Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
 
 export default function CMSI2820() {
   return (
@@ -273,15 +273,19 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 6: The Integers, The Booleans' Infinite In-laws"
                 description="In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers."
                 notesSlug="/cmsi-2820/ln6"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/koUOf8nrpH5_LRUdzEZHYrHW41P8GZCB3303CrxBUvS0M00lOaJa2HE04Q2lwUyr.lSgwwn985OC8Ld2N",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/EOGh2fRn4DqTeVaDBjf_a5gDckGumvDOUDNnw-dCSq4io_la_2zH_Ht-k4rHClQ8.Uf5ihc5X5EKLwa1P",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/h9nvLsxLLjsimH3GVHydgT7P2ogHm4rasBnTMLUbo0RhH-qSZ5-64JpGJlX6i8Bw.741pQDhxkpElX9lO",
                   },
                 ]}
               />
@@ -293,8 +297,12 @@ export default function CMSI2820() {
                 notesSlug="" //"/cmsi-2820/ln7"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/7i9_86GIbu8nRZVx44xT4pP3vE3AnJHO4543WyrhoIiLbcz1nxmPYdoqxBiQkCWu.44k5Cm8slhu2Ms6Z",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/WuP8OV8CPZ6rl0sWZGfj7Cld1pv9m32sbwb0H_g6L1XCqDOaenAyvvDgkCB8iJV-.H6jC25aM85O4F9Z0",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "",
                   },
                 ]}
               />
@@ -302,14 +310,13 @@ export default function CMSI2820() {
                 title="HW 2: Counting Sheep"
                 description="In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!"
                 assignmentSlug="/cmsi-2820/hw2"
-                homeworkHelpRecordings={[
-                  {
-                    buttonText: "Answers and Explanations",
-                    url: "https://lmula.zoom.us/rec/share/3hFRr2it1PXbG-XgburFJrBgqNH1WbFR-5HLkL8Gntb7c7XFWqxuo0tBMLY7nDOl.6O02MMbeyPAT9ikz",
-                  },
-                ]}
+                //homeworkHelpRecordings={[
+                //  {
+                //    buttonText: "Answers and Explanations",
+                //    url: "https://lmula.zoom.us/rec/share/3hFRr2it1PXbG-XgburFJrBgqNH1WbFR-5HLkL8Gntb7c7XFWqxuo0tBMLY7nDOl.6O02MMbeyPAT9ikz",
+                //  },
+                //]}
               />
-              */}
             </Standard>
             {/*
             <Standard
@@ -674,5 +681,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }
