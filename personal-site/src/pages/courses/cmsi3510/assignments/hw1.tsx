@@ -22,7 +22,7 @@ export default function Homework1() {
     >
       <CourseBox>
         <TitleBox title="HW1: Doughmain Expansion" />
-        <DueDateCalendar dueDate={DateTime.local(2025, 2, 17, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 10, 3, 23, 59)} />
         <TopicBox topics={["Structs", "Ownership", "References"]} />
         <Speak>
           This homework assignment is about getting used to programming in Rust

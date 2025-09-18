@@ -139,12 +139,6 @@ export default function FallCourseSchedule() {
       dayInfo: <></>,
     },
     {
-      date: DateTime.local(2025, 9, 19).startOf("day"),
-      quote: "HW1 Due",
-      dayType: "homework",
-      dayInfo: <></>,
-    },
-    {
       date: DateTime.local(2025, 9, 23).startOf("day"),
       quote: "Activity Day! (AC1)",
       dayType: "activity",
@@ -182,7 +176,7 @@ export default function FallCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 10, 3).startOf("day"),
-      quote: "HW2 Due",
+      quote: "HW1 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -232,7 +226,7 @@ export default function FallCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 10, 17).startOf("day"),
-      quote: "HW3 Due",
+      quote: "HW2 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -274,7 +268,7 @@ export default function FallCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 10, 31).startOf("day"),
-      quote: "HW4 Due",
+      quote: "HW3 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -316,7 +310,7 @@ export default function FallCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 11, 14).startOf("day"),
-      quote: "HW5 Due",
+      quote: "HW4 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
@@ -340,7 +334,7 @@ export default function FallCourseSchedule() {
     },
     {
       date: DateTime.local(2025, 12, 5).startOf("day"),
-      quote: "HW6 Due",
+      quote: "HW5 Due",
       dayType: "homework",
       dayInfo: <></>,
     },
