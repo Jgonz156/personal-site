@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 //import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
@@ -242,7 +242,7 @@ export default function CMSI3510() {
                 simulator and its incomplete terminal commands! You'll get to practice structs, ownership, and references!"
                 assignmentSlug="/cmsi-3510/hw1"
               />
-              {/*
+
               <NotesCard
                 title="LN 7: Out of Order"
                 description="In this lecture we sharpen our understanding of threads by investigating parallel and concurrent programming theory. 
@@ -252,10 +252,11 @@ export default function CMSI3510() {
                 sectionRecordings={[
                   {
                     buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/RsBnzDn_jjW9uqCfNL8x7hrBPXi-HVxYpz0BjfiEALw7SFbcN7nExN-Iql4oNAnD.LFmrzqrKPlNFkpob",
+                    url: "https://lmula.zoom.us/rec/share/W_7Y5iVD3Z2kfL2UVfJQxl-yjmmKuBu6BdeoG4F_wIXlcj4KRbmNzJ91SP6nbERf._zRYL6DCIN58YWPK",
                   },
                 ]}
               />
+              {/*
               <ActivityCard
                 title="AC 1: Getting Folded"
                 description="In this in class activity, we use Competitive Origami to learn data and task partitioning for parallel programming."
@@ -421,5 +422,5 @@ export default function CMSI3510() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }

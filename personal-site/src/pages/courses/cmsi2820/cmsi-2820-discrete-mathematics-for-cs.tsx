@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 
 export default function CMSI2820() {
   return (
@@ -302,7 +302,7 @@ export default function CMSI2820() {
                   },
                   {
                     buttonText: "Night Lecture Video",
-                    url: "",
+                    url: "https://lmula.zoom.us/rec/share/ElRucWr1E9XN-gKUKj3HIf0ZCMyk5CGt1ax8mfEapf1XS198HeNUxoy5dQlIqWt9.ddUMoiyR49zSo3Rl",
                   },
                 ]}
               />
@@ -681,5 +681,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }
