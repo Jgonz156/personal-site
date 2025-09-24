@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
+import { Chip, Divider, Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
 
 export default function CMSI2820() {
   return (
@@ -318,7 +318,7 @@ export default function CMSI2820() {
                 //]}
               />
             </Standard>
-            {/*
+
             <Standard
               number={3}
               title="Collections"
@@ -333,12 +333,16 @@ export default function CMSI2820() {
                 notesSlug="" //"/cmsi-2820/ln8"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/ZSlLoZv-VMFSJ9LT-ClURz3b3o6qnczv2eakacrfOB7I9kbiMonr68AKMsi-JGQY.mJbD75iYfvZc598k",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/imbrdZl74I0fltcnIhOPTOzbbrA0bWNAgYFM_jPi0AcUF7ZrtaNSO9dAHLyPYP37.z59k5spVg6Qkq5PS",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/ZKHpLWk-N235Iix0i89NGRHmwDIbLo6F9plKWq3Nqc3tO3Yp7cm8prPb1iVpYyUI.1Q9hppiesoSuu7La",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 9: Settling In"
                 description="In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators."
@@ -377,7 +381,9 @@ export default function CMSI2820() {
                 description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
                 assignmentSlug="/cmsi-2820/hw3"
               />
+              */}
             </Standard>
+            {/*
             <Standard
               number={4}
               title="Functions"
@@ -681,5 +687,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }

@@ -1,13 +1,13 @@
-import { Chip, Divider, Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
-//import ActivityCard from "../components/activity-card"
+import { Chip, Divider, Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
+import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
   return (
@@ -256,13 +256,11 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/*
               <ActivityCard
                 title="AC 1: Getting Folded"
                 description="In this in class activity, we use Competitive Origami to learn data and task partitioning for parallel programming."
                 activitySlug="/cmsi-3510/ac1"
               />
-              */}
             </Standard>
             {/*
             <Standard
@@ -422,5 +420,5 @@ export default function CMSI3510() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }
