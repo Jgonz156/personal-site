@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 
 export default function CMSI2820() {
   return (
@@ -342,18 +342,24 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 9: Settling In"
                 description="In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators."
                 notesSlug="" //"/cmsi-2820/ln9"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/RRnG6wlSbvo8EXS62M6WEH1O1CWkZQ3wT55_nHoAEr7hmEzuDrk21ltPH88HlBsF.f31z5f_N6NeiuR97",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/ET9vj2YYYUqk4HYlSzqc0mckRSjtY53Ad1H2Vpr4lnc7cK8MyWQSyzvnqWwSjF2h.HfWKWl5j5e-su3oj",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/ICQNejqDeCzt2xB0nqzjaMmKXmoalManRFG-P7s9IcgTv7AayjnuvoNBqYIyzyd5.VhX4S3ffQEzigHWA",
                   },
                 ]}
               />
+
+              {/*
               <NotesCard
                 title="LN 10: Settling Down"
                 description="We continue our investigation of Sets by practicing some of the many common operations found between them."
@@ -687,5 +693,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }

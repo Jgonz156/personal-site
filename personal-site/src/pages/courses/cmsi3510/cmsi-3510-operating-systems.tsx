@@ -1,13 +1,13 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
-import ActivityCard from "../components/activity-card"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
+import ActivityCard from "../components/activity-card";
 
 export default function CMSI3510() {
   return (
@@ -262,7 +262,7 @@ export default function CMSI3510() {
                 activitySlug="/cmsi-3510/ac1"
               />
             </Standard>
-            {/*
+
             <Standard
               number={2}
               title="Computer Hardware"
@@ -274,11 +274,12 @@ export default function CMSI3510() {
                 notesSlug="" //"/cmsi-3510/ln4"
                 sectionRecordings={[
                   {
-                    buttonText: "Office Recording",
-                    url: "https://lmula.zoom.us/rec/share/dAyaVTji9fAzNWLI2y2fZNLoucRVt42e0f3wCz-rd0DUJr1pOq79vrt_GHYhMUfu.BYxgTadtvhvWbLmD",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/sWThYyA7d8MbHZvqW640TYU8aGx8jAKrl0h3eS29L35Q5lVYB8YADMHQEn1UVnpG.Rfk8oU6Pr0wT1Dcq",
                   },
                 ]}
               />
+              {/*}
               <NotesCard
                 title="LN 9: ...Processing Title..."
                 description="In this lecture we view the many different, unique yet important perspectives of different portions of the OS and hardware to answer
@@ -413,12 +414,12 @@ export default function CMSI3510() {
                 description="In this in class activity, we use grade school worksheets as a vehicle for learning all about job timing!"
                 activitySlug="/cmsi-3510/ac2"
               />
+              */}
             </Standard>
-            */}
           </Sheet>
         </Sheet>
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }
