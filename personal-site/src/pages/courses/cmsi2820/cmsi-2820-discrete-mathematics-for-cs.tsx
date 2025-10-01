@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
+import { Chip, Divider, Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
 
 export default function CMSI2820() {
   return (
@@ -358,19 +358,22 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-
-              {/*
               <NotesCard
                 title="LN 10: Settling Down"
                 description="We continue our investigation of Sets by practicing some of the many common operations found between them."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/N-FBU7ygSP3JbFiAjtFg9V6HAhrLgZJMBCMNbHL7O5PAXONDov_Doxy2SSBNK46J.QkG1SNcEz-nGM69V",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/IwDztL9vPRJBPiX9yaIfvK1ILH2VSPoBYRZZJ7nwIOHAt2LTEvonpNWh2bZ6jjgU.y8wQ4lIIjYjJoKwT",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/sKqX7ShRhWS2KNWTspDnjZBp5mYTj4FVYzIQenE3OGiTjeo0Ry_X13v8jp_aZQ.8FQqNOepXYdSOySO",
                   },
                 ]}
               />
+              {/*
               <NotesCard
                 title="LN 11: Relationship Counseling"
                 description="We end our look at Collections by learning about relations. Typically represented as sets of tuples, we will investigate the properties of relationships between instances within a type."
@@ -693,5 +696,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }
