@@ -1,13 +1,13 @@
-import { Chip, Divider, Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
-import ActivityCard from "../components/activity-card";
+import { Chip, Divider, Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
+import ActivityCard from "../components/activity-card"
 
 export default function CMSI3510() {
   return (
@@ -279,7 +279,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/*}
+
               <NotesCard
                 title="LN 9: ...Processing Title..."
                 description="In this lecture we view the many different, unique yet important perspectives of different portions of the OS and hardware to answer
@@ -287,11 +287,12 @@ export default function CMSI3510() {
                 notesSlug="" //"/cmsi-3510/ln4"
                 sectionRecordings={[
                   {
-                    buttonText: "Home Recording",
-                    url: "https://lmula.zoom.us/rec/share/smE98r67BEta7uTdfWrkFpqiKyPKzjAwbck3RoGCdYFuIGCR5I3BJKxoWDpXT8KT.ueG3O7kqC0Iy73U-",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/y3wYT30KNH7CaUhJK8THxLrgFcCnRYl97UJVhQQKm2gyIKNge14VP5HXqsvFvFax.yOgyIChMArVEhygo",
                   },
                 ]}
               />
+              {/*}
               <NotesCard
                 title="LN 10: Out of Context"
                 description="In this lecture we dive into the intricacies of when and when not to context switch between processes. This problem
@@ -421,5 +422,5 @@ export default function CMSI3510() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }
