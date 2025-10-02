@@ -373,15 +373,15 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 11: Relationship Counseling"
                 description="We end our look at Collections by learning about relations. Typically represented as sets of tuples, we will investigate the properties of relationships between instances within a type."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/u1SNLHehsuPm4WK18vCWMix4fCd4LCHFlmAe7sIRL2DkHUp-V1XZ8i21TvGQAd9M.Y2WX7tQz76qAy4I6",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/UqAl9mjtGDdxPNXRYdEoDD4RMjg4dYsasfwDh3jpCxwbR6S9iGjILho5iV0Pvw.VolcdDa3Ev54QuWT",
                   },
                 ]}
               />
@@ -390,7 +390,6 @@ export default function CMSI2820() {
                 description="In this homework we practice tuples, sets, their operations, and even a little more in the programming portion..."
                 assignmentSlug="/cmsi-2820/hw3"
               />
-              */}
             </Standard>
             {/*
             <Standard
