@@ -383,6 +383,10 @@ export default function CMSI2820() {
                     buttonText: "Morning Lecture Video",
                     url: "https://lmula.zoom.us/rec/share/UqAl9mjtGDdxPNXRYdEoDD4RMjg4dYsasfwDh3jpCxwbR6S9iGjILho5iV0Pvw.VolcdDa3Ev54QuWT",
                   },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/S4BDDtyO2bCyCvwUqfaPlyVCjcuNIg4klJb07PUaFdC5m4YR6ACHjr67JBQ4u3ta.l_p1ZOVJstMzh5Wm",
+                  },
                 ]}
               />
               <AssignmentCard
