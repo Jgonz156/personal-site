@@ -8,9 +8,11 @@ import {
   Star,
   Home,
   User,
+  FileUser,
 } from "lucide-react"
 import ThemeSwitcher from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function SiteHome() {
   const courses = [
@@ -161,43 +163,46 @@ export default function SiteHome() {
       </div>
 
       {/* Main Content */}
-      <div className="sticky top-0 z-10">
+      <div className="sticky top-0 z-50">
         <nav
           className={`bg-background transition-all duration-300 ease-in-out border-b border-border h-auto px-4 py-3`}
         >
           <div className="flex items-center justify-between">
             {/* Left section */}
             <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
-              >
-                <Home className="w-5 h-5" />
-                <span className="font-medium">Course Hub</span>
-              </Button>
+              <Link href="/">
+                <Button
+                  variant="ghost"
+                  className="flex items-center space-x-2 text-primary"
+                >
+                  <Home className="w-5 h-5" />
+                  <span className="font-medium">Course Hub</span>
+                </Button>
+              </Link>
+
+              <Link href="/cv">
+                <Button
+                  variant="ghost"
+                  className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
+                >
+                  <FileUser className="w-5 h-5" />
+                  <span className="font-medium">CV</span>
+                </Button>
+              </Link>
+
+              <Link href="/about-me">
+                <Button
+                  variant="ghost"
+                  className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
+                >
+                  <User className="w-5 h-5" />
+                  <span className="font-medium">About Me</span>
+                </Button>
+              </Link>
             </div>
 
             {/* Right section */}
             <div className="flex items-center space-x-4">
-              {/* Course Selector */}
-              <div className="relative">
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-muted-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
-              </div>
-
               {/* Theme Toggle */}
               <ThemeSwitcher />
 
