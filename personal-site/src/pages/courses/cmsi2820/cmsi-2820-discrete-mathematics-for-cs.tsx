@@ -395,7 +395,7 @@ export default function CMSI2820() {
                 assignmentSlug="/cmsi-2820/hw3"
               />
             </Standard>
-            {/*
+
             <Standard
               number={4}
               title="Functions"
@@ -410,12 +410,16 @@ export default function CMSI2820() {
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/k37q2Q4dJIqhkJYtbIWPdiL5DjppV2xj1-PfXZUiqXxqvuo0IycAT014ROqN9tDI.iVT4VGhYiyfxmSWm",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/2-LIWvNpdk5v4Fx12g5RbUWyC42f2mZWYjVAyUrpJkp5wrBJvwqeCZNY_t6bz5jN.GZDnU6XdxH7wk50S",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "",
                   },
                 ]}
               />
-
+              {/*
               <NotesCard
                 title="LN 13: Free Range Variables"
                 description="In this lecture we continue our work with Lambdas by investigating how variables interact with functions. We discover being bound and free, how to substitute variables, and how to reduce functions formally using proper substitution."
@@ -470,8 +474,9 @@ export default function CMSI2820() {
                 description="In this homework we practice lambdas, their reductions, their properties, and their creation!"
                 assignmentSlug="/cmsi-2820/hw4"
               />
+              */}
             </Standard>
-
+            {/*
             <Standard
               number={"MIDTERM"}
               title="Standards 1-3"

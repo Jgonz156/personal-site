@@ -305,7 +305,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/*}
+
               <NotesCard
                 title="LN 11: Scheduling Calls"
                 description="In this lecture we continue our investigation of scheduling by learning many of the techniques used by Batch, Interactive, and even Real time systems!
@@ -315,10 +315,17 @@ export default function CMSI3510() {
                 sectionRecordings={[
                   {
                     buttonText: "Class Recording",
-                    url: "https://lmula.zoom.us/rec/share/R-gLVoDjrwfxKJuHAo_UEFb7llFcTurqAoLlhx7ZffPB0rdRBtxDF7eJbJ_EPkJR.g9sFSIHPLuYmMYn9",
+                    url: "https://lmula.zoom.us/rec/share/blw8g4gGyc_nywsu6RutPigdGK18tHBBMEu44Zx_GmC7vplKfXofDmecnFUNKV8x.HUZMz4rCW7bwNl1p",
                   },
                 ]}
               />
+              <AssignmentCard
+                title="HW 2: Life of Pie"
+                description="In this homework you will get practice with concurrent programming paradigms in the form of making pizza from scratch! Prepare to 
+                engage with threads, synchronization primitives, async/await, and more!"
+                assignmentSlug="/cmsi-3510/hw2"
+              />
+              {/*}
               <NotesCard
                 title="LN 12: Don't Starve"
                 description="In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact
@@ -405,12 +412,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              <AssignmentCard
-                title="HW 2: Life of Pie"
-                description="In this homework you will get practice with concurrent programming paradigms in the form of making pizza from scratch! Prepare to 
-                engage with threads, synchronization primitives, async/await, and more!"
-                assignmentSlug="/cmsi-3510/hw2"
-              />
+              
               <ActivityCard
                 title="AC 2: Saved by The Schedule"
                 description="In this in class activity, we use grade school worksheets as a vehicle for learning all about job timing!"
