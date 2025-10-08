@@ -415,7 +415,7 @@ export default function CMSI2820() {
                   },
                   {
                     buttonText: "Night Lecture Video",
-                    url: "",
+                    url: "https://lmula.zoom.us/rec/share/4b_pdY7mS5U9EN_krOvusBTFe2ofZt5u_41PBfVr7pmfF8ciFFNpnfGNTv8kbkg4.AOXcuNPBbxtSDCes",
                   },
                 ]}
               />
