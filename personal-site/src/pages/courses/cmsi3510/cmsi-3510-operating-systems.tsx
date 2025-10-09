@@ -325,7 +325,7 @@ export default function CMSI3510() {
                 engage with threads, synchronization primitives, async/await, and more!"
                 assignmentSlug="/cmsi-3510/hw2"
               />
-              {/*}
+
               <NotesCard
                 title="LN 12: Don't Starve"
                 description="In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact
@@ -335,10 +335,11 @@ export default function CMSI3510() {
                 sectionRecordings={[
                   {
                     buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/mjhyMtqzKS-Lw3e1AbTATQE86NS93sgBtmjuZxIFXtJJGaRjIJ2owRhO5vsnd9tr.nMizuUreLDV3x3ye",
+                    url: "https://lmula.zoom.us/rec/share/T1ITG3-39HbeR-7X62CXlu5bM3vt0T2MiPb3m_CP7M0imBsZMogpBXK1plHJ0UQ7.1vhK88krGH428vX0",
                   },
                 ]}
               />
+              {/*}
               <NotesCard
                 title="LN 13: How I Met Your Memory"
                 description="In this lecture we investigate different memory hardware technologies, how they are used, their advantages, and their disadvantages to

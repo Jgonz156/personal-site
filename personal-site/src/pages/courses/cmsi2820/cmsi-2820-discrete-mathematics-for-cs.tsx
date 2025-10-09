@@ -419,18 +419,23 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 13: Free Range Variables"
                 description="In this lecture we continue our work with Lambdas by investigating how variables interact with functions. We discover being bound and free, how to substitute variables, and how to reduce functions formally using proper substitution."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/RqNhhrFejA0PN0IGrM8vCx6nKhXemjmx_-NnMgdn9qLtTytRsPYhP9ppmc50g8A.jSPzprYITpbWKXGn",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/drWYcEtyEQQ1egPoy-cyxmVrMr9lKf6E4rTG0jLtfikJu8FJJ8Z69H_FteeZg09m._5l6Z5YAQmGjU131",
+                  },
+                  {
+                    buttonText: "Night Lecture Video",
+                    url: "",
                   },
                 ]}
               />
+              {/*
               <NotesCard
                 title="LN 14: Supplying and Consuming Lambdas"
                 description="In this lecture we start by recapping proper substitution and then officially define the formal alpha, beta, and gamma conversion rules. After we go over some nomenclature for functions and how to identify suppliers, consumers, and the like."
