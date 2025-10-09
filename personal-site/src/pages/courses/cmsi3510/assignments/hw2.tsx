@@ -25,7 +25,7 @@ export default function Homework2() {
     >
       <CourseBox>
         <TitleBox title="HW2: Life of Pie" />
-        <DueDateCalendar dueDate={DateTime.local(2025, 5, 14, 23, 59)} />
+        <DueDateCalendar dueDate={DateTime.local(2025, 10, 24, 23, 59)} />
         <TopicBox topics={["Concurrency", "Threads", "Mutual Exclusion"]} />
         <Speak>
           This homework assignment is about getting our feet wet with modeling
