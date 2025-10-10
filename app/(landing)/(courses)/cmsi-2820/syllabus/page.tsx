@@ -1,11 +1,35 @@
+"use client"
+
+import { useEffect } from "react"
+import { useNavbar } from "@/components/navbar-context"
+
 export default function Syllabus() {
+  const { setPageSections } = useNavbar()
+
+  useEffect(() => {
+    // Set page sections for navigation
+    setPageSections([
+      { id: "course-information", title: "Course Information", level: 1 },
+      { id: "course-description", title: "Course Description", level: 1 },
+      { id: "learning-objectives", title: "Learning Objectives", level: 1 },
+      { id: "required-materials", title: "Required Materials", level: 1 },
+      { id: "grading-policy", title: "Grading Policy", level: 1 },
+      { id: "course-topics", title: "Course Topics", level: 1 },
+      { id: "policies", title: "Policies", level: 1 },
+    ])
+
+    return () => {
+      setPageSections([])
+    }
+  }, [setPageSections])
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6">
         CMSI 2820: Discrete Mathematics for CS
       </h1>
       <div className="space-y-6">
-        <section>
+        <section id="course-information">
           <h2 className="text-2xl font-semibold mb-3">Course Information</h2>
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <p>
@@ -27,7 +51,7 @@ export default function Syllabus() {
           </div>
         </section>
 
-        <section>
+        <section id="course-description">
           <h2 className="text-2xl font-semibold mb-3">Course Description</h2>
           <p className="text-muted-foreground">
             This course provides a comprehensive introduction to discrete
@@ -39,7 +63,7 @@ export default function Syllabus() {
           </p>
         </section>
 
-        <section>
+        <section id="learning-objectives">
           <h2 className="text-2xl font-semibold mb-3">Learning Objectives</h2>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground">
             <li>
@@ -61,7 +85,7 @@ export default function Syllabus() {
           </ul>
         </section>
 
-        <section>
+        <section id="required-materials">
           <h2 className="text-2xl font-semibold mb-3">Required Materials</h2>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground">
             <li>
@@ -73,7 +97,7 @@ export default function Syllabus() {
           </ul>
         </section>
 
-        <section>
+        <section id="grading-policy">
           <h2 className="text-2xl font-semibold mb-3">Grading Policy</h2>
           <div className="bg-muted/50 rounded-lg p-4">
             <table className="w-full">
@@ -103,7 +127,7 @@ export default function Syllabus() {
           </div>
         </section>
 
-        <section>
+        <section id="course-topics">
           <h2 className="text-2xl font-semibold mb-3">
             Course Topics (Standards-Based)
           </h2>
@@ -139,7 +163,7 @@ export default function Syllabus() {
           </ol>
         </section>
 
-        <section>
+        <section id="policies">
           <h2 className="text-2xl font-semibold mb-3">Policies</h2>
           <div className="space-y-4 text-muted-foreground">
             <div>

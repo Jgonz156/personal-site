@@ -6,41 +6,50 @@ import {
   Home,
   ChevronUp,
   ChevronDown,
-  User,
   BookOpen,
   FileText,
-  Sheet,
+  Settings,
 } from "lucide-react"
 import ThemeSwitcher from "./theme-switcher"
 import { Button } from "@/components/ui/button"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useNavbar } from "./navbar-context"
+import PageNavigation from "./page-navigation"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 // Sample courses data
 const courses = [
-  { id: 1, code: "CS 101", name: "Introduction to Programming" },
-  { id: 2, code: "CS 201", name: "Data Structures" },
-  { id: 3, code: "CS 301", name: "Algorithms" },
+  { id: "cmsi-2820", code: "CMSI 2820", name: "Discrete Math for CS" },
+  { id: "cmsi-3801", code: "CMSI 3801", name: "Programming Languages" },
+  { id: "cmsi-2021", code: "CMSI 2021", name: "Data Structures" },
 ]
 
-export default function Navbar({ currentCourse = courses[0] }) {
-  const { isCollapsed, toggleCollapsed } = useNavbar()
+export default function Navbar() {
+  const { isCollapsed, toggleCollapsed, pageSections } = useNavbar()
   const { toggleSidebar } = useSidebar()
   const pathname = usePathname()
 
-  // Check if we're in a course page
-  const isCoursePage = pathname?.includes("/cmsi-2820")
+  // Extract current course from pathname
+  const getCurrentCourse = () => {
+    for (const course of courses) {
+      if (pathname?.includes(`/${course.id}`)) {
+        return course
+      }
+    }
+    return courses[0] // Default to first course
+  }
+
+  const currentCourse = getCurrentCourse()
+  const isCoursePage = pathname?.includes("/cmsi-")
 
   // Determine active page
-  const isHomePage = pathname === "/cmsi-2820" || pathname === "/cmsi-2820/"
   const isSyllabusPage = pathname?.includes("/syllabus")
   const isCheatSheetPage = pathname?.includes("/cheat-sheet")
 
   return (
     <div className="relative">
-      {/* Collapsible Navbar */}
+      {/* Top Navbar - Course Level Navigation */}
       <nav
         className={`bg-background transition-all duration-300 ease-in-out border-b border-border ${
           isCollapsed ? "h-0 overflow-hidden border-b-0" : "h-auto"
@@ -49,117 +58,111 @@ export default function Navbar({ currentCourse = courses[0] }) {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Left section */}
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="p-2"
-                onClick={toggleSidebar}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
+            <div className="flex items-center space-x-2">
+              {/* Sidebar Toggle (Course Planner) */}
+              {isCoursePage && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-2"
+                  onClick={toggleSidebar}
+                  title="Toggle Course Planner"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              )}
 
+              {/* Landing Page Link */}
               <Link href="/">
                 <Button
                   variant="ghost"
-                  className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
+                  size="sm"
+                  className="flex items-center space-x-2"
                 >
-                  <Home className="w-5 h-5" />
-                  <span className="font-medium">Course Hub</span>
+                  <Home className="w-4 h-4" />
+                  <span className="hidden sm:inline">Home</span>
                 </Button>
               </Link>
+
+              {/* Course-specific buttons (only show in course pages) */}
+              {isCoursePage && (
+                <>
+                  <Link href={`/${currentCourse.id}/cheat-sheet`}>
+                    <Button
+                      variant={isCheatSheetPage ? "secondary" : "ghost"}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span className="hidden sm:inline">Cheat Sheet</span>
+                    </Button>
+                  </Link>
+                  <Link href={`/${currentCourse.id}/syllabus`}>
+                    <Button
+                      variant={isSyllabusPage ? "secondary" : "ghost"}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span className="hidden sm:inline">Syllabus</span>
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Right section */}
-            <div className="flex items-center space-x-4">
-              {/* Course Selector */}
-              <div className="relative">
-                <select
-                  className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm font-medium text-foreground hover:border-ring focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors cursor-pointer"
-                  defaultValue={currentCourse.id}
-                >
-                  {courses.map((course) => (
-                    <option
-                      key={course.id}
-                      value={course.id}
-                      className="bg-background text-foreground"
-                    >
-                      {course.code} - {course.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-muted-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+            <div className="flex items-center space-x-2">
+              {/* Course Switcher */}
+              {isCoursePage && (
+                <div className="relative">
+                  <select
+                    className="appearance-none bg-background border border-input rounded-md px-3 py-2 pr-8 text-sm font-medium text-foreground hover:border-ring focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors cursor-pointer"
+                    value={currentCourse.id}
+                    onChange={(e) => {
+                      // Navigate to the selected course
+                      window.location.href = `/${e.target.value}`
+                    }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
+                    {courses.map((course) => (
+                      <option
+                        key={course.id}
+                        value={course.id}
+                        className="bg-background text-foreground"
+                      >
+                        {course.code}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg
+                      className="w-4 h-4 text-muted-foreground"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Theme Toggle */}
+              {/* Site Settings (Theme Toggle) */}
               <ThemeSwitcher />
-
-              {/* Profile Avatar */}
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/80 border-0 hover:shadow-md transition-shadow"
-                >
-                  <User className="w-5 h-5 text-primary-foreground" />
-                </Button>
-              </div>
             </div>
           </div>
-
-          {/* Course Navigation - Shows when in a course page */}
-          {isCoursePage && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center space-x-2">
-                <Link href="/cmsi-2820">
-                  <Button
-                    variant={isHomePage ? "secondary" : "ghost"}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Home className="w-4 h-4" />
-                    <span>Home</span>
-                  </Button>
-                </Link>
-                <Link href="/cmsi-2820/syllabus">
-                  <Button
-                    variant={isSyllabusPage ? "secondary" : "ghost"}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <BookOpen className="w-4 h-4" />
-                    <span>Syllabus</span>
-                  </Button>
-                </Link>
-                <Link href="/cmsi-2820/cheat-sheet">
-                  <Button
-                    variant={isCheatSheetPage ? "secondary" : "ghost"}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Sheet className="w-4 h-4" />
-                    <span>Cheat Sheet</span>
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </nav>
+
+      {/* Bottom Navbar - Page-Specific Navigation */}
+      {!isCollapsed && pageSections.length > 0 && (
+        <PageNavigation sections={pageSections} />
+      )}
 
       {/* Chevron Toggle Button */}
       <div className="absolute slide-out-to-bottom-0 right-3">

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Suspense } from "react"
+import { LectureNotePageContent } from "@/components/lecture-note-page-content"
 
 // Define the type for params (Next.js 13+ App Router)
 type PageProps = {
@@ -92,107 +93,109 @@ export default async function LectureNotePage({ params }: PageProps) {
   const hasNext = noteNumber < TOTAL_NOTES
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      {/* Header */}
-      <div className="mb-6">
-        <Link
-          href="/cmsi-2820"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 mb-4"
-        >
-          ← Back to Course
-        </Link>
-        <h1 className="text-4xl font-bold mb-2">{metadata.title}</h1>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>📅 {metadata.date}</span>
-          <span>•</span>
-          <span>
-            Note {noteNumber} of {TOTAL_NOTES}
-          </span>
-        </div>
-      </div>
-
-      {/* Topics Covered */}
-      <div className="mb-6 p-4 border rounded-lg bg-muted/30">
-        <h3 className="font-semibold mb-2">Topics Covered:</h3>
-        <ul className="list-disc list-inside space-y-1 text-sm">
-          {metadata.topics.map((topic, index) => (
-            <li key={index}>{topic}</li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Main Content - MDX */}
-      <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
-        {MDXContent ? (
-          <Suspense fallback={<div>Loading content...</div>}>
-            <MDXContent />
-          </Suspense>
-        ) : (
-          <div className="text-center p-8 border rounded-lg bg-muted/30">
-            <p className="text-muted-foreground">
-              Content for this lecture note is coming soon.
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Create a file at{" "}
-              <code className="bg-muted px-2 py-1 rounded">
-                content/cmsi-2820/ln{noteNumber}.mdx
-              </code>{" "}
-              to add content.
-            </p>
+    <LectureNotePageContent>
+      <div className="container mx-auto p-6 max-w-4xl">
+        {/* Header */}
+        <div className="mb-6">
+          <Link
+            href="/cmsi-2820"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 mb-4"
+          >
+            ← Back to Course
+          </Link>
+          <h1 className="text-4xl font-bold mb-2">{metadata.title}</h1>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>📅 {metadata.date}</span>
+            <span>•</span>
+            <span>
+              Note {noteNumber} of {TOTAL_NOTES}
+            </span>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between pt-6 border-t">
-        {hasPrevious ? (
-          <Link
-            href={`/cmsi-2820/ln${noteNumber - 1}`}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>LN {noteNumber - 1}</span>
-          </Link>
-        ) : (
-          <div></div>
-        )}
+        {/* Topics Covered */}
+        <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+          <h3 className="font-semibold mb-2">Topics Covered:</h3>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            {metadata.topics.map((topic, index) => (
+              <li key={index}>{topic}</li>
+            ))}
+          </ul>
+        </div>
 
-        {hasNext ? (
-          <Link
-            href={`/cmsi-2820/ln${noteNumber + 1}`}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
-          >
-            <span>LN {noteNumber + 1}</span>
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        ) : (
-          <div></div>
-        )}
-      </div>
+        {/* Main Content - MDX */}
+        <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
+          {MDXContent ? (
+            <Suspense fallback={<div>Loading content...</div>}>
+              <MDXContent />
+            </Suspense>
+          ) : (
+            <div className="text-center p-8 border rounded-lg bg-muted/30">
+              <p className="text-muted-foreground">
+                Content for this lecture note is coming soon.
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Create a file at{" "}
+                <code className="bg-muted px-2 py-1 rounded">
+                  content/cmsi-2820/ln{noteNumber}.mdx
+                </code>{" "}
+                to add content.
+              </p>
+            </div>
+          )}
+        </div>
 
-      {/* Quick Navigation */}
-      <div className="mt-8 p-4 border rounded-lg bg-muted/30">
-        <h3 className="font-semibold mb-3">All Lecture Notes</h3>
-        <div className="grid grid-cols-7 sm:grid-cols-10 gap-2">
-          {Array.from({ length: TOTAL_NOTES }, (_, i) => i + 1).map((num) => (
+        {/* Navigation */}
+        <div className="flex items-center justify-between pt-6 border-t">
+          {hasPrevious ? (
             <Link
-              key={num}
-              href={`/cmsi-2820/ln${num}`}
-              className={`
-                text-center py-2 rounded border text-sm font-medium transition-colors
-                ${
-                  num === noteNumber
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "hover:bg-muted border-border"
-                }
-              `}
+              href={`/cmsi-2820/ln${noteNumber - 1}`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
             >
-              {num}
+              <ChevronLeft className="w-4 h-4" />
+              <span>LN {noteNumber - 1}</span>
             </Link>
-          ))}
+          ) : (
+            <div></div>
+          )}
+
+          {hasNext ? (
+            <Link
+              href={`/cmsi-2820/ln${noteNumber + 1}`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+            >
+              <span>LN {noteNumber + 1}</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <div></div>
+          )}
+        </div>
+
+        {/* Quick Navigation */}
+        <div className="mt-8 p-4 border rounded-lg bg-muted/30">
+          <h3 className="font-semibold mb-3">All Lecture Notes</h3>
+          <div className="grid grid-cols-7 sm:grid-cols-10 gap-2">
+            {Array.from({ length: TOTAL_NOTES }, (_, i) => i + 1).map((num) => (
+              <Link
+                key={num}
+                href={`/cmsi-2820/ln${num}`}
+                className={`
+                  text-center py-2 rounded border text-sm font-medium transition-colors
+                  ${
+                    num === noteNumber
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted border-border"
+                  }
+                `}
+              >
+                {num}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </LectureNotePageContent>
   )
 }
 

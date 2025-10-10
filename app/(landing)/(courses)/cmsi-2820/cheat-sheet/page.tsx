@@ -1,4 +1,31 @@
+"use client"
+
+import { useEffect } from "react"
+import { useNavbar } from "@/components/navbar-context"
+
 export default function CheatSheet() {
+  const { setPageSections } = useNavbar()
+
+  useEffect(() => {
+    // Set page sections for navigation
+    setPageSections([
+      { id: "logic-propositions", title: "Logic & Propositions", level: 1 },
+      { id: "number-theory", title: "Number Theory", level: 1 },
+      { id: "set-theory", title: "Set Theory", level: 1 },
+      { id: "functions", title: "Functions", level: 1 },
+      { id: "combinatorics", title: "Combinatorics", level: 1 },
+      { id: "sorting-algorithms", title: "Sorting Algorithms", level: 1 },
+      { id: "data-structures", title: "Data Structures", level: 1 },
+      { id: "graph-algorithms", title: "Graph Algorithms", level: 1 },
+      { id: "algorithm-paradigms", title: "Algorithm Paradigms", level: 1 },
+      { id: "quick-tips", title: "Quick Tips", level: 1 },
+    ])
+
+    return () => {
+      setPageSections([])
+    }
+  }, [setPageSections])
+
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <h1 className="text-3xl font-bold mb-6">
@@ -7,7 +34,10 @@ export default function CheatSheet() {
 
       <div className="space-y-8">
         {/* Logic Section */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section
+          id="logic-propositions"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
           <h2 className="text-2xl font-semibold mb-4">Logic & Propositions</h2>
           <div className="space-y-4">
             <div>
@@ -86,7 +116,10 @@ export default function CheatSheet() {
         </section>
 
         {/* Number Theory Section */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section
+          id="number-theory"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
           <h2 className="text-2xl font-semibold mb-4">Number Theory</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -122,7 +155,7 @@ export default function CheatSheet() {
         </section>
 
         {/* Set Theory Section */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section id="set-theory" className="border rounded-lg p-6 bg-muted/30">
           <h2 className="text-2xl font-semibold mb-4">Set Theory</h2>
           <div className="space-y-4">
             <div>
@@ -172,7 +205,7 @@ export default function CheatSheet() {
         </section>
 
         {/* Functions Section */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section id="functions" className="border rounded-lg p-6 bg-muted/30">
           <h2 className="text-2xl font-semibold mb-4">Functions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="border rounded-lg p-4">
@@ -206,7 +239,10 @@ export default function CheatSheet() {
         </section>
 
         {/* Combinatorics Section */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section
+          id="combinatorics"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
           <h2 className="text-2xl font-semibold mb-4">Combinatorics</h2>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -267,7 +303,10 @@ export default function CheatSheet() {
         </section>
 
         {/* Sorting Algorithms */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section
+          id="sorting-algorithms"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
           <h2 className="text-2xl font-semibold mb-4">Sorting Algorithms</h2>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -336,7 +375,10 @@ export default function CheatSheet() {
         </section>
 
         {/* Data Structures */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section
+          id="data-structures"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
           <h2 className="text-2xl font-semibold mb-4">Data Structures</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border rounded-lg p-4">
@@ -448,7 +490,10 @@ export default function CheatSheet() {
         </section>
 
         {/* Graph Algorithms */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section
+          id="graph-algorithms"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
           <h2 className="text-2xl font-semibold mb-4">Graph Algorithms</h2>
           <div className="space-y-4">
             <div className="border-l-4 border-blue-500 pl-4">
@@ -509,7 +554,10 @@ export default function CheatSheet() {
         </section>
 
         {/* Algorithm Paradigms */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section
+          id="algorithm-paradigms"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
           <h2 className="text-2xl font-semibold mb-4">Algorithm Paradigms</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border rounded-lg p-4">
@@ -565,7 +613,7 @@ export default function CheatSheet() {
         </section>
 
         {/* Quick Tips */}
-        <section className="border rounded-lg p-6 bg-muted/30">
+        <section id="quick-tips" className="border rounded-lg p-6 bg-muted/30">
           <h2 className="text-2xl font-semibold mb-4">Quick Tips</h2>
           <div className="space-y-2 text-sm">
             <div className="flex gap-2">
