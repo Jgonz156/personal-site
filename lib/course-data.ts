@@ -19,6 +19,9 @@ export interface CourseEvent {
   dueTime?: string // e.g., "11:59 PM"
   courseId?: string
   completed?: boolean
+  standard?: string // e.g., "Logic", "Numbers", "Collections", etc.
+  contentUrl?: string // Link to lecture notes, homework spec, exam details page
+  recordingUrls?: string[] // Array of zoom recording links (max 5)
 }
 
 // Sample course data - this can be expanded and moved to a database later
@@ -26,39 +29,48 @@ export const courseEvents: CourseEvent[] = [
   // Today's event
   {
     id: "0",
-    title: "Algorithm Design Lecture",
+    title: "Introduction to Logic",
     type: "lecture",
     date: new Date(2025, 9, 7), // October 7, 2025 (Today)
-    description: "Introduction to dynamic programming",
+    description: "Propositional logic and truth tables",
     dueTime: "2:00 PM",
     courseId: "cmsi-2820",
+    standard: "Logic",
+    contentUrl: "#",
+    recordingUrls: ["#", "#"],
   },
   {
     id: "1",
     title: "Chapter 1-3 Reading",
     type: "reading",
     date: new Date(2025, 9, 8), // October 8, 2025
-    description: "Read chapters 1-3 on algorithm fundamentals",
+    description: "Read chapters 1-3 on logic fundamentals",
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
+    standard: "Logic",
   },
   {
     id: "1b",
-    title: "Lecture: Complexity Analysis",
+    title: "Logical Equivalence",
     type: "lecture",
     date: new Date(2025, 9, 9), // October 9, 2025
-    description: "Understanding Big-O notation",
+    description: "Understanding logical operators and equivalence",
     dueTime: "2:00 PM",
     courseId: "cmsi-2820",
+    standard: "Logic",
+    contentUrl: "#",
+    recordingUrls: ["#", "#", "#"],
   },
   {
     id: "2",
-    title: "Homework 1: Big-O Analysis",
+    title: "Homework 1: Logic Problems",
     type: "homework",
     date: new Date(2025, 9, 10), // October 10, 2025
-    description: "Complete problems 1-5 on time complexity",
+    description: "Complete problems on truth tables and logical equivalence",
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
+    standard: "Logic",
+    contentUrl: "#",
   },
   {
     id: "2b",
@@ -71,39 +83,50 @@ export const courseEvents: CourseEvent[] = [
   },
   {
     id: "2c",
-    title: "Lecture: Sorting Algorithms I",
+    title: "Number Systems",
     type: "lecture",
     date: new Date(2025, 9, 14), // October 14, 2025
-    description: "Merge sort and quick sort",
+    description: "Binary, octal, and hexadecimal systems",
     dueTime: "2:00 PM",
     courseId: "cmsi-2820",
+    standard: "Numbers",
+    contentUrl: "#",
+    recordingUrls: ["#"],
   },
   {
     id: "3",
     title: "Midterm Exam 1",
     type: "exam",
     date: new Date(2025, 9, 15), // October 15, 2025
-    description: "Covers chapters 1-5, algorithms and data structures",
+    description: "Covers Logic and basic number theory",
     dueTime: "2:00 PM",
     courseId: "cmsi-2820",
+    standard: "Logic",
+    contentUrl: "#",
   },
   {
     id: "3b",
-    title: "Lecture: Sorting Algorithms II",
+    title: "Modular Arithmetic",
     type: "lecture",
     date: new Date(2025, 9, 16), // October 16, 2025
-    description: "Heap sort and counting sort",
+    description: "Properties of modular arithmetic and applications",
     dueTime: "2:00 PM",
     courseId: "cmsi-2820",
+    standard: "Numbers",
+    contentUrl: "#",
+    recordingUrls: ["#", "#"],
   },
   {
     id: "4",
-    title: "Homework 2: Sorting Algorithms",
+    title: "Homework 2: Number Systems",
     type: "homework",
     date: new Date(2025, 9, 17), // October 17, 2025
-    description: "Implement and analyze merge sort and quick sort",
+    description:
+      "Convert between number systems and solve modular arithmetic problems",
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
+    standard: "Numbers",
+    contentUrl: "#",
   },
   {
     id: "4b",
@@ -124,39 +147,43 @@ export const courseEvents: CourseEvent[] = [
   },
   {
     id: "4d",
-    title: "Lecture: Graph Theory Basics",
+    title: "Introduction to Sets",
     type: "lecture",
     date: new Date(2025, 9, 21), // October 21, 2025
-    description: "Introduction to graphs and basic algorithms",
+    description: "Set operations and Venn diagrams",
     dueTime: "2:00 PM",
     courseId: "cmsi-2820",
+    standard: "Set Theory",
   },
   {
     id: "6",
-    title: "Lab 3: Graph Traversal",
+    title: "Lab 3: Set Operations",
     type: "lab",
     date: new Date(2025, 9, 22), // October 22, 2025
-    description: "Hands-on practice with BFS and DFS",
+    description: "Hands-on practice with set operations",
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
+    standard: "Set Theory",
   },
   {
     id: "6b",
-    title: "Lecture: Advanced Graph Algorithms",
+    title: "Functions and Relations",
     type: "lecture",
     date: new Date(2025, 9, 23), // October 23, 2025
-    description: "Dijkstra's and A* algorithms",
+    description: "Types of functions and their properties",
     dueTime: "2:00 PM",
     courseId: "cmsi-2820",
+    standard: "Functions",
   },
   {
     id: "5",
-    title: "Project 1: Search Algorithm Implementation",
+    title: "Project 1: Function Analysis",
     type: "project",
     date: new Date(2025, 9, 24), // October 24, 2025
-    description: "Build a search engine using various search algorithms",
+    description: "Analyze and classify various mathematical functions",
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
+    standard: "Functions",
   },
   {
     id: "7",
@@ -166,6 +193,96 @@ export const courseEvents: CourseEvent[] = [
     description: "Final project help",
     dueTime: "3:00 PM - 5:00 PM",
     courseId: "cmsi-2820",
+  },
+  {
+    id: "8",
+    title: "Lists and Sequences",
+    type: "lecture",
+    date: new Date(2025, 9, 28), // October 28, 2025
+    description: "Working with ordered collections",
+    dueTime: "2:00 PM",
+    courseId: "cmsi-2820",
+    standard: "Collections",
+  },
+  {
+    id: "9",
+    title: "Homework 3: Set Theory",
+    type: "homework",
+    date: new Date(2025, 9, 29), // October 29, 2025
+    description: "Solve problems on set operations and proofs",
+    dueTime: "11:59 PM",
+    courseId: "cmsi-2820",
+    standard: "Set Theory",
+  },
+  {
+    id: "10",
+    title: "Counting Principles",
+    type: "lecture",
+    date: new Date(2025, 9, 30), // October 30, 2025
+    description: "Basic counting, permutations, and combinations",
+    dueTime: "2:00 PM",
+    courseId: "cmsi-2820",
+    standard: "Combinatorics",
+  },
+  {
+    id: "11",
+    title: "Homework 4: Functions",
+    type: "homework",
+    date: new Date(2025, 10, 1), // November 1, 2025
+    description: "Problems on injective, surjective, and bijective functions",
+    dueTime: "11:59 PM",
+    courseId: "cmsi-2820",
+    standard: "Functions",
+  },
+  {
+    id: "12",
+    title: "Introduction to Graphs",
+    type: "lecture",
+    date: new Date(2025, 10, 4), // November 4, 2025
+    description: "Graph definitions and representations",
+    dueTime: "2:00 PM",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
+  },
+  {
+    id: "13",
+    title: "Homework 5: Combinatorics",
+    type: "homework",
+    date: new Date(2025, 10, 7), // November 7, 2025
+    description: "Counting problems and combinatorial proofs",
+    dueTime: "11:59 PM",
+    courseId: "cmsi-2820",
+    standard: "Combinatorics",
+  },
+  {
+    id: "14",
+    title: "Graph Traversal Algorithms",
+    type: "lecture",
+    date: new Date(2025, 10, 11), // November 11, 2025
+    description: "BFS and DFS algorithms",
+    dueTime: "2:00 PM",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
+  },
+  {
+    id: "15",
+    title: "Midterm Exam 2",
+    type: "exam",
+    date: new Date(2025, 10, 14), // November 14, 2025
+    description: "Covers Sets, Functions, and Collections",
+    dueTime: "2:00 PM",
+    courseId: "cmsi-2820",
+    standard: "Set Theory",
+  },
+  {
+    id: "16",
+    title: "Homework 6: Graph Theory",
+    type: "homework",
+    date: new Date(2025, 10, 18), // November 18, 2025
+    description: "Problems on graph properties and traversal",
+    dueTime: "11:59 PM",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
   },
 ]
 
