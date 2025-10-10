@@ -1,0 +1,211 @@
+# Predicate Logic and Quantifiers
+
+In this lecture, we extend propositional logic to **predicate logic**, which allows us to make statements about properties of objects and collections.
+
+## Limitations of Propositional Logic
+
+Propositional logic can't express statements like:
+
+- "All students in this class are computer science majors"
+- "There exists a prime number greater than 100"
+- "Every even number greater than 2 can be expressed as the sum of two primes"
+
+We need a more powerful system! Enter **predicate logic**.
+
+---
+
+## Predicates
+
+A **predicate** is a statement that contains variables and becomes a proposition when the variables are assigned values.
+
+### Examples
+
+**P(x)**: "x is an even number"
+
+- P(4) is **true** (4 is even)
+- P(7) is **false** (7 is not even)
+- P(x) by itself is neither true nor false
+
+**Q(x, y)**: "x > y"
+
+- Q(5, 3) is **true**
+- Q(2, 8) is **false**
+
+**R(x)**: "x is a programming language"
+
+- R("Python") is **true**
+- R("Banana") is **false**
+
+---
+
+## Quantifiers
+
+Quantifiers allow us to make statements about entire sets.
+
+### Universal Quantifier ($\forall$)
+
+**$\forall x \, P(x)$** means "For all $x$, $P(x)$ is true"
+
+Read as: "For every $x$" or "For all $x$"
+
+#### Examples:
+
+1. $\forall x \in \mathbb{N}, x \geq 0$
+
+   - "All natural numbers are non-negative" ✓ TRUE
+
+2. $\forall x \in \mathbb{Z}, x^2 \geq 0$
+
+   - "The square of any integer is non-negative" ✓ TRUE
+
+3. $\forall x \in \mathbb{R}, x^2 > 0$
+   - "The square of any real number is positive" ✗ FALSE (counterexample: $x = 0$)
+
+### Existential Quantifier ($\exists$)
+
+**$\exists x \, P(x)$** means "There exists an $x$ such that $P(x)$ is true"
+
+Read as: "There exists an $x$" or "For some $x$"
+
+#### Examples:
+
+1. $\exists x \in \mathbb{N}, x^2 = 16$
+
+   - "There exists a natural number whose square is 16" ✓ TRUE ($x = 4$)
+
+2. $\exists x \in \mathbb{Z}, 2x + 1 = 0$
+
+   - "There exists an integer $x$ such that $2x + 1 = 0$" ✗ FALSE
+
+3. $\exists x \in \mathbb{R}, x^2 = 2$
+   - "There exists a real number whose square is 2" ✓ TRUE ($x = \sqrt{2}$)
+
+---
+
+## Negating Quantified Statements
+
+De Morgan's Laws extend to quantifiers!
+
+### Negation Rules
+
+$$
+\neg(\forall x \, P(x)) \equiv \exists x \, \neg P(x)
+$$
+
+$$
+\neg(\exists x \, P(x)) \equiv \forall x \, \neg P(x)
+$$
+
+### Examples
+
+**Original**: $\forall x, x > 0$
+
+- "All numbers are positive"
+
+**Negation**: $\exists x, x \leq 0$
+
+- "There exists a number that is not positive"
+
+---
+
+**Original**: $\exists x$, $x$ is a perfect square
+
+- "There exists a perfect square"
+
+**Negation**: $\forall x$, $x$ is not a perfect square
+
+- "All numbers are not perfect squares" (equivalently: "No number is a perfect square")
+
+---
+
+## Multiple Quantifiers
+
+We can combine multiple quantifiers for more complex statements.
+
+### Order Matters!
+
+**$\forall x \, \exists y, x < y$**
+
+- "For every $x$, there exists a $y$ such that $x < y$"
+- TRUE (for any number, we can find a larger one)
+
+**$\exists y \, \forall x, x < y$**
+
+- "There exists a $y$ such that for all $x$, $x < y$"
+- FALSE (no single number is larger than ALL numbers)
+
+### Examples with Multiple Quantifiers
+
+1. **$\forall x \, \forall y, (x > 0 \land y > 0) \to xy > 0$**
+
+   - "The product of any two positive numbers is positive"
+
+2. **$\forall x \, \exists y, x + y = 0$**
+
+   - "For every number, there exists an additive inverse"
+
+3. **$\exists x \, \forall y, x \cdot y = y$**
+   - "There exists a multiplicative identity" ($x = 1$)
+
+---
+
+## Domain of Discourse
+
+The **domain** specifies which values variables can take.
+
+### Example: Even Numbers
+
+Let $P(x)$: "$x$ is even"
+
+Different domains give different truth values:
+
+- **Domain = $\{2, 4, 6, 8\}$**: $\forall x \, P(x)$ is TRUE
+- **Domain = $\mathbb{N}$**: $\forall x \, P(x)$ is FALSE
+- **Domain = $\{2k \mid k \in \mathbb{Z}\}$**: $\forall x \, P(x)$ is TRUE
+
+> Always be clear about your domain!
+
+---
+
+## Practice Problems
+
+### Problem 1: Translation
+
+Translate to logical notation (let domain be $\mathbb{R}$):
+
+a) "Every real number has a square"  
+b) "There exists a number whose square is negative"  
+c) "For every positive number, there exists a smaller positive number"
+
+### Problem 2: Negation
+
+Negate the following statements:
+
+a) $\forall x \in \mathbb{N}, \exists y \in \mathbb{N}, x + y = 10$  
+b) $\exists x \in \mathbb{R}, x^2 - 2x + 1 = 0$  
+c) $\forall$ students $s$, $s$ has submitted homework
+
+### Problem 3: Truth Values
+
+Determine if true or false (domain = $\mathbb{Z}$):
+
+a) $\forall x \, \exists y, 2x + y = 5$  
+b) $\exists x \, \forall y, x + y = x$  
+c) $\forall x \, \forall y, (x < y) \to (x^2 < y^2)$
+
+### Problem 4: Multiple Quantifiers
+
+Explain the difference between:
+
+a) $\forall x \, \exists y, x + y = 0$  
+b) $\exists y \, \forall x, x + y = 0$
+
+Which one is true for integers? Which one is false?
+
+---
+
+## Coming Up Next
+
+In Lecture 4, we'll use our logical foundations to construct **mathematical proofs**. We'll learn direct proof, proof by contradiction, and proof by contrapositive.
+
+The tools of logic we've built will be essential for proving theorems throughout the rest of the course!

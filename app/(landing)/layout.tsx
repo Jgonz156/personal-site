@@ -28,6 +28,34 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          id="MathJax-script"
+          async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+        ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.MathJax = {
+                tex: {
+                  inlineMath: [['$', '$']],
+                  displayMath: [['$$', '$$']],
+                },
+                options: {
+                  skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                  enableMenu: true,
+                },
+                chtml: {
+                  scale: 1,
+                  minScale: 0.5,
+                  matchFontHeight: true,
+                },
+              };
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -1,0 +1,195 @@
+# GitHub Flavored Markdown Examples
+
+This file demonstrates all the GitHub Flavored Markdown features available in your MDX lectures.
+
+## Tables
+
+### Basic Table
+
+| Operator | Symbol | Description         |
+| -------- | ------ | ------------------- |
+| AND      | ∧      | Logical AND         |
+| OR       | ∨      | Logical OR          |
+| NOT      | ¬      | Logical negation    |
+| IMPLIES  | →      | Logical implication |
+
+### Table with Alignment
+
+| Left-aligned | Center-aligned | Right-aligned |
+| :----------- | :------------: | ------------: |
+| P            |       Q        |         P ∧ Q |
+| T            |       T        |             T |
+| T            |       F        |             F |
+| F            |       T        |             F |
+| F            |       F        |             F |
+
+### Truth Table Example
+
+| P   | Q   | ¬P  | ¬Q  | P ∧ Q | P ∨ Q | P → Q | P ↔ Q |
+| --- | --- | --- | --- | ----- | ----- | ----- | ----- |
+| T   | T   | F   | F   | T     | T     | T     | T     |
+| T   | F   | F   | T   | F     | T     | F     | F     |
+| F   | T   | T   | F   | F     | T     | T     | F     |
+| F   | F   | T   | T   | F     | F     | T     | T     |
+
+---
+
+## Strikethrough
+
+Use two tildes for strikethrough:
+
+- ~~This is incorrect~~
+- This is correct ✓
+
+You can also use it mid-sentence: The answer is ~~42~~ 43.
+
+---
+
+## Autolinks
+
+URLs and emails are automatically converted to links:
+
+- Visit https://github.com/remarkjs/remark-gfm for more info
+- Email me at professor@university.edu
+- Check out www.example.com
+
+No need to write `[text](url)` syntax!
+
+---
+
+## Footnotes
+
+Here's a statement with a footnote reference[^1].
+
+You can have multiple footnotes in a document[^2].
+
+Footnotes can contain **formatted text** and even code[^code].
+
+[^1]: This is the first footnote. It can contain multiple paragraphs and other markdown.
+[^2]: This is the second footnote. Footnotes are automatically numbered and linked.
+[^code]: Footnotes can even contain code blocks:
+
+    ```javascript
+    function example() {
+      return "Hello from a footnote!"
+    }
+    ```
+
+---
+
+## Tasklists
+
+### Student Todo List
+
+- [ ] Read Chapter 1: Introduction to Logic
+- [x] Complete Exercise Set 1.1
+- [x] Watch lecture video
+- [ ] Submit homework by Friday
+- [ ] Study for exam
+
+### Progress Tracker
+
+**Week 1 Topics:**
+
+- [x] Propositional logic
+- [x] Truth tables
+- [ ] Logical equivalence
+- [ ] Predicate logic
+
+---
+
+## Combining Features
+
+You can combine all these features together:
+
+### Example: Set Theory Progress
+
+| Concept          | Completed | Notes                     |
+| :--------------- | :-------: | :------------------------ |
+| Basic operations |    [x]    | Union, intersection, etc. |
+| Venn diagrams    |    [x]    | Visual representations    |
+| Set identities   |    [ ]    | ~~Due today~~ Due Friday  |
+| Power sets       |    [ ]    | See Chapter 2.4[^chapter] |
+
+[^chapter]: Chapter 2.4 covers power sets and their properties.
+
+### Example: Homework Status
+
+1. **Problem Set 1**: ~~In progress~~ ✓ Complete
+2. **Problem Set 2**: In progress
+3. **Problem Set 3**: Not started
+4. Links to resources: https://www.khanacademy.org/math
+
+---
+
+## Tips for Using GFM in Your Lectures
+
+### Tables
+
+- Use tables for truth tables, operation definitions, and comparisons
+- Align numeric columns to the right, text to the left, and symbols to center
+- Keep tables reasonably sized for mobile viewing
+
+### Strikethrough
+
+- Use for showing corrections or outdated information
+- Great for "common mistakes" sections
+- Can highlight the evolution of ideas
+
+### Autolinks
+
+- Perfect for sharing additional resources
+- No need to worry about markdown link syntax
+- Just paste the URL and it becomes clickable
+
+### Footnotes
+
+- Use for additional explanations that might interrupt flow
+- Great for references to textbook pages or external resources
+- Automatically numbered and linked
+
+### Tasklists
+
+- Create interactive study guides
+- Show course progress
+- Outline lecture objectives
+- Student self-assessment checklists
+
+---
+
+## Best Practices
+
+1. **Tables**: Keep them simple and readable. For complex data, consider breaking into multiple tables.
+
+2. **Strikethrough**: Don't overuse. Reserve for meaningful corrections or evolution of concepts.
+
+3. **Autolinks**: Test links to ensure they work before publishing.
+
+4. **Footnotes**: Keep them concise. If explanation is long, consider making it main content.
+
+5. **Tasklists**: Update regularly so students can track their progress.
+
+---
+
+## Interactive Example with Tasklists
+
+Try creating a weekly study checklist:
+
+**Week 3: Functions and Relations**
+
+- [ ] Monday: Read sections 3.1-3.2
+- [ ] Tuesday: Watch video lecture on functions
+- [ ] Wednesday: Complete odd-numbered problems
+- [ ] Thursday: Review examples, attempt even problems
+- [ ] Friday: Submit homework, start studying for quiz
+- [ ] Weekend: Review notes, practice problems
+
+Students can mentally check these off as they complete each task!
+
+---
+
+## Conclusion
+
+All these features are now available in your MDX lecture notes. Mix and match them to create engaging, well-structured content for your students.
+
+For more details, see the [remark-gfm documentation](https://github.com/remarkjs/remark-gfm).
