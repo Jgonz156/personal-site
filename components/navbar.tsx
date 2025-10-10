@@ -13,7 +13,7 @@ import {
 import ThemeSwitcher from "./theme-switcher"
 import MobileNav from "./mobile-nav"
 import { Button } from "@/components/ui/button"
-import { useSidebar } from "@/components/ui/sidebar"
+import { useCourseSidebar } from "./course-sidebar-context"
 import { useNavbar } from "./navbar-context"
 import PageNavigation from "./page-navigation"
 import Link from "next/link"
@@ -28,7 +28,7 @@ const courses = [
 
 export default function Navbar() {
   const { isCollapsed, toggleCollapsed, pageSections } = useNavbar()
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar } = useCourseSidebar()
   const pathname = usePathname()
 
   // Extract current course from pathname

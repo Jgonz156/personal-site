@@ -1,6 +1,6 @@
 import LayoutWrapper from "@/components/layout-wrapper"
 import { NavbarProvider } from "@/components/navbar-context"
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { CourseSidebarProvider } from "@/components/course-sidebar-context"
 
 export default function CourseLayout({
   children,
@@ -8,10 +8,10 @@ export default function CourseLayout({
   children: React.ReactNode
 }) {
   return (
-    <SidebarProvider>
+    <CourseSidebarProvider>
       <NavbarProvider>
         <LayoutWrapper>{children}</LayoutWrapper>
       </NavbarProvider>
-    </SidebarProvider>
+    </CourseSidebarProvider>
   )
 }

@@ -1,44 +1,39 @@
 "use client"
 
 import React from "react"
-import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarToggleButton } from "@/components/sidebar-toggle-button"
+import { CourseSidebar } from "@/components/course-sidebar"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
-import { useNavbar } from "./navbar-context"
-import { useSidebar } from "@/components/ui/sidebar"
+import { useCourseSidebar } from "./course-sidebar-context"
 
 interface LayoutWrapperProps {
   children: React.ReactNode
 }
 
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
-  const { isCollapsed: navbarCollapsed } = useNavbar()
-  const { state: sidebarState } = useSidebar()
-  const sidebarCollapsed = sidebarState === "collapsed"
+  const { isOpen, setIsOpen, isCollapsed, setIsCollapsed } = useCourseSidebar()
 
   return (
-    <div
-      className={`fixed top-0 left-0 right-0 bottom-0 layout-grid ${
-        navbarCollapsed ? "navbar-collapsed" : "navbar-expanded"
-      } ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}
-      style={{
-        gridTemplateRows: navbarCollapsed ? "0px 1fr" : "auto 1fr",
-        gridTemplateColumns: sidebarCollapsed ? "0px 1fr" : "auto 1fr",
-      }}
-    >
-      <div className="col-span-2 w-full">
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <CourseSidebar
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+
+      {/* Main content area */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Navbar */}
         <Navbar />
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto">
+          {children}
+          <Footer />
+        </main>
       </div>
-      <div
-        className={`sidebar-container ${sidebarCollapsed ? "collapsed" : ""}`}
-      >
-        <AppSidebar />
-      </div>
-      <main className="flex-1 overflow-auto h-full">
-        {children}
-        <Footer />
-      </main>
     </div>
   )
 }

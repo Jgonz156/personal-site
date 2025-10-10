@@ -18,7 +18,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { useSidebar } from "@/components/ui/sidebar"
+import { useCourseSidebar } from "./course-sidebar-context"
 import { useNavbar } from "./navbar-context"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -40,7 +40,7 @@ export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
   const [sectionsOpen, setSectionsOpen] = useState(true)
   const { pageSections } = useNavbar()
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar } = useCourseSidebar()
   const pathname = usePathname()
 
   // Extract current course from pathname
