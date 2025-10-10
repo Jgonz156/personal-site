@@ -4,6 +4,7 @@ import React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarToggleButton } from "@/components/sidebar-toggle-button"
 import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
 import { useNavbar } from "./navbar-context"
 import { useSidebar } from "@/components/ui/sidebar"
 
@@ -34,7 +35,10 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       >
         <AppSidebar />
       </div>
-      <main className="flex-1 overflow-auto h-full">{children}</main>
+      <main className="flex-1 overflow-auto h-full">
+        {children}
+        <Footer />
+      </main>
     </div>
   )
 }

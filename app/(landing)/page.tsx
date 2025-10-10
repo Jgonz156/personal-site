@@ -13,6 +13,7 @@ import {
 import ThemeSwitcher from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Footer from "@/components/footer"
 
 export default function SiteHome() {
   const courses = [
@@ -514,6 +515,7 @@ export default function SiteHome() {
           </div>
         </section>
       </div>
+      <Footer />
     </div>
   )
 }

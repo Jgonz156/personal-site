@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import ThemeSwitcher from "@/components/theme-switcher"
 import Link from "next/link"
+import Footer from "@/components/footer"
 
 export default function CVPage() {
   const education = [
@@ -652,6 +653,7 @@ export default function CVPage() {
           </Button>
         </section>
       </div>
+      <Footer />
     </div>
   )
 }

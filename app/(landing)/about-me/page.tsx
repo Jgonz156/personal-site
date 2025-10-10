@@ -3,6 +3,7 @@ import { Home, User, FileUser, Mail, Linkedin, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ThemeSwitcher from "@/components/theme-switcher"
 import Link from "next/link"
+import Footer from "@/components/footer"
 
 export default function AboutMePage() {
   return (
@@ -211,6 +212,7 @@ export default function AboutMePage() {
           </div>
         </section>
       </div>
+      <Footer />
     </div>
   )
 }
