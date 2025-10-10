@@ -11,6 +11,7 @@ import {
   Settings,
 } from "lucide-react"
 import ThemeSwitcher from "./theme-switcher"
+import MobileNav from "./mobile-nav"
 import { Button } from "@/components/ui/button"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useNavbar } from "./navbar-context"
@@ -49,9 +50,12 @@ export default function Navbar() {
 
   return (
     <div className="relative">
-      {/* Top Navbar - Course Level Navigation */}
+      {/* Mobile Navigation - Shows on small screens */}
+      <MobileNav />
+
+      {/* Desktop Navigation - Shows on medium+ screens */}
       <nav
-        className={`bg-background transition-all duration-300 ease-in-out border-b border-border ${
+        className={`hidden md:block bg-background transition-all duration-300 ease-in-out border-b border-border ${
           isCollapsed ? "h-0 overflow-hidden border-b-0" : "h-auto"
         }`}
       >
@@ -159,13 +163,15 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Bottom Navbar - Page-Specific Navigation */}
+      {/* Bottom Navbar - Page-Specific Navigation (Desktop only) */}
       {!isCollapsed && pageSections.length > 0 && (
-        <PageNavigation sections={pageSections} />
+        <div className="hidden md:block">
+          <PageNavigation sections={pageSections} />
+        </div>
       )}
 
-      {/* Chevron Toggle Button */}
-      <div className="absolute slide-out-to-bottom-0 right-3">
+      {/* Chevron Toggle Button (Desktop only) */}
+      <div className="hidden md:block absolute slide-out-to-bottom-0 right-3">
         <Button
           variant="ghost"
           size="icon"

@@ -15,14 +15,11 @@ import {
   FileText,
   Presentation,
   Trophy,
-  Home,
   User,
-  FileUser,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import ThemeSwitcher from "@/components/theme-switcher"
-import Link from "next/link"
+import LandingNav from "@/components/landing-nav"
 import Footer from "@/components/footer"
 
 export default function CVPage() {
@@ -236,61 +233,7 @@ export default function CVPage() {
     <div className="min-h-screen bg-background">
       {/* Navigation Bar */}
       <div className="sticky top-0 z-50">
-        <nav
-          className={`bg-background transition-all duration-300 ease-in-out border-b border-border h-auto px-4 py-3`}
-        >
-          <div className="flex items-center justify-between">
-            {/* Left section */}
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
-                >
-                  <Home className="w-5 h-5" />
-                  <span className="font-medium">Course Hub</span>
-                </Button>
-              </Link>
-
-              <Link href="/cv">
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-2 text-primary"
-                >
-                  <FileUser className="w-5 h-5" />
-                  <span className="font-medium">CV</span>
-                </Button>
-              </Link>
-
-              <Link href="/about-me">
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
-                >
-                  <User className="w-5 h-5" />
-                  <span className="font-medium">About Me</span>
-                </Button>
-              </Link>
-            </div>
-
-            {/* Right section */}
-            <div className="flex items-center space-x-4">
-              {/* Theme Toggle */}
-              <ThemeSwitcher />
-
-              {/* Profile Avatar */}
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/80 border-0 hover:shadow-md transition-shadow"
-                >
-                  <User className="w-5 h-5 text-primary-foreground" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <LandingNav />
       </div>
 
       {/* Header Section */}
