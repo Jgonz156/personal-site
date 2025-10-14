@@ -9,6 +9,7 @@ import {
   ChevronRight,
   X,
   Calendar,
+  GraduationCap,
 } from "lucide-react"
 import ThemeSwitcher from "./theme-switcher"
 import { Button } from "@/components/ui/button"
@@ -55,6 +56,8 @@ export default function MobileNav() {
 
   const currentCourse = getCurrentCourse()
   const isCoursePage = pathname?.includes("/cmsi-")
+  const isCourseHomePage =
+    pathname === `/${currentCourse.id}` || pathname === `/${currentCourse.id}/`
   const isSyllabusPage = pathname?.includes("/syllabus")
   const isCheatSheetPage = pathname?.includes("/cheat-sheet")
 
@@ -149,6 +152,18 @@ export default function MobileNav() {
               {/* Course-specific navigation */}
               {isCoursePage && (
                 <>
+                  {/* Course Home */}
+                  <Link href={`/${currentCourse.id}`} onClick={handleNavClick}>
+                    <Button
+                      variant={isCourseHomePage ? "secondary" : "ghost"}
+                      className="w-full justify-start gap-3"
+                      size="lg"
+                    >
+                      <GraduationCap className="w-5 h-5" />
+                      <span>Course Home</span>
+                    </Button>
+                  </Link>
+
                   <Link
                     href={`/${currentCourse.id}/cheat-sheet`}
                     onClick={handleNavClick}

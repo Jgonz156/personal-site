@@ -7,6 +7,9 @@ export default function CheatSheet() {
   const { setPageSections } = useNavbar()
 
   useEffect(() => {
+    // Clear sections immediately to prevent stale data from previous pages
+    setPageSections([])
+
     // Set page sections for navigation
     setPageSections([
       { id: "logic-propositions", title: "Logic & Propositions", level: 1 },

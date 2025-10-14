@@ -3,13 +3,11 @@
 import { useEffect } from "react"
 import { useNavbar, PageSection } from "@/components/navbar-context"
 
-interface LectureNotePageContentProps {
+interface HomeworkPageContentProps {
   children: React.ReactNode
 }
 
-export function LectureNotePageContent({
-  children,
-}: LectureNotePageContentProps) {
+export function HomeworkPageContent({ children }: HomeworkPageContentProps) {
   const { setPageSections } = useNavbar()
 
   useEffect(() => {
@@ -33,10 +31,16 @@ export function LectureNotePageContent({
           heading.id = id || `section-${index}`
         }
 
+        // Homework section headers get level 0 (top-level sections)
+        // Regular content headers get level 1 (h2) or level 2 (h3)
+        const isHomeworkSection = heading.classList.contains(
+          "homework-section-header"
+        )
+
         sections.push({
           id: heading.id,
           title: heading.textContent || "",
-          level: heading.tagName === "H3" ? 2 : 1,
+          level: isHomeworkSection ? 0 : heading.tagName === "H3" ? 2 : 1,
         })
       })
 

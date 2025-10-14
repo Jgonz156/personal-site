@@ -1,0 +1,97 @@
+import {
+  HomeworkIntro,
+  WrittenSection,
+  ProgrammingSection,
+  OptionalSection,
+} from "@/components/homework-sections"
+
+<HomeworkIntro
+  title="Homework X: Title Here"
+  dueDate="Month Day, Year"
+  dueTime="11:59 PM"
+  topics={["Topic 1", "Topic 2", "Topic 3"]}
+  description="Brief description of what students will learn and accomplish in this homework assignment."
+/>
+
+<WrittenSection
+  points={60}
+  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=XXXXX&grpid=0"
+>
+
+Instructions for the written section. Students should submit their answers on paper.
+
+## Question 1: Title (X points)
+
+Your question here...
+
+## Question 2: Title (X points)
+
+Your question here...
+
+## Question 3: Title (X points)
+
+Your question here...
+
+</WrittenSection>
+
+<ProgrammingSection
+  points={30}
+  description="Description of the programming assignment. What will students build? What concepts will they practice?"
+  githubClassroomUrl="https://classroom.github.com/assignment-invitations/your-invitation-link"
+  githubRepoUrl="https://github.com/your-course/hw-repo-name"
+  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=XXXXX&grpid=0"
+/>
+
+<OptionalSection
+  points={10}
+  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=XXXXX&grpid=0"
+>
+
+## Title for Extra Credit Project
+
+Description of the optional extra credit project. This should be a hands-on, hobby-related project that students can complete in person.
+
+### Requirements:
+
+1. Requirement 1
+2. Requirement 2
+3. Requirement 3
+
+### Submission:
+
+- How should students submit this?
+- What format should it be in?
+- Any special instructions?
+
+**This extra credit project can be submitted until [deadline].**
+
+</OptionalSection>
+
+---
+
+## Submission Guidelines
+
+### Written Section
+
+- Format and submission instructions
+
+### Programming Section
+
+- Code submission instructions
+- Testing requirements
+
+### Grading Rubric
+
+| Component      | Points | Criteria                   |
+| -------------- | ------ | -------------------------- |
+| Written Q1     | XX     | Description                |
+| Written Q2     | XX     | Description                |
+| Programming    | XX     | Description                |
+| Optional Extra | XX     | Description                |
+| **Total**      | **XX** | (**XX with extra credit**) |
+
+## Resources
+
+- **Textbook**: Relevant chapters
+- **Lecture Notes**: LN1, LN2, etc.
+- **Office Hours**: Schedule here

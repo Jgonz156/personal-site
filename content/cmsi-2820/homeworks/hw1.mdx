@@ -1,0 +1,145 @@
+import {
+  HomeworkIntro,
+  WrittenSection,
+  ProgrammingSection,
+  OptionalSection,
+} from "@/components/homework-sections"
+
+<HomeworkIntro
+  title="Homework 1: Logic Fundamentals"
+  dueDate="January 20, 2025"
+  dueTime="11:59 PM"
+  topics={[
+    "Propositional Logic",
+    "Truth Tables",
+    "Logical Equivalence",
+    "Boolean Algebra",
+  ]}
+  description="This homework focuses on the fundamentals of propositional logic. You will practice constructing truth tables, proving logical equivalences, and applying boolean algebra to simplify expressions."
+/>
+
+<WrittenSection
+  points={60}
+  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=123456&grpid=0"
+>
+
+Submit your answers to the following questions on paper. Show all your work and clearly explain your reasoning.
+
+## Question 1: Truth Tables (15 points)
+
+Construct complete truth tables for the following propositions:
+
+a) $(P \land Q) \lor (\neg P \land R)$
+
+b) $(P \rightarrow Q) \land (Q \rightarrow R)$
+
+c) $\neg(P \lor Q) \leftrightarrow (\neg P \land \neg Q)$
+
+For each truth table, identify whether the proposition is a tautology, contradiction, or contingency.
+
+## Question 2: Logical Equivalence (20 points)
+
+Prove that the following pairs of propositions are logically equivalent using logical equivalence laws (do not use truth tables):
+
+a) $\neg(P \rightarrow Q) \equiv P \land \neg Q$
+
+b) $(P \lor Q) \land (\neg P \lor R) \equiv (P \land R) \lor (Q \land \neg P) \lor (Q \land R)$
+
+**Hint**: For part (b), you may find it helpful to use the distributive law and De Morgan's laws.
+
+## Question 3: Boolean Simplification (15 points)
+
+Simplify the following boolean expressions using boolean algebra laws. Show each step and cite the law you used.
+
+a) $(A \land B) \lor (A \land \neg B)$
+
+b) $\neg(\neg A \lor B) \land (A \lor C)$
+
+c) $(A \land B \land C) \lor (A \land B \land \neg C) \lor (\neg A \land B \land C)$
+
+## Question 4: Proofs (10 points)
+
+Using the rules of inference (Modus Ponens, Modus Tollens, etc.), prove the following argument is valid:
+
+**Premises:**
+
+1. $P \rightarrow Q$
+2. $Q \rightarrow R$
+3. $P$
+
+**Conclusion:** $R$
+
+</WrittenSection>
+
+<ProgrammingSection
+  points={30}
+  description="In this programming assignment, you will implement a truth table generator and a logical expression evaluator in Python. The program should be able to parse logical expressions and compute their truth values for all possible input combinations."
+  githubClassroomUrl="https://classroom.github.com/assignment-invitations/your-invitation-link"
+  githubRepoUrl="https://github.com/your-course/hw1-logic-evaluator"
+  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=123457&grpid=0"
+/>
+
+<OptionalSection
+  points={10}
+  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=123458&grpid=0"
+>
+
+## Build a Logic Circuit Simulator
+
+For extra credit, create a physical or digital logic circuit that implements a simple logical expression of your choice. You can use:
+
+- **Physical Option**: Build a circuit using LEDs, switches, and logic gates (AND, OR, NOT) on a breadboard
+- **Digital Option**: Create an interactive web-based logic circuit simulator using HTML/CSS/JavaScript
+
+### Requirements:
+
+1. Your circuit must implement at least one compound logical expression with 3 or more gates
+2. Document your circuit with a diagram showing the gate connections
+3. Demonstrate that your circuit correctly evaluates the expression for all input combinations
+4. Write a brief reflection (1-2 paragraphs) explaining what you learned
+
+### Submission:
+
+- For physical circuits: Submit photos/video of your working circuit along with your documentation
+- For digital circuits: Submit a link to your hosted simulator or a zip file with the code
+- Include your written reflection and circuit diagram in a PDF
+
+**This extra credit project can be submitted until one week after the homework due date.**
+
+</OptionalSection>
+
+---
+
+## Submission Guidelines
+
+### Written Section
+
+- Submit your handwritten or typed solutions to Brightspace as a **single PDF**
+- Make sure your name and student ID are on every page
+- Number your pages and staple them together if submitting physically
+
+### Programming Section
+
+- Push your code to the GitHub repository created via GitHub Classroom
+- Include a `README.md` with instructions on how to run your program
+- Make sure all tests pass before submitting
+
+### Grading Rubric
+
+| Component      | Points | Criteria                                   |
+| -------------- | ------ | ------------------------------------------ |
+| Written Q1     | 15     | Correct truth tables, proper format        |
+| Written Q2     | 20     | Valid proofs, clear step-by-step reasoning |
+| Written Q3     | 15     | Correct simplifications, laws cited        |
+| Written Q4     | 10     | Valid proof using rules of inference       |
+| Programming    | 30     | Code quality, correctness, tests passing   |
+| Optional Extra | 10     | Circuit functionality, documentation       |
+| **Total**      | **90** | (**100 with extra credit**)                |
+
+## Resources
+
+- **Textbook**: Chapter 1 (Logic and Proofs), Chapter 2 (Boolean Algebra)
+- **Lecture Notes**: LN1, LN2, LN3
+- **Office Hours**: Tuesdays and Thursdays, 3-5 PM (or by appointment)
+
+Good luck! 🚀

@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { courseEvents, CourseEvent } from "@/lib/course-data"
 import { ChevronDown, ChevronRight, FileText, Video } from "lucide-react"
 import Link from "next/link"
+import { useNavbar } from "@/components/navbar-context"
 
 // Define the 7 standards with metadata
 const STANDARDS = [
@@ -46,9 +47,19 @@ const STANDARDS = [
 ]
 
 export default function CMSI2820Home() {
+  const { setPageSections } = useNavbar()
   const [expandedStandards, setExpandedStandards] = useState<Set<string>>(
     new Set()
   )
+
+  useEffect(() => {
+    // Clear sections when navigating to the main course page
+    setPageSections([])
+
+    return () => {
+      setPageSections([])
+    }
+  }, [setPageSections])
 
   // Filter events for this course
   const courseSpecificEvents = courseEvents.filter(

@@ -7,8 +7,8 @@ export default function Footer() {
         </h3>
         <p className="text-muted-foreground mb-6">Computer Science</p>
         <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Office Hours: Tuesday & Thursday 2:00-4:00 PM | Email:
-          jane.smith@university.edu | Office: Science Building 342
+          Office Hours: Monday & Wednesday 2:00-5:00 PM | Email:
+          Julian.Gonzalez@lmu.edu | Office: Foley Annex 139
         </p>
       </div>
     </footer>

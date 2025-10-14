@@ -9,6 +9,7 @@ import {
   BookOpen,
   FileText,
   Settings,
+  GraduationCap,
 } from "lucide-react"
 import ThemeSwitcher from "./theme-switcher"
 import MobileNav from "./mobile-nav"
@@ -45,6 +46,8 @@ export default function Navbar() {
   const isCoursePage = pathname?.includes("/cmsi-")
 
   // Determine active page
+  const isCourseHomePage =
+    pathname === `/${currentCourse.id}` || pathname === `/${currentCourse.id}/`
   const isSyllabusPage = pathname?.includes("/syllabus")
   const isCheatSheetPage = pathname?.includes("/cheat-sheet")
 
@@ -91,6 +94,18 @@ export default function Navbar() {
               {/* Course-specific buttons (only show in course pages) */}
               {isCoursePage && (
                 <>
+                  {/* Course Home Link */}
+                  <Link href={`/${currentCourse.id}`}>
+                    <Button
+                      variant={isCourseHomePage ? "secondary" : "ghost"}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <GraduationCap className="w-4 h-4" />
+                      <span className="hidden sm:inline">Course</span>
+                    </Button>
+                  </Link>
+
                   <Link href={`/${currentCourse.id}/cheat-sheet`}>
                     <Button
                       variant={isCheatSheetPage ? "secondary" : "ghost"}

@@ -70,7 +70,7 @@ export const courseEvents: CourseEvent[] = [
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
     standard: "Logic",
-    contentUrl: "#",
+    contentUrl: "/cmsi-2820/hw1",
   },
   {
     id: "2b",
@@ -126,7 +126,7 @@ export const courseEvents: CourseEvent[] = [
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
     standard: "Numbers",
-    contentUrl: "#",
+    contentUrl: "/cmsi-2820/hw2",
   },
   {
     id: "4b",
@@ -213,6 +213,7 @@ export const courseEvents: CourseEvent[] = [
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
     standard: "Set Theory",
+    contentUrl: "/cmsi-2820/hw3",
   },
   {
     id: "10",
@@ -233,6 +234,7 @@ export const courseEvents: CourseEvent[] = [
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
     standard: "Functions",
+    contentUrl: "/cmsi-2820/hw4",
   },
   {
     id: "12",
@@ -253,6 +255,7 @@ export const courseEvents: CourseEvent[] = [
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
     standard: "Combinatorics",
+    contentUrl: "/cmsi-2820/hw5",
   },
   {
     id: "14",
@@ -283,6 +286,7 @@ export const courseEvents: CourseEvent[] = [
     dueTime: "11:59 PM",
     courseId: "cmsi-2820",
     standard: "Graph Theory",
+    contentUrl: "/cmsi-2820/hw6",
   },
 ]
 

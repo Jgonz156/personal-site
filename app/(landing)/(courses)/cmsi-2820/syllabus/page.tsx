@@ -7,6 +7,9 @@ export default function Syllabus() {
   const { setPageSections } = useNavbar()
 
   useEffect(() => {
+    // Clear sections immediately to prevent stale data from previous pages
+    setPageSections([])
+
     // Set page sections for navigation
     setPageSections([
       { id: "course-information", title: "Course Information", level: 1 },

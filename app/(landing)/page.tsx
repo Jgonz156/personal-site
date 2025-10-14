@@ -13,32 +13,32 @@ import Footer from "@/components/footer"
 export default function SiteHome() {
   const courses = [
     {
-      title: "Advanced Data Structures",
-      code: "CS 341",
-      semester: "Spring 2025",
+      title: "Discrete Math for CS",
+      code: "CMSI 2820",
+      level: "Sophomore",
       description:
-        "Deep dive into complex data structures and their applications in modern computing.",
-      link: "/courses/cs341",
+        "Deep dive into discrete mathematics and its foundations in computer science.",
+      link: "/cmsi-2820",
       image:
         "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     },
     {
-      title: "Machine Learning Fundamentals",
-      code: "CS 485",
-      semester: "Fall 2024",
+      title: "Operating Systems",
+      code: "CMSI 3510",
+      level: "Junior",
       description:
-        "Introduction to ML algorithms, neural networks, and practical applications.",
-      link: "/courses/cs485",
+        "Introduction to operating systems and their design and implementation.",
+      link: "/cmsi-3510",
       image:
         "https://images.unsplash.com/photo-1555949963-aa79dcbae5bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     },
     {
-      title: "Software Engineering",
-      code: "CS 320",
-      semester: "Spring 2025",
+      title: "Programming Language Foundations",
+      code: "CMSI 5850",
+      level: "Graduate",
       description:
-        "Best practices in software development, testing, and project management.",
-      link: "/courses/cs320",
+        "Mathematical foundations of the syntax and semantics of programming languages.",
+      link: "/cmsi-5850",
       image:
         "https://images.unsplash.com/photo-1551288049-ff6e48b1e5ad?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     },
@@ -46,88 +46,81 @@ export default function SiteHome() {
 
   const papers = [
     {
-      title: "Efficient Algorithms for Large-Scale Graph Processing",
-      journal: "Journal of Computer Science",
+      title:
+        "Investigating the Efficacy of Persistent Data Structures on Asymmetric Scheduling Algorithms for Heterogenous CPU Architectures",
+      journal: "Master's Thesis",
       year: "2024",
-      authors: "Dr. Smith, J. Doe, M. Johnson",
-      link: "#",
-    },
-    {
-      title: "Machine Learning Approaches to Code Optimization",
-      journal: "ACM Computing Surveys",
-      year: "2023",
-      authors: "Dr. Smith, A. Chen",
-      link: "#",
-    },
-    {
-      title: "Scalable Database Design for Modern Applications",
-      journal: "IEEE Transactions on Knowledge and Data Engineering",
-      year: "2023",
-      authors: "Dr. Smith, R. Wilson, K. Martinez",
-      link: "#",
+      authors: "Gonzalez, Julian",
+      link: "",
+      image: "",
     },
   ]
 
   const books = [
     {
-      title: "Modern Algorithms: Theory and Practice",
-      publisher: "Academic Press",
-      year: "2024",
-      isbn: "978-0123456789",
+      title: "Concurrency Theory",
+      publisher: "Springer London",
+      year: "2006",
+      isbn: "978-1-84628-336-1",
       description:
-        "A comprehensive guide to contemporary algorithmic approaches and their real-world applications.",
-      link: "#",
+        "This book provides a comprehensive introduction to the theory of concurrent systems, covering topics such as process synchronization, message passing, and distributed systems.",
+      link: "https://link.springer.com/book/10.1007/1-84628-336-1",
+      image:
+        "/landing/ConcurrencyTheory-CalculiAndAutomataForModellingUntimedAndTimedConcurrentSystems.png",
     },
     {
-      title: "Data Structures for the Digital Age",
-      publisher: "Tech Publications",
-      year: "2022",
-      isbn: "978-0987654321",
+      title: "Operating Systems and Middleware",
+      publisher: "Gustavus Adolphus College",
+      year: "2015",
       description:
-        "Exploring how traditional data structures adapt to modern computing challenges.",
-      link: "#",
+        "This book provides a comprehensive introduction to the theory of operating systems and middleware, covering topics such as process synchronization, message passing, and distributed systems.",
+      link: "https://ia902302.us.archive.org/27/items/osm-rev1.2.pdf",
+      image:
+        "/landing/OperatingSystemsAndMiddleware-SupportingControlledInteractions.png",
+    },
+    {
+      title: "Parallel Programming",
+      publisher: "Morgan Kaufmann",
+      year: "2017",
+      isbn: "978-0128498903",
+      description:
+        "This book provides an upper level introduction to parallel programming. In addition to covering general parallelism concepts, this text teaches practical programming skills for both shared memory and distributed memory architectures.",
+      link: "https://shop.elsevier.com/books/parallel-programming/schmidt/978-0-12-849890-3",
+      image: "/landing/ParallelProgrammingConceptsAndPractice.jpg",
+    },
+    {
+      title: "The Rust Programming Language",
+      publisher: "No Starch Press",
+      year: "2024",
+      isbn: "978-1718503106",
+      description:
+        "This book provides a comprehensive introduction to the Rust programming language.",
+      link: "https://doc.rust-lang.org/book/",
+      image: "/landing/TheRustProgrammingLanguage2ndEdition.png",
     },
   ]
 
   const projects = [
     {
-      title: "Campus Event Management System",
-      author: "Sarah Chen",
+      title: "This Course Site!",
+      author: "Julian Gonzalez",
       description:
-        "Full-stack web application for managing university events with real-time notifications.",
-      tech: ["React", "Node.js", "PostgreSQL", "Socket.io"],
-      stars: 47,
-      link: "https://github.com/student/campus-events",
-      type: "student",
-    },
-    {
-      title: "ML-Powered Code Review Assistant",
-      author: "Alex Rodriguez",
-      description:
-        "AI tool that provides intelligent code review suggestions using natural language processing.",
-      tech: ["Python", "TensorFlow", "Flask", "Docker"],
-      stars: 134,
-      link: "https://github.com/student/ml-code-review",
-      type: "student",
-    },
-    {
-      title: "Distributed Computing Framework",
-      author: "Dr. Smith",
-      description:
-        "Open-source framework for simplified distributed computing across multiple nodes.",
-      tech: ["Go", "gRPC", "Docker", "Kubernetes"],
-      stars: 892,
-      link: "https://github.com/professor/distributed-framework",
+        "This is the website you are currently on! It is built with NextJS, React, and More!",
+      tech: ["NextJS", "React", "Tailwind", "TypeScript", "MDX"],
+      stars: 0,
+      link: "https://github.com/Jgonz156/personal-site",
+      deploymentLink: "https://jag.prof",
       type: "personal",
     },
     {
-      title: "Interactive Algorithm Visualizer",
-      author: "Maria Garcia",
+      title: "GradeFlows and PostCommit",
+      author: "Aidan Srouji",
       description:
-        "Educational tool for visualizing complex algorithms with step-by-step animations.",
-      tech: ["TypeScript", "D3.js", "React", "Tailwind"],
-      stars: 203,
-      link: "https://github.com/student/algo-visualizer",
+        "AI-powered educational platform with personalized quiz generation and automated grading workflows",
+      tech: ["React", "NextJS", "Docker", "TypeScript", "Tailwind"],
+      stars: 0,
+      link: "",
+      deploymentLink: "https://gradeflows.com/",
       type: "student",
     },
   ]
@@ -150,10 +143,11 @@ export default function SiteHome() {
             <p className="text-2xl mb-4 font-light">
               Professor of Computer Science
             </p>
+            {/*
             <p className="text-xl opacity-90 max-w-2xl mx-auto leading-relaxed">
-              Advancing the frontiers of algorithms, machine learning, and
-              software engineering through research, teaching, and innovation
+              "What if I told you that you already knew Computer Science? Don't Believe me? Let me show you then!"
             </p>
+            */}
           </div>
         </div>
       </div>
@@ -168,12 +162,14 @@ export default function SiteHome() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-foreground mb-4">
-                Current Courses
+                Courses
               </h2>
+              {/*
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Explore my current course offerings designed to challenge and
                 inspire the next generation of computer scientists
               </p>
+              */}
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
@@ -208,7 +204,7 @@ export default function SiteHome() {
                       <div className="flex items-center mb-3">
                         <BookOpen className="h-5 w-5 text-primary mr-2" />
                         <span className="text-muted-foreground text-sm font-medium">
-                          {course.semester}
+                          {course.level}
                         </span>
                       </div>
                       <h3 className="text-xl font-bold text-card-foreground mb-2 group-hover:text-primary transition-colors">
@@ -252,7 +248,7 @@ export default function SiteHome() {
                         <div className="flex items-center mb-3">
                           <BookOpen className="h-5 w-5 text-primary mr-2" />
                           <span className="text-muted-foreground text-sm font-medium">
-                            {course.semester}
+                            {course.level}
                           </span>
                         </div>
                         <h3 className="text-xl font-bold text-card-foreground mb-2 group-hover:text-primary transition-colors">
@@ -307,23 +303,50 @@ export default function SiteHome() {
                   {papers.map((paper, index) => (
                     <div
                       key={index}
-                      className="bg-card p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                      className="bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
                     >
-                      <h3 className="font-bold text-card-foreground mb-2 leading-tight">
-                        {paper.title}
-                      </h3>
-                      <p className="text-primary font-medium mb-1">
-                        {paper.journal} ({paper.year})
-                      </p>
-                      <p className="text-muted-foreground text-sm mb-3">
-                        {paper.authors}
-                      </p>
-                      <a
-                        href={paper.link}
-                        className="text-primary hover:text-primary/80 font-semibold text-sm inline-flex items-center"
+                      <div
+                        className={
+                          paper.image ? "flex flex-col sm:flex-row" : ""
+                        }
                       >
-                        Read Paper <ExternalLink className="h-3 w-3 ml-1" />
-                      </a>
+                        {paper.image && (
+                          <div className="sm:w-48 flex-shrink-0">
+                            <img
+                              src={paper.image}
+                              alt={paper.title}
+                              className="w-full h-48 sm:h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="p-6 flex-1">
+                          <h3 className="font-bold text-card-foreground mb-2 leading-tight">
+                            {paper.title}
+                          </h3>
+                          {(paper.journal || paper.year) && (
+                            <p className="text-primary font-medium mb-1">
+                              {paper.journal}
+                              {paper.journal && paper.year && " ("}
+                              {paper.year}
+                              {paper.journal && paper.year && ")"}
+                            </p>
+                          )}
+                          {paper.authors && (
+                            <p className="text-muted-foreground text-sm mb-3">
+                              {paper.authors}
+                            </p>
+                          )}
+                          {paper.link && (
+                            <a
+                              href={paper.link}
+                              className="text-primary hover:text-primary/80 font-semibold text-sm inline-flex items-center"
+                            >
+                              Read Paper{" "}
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -333,34 +356,60 @@ export default function SiteHome() {
               <div>
                 <div className="flex items-center mb-8">
                   <BookOpen className="h-8 w-8 text-foreground mr-3" />
-                  <h2 className="text-3xl font-bold text-foreground">
-                    Published Books
-                  </h2>
+                  <h2 className="text-3xl font-bold text-foreground">Books</h2>
                 </div>
                 <div className="space-y-8">
                   {books.map((book, index) => (
                     <div
                       key={index}
-                      className="bg-card p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                      className="bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
                     >
-                      <h3 className="font-bold text-card-foreground mb-2 text-lg leading-tight">
-                        {book.title}
-                      </h3>
-                      <div className="text-sm text-muted-foreground mb-3">
-                        <p>
-                          {book.publisher} • {book.year}
-                        </p>
-                        <p>ISBN: {book.isbn}</p>
-                      </div>
-                      <p className="text-card-foreground mb-4 leading-relaxed">
-                        {book.description}
-                      </p>
-                      <a
-                        href={book.link}
-                        className="text-primary hover:text-primary/80 font-semibold text-sm inline-flex items-center"
+                      <div
+                        className={
+                          book.image ? "flex flex-col sm:flex-row" : ""
+                        }
                       >
-                        View Book <ExternalLink className="h-3 w-3 ml-1" />
-                      </a>
+                        {book.image && (
+                          <div className="sm:w-48 flex-shrink-0">
+                            <img
+                              src={book.image}
+                              alt={book.title}
+                              className="w-full h-64 sm:h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="p-6 flex-1">
+                          <h3 className="font-bold text-card-foreground mb-2 text-lg leading-tight">
+                            {book.title}
+                          </h3>
+                          {(book.publisher || book.year || book.isbn) && (
+                            <div className="text-sm text-muted-foreground mb-3">
+                              {(book.publisher || book.year) && (
+                                <p>
+                                  {book.publisher}
+                                  {book.publisher && book.year && " • "}
+                                  {book.year}
+                                </p>
+                              )}
+                              {book.isbn && <p>ISBN: {book.isbn}</p>}
+                            </div>
+                          )}
+                          {book.description && (
+                            <p className="text-card-foreground mb-4 leading-relaxed">
+                              {book.description}
+                            </p>
+                          )}
+                          {book.link && (
+                            <a
+                              href={book.link}
+                              className="text-primary hover:text-primary/80 font-semibold text-sm inline-flex items-center"
+                            >
+                              View Book{" "}
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -379,9 +428,10 @@ export default function SiteHome() {
                   Featured Projects
                 </h2>
               </div>
+
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Showcasing exceptional student work and personal research
-                projects that push the boundaries of technology
+                Below are some projects of mine and some exceptional student
+                projects I have been apart of!
               </p>
             </div>
 
@@ -411,12 +461,14 @@ export default function SiteHome() {
                             : "Personal"}
                         </span>
                       </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <Star className="h-4 w-4 mr-1" />
-                        <span className="text-sm font-medium">
-                          {project.stars}
-                        </span>
-                      </div>
+                      {project.stars !== undefined && project.stars > 0 && (
+                        <div className="flex items-center text-muted-foreground">
+                          <Star className="h-4 w-4 mr-1" />
+                          <span className="text-sm font-medium">
+                            {project.stars}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <h3 className="text-xl font-bold text-card-foreground mb-2 group-hover:text-primary transition-colors">
@@ -440,15 +492,30 @@ export default function SiteHome() {
                       ))}
                     </div>
 
-                    <a
-                      href={project.link}
-                      className="inline-flex items-center text-primary hover:text-primary/80 font-semibold transition-colors"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Github className="h-4 w-4 mr-2" />
-                      View on GitHub
-                    </a>
+                    <div className="flex flex-wrap gap-3">
+                      {project.link && (
+                        <a
+                          href={project.link}
+                          className="inline-flex items-center text-primary hover:text-primary/80 font-semibold transition-colors"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Github className="h-4 w-4 mr-2" />
+                          View on GitHub
+                        </a>
+                      )}
+                      {project.deploymentLink && (
+                        <a
+                          href={project.deploymentLink}
+                          className="inline-flex items-center text-primary hover:text-primary/80 font-semibold transition-colors"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Live Project
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
