@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy";
-import Footer from "../../../components/footer";
-import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import CourseNavBar from "../components/course-nav-bar";
-import AssignmentCard from "../components/assignment-card";
-import ExamCard from "../components/exam-card";
-import NotesCard from "../components/notes-card";
-import Standard from "../components/standard";
-import Speak from "../components/speak";
+import { Chip, Divider, Sheet } from "@mui/joy"
+import Footer from "../../../components/footer"
+import AutoStoriesIcon from "@mui/icons-material/AutoStories"
+import CourseNavBar from "../components/course-nav-bar"
+import AssignmentCard from "../components/assignment-card"
+import ExamCard from "../components/exam-card"
+import NotesCard from "../components/notes-card"
+import Standard from "../components/standard"
+import Speak from "../components/speak"
 
 export default function CMSI2820() {
   return (
@@ -435,26 +435,23 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
+
               <NotesCard
                 title="LN 14: Supplying and Consuming Lambdas"
                 description="In this lecture we start by recapping proper substitution and then officially define the formal alpha, beta, and gamma conversion rules. After we go over some nomenclature for functions and how to identify suppliers, consumers, and the like."
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Last Semester Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/M-Q4w9o-9ZwAkkZ8aFQJQln7gLKvVkkAcZOwBCPXQ1R7qLAIM6eo9Hb2oUrYl7RT.53DRR5KWubqPDt1A?startTime=1729011698000",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/hi13d34BW1RjU67HNXfY8q-wVd9-vgr1Vwn2gHAW7H0knMeC9xxZh2dhSUs5X8oa.lGfBIvGvpb5O9nIc",
                   },
                   {
-                    buttonText: "Last Semester Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/MBsV4n6c941fnIe9z17qKhz-ZqhQmYp6LROyRc1VKA0TCpdacT4bIHitWxPGhNXb.N-f2cND7NSiCPUZI?startTime=1729025363000",
-                  },
-                  {
-                    buttonText: "Last Semester Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/5mVa6kDx_8ozDqSmZvN1DXasjGRrZv2Yf5-pjsY4FAzwXATNkCtstHzL02N7Mh41.oAKBo7LxhNVpFw5o",
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/IWbl4i3meT8kQ0qNIsWmUqubDC9btr0dD5oPH09VtcmwXuBUC--QSKRcRodoZXM.of_tddulAtDJeTTz",
                   },
                 ]}
               />
+              {/*
               <NotesCard
                 title="LN 15: In the Domain of Sheep"
                 description="In this lecture we investigate the patterns that can be found in a lambdas inputs and outputs. We cover domain, codomain, image, pre-image and how an investigation into them gives us three function classes: Injective, Surjective, and Bijective"
@@ -709,5 +706,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  );
+  )
 }

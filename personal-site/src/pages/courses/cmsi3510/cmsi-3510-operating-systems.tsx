@@ -334,12 +334,12 @@ export default function CMSI3510() {
                 notesSlug="" //"/cmsi-3510/ln12"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
+                    buttonText: "Class Recording",
                     url: "https://lmula.zoom.us/rec/share/T1ITG3-39HbeR-7X62CXlu5bM3vt0T2MiPb3m_CP7M0imBsZMogpBXK1plHJ0UQ7.1vhK88krGH428vX0",
                   },
                 ]}
               />
-              {/*}
+
               <NotesCard
                 title="LN 13: How I Met Your Memory"
                 description="In this lecture we investigate different memory hardware technologies, how they are used, their advantages, and their disadvantages to
@@ -347,11 +347,12 @@ export default function CMSI3510() {
                 notesSlug="" //"/cmsi-3510/ln13"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/EELBDsdX9tvxFkQ1mRoqrDN5jtrqi9oCOc713K7iOk8Jqe1AA2K68U9iUaMpwCC1.HO4P_1zh6dqlglb8",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/sKCR2P-dvKeY334YKsk51ImKRzafg7yCr4JHHwJ7BiEfqC0-SYS5UfhAZEndz8EL.g6ENsZyYvtnnuFDb",
                   },
                 ]}
               />
+              {/*}
               <NotesCard
                 title="LN 14: Continuous Fragmentation"
                 description="In this lecture we investigate memory allocation! We begin with studying contiguous memory allocation techniques like fixed and dynamic partitioning.
