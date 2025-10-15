@@ -2,17 +2,68 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Suspense } from "react"
-import { LectureNotePageContent } from "@/components/lecture-note-page-content"
-import { HomeworkPageContent } from "@/components/homework-page-content"
+import { MDXPageContent } from "@/components/mdx-page-content"
 
 // Define the type for params (Next.js 13+ App Router)
 type PageProps = {
   params: Promise<{ id: string }>
 }
 
-// Configuration: total number of lecture notes and homeworks
-const TOTAL_NOTES = 28
-const TOTAL_HOMEWORKS = 10
+// Content type configuration - easily extensible for exams, projects, activities, etc.
+type ContentTypeConfig = {
+  prefix: string // URL prefix (e.g., "ln", "hw", "ex")
+  folder: string // Folder name in content directory
+  total: number // Total number of items
+  label: string // Display label (e.g., "Lecture Note", "Homework")
+  shortLabel: string // Short label for navigation (e.g., "LN", "HW")
+  gridColumns: string // Grid layout for quick navigation
+  topLevelSectionClass?: string // Optional CSS class for top-level sections
+}
+
+/**
+ * CONTENT_TYPES - Configuration for all MDX content types
+ *
+ * To add a new content type (exams, projects, activities, etc.):
+ * 1. Add a new entry to this object
+ * 2. Create a folder in content/cmsi-2820/ with the folder name
+ * 3. Add MDX files with the naming pattern: {prefix}{number}.mdx
+ * 4. (Optional) Add metadata for the new type below
+ *
+ * Example:
+ *   exam: {
+ *     prefix: "ex",           // URL: /cmsi-2820/ex1
+ *     folder: "exams",         // Path: content/cmsi-2820/exams/ex1.mdx
+ *     total: 3,               // Total number of exams
+ *     label: "Exam",          // Display: "Exam 1"
+ *     shortLabel: "EX",       // Navigation: "EX 1"
+ *     gridColumns: "grid-cols-3", // Grid layout for navigation
+ *     topLevelSectionClass: "exam-section-header", // Optional: custom section class
+ *   }
+ */
+const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
+  lecture: {
+    prefix: "ln",
+    folder: "notes",
+    total: 28,
+    label: "Lecture Note",
+    shortLabel: "LN",
+    gridColumns: "grid-cols-7 sm:grid-cols-10",
+  },
+  homework: {
+    prefix: "hw",
+    folder: "homeworks",
+    total: 10,
+    label: "Homework",
+    shortLabel: "HW",
+    gridColumns: "grid-cols-5 sm:grid-cols-10",
+    topLevelSectionClass: "homework-section-header",
+  },
+  // Add new content types here following the pattern above
+}
+
+// Legacy constants for backward compatibility
+const TOTAL_NOTES = CONTENT_TYPES.lecture.total
+const TOTAL_HOMEWORKS = CONTENT_TYPES.homework.total
 
 // Metadata for each lecture note
 const lectureMetadata: Record<
@@ -72,68 +123,72 @@ const homeworkMetadata: Record<
   // Add metadata for all homeworks as needed
 }
 
-// Dynamically import lecture note MDX content
-async function loadLectureMDX(noteNumber: number) {
+// Generic function to dynamically import MDX content for any content type
+async function loadMDXContent(config: ContentTypeConfig, itemNumber: number) {
   try {
     const MDXContent = await import(
-      `@/content/cmsi-2820/ln${noteNumber}.mdx`
+      `@/content/cmsi-2820/${config.folder}/${config.prefix}${itemNumber}.mdx`
     ).then((mod) => mod.default)
     return MDXContent
   } catch (error) {
-    console.error(`MDX file for note ${noteNumber} not found:`, error)
+    console.error(
+      `MDX file for ${config.label} ${itemNumber} not found:`,
+      error
+    )
     return null
   }
 }
 
-// Dynamically import homework MDX content
-async function loadHomeworkMDX(homeworkNumber: number) {
-  try {
-    const MDXContent = await import(
-      `@/content/cmsi-2820/hw${homeworkNumber}.mdx`
-    ).then((mod) => mod.default)
-    return MDXContent
-  } catch (error) {
-    console.error(`MDX file for homework ${homeworkNumber} not found:`, error)
-    return null
+// Helper function to detect content type from ID
+function getContentTypeFromId(id: string): ContentTypeConfig | null {
+  for (const config of Object.values(CONTENT_TYPES)) {
+    if (id.startsWith(config.prefix)) {
+      return config
+    }
   }
+  return null
 }
 
 export default async function ContentPage({ params }: PageProps) {
   // Await the params object
   const { id } = await params
 
-  // Determine if this is a lecture note or homework
-  const isLectureNote = id.startsWith("ln")
-  const isHomework = id.startsWith("hw")
+  // Determine the content type from the ID prefix
+  const contentType = getContentTypeFromId(id)
 
-  if (!isLectureNote && !isHomework) {
+  if (!contentType) {
     notFound()
   }
 
+  // Extract the item number from the ID
+  const itemNumber = parseInt(id.substring(contentType.prefix.length), 10)
+
+  // Validate the item number
+  if (isNaN(itemNumber) || itemNumber < 1 || itemNumber > contentType.total) {
+    notFound()
+  }
+
+  // Determine if this is a lecture note or homework (for metadata lookup)
+  const isLectureNote = contentType.prefix === "ln"
+  const isHomework = contentType.prefix === "hw"
+
   // Handle Lecture Notes
   if (isLectureNote) {
-    const noteNumber = parseInt(id.substring(2), 10)
-
-    // Validate the note number
-    if (isNaN(noteNumber) || noteNumber < 1 || noteNumber > TOTAL_NOTES) {
-      notFound()
-    }
-
     // Get metadata and MDX content
-    const metadata = lectureMetadata[noteNumber] || {
-      title: `Lecture Note ${noteNumber}`,
+    const metadata = lectureMetadata[itemNumber] || {
+      title: `${contentType.label} ${itemNumber}`,
       date: "Spring 2025",
       topics: ["Coming soon"],
     }
 
-    const MDXContent = await loadLectureMDX(noteNumber)
+    const MDXContent = await loadMDXContent(contentType, itemNumber)
 
     // Navigation
-    const hasPrevious = noteNumber > 1
-    const hasNext = noteNumber < TOTAL_NOTES
+    const hasPrevious = itemNumber > 1
+    const hasNext = itemNumber < contentType.total
 
     return (
-      <LectureNotePageContent>
+      <MDXPageContent>
         <div className="container mx-auto p-6 max-w-4xl">
           {/* Header */}
           <div className="mb-6">
@@ -148,7 +203,7 @@ export default async function ContentPage({ params }: PageProps) {
               <span>📅 {metadata.date}</span>
               <span>•</span>
               <span>
-                Note {noteNumber} of {TOTAL_NOTES}
+                {contentType.label} {itemNumber} of {contentType.total}
               </span>
             </div>
           </div>
@@ -172,12 +227,14 @@ export default async function ContentPage({ params }: PageProps) {
             ) : (
               <div className="text-center p-8 border rounded-lg bg-muted/30">
                 <p className="text-muted-foreground">
-                  Content for this lecture note is coming soon.
+                  Content for this {contentType.label.toLowerCase()} is coming
+                  soon.
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Create a file at{" "}
                   <code className="bg-muted px-2 py-1 rounded">
-                    content/cmsi-2820/ln{noteNumber}.mdx
+                    content/cmsi-2820/{contentType.folder}/{contentType.prefix}
+                    {itemNumber}.mdx
                   </code>{" "}
                   to add content.
                 </p>
@@ -189,11 +246,13 @@ export default async function ContentPage({ params }: PageProps) {
           <div className="flex items-center justify-between pt-6 border-t">
             {hasPrevious ? (
               <Link
-                href={`/cmsi-2820/ln${noteNumber - 1}`}
+                href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
-                <span>LN {noteNumber - 1}</span>
+                <span>
+                  {contentType.shortLabel} {itemNumber - 1}
+                </span>
               </Link>
             ) : (
               <div></div>
@@ -201,10 +260,12 @@ export default async function ContentPage({ params }: PageProps) {
 
             {hasNext ? (
               <Link
-                href={`/cmsi-2820/ln${noteNumber + 1}`}
+                href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
               >
-                <span>LN {noteNumber + 1}</span>
+                <span>
+                  {contentType.shortLabel} {itemNumber + 1}
+                </span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             ) : (
@@ -214,17 +275,17 @@ export default async function ContentPage({ params }: PageProps) {
 
           {/* Quick Navigation */}
           <div className="mt-8 p-4 border rounded-lg bg-muted/30">
-            <h3 className="font-semibold mb-3">All Lecture Notes</h3>
-            <div className="grid grid-cols-7 sm:grid-cols-10 gap-2">
-              {Array.from({ length: TOTAL_NOTES }, (_, i) => i + 1).map(
+            <h3 className="font-semibold mb-3">All {contentType.label}s</h3>
+            <div className={`grid ${contentType.gridColumns} gap-2`}>
+              {Array.from({ length: contentType.total }, (_, i) => i + 1).map(
                 (num) => (
                   <Link
                     key={num}
-                    href={`/cmsi-2820/ln${num}`}
+                    href={`/cmsi-2820/${contentType.prefix}${num}`}
                     className={`
                   text-center py-2 rounded border text-sm font-medium transition-colors
                   ${
-                    num === noteNumber
+                    num === itemNumber
                       ? "bg-primary text-primary-foreground border-primary"
                       : "hover:bg-muted border-border"
                   }
@@ -237,39 +298,28 @@ export default async function ContentPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-      </LectureNotePageContent>
+      </MDXPageContent>
     )
   }
 
   // Handle Homeworks
   if (isHomework) {
-    const homeworkNumber = parseInt(id.substring(2), 10)
-
-    // Validate the homework number
-    if (
-      isNaN(homeworkNumber) ||
-      homeworkNumber < 1 ||
-      homeworkNumber > TOTAL_HOMEWORKS
-    ) {
-      notFound()
-    }
-
     // Get metadata and MDX content
-    const metadata = homeworkMetadata[homeworkNumber] || {
-      title: `Homework ${homeworkNumber}`,
+    const metadata = homeworkMetadata[itemNumber] || {
+      title: `${contentType.label} ${itemNumber}`,
       dueDate: "TBD",
       dueTime: "11:59 PM",
       topics: ["Coming soon"],
     }
 
-    const MDXContent = await loadHomeworkMDX(homeworkNumber)
+    const MDXContent = await loadMDXContent(contentType, itemNumber)
 
     // Navigation
-    const hasPrevious = homeworkNumber > 1
-    const hasNext = homeworkNumber < TOTAL_HOMEWORKS
+    const hasPrevious = itemNumber > 1
+    const hasNext = itemNumber < contentType.total
 
     return (
-      <HomeworkPageContent>
+      <MDXPageContent topLevelSectionClass={contentType.topLevelSectionClass}>
         <div className="container mx-auto p-6 max-w-4xl">
           {/* Header */}
           <div className="mb-6">
@@ -290,12 +340,14 @@ export default async function ContentPage({ params }: PageProps) {
             ) : (
               <div className="text-center p-8 border rounded-lg bg-muted/30">
                 <p className="text-muted-foreground">
-                  Content for this homework is coming soon.
+                  Content for this {contentType.label.toLowerCase()} is coming
+                  soon.
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Create a file at{" "}
                   <code className="bg-muted px-2 py-1 rounded">
-                    content/cmsi-2820/hw{homeworkNumber}.mdx
+                    content/cmsi-2820/{contentType.folder}/{contentType.prefix}
+                    {itemNumber}.mdx
                   </code>{" "}
                   to add content.
                 </p>
@@ -307,11 +359,13 @@ export default async function ContentPage({ params }: PageProps) {
           <div className="flex items-center justify-between pt-6 border-t">
             {hasPrevious ? (
               <Link
-                href={`/cmsi-2820/hw${homeworkNumber - 1}`}
+                href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
-                <span>HW {homeworkNumber - 1}</span>
+                <span>
+                  {contentType.shortLabel} {itemNumber - 1}
+                </span>
               </Link>
             ) : (
               <div></div>
@@ -319,10 +373,12 @@ export default async function ContentPage({ params }: PageProps) {
 
             {hasNext ? (
               <Link
-                href={`/cmsi-2820/hw${homeworkNumber + 1}`}
+                href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
               >
-                <span>HW {homeworkNumber + 1}</span>
+                <span>
+                  {contentType.shortLabel} {itemNumber + 1}
+                </span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             ) : (
@@ -332,17 +388,17 @@ export default async function ContentPage({ params }: PageProps) {
 
           {/* Quick Navigation */}
           <div className="mt-8 p-4 border rounded-lg bg-muted/30">
-            <h3 className="font-semibold mb-3">All Homeworks</h3>
-            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-              {Array.from({ length: TOTAL_HOMEWORKS }, (_, i) => i + 1).map(
+            <h3 className="font-semibold mb-3">All {contentType.label}s</h3>
+            <div className={`grid ${contentType.gridColumns} gap-2`}>
+              {Array.from({ length: contentType.total }, (_, i) => i + 1).map(
                 (num) => (
                   <Link
                     key={num}
-                    href={`/cmsi-2820/hw${num}`}
+                    href={`/cmsi-2820/${contentType.prefix}${num}`}
                     className={`
                     text-center py-2 rounded border text-sm font-medium transition-colors
                     ${
-                      num === homeworkNumber
+                      num === itemNumber
                         ? "bg-primary text-primary-foreground border-primary"
                         : "hover:bg-muted border-border"
                     }
@@ -355,7 +411,7 @@ export default async function ContentPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-      </HomeworkPageContent>
+      </MDXPageContent>
     )
   }
 
@@ -363,15 +419,17 @@ export default async function ContentPage({ params }: PageProps) {
   notFound()
 }
 
-// Generate static params for all lecture notes and homeworks
+// Generate static params for all content types
 export async function generateStaticParams() {
-  const lectureParams = Array.from({ length: TOTAL_NOTES }, (_, i) => ({
-    id: `ln${i + 1}`,
-  }))
+  const allParams: { id: string }[] = []
 
-  const homeworkParams = Array.from({ length: TOTAL_HOMEWORKS }, (_, i) => ({
-    id: `hw${i + 1}`,
-  }))
+  // Dynamically generate params for each content type
+  for (const config of Object.values(CONTENT_TYPES)) {
+    const params = Array.from({ length: config.total }, (_, i) => ({
+      id: `${config.prefix}${i + 1}`,
+    }))
+    allParams.push(...params)
+  }
 
-  return [...lectureParams, ...homeworkParams]
+  return allParams
 }
