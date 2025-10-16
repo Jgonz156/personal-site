@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { DateTime } from "luxon"
 import { Clock } from "lucide-react"
 import {
   SidebarGroup,
@@ -9,36 +10,34 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { getUpcomingHomeworkAndExams, getEventTypeColor, getEventTypeIcon } from "@/lib/course-data"
+import {
+  getUpcomingHomeworkAndExams,
+  getEventTypeColor,
+  getEventTypeIcon,
+} from "@/lib/course-data"
 import { cn } from "@/lib/utils"
 
 export function UpcomingSection() {
   const upcomingEvents = getUpcomingHomeworkAndExams(30)
 
-  const formatDate = (date: Date) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const eventDate = new Date(date)
-    eventDate.setHours(0, 0, 0, 0)
-    
-    const diffTime = eventDate.getTime() - today.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
+  const formatDate = (date: DateTime) => {
+    const today = DateTime.now().startOf("day")
+    const eventDate = date.startOf("day")
+
+    const diffDays = Math.ceil(eventDate.diff(today, "days").days)
+
     if (diffDays === 0) return "Today"
     if (diffDays === 1) return "Tomorrow"
     if (diffDays < 7) return `In ${diffDays} days`
-    
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+
+    return date.toFormat("MMM d")
   }
 
-  const getDaysUntil = (date: Date) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const eventDate = new Date(date)
-    eventDate.setHours(0, 0, 0, 0)
-    
-    const diffTime = eventDate.getTime() - today.getTime()
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const getDaysUntil = (date: DateTime) => {
+    const today = DateTime.now().startOf("day")
+    const eventDate = date.startOf("day")
+
+    return Math.ceil(eventDate.diff(today, "days").days)
   }
 
   return (
@@ -57,7 +56,7 @@ export function UpcomingSection() {
             {upcomingEvents.map((event) => {
               const daysUntil = getDaysUntil(event.date)
               const isUrgent = daysUntil <= 3
-              
+
               return (
                 <SidebarMenuItem key={event.id} className="mb-2">
                   <div
@@ -116,4 +115,3 @@ export function UpcomingSection() {
     </SidebarGroup>
   )
 }
-

@@ -1,3 +1,5 @@
+import { DateTime } from "luxon"
+
 // Types for course events
 export type EventType =
   | "homework"
@@ -10,320 +12,433 @@ export type EventType =
   | "holiday"
   | "other"
 
+export interface Recording {
+  name: string
+  url: string
+}
+
 export interface CourseEvent {
   id: string
   title: string
   type: EventType
-  date: Date
+  date: DateTime // Using Luxon DateTime for human-readable dates
   description?: string
   dueTime?: string // e.g., "11:59 PM"
   courseId?: string
   completed?: boolean
   standard?: string // e.g., "Logic", "Numbers", "Collections", etc.
   contentUrl?: string // Link to lecture notes, homework spec, exam details page
-  recordingUrls?: string[] // Array of zoom recording links (max 5)
+  recordings?: Recording[] // Array of named recording links
 }
 
 // Sample course data - this can be expanded and moved to a database later
 export const courseEvents: CourseEvent[] = [
-  // Today's event
   {
-    id: "0",
-    title: "Introduction to Logic",
+    id: "ln0",
+    title: "LN 0: Reading Course Material!",
     type: "lecture",
-    date: new Date(2025, 9, 7), // October 7, 2025 (Today)
-    description: "Propositional logic and truth tables",
-    dueTime: "2:00 PM",
+    date: DateTime.fromObject({ year: 2025, month: 8, day: 26 }),
+    description:
+      "Here is a sample of what the lecture notes will look like! This one just explains the color coding I use for information and displays the small interactive modules I might have throughout the notes.",
     courseId: "cmsi-2820",
-    standard: "Logic",
-    contentUrl: "#",
-    recordingUrls: ["#", "#"],
+    standard: "Syllabus",
+    contentUrl: "/cmsi-2820/ln0",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/3iEbR7PiI_dBr3oDvLGwqYmSA0qGqs_9kocP4XGCWv5SxRJnvRHelkyE4igMzfiq.nIdDB2ZvC91Qvqro",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/9qmFdR3h-5cFv4MjIwiZKEc2m0fJmMeCkdby0Uu-ZEIVtAXdWL1o3K0MaQuNqZgk.1kF7BKtlrqS0rQ6p",
+      },
+    ],
   },
   {
-    id: "1",
-    title: "Chapter 1-3 Reading",
-    type: "reading",
-    date: new Date(2025, 9, 8), // October 8, 2025
-    description: "Read chapters 1-3 on logic fundamentals",
-    dueTime: "11:59 PM",
-    courseId: "cmsi-2820",
-    standard: "Logic",
-  },
-  {
-    id: "1b",
-    title: "Logical Equivalence",
-    type: "lecture",
-    date: new Date(2025, 9, 9), // October 9, 2025
-    description: "Understanding logical operators and equivalence",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Logic",
-    contentUrl: "#",
-    recordingUrls: ["#", "#", "#"],
-  },
-  {
-    id: "2",
-    title: "Homework 1: Logic Problems",
+    id: "hw0",
+    title: "HW 0: Practicing Homework",
     type: "homework",
-    date: new Date(2025, 9, 10), // October 10, 2025
-    description: "Complete problems on truth tables and logical equivalence",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 5 }),
     dueTime: "11:59 PM",
+    description:
+      "This is a small assignment to help you get familiar with the process of receiving and submitting assignments!",
+    courseId: "cmsi-2820",
+    standard: "Syllabus",
+    contentUrl: "/cmsi-2820/hw0",
+  },
+  {
+    id: "ex0",
+    title: "EX 0: Syllabus Exam",
+    type: "exam",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 6 }),
+    dueTime: "11:59 PM",
+    description:
+      "Exams are an important part of how you communicate your understanding of the material! Here you will take one on the most vital parts of the course syllabus! I promise its not hard.",
+    courseId: "cmsi-2820",
+    standard: "Syllabus",
+    contentUrl: "/cmsi-2820/hw0",
+  },
+  {
+    id: "ln1",
+    title: "LN 1: Information and Its Consequences...",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 8, day: 28 }),
+    description:
+      "This lecture will cover the basics of many different systems of logic, where they came from, how they were used, and what it even means to craft a valid line of reasoning.",
+    courseId: "cmsi-2820",
+    standard: "Logic",
+    contentUrl: "/cmsi-2820/ln1",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/la1mVbpnFfHVRdVJe_vdt_WHC-LDcuIF4ivMezQHrBq6W-MSLYHbMlDHwSn1fIlr.VSrqNa_WtWEt1VI8",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/Us5GGUeYdLSG5WDWjtft6SEZNtD5MkjHSUQpDXcDddv838vIgFSxT7kv0SF4efva.-AdnoFRwX86rah5s",
+      },
+    ],
+  },
+  {
+    id: "ln2",
+    title: "LN 2: Making Logical Connections",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 2 }),
+    description:
+      "This lecture will be an introduction to intuitionistic logic more formally. We will cover propositions, their variables, compound formulas, and logical connectives.",
+    courseId: "cmsi-2820",
+    standard: "Logic",
+    contentUrl: "/cmsi-2820/ln2",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/5ACLmSUYpzWpazd-ZQ4RqJfYuqh0_sf8DPfsLQMeUD_UfwRIFyEQ14Xt0K1v2tH3.xROcwPRCEZ8r4pMy",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/creQEn57bmIyHHDjGKuddsuQCcLlWZ8iGfx6x8yjXZcwhB55_fSBtCiPQ7HDi2b2.fdx39azQk01i5Mke",
+      },
+    ],
+  },
+  {
+    id: "ln3",
+    title: "LN 3: Assumptions Make an Argument out of You and Me",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 4 }),
+    description:
+      "This lecture expands on propositional logic by extending our inferential abilities for each of our logical connectives by exploring Natural Deduction",
+    courseId: "cmsi-2820",
+    standard: "Logic",
+    contentUrl: "/cmsi-2820/ln3",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/oxiLgZxaAisLZyMTGM6xTv4-94B3EFDjMq5EVFZmyw1vJrcdS673xSf-uyKKZBFJ.rXdaBSVWCIl1rPsT",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/LV_VKhAAQjlzb6bFjxJXz2Vz6ttU-2kNJRdrIvsysGYleweYPu4fo5MmFqNpXxJq.mxszqiD1yaT8KECa",
+      },
+    ],
+  },
+  {
+    id: "hw1",
+    title: "HW 1: Think Class! Think!",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 19 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework you will get practice with logical terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, translating natural language into logic, and natural deduction proofs!",
     courseId: "cmsi-2820",
     standard: "Logic",
     contentUrl: "/cmsi-2820/hw1",
   },
   {
-    id: "2b",
-    title: "Office Hours with Prof. Smith",
-    type: "office-hours",
-    date: new Date(2025, 9, 11), // October 11, 2025
-    description: "Drop in for homework help",
-    dueTime: "3:00 PM - 5:00 PM",
-    courseId: "cmsi-2820",
-  },
-  {
-    id: "2c",
-    title: "Number Systems",
+    id: "ln4",
+    title: "LN 4: Primitive Beginnings",
     type: "lecture",
-    date: new Date(2025, 9, 14), // October 14, 2025
-    description: "Binary, octal, and hexadecimal systems",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Numbers",
-    contentUrl: "#",
-    recordingUrls: ["#"],
-  },
-  {
-    id: "3",
-    title: "Midterm Exam 1",
-    type: "exam",
-    date: new Date(2025, 9, 15), // October 15, 2025
-    description: "Covers Logic and basic number theory",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Logic",
-    contentUrl: "#",
-  },
-  {
-    id: "3b",
-    title: "Modular Arithmetic",
-    type: "lecture",
-    date: new Date(2025, 9, 16), // October 16, 2025
-    description: "Properties of modular arithmetic and applications",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Numbers",
-    contentUrl: "#",
-    recordingUrls: ["#", "#"],
-  },
-  {
-    id: "4",
-    title: "Homework 2: Number Systems",
-    type: "homework",
-    date: new Date(2025, 9, 17), // October 17, 2025
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 9 }),
     description:
-      "Convert between number systems and solve modular arithmetic problems",
+      "In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory",
+    courseId: "cmsi-2820",
+    standard: "Numbers",
+    contentUrl: "/cmsi-2820/ln4",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/Lb_LZ6WOZs0MeuUwCf3A2e5KF_wWmbRbroBfHzOGlq24qXRW20mUK1cHQhOAF9fR.eq0ZcPNFLnjraHsI",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/QVGQu1SAebQejVLFWSnpIx6O3QQhlw19knqVimXvHLh81fICquV7ZYTooKdf341J.s0AYbvthUbK33CB-",
+      },
+    ],
+  },
+  {
+    id: "ln5",
+    title: "LN 5: Meet The Booleans, Don't Worry There's only Two of Them",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 11 }),
+    description:
+      "In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unique properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory.",
+    courseId: "cmsi-2820",
+    standard: "Numbers",
+    contentUrl: "/cmsi-2820/ln5",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/rtu2cddWBUsCvvN5ql0XY9wlIgwWckxumi3wvjv1bETt9I-AEeTt_v-tHavCq_Jj.GJpvl1qwfq7kdk1W",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/e9EbKJF21fd8PfnyR4uJolVh4MSga_zbFwcIk6atPhAb3fIalkw5Ey25G9V0MbJl.np-_-OvGtieC8mhs",
+      },
+    ],
+  },
+  {
+    id: "ln6",
+    title: "LN 6: The Integers, The Booleans' Infinite In-laws",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 16 }),
+    description:
+      "In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers.",
+    courseId: "cmsi-2820",
+    standard: "Numbers",
+    contentUrl: "/cmsi-2820/ln6",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/EOGh2fRn4DqTeVaDBjf_a5gDckGumvDOUDNnw-dCSq4io_la_2zH_Ht-k4rHClQ8.Uf5ihc5X5EKLwa1P",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/h9nvLsxLLjsimH3GVHydgT7P2ogHm4rasBnTMLUbo0RhH-qSZ5-64JpGJlX6i8Bw.741pQDhxkpElX9lO",
+      },
+    ],
+  },
+  {
+    id: "ln7",
+    title:
+      "LN 7: Division without Decimals? Positive Numbers that Add to Zero? What is this Place?!?",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 18 }),
+    description:
+      "In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic.",
+    courseId: "cmsi-2820",
+    standard: "Numbers",
+    contentUrl: "/cmsi-2820/ln7",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/WuP8OV8CPZ6rl0sWZGfj7Cld1pv9m32sbwb0H_g6L1XCqDOaenAyvvDgkCB8iJV-.H6jC25aM85O4F9Z0",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/ElRucWr1E9XN-gKUKj3HIf0ZCMyk5CGt1ax8mfEapf1XS198HeNUxoy5dQlIqWt9.ddUMoiyR49zSo3Rl",
+      },
+    ],
+  },
+  {
+    id: "hw2",
+    title: "HW 2: Counting Sheep",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 3 }),
     dueTime: "11:59 PM",
+    description:
+      "In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!",
     courseId: "cmsi-2820",
     standard: "Numbers",
     contentUrl: "/cmsi-2820/hw2",
   },
   {
-    id: "4b",
-    title: "Office Hours with TA Johnson",
-    type: "office-hours",
-    date: new Date(2025, 9, 18), // October 18, 2025
-    description: "Get help with homework 2",
-    dueTime: "4:00 PM - 6:00 PM",
-    courseId: "cmsi-2820",
-  },
-  {
-    id: "4c",
-    title: "Fall Break - No Class",
-    type: "holiday",
-    date: new Date(2025, 9, 20), // October 20, 2025
-    description: "University holiday",
-    courseId: "cmsi-2820",
-  },
-  {
-    id: "4d",
-    title: "Introduction to Sets",
+    id: "ln8",
+    title: "LN 8: Getting Our Types in a Row",
     type: "lecture",
-    date: new Date(2025, 9, 21), // October 21, 2025
-    description: "Set operations and Venn diagrams",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Set Theory",
-  },
-  {
-    id: "6",
-    title: "Lab 3: Set Operations",
-    type: "lab",
-    date: new Date(2025, 9, 22), // October 22, 2025
-    description: "Hands-on practice with set operations",
-    dueTime: "11:59 PM",
-    courseId: "cmsi-2820",
-    standard: "Set Theory",
-  },
-  {
-    id: "6b",
-    title: "Functions and Relations",
-    type: "lecture",
-    date: new Date(2025, 9, 23), // October 23, 2025
-    description: "Types of functions and their properties",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Functions",
-  },
-  {
-    id: "5",
-    title: "Project 1: Function Analysis",
-    type: "project",
-    date: new Date(2025, 9, 24), // October 24, 2025
-    description: "Analyze and classify various mathematical functions",
-    dueTime: "11:59 PM",
-    courseId: "cmsi-2820",
-    standard: "Functions",
-  },
-  {
-    id: "7",
-    title: "Office Hours",
-    type: "office-hours",
-    date: new Date(2025, 9, 25), // October 25, 2025
-    description: "Final project help",
-    dueTime: "3:00 PM - 5:00 PM",
-    courseId: "cmsi-2820",
-  },
-  {
-    id: "8",
-    title: "Lists and Sequences",
-    type: "lecture",
-    date: new Date(2025, 9, 28), // October 28, 2025
-    description: "Working with ordered collections",
-    dueTime: "2:00 PM",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 23 }),
+    description:
+      "In this lecture we formally investigate tuples (also known as product types in type theory) including their properties, operations, and how they are used to build up more complex types.",
     courseId: "cmsi-2820",
     standard: "Collections",
+    contentUrl: "/cmsi-2820/ln8",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/imbrdZl74I0fltcnIhOPTOzbbrA0bWNAgYFM_jPi0AcUF7ZrtaNSO9dAHLyPYP37.z59k5spVg6Qkq5PS",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/ZKHpLWk-N235Iix0i89NGRHmwDIbLo6F9plKWq3Nqc3tO3Yp7cm8prPb1iVpYyUI.1Q9hppiesoSuu7La",
+      },
+    ],
   },
   {
-    id: "9",
-    title: "Homework 3: Set Theory",
-    type: "homework",
-    date: new Date(2025, 9, 29), // October 29, 2025
-    description: "Solve problems on set operations and proofs",
-    dueTime: "11:59 PM",
+    id: "ln9",
+    title: "LN 9: Settling In",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 25 }),
+    description:
+      "In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators.",
     courseId: "cmsi-2820",
-    standard: "Set Theory",
+    standard: "Collections",
+    contentUrl: "/cmsi-2820/ln9",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/ET9vj2YYYUqk4HYlSzqc0mckRSjtY53Ad1H2Vpr4lnc7cK8MyWQSyzvnqWwSjF2h.HfWKWl5j5e-su3oj",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/ICQNejqDeCzt2xB0nqzjaMmKXmoalManRFG-P7s9IcgTv7AayjnuvoNBqYIyzyd5.VhX4S3ffQEzigHWA",
+      },
+    ],
+  },
+  {
+    id: "ln10",
+    title: "LN 10: Settling Down",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 30 }),
+    description:
+      "We continue our investigation of Sets by practicing some of the many common operations found between them.",
+    courseId: "cmsi-2820",
+    standard: "Collections",
+    contentUrl: "/cmsi-2820/ln10",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/IwDztL9vPRJBPiX9yaIfvK1ILH2VSPoBYRZZJ7nwIOHAt2LTEvonpNWh2bZ6jjgU.y8wQ4lIIjYjJoKwT",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/sKqX7ShRhWS2KNWTspDnjZBp5mYTj4FVYzIQenE3OGiTjeo0Ry_X13v8jp_aZQ.8FQqNOepXYdSOySO",
+      },
+    ],
+  },
+  {
+    id: "ln11",
+    title: "LN 11: Relationship Counseling",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 2 }),
+    description:
+      "We end our look at Collections by learning about relations. Typically represented as sets of tuples, we will investigate the properties of relationships between instances within a type.",
+    courseId: "cmsi-2820",
+    standard: "Collections",
+    contentUrl: "/cmsi-2820/ln11",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/UqAl9mjtGDdxPNXRYdEoDD4RMjg4dYsasfwDh3jpCxwbR6S9iGjILho5iV0Pvw.VolcdDa3Ev54QuWT",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/S4BDDtyO2bCyCvwUqfaPlyVCjcuNIg4klJb07PUaFdC5m4YR6ACHjr67JBQ4u3ta.l_p1ZOVJstMzh5Wm",
+      },
+    ],
+  },
+  {
+    id: "hw3",
+    title: "HW 3: Storage Wars",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 17 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework we practice tuples, sets, their operations, and even a little more in the programming portion...",
+    courseId: "cmsi-2820",
+    standard: "Collections",
     contentUrl: "/cmsi-2820/hw3",
   },
   {
-    id: "10",
-    title: "Counting Principles",
+    id: "ln12",
+    title: "LN 12: This Lamb Don't Baa",
     type: "lecture",
-    date: new Date(2025, 9, 30), // October 30, 2025
-    description: "Basic counting, permutations, and combinations",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Combinatorics",
-  },
-  {
-    id: "11",
-    title: "Homework 4: Functions",
-    type: "homework",
-    date: new Date(2025, 10, 1), // November 1, 2025
-    description: "Problems on injective, surjective, and bijective functions",
-    dueTime: "11:59 PM",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 7 }),
+    description:
+      "In this lecture we introduce the lambda calculus, a system that is used to define functions in a formal way. We will cover the syntax, the rules, and the reductions that can be made to simplify functions.",
     courseId: "cmsi-2820",
     standard: "Functions",
-    contentUrl: "/cmsi-2820/hw4",
+    contentUrl: "/cmsi-2820/ln12",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/2-LIWvNpdk5v4Fx12g5RbUWyC42f2mZWYjVAyUrpJkp5wrBJvwqeCZNY_t6bz5jN.GZDnU6XdxH7wk50S",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/4b_pdY7mS5U9EN_krOvusBTFe2ofZt5u_41PBfVr7pmfF8ciFFNpnfGNTv8kbkg4.AOXcuNPBbxtSDCes",
+      },
+    ],
   },
   {
-    id: "12",
-    title: "Introduction to Graphs",
+    id: "ln13",
+    title: "LN 13: Free Range Variables",
     type: "lecture",
-    date: new Date(2025, 10, 4), // November 4, 2025
-    description: "Graph definitions and representations",
-    dueTime: "2:00 PM",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 9 }),
+    description:
+      "In this lecture we continue our work with Lambdas by investigating how variables interact with functions. We discover being bound and free, how to substitute variables, and how to reduce functions formally using proper substitution.",
     courseId: "cmsi-2820",
-    standard: "Graph Theory",
+    standard: "Functions",
+    contentUrl: "/cmsi-2820/ln13",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/drWYcEtyEQQ1egPoy-cyxmVrMr9lKf6E4rTG0jLtfikJu8FJJ8Z69H_FteeZg09m._5l6Z5YAQmGjU131",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/C7oyRK8CO8yVJbz2Q34hBI41ENOuQIvdkFpcIGF76K3lTUxCnM-hP5dQlXlDrcZ6.oDTYaM4ODOYmHkXy",
+      },
+    ],
   },
   {
-    id: "13",
-    title: "Homework 5: Combinatorics",
-    type: "homework",
-    date: new Date(2025, 10, 7), // November 7, 2025
-    description: "Counting problems and combinatorial proofs",
-    dueTime: "11:59 PM",
-    courseId: "cmsi-2820",
-    standard: "Combinatorics",
-    contentUrl: "/cmsi-2820/hw5",
-  },
-  {
-    id: "14",
-    title: "Graph Traversal Algorithms",
+    id: "ln14",
+    title: "LN 14: Supplying and Consuming Lambdas",
     type: "lecture",
-    date: new Date(2025, 10, 11), // November 11, 2025
-    description: "BFS and DFS algorithms",
-    dueTime: "2:00 PM",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 14 }),
+    description:
+      "In this lecture we start by recapping proper substitution and then officially define the formal alpha, beta, and gamma conversion rules. After we go over some nomenclature for functions and how to identify suppliers, consumers, and the like.",
     courseId: "cmsi-2820",
-    standard: "Graph Theory",
-  },
-  {
-    id: "15",
-    title: "Midterm Exam 2",
-    type: "exam",
-    date: new Date(2025, 10, 14), // November 14, 2025
-    description: "Covers Sets, Functions, and Collections",
-    dueTime: "2:00 PM",
-    courseId: "cmsi-2820",
-    standard: "Set Theory",
-  },
-  {
-    id: "16",
-    title: "Homework 6: Graph Theory",
-    type: "homework",
-    date: new Date(2025, 10, 18), // November 18, 2025
-    description: "Problems on graph properties and traversal",
-    dueTime: "11:59 PM",
-    courseId: "cmsi-2820",
-    standard: "Graph Theory",
-    contentUrl: "/cmsi-2820/hw6",
+    standard: "Functions",
+    contentUrl: "/cmsi-2820/ln14",
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/hi13d34BW1RjU67HNXfY8q-wVd9-vgr1Vwn2gHAW7H0knMeC9xxZh2dhSUs5X8oa.lGfBIvGvpb5O9nIc",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/IWbl4i3meT8kQ0qNIsWmUqubDC9btr0dD5oPH09VtcmwXuBUC--QSKRcRodoZXM.of_tddulAtDJeTTz",
+      },
+    ],
   },
 ]
 
 // Helper functions
-export function getEventsForDate(date: Date): CourseEvent[] {
+export function getEventsForDate(date: DateTime): CourseEvent[] {
   return courseEvents.filter(
     (event) =>
-      event.date.getDate() === date.getDate() &&
-      event.date.getMonth() === date.getMonth() &&
-      event.date.getFullYear() === date.getFullYear()
+      event.date.day === date.day &&
+      event.date.month === date.month &&
+      event.date.year === date.year
   )
 }
 
 export function getTodaysEvents(): CourseEvent[] {
-  return getEventsForDate(new Date())
+  return getEventsForDate(DateTime.now())
 }
 
 export function getUpcomingEvents(daysAhead: number = 14): CourseEvent[] {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const futureDate = new Date(today)
-  futureDate.setDate(futureDate.getDate() + daysAhead)
+  const today = DateTime.now().startOf("day")
+  const futureDate = today.plus({ days: daysAhead })
 
   return courseEvents
     .filter((event) => event.date >= today && event.date <= futureDate)
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .sort((a, b) => a.date.toMillis() - b.date.toMillis())
 }
 
 export function getUpcomingHomeworkAndExams(
   daysAhead: number = 30
 ): CourseEvent[] {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const futureDate = new Date(today)
-  futureDate.setDate(futureDate.getDate() + daysAhead)
+  const today = DateTime.now().startOf("day")
+  const futureDate = today.plus({ days: daysAhead })
 
   return courseEvents
     .filter(
@@ -334,14 +449,14 @@ export function getUpcomingHomeworkAndExams(
         event.date >= today &&
         event.date <= futureDate
     )
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .sort((a, b) => a.date.toMillis() - b.date.toMillis())
 }
 
-export function getDatesWithEvents(): Date[] {
+export function getDatesWithEvents(): DateTime[] {
   return courseEvents.map((event) => event.date)
 }
 
-export function getEventTypeForDate(date: Date): EventType | null {
+export function getEventTypeForDate(date: DateTime): EventType | null {
   const events = getEventsForDate(date)
   if (events.length === 0) return null
 

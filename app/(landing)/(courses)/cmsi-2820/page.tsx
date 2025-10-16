@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { DateTime } from "luxon"
 import { courseEvents, CourseEvent } from "@/lib/course-data"
 import { ChevronDown, ChevronRight, FileText, Video } from "lucide-react"
 import Link from "next/link"
@@ -8,6 +9,11 @@ import { useNavbar } from "@/components/navbar-context"
 
 // Define the 7 standards with metadata
 const STANDARDS = [
+  {
+    id: 0,
+    name: "Syllabus",
+    description: "The syllabus and setup information for the course",
+  },
   {
     id: 1,
     name: "Logic",
@@ -87,17 +93,15 @@ export default function CMSI2820Home() {
 
   // Determine current standard based on today's date
   const getCurrentStandard = () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = DateTime.now().startOf("day")
 
     // Find the most recent event (lecture, homework, or exam) that has already occurred
     const pastEvents = courseSpecificEvents
       .filter((event) => {
-        const eventDate = new Date(event.date)
-        eventDate.setHours(0, 0, 0, 0)
+        const eventDate = event.date.startOf("day")
         return eventDate <= today && event.standard
       })
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .sort((a, b) => b.date.toMillis() - a.date.toMillis())
 
     if (pastEvents.length > 0) {
       return pastEvents[0].standard
@@ -106,11 +110,10 @@ export default function CMSI2820Home() {
     // If no past events, find the next upcoming event
     const futureEvents = courseSpecificEvents
       .filter((event) => {
-        const eventDate = new Date(event.date)
-        eventDate.setHours(0, 0, 0, 0)
+        const eventDate = event.date.startOf("day")
         return eventDate > today && event.standard
       })
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
+      .sort((a, b) => a.date.toMillis() - b.date.toMillis())
 
     return futureEvents.length > 0 ? futureEvents[0].standard : null
   }
@@ -188,13 +191,7 @@ export default function CMSI2820Home() {
           {event.description}
         </p>
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-          <span>
-            {event.date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
+          <span>{event.date.toFormat("MMM d, yyyy")}</span>
           {event.dueTime && <span>{event.dueTime}</span>}
         </div>
 
@@ -215,12 +212,12 @@ export default function CMSI2820Home() {
           )}
 
           {/* Recording Buttons */}
-          {event.recordingUrls && event.recordingUrls.length > 0 && (
+          {event.recordings && event.recordings.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {event.recordingUrls.map((url, index) => (
+              {event.recordings.map((recording, index) => (
                 <Link
                   key={index}
-                  href={url}
+                  href={recording.url}
                   className="flex-1 min-w-[80px]"
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
@@ -228,7 +225,7 @@ export default function CMSI2820Home() {
                 >
                   <button className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border border-border hover:bg-muted transition-colors text-xs font-medium">
                     <Video className="w-3.5 h-3.5" />
-                    Recording {index + 1}
+                    {recording.name}
                   </button>
                 </Link>
               ))}

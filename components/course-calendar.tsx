@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { DateTime } from "luxon"
 import { ChevronLeft, ChevronRight, ExternalLink, Clock } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
@@ -22,7 +23,7 @@ import {
 import { cn } from "@/lib/utils"
 
 interface CourseCalendarProps {
-  onDateSelect?: (date: Date) => void
+  onDateSelect?: (date: DateTime) => void
 }
 
 const DAYS_OF_WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
@@ -43,15 +44,15 @@ const MONTHS = [
 
 export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
   const { theme, resolvedTheme } = useTheme()
-  const [currentDate, setCurrentDate] = React.useState(new Date())
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
-    new Date()
+  const [currentDate, setCurrentDate] = React.useState(DateTime.now())
+  const [selectedDate, setSelectedDate] = React.useState<DateTime | undefined>(
+    DateTime.now()
   )
 
   // Determine if dark mode is active
   const isDark = resolvedTheme === "dark" || theme === "dark"
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = (date: DateTime) => {
     setSelectedDate(date)
     if (onDateSelect) {
       onDateSelect(date)
@@ -59,36 +60,31 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
   }
 
   const goToPreviousMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-    )
+    setCurrentDate(currentDate.minus({ months: 1 }).startOf("month"))
   }
 
   const goToNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
-    )
+    setCurrentDate(currentDate.plus({ months: 1 }).startOf("month"))
   }
 
   // Generate calendar days
   const calendarDays = React.useMemo(() => {
-    const year = currentDate.getFullYear()
-    const month = currentDate.getMonth()
+    const year = currentDate.year
+    const month = currentDate.month
 
     // First day of the month
-    const firstDay = new Date(year, month, 1)
-    const startingDayOfWeek = firstDay.getDay()
+    const firstDay = DateTime.fromObject({ year, month, day: 1 })
+    const startingDayOfWeek = firstDay.weekday % 7 // Luxon uses 1-7 (Mon-Sun), convert to 0-6 (Sun-Sat)
 
     // Last day of the month
-    const lastDay = new Date(year, month + 1, 0)
-    const daysInMonth = lastDay.getDate()
+    const daysInMonth = firstDay.daysInMonth || 31
 
     // Days from previous month
-    const previousMonth = new Date(year, month, 0)
-    const daysInPreviousMonth = previousMonth.getDate()
+    const previousMonth = firstDay.minus({ months: 1 })
+    const daysInPreviousMonth = previousMonth.daysInMonth || 31
 
     const days: Array<{
-      date: Date
+      date: DateTime
       day: number
       isCurrentMonth: boolean
       isToday: boolean
@@ -99,7 +95,11 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
     for (let i = startingDayOfWeek - 1; i >= 0; i--) {
       const day = daysInPreviousMonth - i
       days.push({
-        date: new Date(year, month - 1, day),
+        date: DateTime.fromObject({
+          year: previousMonth.year,
+          month: previousMonth.month,
+          day,
+        }),
         day,
         isCurrentMonth: false,
         isToday: false,
@@ -108,19 +108,17 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
     }
 
     // Add current month's days
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = DateTime.now().startOf("day")
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day)
-      date.setHours(0, 0, 0, 0)
+      const date = DateTime.fromObject({ year, month, day })
 
-      const isToday = date.getTime() === today.getTime()
+      const isToday = date.hasSame(today, "day")
       const isSelected =
         selectedDate &&
-        date.getDate() === selectedDate.getDate() &&
-        date.getMonth() === selectedDate.getMonth() &&
-        date.getFullYear() === selectedDate.getFullYear()
+        date.day === selectedDate.day &&
+        date.month === selectedDate.month &&
+        date.year === selectedDate.year
 
       days.push({
         date,
@@ -133,9 +131,14 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
 
     // Add next month's days to complete the grid
     const remainingDays = 42 - days.length // 6 rows × 7 days
+    const nextMonth = firstDay.plus({ months: 1 })
     for (let day = 1; day <= remainingDays; day++) {
       days.push({
-        date: new Date(year, month + 1, day),
+        date: DateTime.fromObject({
+          year: nextMonth.year,
+          month: nextMonth.month,
+          day,
+        }),
         day,
         isCurrentMonth: false,
         isToday: false,
@@ -161,7 +164,7 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="text-sm font-medium">
-              {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
+              {MONTHS[currentDate.month - 1]} {currentDate.year}
             </div>
             <Button
               variant="outline"
@@ -220,8 +223,8 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
                     <PopoverContent className="w-80 p-0" align="start">
                       <div className="p-4">
                         <h3 className="font-semibold mb-3 text-sm">
-                          {MONTHS[dayInfo.date.getMonth()]} {dayInfo.day},{" "}
-                          {dayInfo.date.getFullYear()}
+                          {MONTHS[dayInfo.date.month - 1]} {dayInfo.day},{" "}
+                          {dayInfo.date.year}
                         </h3>
                         <div className="space-y-3">
                           {events.map((event) => (
@@ -302,19 +305,21 @@ function EventDetails({ event }: { event: CourseEvent }) {
               </span>
             </div>
           )}
-          {event.recordingUrls && event.recordingUrls.length > 0 && (
+          {event.recordings && event.recordings.length > 0 && (
             <div className="mt-2 pt-2 border-t border-border/50">
               <p className="text-xs font-medium text-muted-foreground mb-1">
                 Recordings:
               </p>
               <div className="flex flex-wrap gap-1">
-                {event.recordingUrls.map((url, idx) => (
+                {event.recordings.map((recording, idx) => (
                   <Link
                     key={idx}
-                    href={url}
+                    href={recording.url}
                     className="text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 py-0.5 rounded transition-colors"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    Recording {idx + 1}
+                    {recording.name}
                   </Link>
                 ))}
               </div>
