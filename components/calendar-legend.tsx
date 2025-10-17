@@ -13,9 +13,9 @@ export function CalendarLegend() {
     { color: "bg-blue-500", label: "Lectures" },
     { color: "bg-red-500", label: "Exams" },
     { color: "bg-green-500", label: "Homework" },
-    { color: "bg-purple-500", label: "Projects" },
-    { color: "bg-teal-500", label: "Labs" },
-    { color: "bg-orange-500", label: "Reading" },
+    //{ color: "bg-purple-500", label: "Projects" },
+    //{ color: "bg-teal-500", label: "Labs" },
+    //{ color: "bg-orange-500", label: "Reading" },
     { color: "bg-gray-500", label: "Office Hours" },
     { color: "bg-yellow-500", label: "Holidays" },
   ]

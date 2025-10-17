@@ -18,37 +18,37 @@ const STANDARDS = [
     id: 1,
     name: "Logic",
     description:
-      "Propositional logic, truth tables, logical equivalence, and predicates",
+      "Intuitionistic Logic, Truth Tables, Logical Connectives, and Argumentation",
   },
   {
     id: 2,
     name: "Numbers",
-    description: "Number systems, modular arithmetic, divisibility, and primes",
+    description: "Number Theory, Modular Arithmetic, Divisibility, and Primes",
   },
   {
     id: 3,
     name: "Collections",
-    description: "Sequences, summations, and mathematical induction",
+    description: "Tuples, Sets, and Relations",
   },
   {
     id: 4,
     name: "Functions",
-    description: "Function types, composition, inverses, and cardinality",
+    description: "Lambda Calculus, Function Types, and Function Properties",
   },
   {
     id: 5,
     name: "Combinatorics",
-    description: "Counting principles, permutations, and combinations",
+    description: "Counting Principles, Permutations, and Combinations",
   },
   {
     id: 6,
     name: "Graph Theory",
-    description: "Graph representations, traversal algorithms, and properties",
+    description: "Graph Definitions, Traversal Algorithms, and Properties",
   },
   {
     id: 7,
     name: "Set Theory",
-    description: "Set operations, Venn diagrams, and set identities",
+    description: "Axioms, Zermelo-Fraenkel Set Theory, and Set Identities",
   },
 ]
 
@@ -72,10 +72,18 @@ export default function CMSI2820Home() {
     (event) => event.courseId === "cmsi-2820"
   )
 
+  // Filter to only show events that are available today or in the past
+  const today = DateTime.now().startOf("day")
+  const visibleEvents = courseSpecificEvents.filter((event) => {
+    // Use availableDate if set, otherwise use the event date
+    const releaseDate = event.availableDate || event.date
+    return releaseDate.startOf("day") <= today
+  })
+
   // Group events by standard
   const eventsByStandard: Record<string, CourseEvent[]> = {}
   STANDARDS.forEach((standard) => {
-    eventsByStandard[standard.name] = courseSpecificEvents.filter(
+    eventsByStandard[standard.name] = visibleEvents.filter(
       (event) => event.standard === standard.name
     )
   })
@@ -128,9 +136,11 @@ export default function CMSI2820Home() {
         : event.type === "lecture"
         ? "bg-blue-500/10 border-blue-500/30 hover:border-blue-500"
         : event.type === "exam"
+        ? /*
         ? "bg-red-500/10 border-red-500/30 hover:border-red-500"
         : event.type === "project"
-        ? "bg-purple-500/10 border-purple-500/30 hover:border-purple-500"
+        */
+          "bg-purple-500/10 border-purple-500/30 hover:border-purple-500"
         : "bg-muted/30 border-border"
 
     const textColor =
@@ -139,9 +149,10 @@ export default function CMSI2820Home() {
         : event.type === "lecture"
         ? "text-blue-700 dark:text-blue-400"
         : event.type === "exam"
-        ? "text-red-700 dark:text-red-400"
+        ? /*? "text-red-700 dark:text-red-400"
         : event.type === "project"
-        ? "text-purple-700 dark:text-purple-400"
+        */
+          "text-purple-700 dark:text-purple-400"
         : "text-foreground"
 
     const typeIcon =
@@ -150,9 +161,9 @@ export default function CMSI2820Home() {
         : event.type === "lecture"
         ? "📚"
         : event.type === "exam"
-        ? "📋"
+        ? /*"📋"
         : event.type === "project"
-        ? "💻"
+        ?*/ "💻"
         : "📌"
 
     // Get button text based on event type
@@ -164,8 +175,10 @@ export default function CMSI2820Home() {
           return "View Assignment"
         case "exam":
           return "View Exam Details"
+        /*
         case "project":
           return "View Project"
+        */
         default:
           return "View Details"
       }
@@ -427,8 +440,8 @@ export default function CMSI2820Home() {
         <div className="border rounded-lg p-4 bg-muted/30">
           <h3 className="font-semibold mb-1">📊 Course Progress</h3>
           <p className="text-sm text-muted-foreground">
-            {courseSpecificEvents.filter((e) => e.standard).length} items across{" "}
-            {STANDARDS.length} standards
+            {visibleEvents.filter((e) => e.standard).length} items available
+            across {STANDARDS.length} standards
           </p>
           {currentStandard && (
             <p className="text-xs text-muted-foreground mt-1">

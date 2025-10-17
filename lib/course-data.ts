@@ -5,12 +5,12 @@ export type EventType =
   | "homework"
   | "exam"
   | "lecture"
-  | "lab"
-  | "project"
-  | "reading"
+  //  | "lab"
+  //  | "project"
+  //  | "reading"
   | "office-hours"
   | "holiday"
-  | "other"
+//  | "other"
 
 export interface Recording {
   name: string
@@ -21,7 +21,8 @@ export interface CourseEvent {
   id: string
   title: string
   type: EventType
-  date: DateTime // Using Luxon DateTime for human-readable dates
+  date: DateTime // Using Luxon DateTime for human-readable dates (due date for homework/exams)
+  availableDate?: DateTime // Optional: When content becomes available to students (defaults to date if not set)
   description?: string
   dueTime?: string // e.g., "11:59 PM"
   courseId?: string
@@ -59,6 +60,7 @@ export const courseEvents: CourseEvent[] = [
     title: "HW 0: Practicing Homework",
     type: "homework",
     date: DateTime.fromObject({ year: 2025, month: 9, day: 5 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 8, day: 26 }),
     dueTime: "11:59 PM",
     description:
       "This is a small assignment to help you get familiar with the process of receiving and submitting assignments!",
@@ -98,6 +100,13 @@ export const courseEvents: CourseEvent[] = [
         url: "https://lmula.zoom.us/rec/share/Us5GGUeYdLSG5WDWjtft6SEZNtD5MkjHSUQpDXcDddv838vIgFSxT7kv0SF4efva.-AdnoFRwX86rah5s",
       },
     ],
+  },
+  {
+    id: "hol0",
+    title: "Labor Day!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 1 }),
+    description: "Happy Labor Day!",
   },
   {
     id: "ln2",
@@ -146,6 +155,7 @@ export const courseEvents: CourseEvent[] = [
     title: "HW 1: Think Class! Think!",
     type: "homework",
     date: DateTime.fromObject({ year: 2025, month: 9, day: 19 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 9, day: 4 }),
     dueTime: "11:59 PM",
     description:
       "In this homework you will get practice with logical terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, translating natural language into logic, and natural deduction proofs!",
@@ -243,6 +253,7 @@ export const courseEvents: CourseEvent[] = [
     title: "HW 2: Counting Sheep",
     type: "homework",
     date: DateTime.fromObject({ year: 2025, month: 10, day: 3 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 9, day: 18 }),
     dueTime: "11:59 PM",
     description:
       "In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!",
@@ -339,6 +350,7 @@ export const courseEvents: CourseEvent[] = [
     title: "HW 3: Storage Wars",
     type: "homework",
     date: DateTime.fromObject({ year: 2025, month: 10, day: 17 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 2 }),
     dueTime: "11:59 PM",
     description:
       "In this homework we practice tuples, sets, their operations, and even a little more in the programming portion...",
@@ -389,6 +401,13 @@ export const courseEvents: CourseEvent[] = [
     ],
   },
   {
+    id: "hol1",
+    title: "Autumn Day!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 10 }),
+    description: "Enjoy your Autumn Day!",
+  },
+  {
     id: "ln14",
     title: "LN 14: Supplying and Consuming Lambdas",
     type: "lecture",
@@ -408,6 +427,266 @@ export const courseEvents: CourseEvent[] = [
         url: "https://lmula.zoom.us/rec/share/IWbl4i3meT8kQ0qNIsWmUqubDC9btr0dD5oPH09VtcmwXuBUC--QSKRcRodoZXM.of_tddulAtDJeTTz",
       },
     ],
+  },
+  {
+    id: "ln15",
+    title: "LN 15: In the Domain of Sheep",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 16 }),
+    description:
+      "In this lecture we investigate the patterns that can be found in a lambdas inputs and outputs. We cover domain, codomain, image, pre-image and how an investigation into them gives us three function classes: Injective, Surjective, and Bijective",
+    courseId: "cmsi-2820",
+    standard: "Functions",
+    contentUrl: "/cmsi-2820/ln15",
+    recordings: [],
+  },
+  {
+    id: "hw4",
+    title: "HW 4: Silence of the Lambdas",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 31 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 16 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework we practice lambdas, their reductions, their properties, and their creation!",
+    courseId: "cmsi-2820",
+    standard: "Functions",
+    contentUrl: "/cmsi-2820/hw4",
+  },
+  {
+    id: "ex1",
+    title: "EX 1: Midterm Exam",
+    type: "exam",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 18 }),
+    dueTime: "11:59 PM",
+    description:
+      "This exam is 15 questions total and worth 30 points. It covers logic, numbers, and collections.",
+    courseId: "cmsi-2820",
+    standard: "Midterm",
+    contentUrl: "/cmsi-2820/ex1",
+  },
+  {
+    id: "ln16",
+    title: "LN 16: Laws and Orders",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 21 }),
+    description:
+      "In this lecture we will introduce a more formal manner of counting, define disjoint-ness, the rule of sums and products, and practice some combinatorics problems!",
+    courseId: "cmsi-2820",
+    standard: "Combinatorics",
+    contentUrl: "/cmsi-2820/ln16",
+    recordings: [],
+  },
+  {
+    id: "ln17",
+    title: "LN 17: Factorialing in Evidence",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 23 }),
+    description:
+      "In this lecture we will investigate factorials, permutations, and combinations with and without repeats allowed!",
+    courseId: "cmsi-2820",
+    standard: "Combinatorics",
+    contentUrl: "/cmsi-2820/ln17",
+    recordings: [],
+  },
+  {
+    id: "ln18",
+    title: "LN 18: Double Jeopardy",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 28 }),
+    description:
+      "In this lecture we investigate Pascal's triangle and many of its hidden properties and patterns. We develop our understanding of combinations using Pascal's Triangle to explore a new proof technique called Double Counting.",
+    courseId: "cmsi-2820",
+    standard: "Combinatorics",
+    contentUrl: "/cmsi-2820/ln18",
+    recordings: [],
+  },
+  {
+    id: "ln19",
+    title: "LN 19: Bijection Your Honor!",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 30 }),
+    description:
+      "In this lecture we learn how to leverage bijective functions to solve an interesting class of combinatorics problems and introduce the pigeonhole principle.",
+    courseId: "cmsi-2820",
+    standard: "Combinatorics",
+    contentUrl: "/cmsi-2820/ln19",
+    recordings: [],
+  },
+  {
+    id: "hw5",
+    title: "HW 5: Order in the Court!",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 14 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 30 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework we investigate counting, combinations, permutations, and the many tools and intuitions that can be pulled from them!",
+    courseId: "cmsi-2820",
+    standard: "Combinatorics",
+    contentUrl: "/cmsi-2820/hw5",
+  },
+  {
+    id: "ln20",
+    title: "LN 20: Going for a Walk",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 4 }),
+    description:
+      "In this lecture we follow in the footsteps of Euler and complete the Seven Bridges of Konigsberg problem to introduce graphs formally.",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
+    contentUrl: "/cmsi-2820/ln20",
+    recordings: [],
+  },
+  {
+    id: "ln21",
+    title: "LN 21: Connecting with Nature",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 6 }),
+    description:
+      "In this lecture we investigate how the alterations to the formal graph definition propagate to change our visuals. We take a look at isomorphisms, connectedness, and the handshaking Lemma.",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
+    contentUrl: "/cmsi-2820/ln21",
+    recordings: [],
+  },
+  {
+    id: "ln22",
+    title: "LN 22: Looking Over Edges",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 11 }),
+    description:
+      "In this lecture we take a look at special graphs (Complete, Bipartite, Euler, Hamiltonian) and their special properties. We also take a look at cycles as a useful tool for analyzing graph properties.",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
+    contentUrl: "/cmsi-2820/ln22",
+    recordings: [],
+  },
+  {
+    id: "ln23",
+    title: "LN 23: Spanning the Globe",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 13 }),
+    description:
+      "In this lecture we cover a few more special graphs in the form of trees and forests. We then end the graph theory unit by investigating minimum spanning trees and how their solutions and structures represent many real-world problems.",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
+    contentUrl: "/cmsi-2820/ln23",
+    recordings: [],
+  },
+  {
+    id: "hw6",
+    title: "HW 6: (Warning: Graphic Content)",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 5 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 11, day: 13 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework we investigate all things Graph theory! This includes many types of graphs such as complete, bipartite, trees, and forests. We also investigate many of the properties and operations that can be performed such as isomorphisms, connectedness, and cycles.",
+    courseId: "cmsi-2820",
+    standard: "Graph Theory",
+    contentUrl: "/cmsi-2820/hw6",
+  },
+  {
+    id: "ln24",
+    title: "LN 24: Setting the Record Straight",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 18 }),
+    description:
+      "In this lecture we recap the semester of work to tie up our investigation of Type theory. We then contrast it against Set theory.",
+    courseId: "cmsi-2820",
+    standard: "Set Theory",
+    contentUrl: "/cmsi-2820/ln24",
+    recordings: [],
+  },
+  {
+    id: "ln25",
+    title: "LN 25: Arguing the Point",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 20 }),
+    description:
+      "In this lecture we piece together all the proof techniques we learned to summarize argumentation and learn two more: Proof by Contradiction and Proof by Induction.",
+    courseId: "cmsi-2820",
+    standard: "Set Theory",
+    contentUrl: "/cmsi-2820/ln25",
+    recordings: [],
+  },
+  {
+    id: "hol2",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 25 }),
+    description:
+      "Normally there would be class on this day, but I'm giving it back to you all in thanks for Thanksgiving!",
+  },
+  {
+    id: "hol3",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 26 }),
+    description: "Enjoy your Thanksgiving break!",
+  },
+  {
+    id: "hol4",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 27 }),
+    description: "Enjoy your Thanksgiving break!",
+  },
+  {
+    id: "hol5",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 28 }),
+    description: "Enjoy your Thanksgiving break!",
+  },
+  /** 
+  {
+    id: "hw7",
+    title: "HW 7: Set Theory!",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 2 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework we practice set theory concepts and proof techniques including proof by contradiction and proof by induction.",
+    courseId: "cmsi-2820",
+    standard: "Set Theory",
+    contentUrl: "/cmsi-2820/hw7",
+  },
+  */
+  {
+    id: "ln26",
+    title: "LN 26: Pure Discrete Mathematics and Artificial Intelligence",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 2 }),
+    description:
+      "Special lecture on how discrete mathematics concepts apply to artificial intelligence and machine learning.",
+    courseId: "cmsi-2820",
+    standard: "Extensions",
+    contentUrl: "/cmsi-2820/ln26",
+  },
+  {
+    id: "ln27",
+    title: "LN 27: Games and Systems Architecture Pipelines",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 4 }),
+    description:
+      "Special lecture on how discrete mathematics is used in game development and systems architecture.",
+    courseId: "cmsi-2820",
+    standard: "Extensions",
+    contentUrl: "/cmsi-2820/ln27",
+  },
+  {
+    id: "ex2",
+    title: "EX 2: FINAL Exam",
+    type: "exam",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 12 }),
+    dueTime: "11:59 PM",
+    description:
+      "This is the optional final exam that covers the last three standards: Functions, Combinatorics, and Graph Theory.",
+    courseId: "cmsi-2820",
+    standard: "Final",
+    contentUrl: "/cmsi-2820/ex2",
   },
 ]
 
@@ -443,9 +722,7 @@ export function getUpcomingHomeworkAndExams(
   return courseEvents
     .filter(
       (event) =>
-        (event.type === "homework" ||
-          event.type === "exam" ||
-          event.type === "project") &&
+        (event.type === "homework" || event.type === "exam") &&
         event.date >= today &&
         event.date <= futureDate
     )
@@ -464,13 +741,13 @@ export function getEventTypeForDate(date: DateTime): EventType | null {
   const priorityOrder: EventType[] = [
     "exam",
     "homework",
-    "project",
+    //"project",
     "lecture",
     "office-hours",
     "holiday",
-    "lab",
-    "reading",
-    "other",
+    //"lab",
+    //"reading",
+    //"other",
   ]
 
   for (const type of priorityOrder) {
@@ -493,12 +770,14 @@ export function getCalendarDayColor(type: EventType): string {
       return "!bg-gray-500 !text-white hover:!bg-gray-600 border-2 !border-gray-600 font-semibold"
     case "holiday":
       return "!bg-yellow-500 !text-gray-900 hover:!bg-yellow-600 border-2 !border-yellow-600 font-semibold"
+    /*
     case "project":
       return "!bg-purple-500 !text-white hover:!bg-purple-600 border-2 !border-purple-600 font-semibold"
     case "lab":
       return "!bg-teal-500 !text-white hover:!bg-teal-600 border-2 !border-teal-600 font-semibold"
     case "reading":
       return "!bg-orange-500 !text-white hover:!bg-orange-600 border-2 !border-orange-600 font-semibold"
+    */
     default:
       return "!bg-gray-400 !text-white hover:!bg-gray-500 border-2 !border-gray-500 font-semibold"
   }
@@ -539,6 +818,7 @@ export function getCalendarDayStyle(
         color: isDark ? "#fef3c7" : "#713f12",
         fontWeight: "600",
       }
+    /*
     case "project":
       return {
         backgroundColor: isDark ? "#7e22ce" : "#d8b4fe",
@@ -557,6 +837,7 @@ export function getCalendarDayStyle(
         color: isDark ? "#fed7aa" : "#7c2d12",
         fontWeight: "600",
       }
+    */
     default:
       return {
         backgroundColor: isDark ? "#4b5563" : "#d1d5db",
@@ -578,12 +859,14 @@ export function getEventTypeColor(type: EventType): string {
       return "bg-gray-500"
     case "holiday":
       return "bg-yellow-500"
+    /*
     case "project":
       return "bg-purple-500"
     case "lab":
       return "bg-teal-500"
     case "reading":
       return "bg-orange-500"
+    */
     default:
       return "bg-gray-400"
   }
@@ -601,12 +884,16 @@ export function getEventTypeIcon(type: EventType): string {
       return "👥"
     case "holiday":
       return "🎉"
+    /*
     case "project":
       return "💻"
     case "lab":
       return "🔬"
     case "reading":
       return "📖"
+    case "other":
+      return "📌"
+    */
     default:
       return "📌"
   }
