@@ -3,17 +3,28 @@ import type { MDXComponents } from "mdx/types"
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     // Custom heading styles
-    h1: ({ children }) => (
-      <h1 className="text-4xl font-bold mb-6 mt-8 border-b pb-2">{children}</h1>
+    h1: ({ children, ...props }) => (
+      <h1
+        className="text-4xl font-bold mb-6 mt-8 border-b pb-2 scroll-mt-24"
+        {...props}
+      >
+        {children}
+      </h1>
     ),
-    h2: ({ children }) => (
-      <h2 className="text-3xl font-semibold mb-4 mt-6">{children}</h2>
+    h2: ({ children, ...props }) => (
+      <h2 className="text-3xl font-semibold mb-4 mt-6 scroll-mt-24" {...props}>
+        {children}
+      </h2>
     ),
-    h3: ({ children }) => (
-      <h3 className="text-2xl font-semibold mb-3 mt-5">{children}</h3>
+    h3: ({ children, ...props }) => (
+      <h3 className="text-2xl font-semibold mb-3 mt-5 scroll-mt-24" {...props}>
+        {children}
+      </h3>
     ),
-    h4: ({ children }) => (
-      <h4 className="text-xl font-semibold mb-2 mt-4">{children}</h4>
+    h4: ({ children, ...props }) => (
+      <h4 className="text-xl font-semibold mb-2 mt-4 scroll-mt-24" {...props}>
+        {children}
+      </h4>
     ),
 
     // Paragraph styling

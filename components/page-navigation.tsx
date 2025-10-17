@@ -86,23 +86,20 @@ export default function PageNavigation({
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             <div className="flex items-center gap-2 w-max">
-              {sections.map((section) => {
-                const isHomeworkSection = section.level === 0
-                const isSubsection = section.level === 2
+              {sections.map((section, index) => {
+                const isTopLevelSection = section.level === 0
 
                 return (
                   <Button
-                    key={section.id}
+                    key={`${section.id}-${index}`}
                     variant={
                       activeSection === section.id ? "secondary" : "ghost"
                     }
                     size="sm"
                     onClick={() => handleSectionClick(section.id)}
                     className={`whitespace-nowrap text-xs ${
-                      isHomeworkSection
+                      isTopLevelSection
                         ? "font-semibold border border-primary/30"
-                        : isSubsection
-                        ? "ml-4"
                         : ""
                     }`}
                   >

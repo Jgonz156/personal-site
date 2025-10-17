@@ -783,65 +783,43 @@ export function getCalendarDayColor(type: EventType): string {
   }
 }
 
-export function getCalendarDayStyle(
-  type: EventType,
-  isDark: boolean
-): React.CSSProperties {
+export function getCalendarDayStyle(type: EventType): React.CSSProperties {
+  // Use CSS custom properties that respond to light/dark mode
   switch (type) {
     case "lecture":
       return {
-        backgroundColor: isDark ? "#1e40af" : "#93c5fd",
-        color: isDark ? "#dbeafe" : "#1e3a8a",
+        backgroundColor: "rgb(var(--calendar-lecture-bg))",
+        color: "rgb(var(--calendar-lecture-fg))",
         fontWeight: "600",
       }
     case "exam":
       return {
-        backgroundColor: isDark ? "#b91c1c" : "#fca5a5",
-        color: isDark ? "#fecaca" : "#7f1d1d",
+        backgroundColor: "rgb(var(--calendar-exam-bg))",
+        color: "rgb(var(--calendar-exam-fg))",
         fontWeight: "600",
       }
     case "homework":
       return {
-        backgroundColor: isDark ? "#15803d" : "#86efac",
-        color: isDark ? "#d1fae5" : "#14532d",
+        backgroundColor: "rgb(var(--calendar-homework-bg))",
+        color: "rgb(var(--calendar-homework-fg))",
         fontWeight: "600",
       }
     case "office-hours":
       return {
-        backgroundColor: isDark ? "#374151" : "#d1d5db",
-        color: isDark ? "#e5e7eb" : "#1f2937",
+        backgroundColor: "rgb(var(--calendar-office-bg))",
+        color: "rgb(var(--calendar-office-fg))",
         fontWeight: "600",
       }
     case "holiday":
       return {
-        backgroundColor: isDark ? "#a16207" : "#fde047",
-        color: isDark ? "#fef3c7" : "#713f12",
+        backgroundColor: "rgb(var(--calendar-holiday-bg))",
+        color: "rgb(var(--calendar-holiday-fg))",
         fontWeight: "600",
       }
-    /*
-    case "project":
-      return {
-        backgroundColor: isDark ? "#7e22ce" : "#d8b4fe",
-        color: isDark ? "#f3e8ff" : "#581c87",
-        fontWeight: "600",
-      }
-    case "lab":
-      return {
-        backgroundColor: isDark ? "#0f766e" : "#5eead4",
-        color: isDark ? "#ccfbf1" : "#134e4a",
-        fontWeight: "600",
-      }
-    case "reading":
-      return {
-        backgroundColor: isDark ? "#c2410c" : "#fdba74",
-        color: isDark ? "#fed7aa" : "#7c2d12",
-        fontWeight: "600",
-      }
-    */
     default:
       return {
-        backgroundColor: isDark ? "#4b5563" : "#d1d5db",
-        color: isDark ? "#e5e7eb" : "#1f2937",
+        backgroundColor: "rgb(var(--calendar-office-bg))",
+        color: "rgb(var(--calendar-office-fg))",
         fontWeight: "600",
       }
   }

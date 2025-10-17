@@ -1,0 +1,484 @@
+import {
+  HomeworkIntro,
+  WrittenSection,
+  ProgrammingSection,
+  OptionalSection,
+} from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  hwNumber: 2,
+  title: "HW2: Counting Sheep",
+  topics: [
+    "Type Theory",
+    "Boolean Algebra",
+    "Venn Diagrams",
+    "Integer Arithmetic",
+    "Modular Arithmetic",
+  ],
+  points: {
+    written: 60,
+    programming: 40,
+    optional: 20,
+  },
+}
+
+export const hwEvent = getHomeworkEvent(metadata.hwNumber)
+
+<HomeworkIntro
+  title={metadata.title}
+  dueDate={formatDate(hwEvent?.date)}
+  dueTime={hwEvent?.dueTime || "11:59 PM"}
+  topics={metadata.topics}
+  description={hwEvent?.description || ""}
+/>
+
+<WrittenSection
+  points={60}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802238/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+After an informal history lesson of Set Theory, Category Theory, and Type Theory, we have chosen Type Theory as our foundation moving forward! (Well, actually I chose it, but I'm the professor so you'll have to put up with it).
+
+We saw that Type Theory makes its arguments through a Constructive perspective, whereby we need to find an instance of something happening to understand and define a greater type that objects inform.
+
+Below, we will now get practice with the formal notation used to denote this relationship (And the greater philosophical argument that it represents).
+
+<QuestionBox qid="Q1" title="Type Notation Practice" points="6 total">
+
+We saw in class that the formal notation for an instance proving the existence of a Type was the following:
+
+$$
+\begin{matrix}
+a:A \\
+10:Integer \\
+\text{"dog"}:String
+\end{matrix}
+$$
+
+In the sub-problems below, give your answers in the exact same format.
+
+<SubQuestion qid="Q1a" points={2}>
+  Give 5 unique real-world examples of an instance proving the existence of a
+  type
+</SubQuestion>
+
+<SubQuestion qid="Q1b" points={2}>
+  Give 5 unique real-world instances that all prove the existence of the SAME
+  type
+</SubQuestion>
+
+<SubQuestion qid="Q1c" points={2}>
+  Give 5 unique real-world types whose existence is proven by the SAME instance
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q2" title="Constructive Proofs" points="14 total">
+
+In class we saw that Type information could be used to intuit the kind of instance we would need to search for to show some greater proposition as valid. Using this type information to guide our search, we could then declare a specific value to make the proposition true. We called this forming a Constructive Proof.
+
+In this problem I would like you to evaluate an expression and give its type. If there is no such instance that can be constructed (You get an absurdity), then briefly explain why no instance within the Type required can make the statement valid.
+
+Use the following information below to answer the sub-problems:
+
+$$
+\begin{matrix}
+a:int~=~3 \\
+b:str~=~\text{"3"} \\
+\#:(str,~int)\to str\\
+b~\#~a~=~\text{"333"}\\
+a~\#~b~=~\bot \\
+c:str~=~\text{"three"} \\
++:(int,~int)\to int \\
++:(str,~str)\to str \\
+b + c~=~\text{"3three"} \\
+d: rational = 1/2
+\end{matrix}
+$$
+
+**Example 1:** Evaluate $b+b~\#~a$
+
+**Answer:** $\text{"333333"}:str$
+
+**Example 2:** Evaluate $a + d$
+
+**Answer:** $\bot:Absurd$ - We know that "a" is an int and that "d" is a rational. However, we do not have a "+" operator that allows those types, thus there is no way to reduce this expression.
+
+<SubQuestion qid="Q2a" points={2}>
+  Evaluate: $a + a$
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={2}>
+  Evaluate: $b + b$
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={2}>
+  Evaluate: $a + b$
+</SubQuestion>
+
+<SubQuestion qid="Q2d" points={2}>
+  Evaluate: $b~\#~b$
+</SubQuestion>
+
+<SubQuestion qid="Q2e" points={2}>
+  Evaluate: $(b~\#~(a + a)) + c$
+</SubQuestion>
+
+<SubQuestion qid="Q2f" points={2}>
+  Evaluate: $d + d$
+</SubQuestion>
+
+<SubQuestion qid="Q2i" points={2}>
+  Evaluate: $a + a +$ (NOTE: This is NOT a typo)
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END OF LN4
+
+---
+
+Within the Boolean type, there are special properties that let us simplify larger compound expressions. The questions in this section will be highlighting the interplay between Boolean Algebra on one hand and the Venn Diagram visual system on the other. We know they both have the same ability to display, and prove, properties within the Booleans. Let's investigate some that we did not see in class below!
+
+<QuestionBox qid="Q3" title="Second Complement Law" points="4 total">
+
+One of the properties we investigated was the First Complement Law. We showed what it looked like in a table format and a series of venn diagrams. In this problem you must do the same as we did in class, justify the law using a table and venn diagrams, except this time for the Second Complement Law shown below:
+
+$$
+X \lor \neg X \equiv 1
+$$
+
+<SubQuestion qid="Q3a" points={2}>
+  Justify the Second Complement Law with a Table
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={2}>
+  Justify the Second Complement Law with a Venn Diagram
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q4" title="Second Absorption Law" points="4 total">
+
+One of the properties we investigated was the First Absorption Law. We showed what it looked like in a table format and a series of venn diagrams. In this problem you must do the same as we did in class, justify the law using a table and venn diagrams, except this time for the Second Absorption Law shown below:
+
+$$
+X \lor (X \land Y) \equiv X
+$$
+
+<SubQuestion qid="Q4a" points={2}>
+  Justify the Second Absorption Law with a Table
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={2}>
+  Justify the Second Absorption Law with a series of Venn Diagrams
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q5" title="Annihilator Laws" points="4 total">
+
+One of the properties we didn't see were the Annihilator Laws for Conjunction and Disjunction. In this problem you must do the same as we did in class, justify the laws with tables and venn diagrams, and also give a small explanation as to why these laws hold:
+
+$$
+\begin{matrix}
+X \land 0 \equiv 0 \\
+X \lor 1 \equiv 1 \\
+\end{matrix}
+$$
+
+<SubQuestion qid="Q5a" points={2}>
+  Justify the Annihilator Laws with Tables
+</SubQuestion>
+
+<SubQuestion qid="Q5b" points={2}>
+  Justify the Annihilator Laws with a series of Venn Diagrams
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END OF LN5
+
+---
+
+In class we discovered the properties of operators by performing a deep dive into Addition with the help of 2 visual systems and an algebraic one. These systems were the dots with groups, number line, and typical algebra.
+
+However, the investigation we performed need not only have been done on Addition! You could do it for any operator to discover the properties that they have! We will do the same here, but this time for Multiplication and Subtraction!
+
+Here you will only need to use typical algebra and the number line, we can leave the dots with groups system for another time!
+
+<QuestionBox qid="Q6" title="Associativity of Multiplication" points={2}>
+
+The Associative Property is obtained by an operator between instances when the evaluation order amongst 3 or more of the instances, chained by that operator, does not alter the outcome of the larger statement. In this question you are tasked with showing that associativity holds on multiplication for at least one example. You must represent this example visually (using number lines) and algebraically. (You must use three numbers unique from one another and all of them must have an absolute value larger than 1)
+
+</QuestionBox>
+
+<QuestionBox qid="Q7" title="Commutativity of Multiplication" points={2}>
+
+The Commutative Property is obtained by an operator when the order of the two input instances does not alter the outcome. In this question you are tasked with showing that commutativity holds on multiplication for at least one example. You must represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and both of them must have an absolute value larger than 2)
+
+</QuestionBox>
+
+<QuestionBox qid="Q8" title="Non-Associativity of Subtraction" points={2}>
+
+The Associative Property is attained by many operators, but not all. In this question you are tasked with showing that associativity does NOT hold on subtraction for at least one example. You must represent this example visually (using number lines) and algebraically. (You must use three numbers unique from one another and all of them must have an absolute value larger than 3)
+
+</QuestionBox>
+
+<QuestionBox qid="Q9" title="Non-Commutativity of Subtraction" points={2}>
+
+The Commutative Property is attained by many operators, but not all. Just as before, in this question you are tasked with showing that commutativity does NOT hold on subtraction for at least one example. You must represent this example visually (using number lines) and algebraically. (You must use two numbers unique from one another and both of them must have an absolute value larger than 2)
+
+</QuestionBox>
+
+<QuestionBox qid="Q10" title="Identity Elements" points={2}>
+
+We saw in class that the Identity property was obtained when there was a special instance within a type for an operator, such that when the operator was used, the non-special input instance remained unchanged. For Subtraction and Multiplication, give the special instances that prove Subtraction and Multiplication have this property.
+
+</QuestionBox>
+
+---
+
+### END OF LN6
+
+---
+
+Our previous investigation led us naturally to do the same for Division, but we saw that when only using Integers, the Closure property was not obtained! This led us to build a version of division that did obtain closure within the Integers.
+
+While Integer division worked, it was unsatisfying that it left the vast majority of Integers "out in the cold". Thus we needed a way to speak about the areas left behind. This gave us Modulus!
+
+Modulus and Integer division, as a pair, gave us the ability to fully describe the integers during factorization, and in the following section we will perform some practice with the operators!
+
+<QuestionBox qid="Q11" title="Modulo - Incrementing" points="6 total">
+
+In class we saw that integer division by 3 caused the entire number line to turn into just the multiples/factors of 3. However, losing 66% of the Integers was not ideal, so Modulo picked up the slack. The integers modulo 3 turned our inputs into "hops" or increments along a ring of length 3. However, what happens if we increment Modulo on the same number?
+
+<SubQuestion qid="Q11a" points={2}>
+
+$$12~mod~12$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q11b" points={2}>
+
+$$12~mod~13$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q11c" points={2}>
+
+$$12~mod~14$$
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q12" title="Modulo - Decrementing" points="6 total">
+
+Not very exciting it seems. However, what if we decrement?
+
+<SubQuestion qid="Q12a" points={2}>
+
+$$12~mod~11$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q12b" points={2}>
+
+$$12~mod~10$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q12c" points={2}>
+
+$$12~mod~9$$
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q13" title="Modulo Edge Cases" points="6 total">
+
+Modulo 2, 1, and 0 actually raise some valuable questions regarding number theory. In the following sub-problems, investigate modulo's relationship to larger concepts in the Integers.
+
+<SubQuestion qid="Q13a" points={2}>
+
+Evaluate the following:
+
+$$
+\begin{matrix}
+0~mod~2 \\
+1~mod~2 \\
+2~mod~2 \\
+3~mod~2 \\
+4~mod~2
+\end{matrix}
+$$
+
+Briefly explain why modulo 2 seems to test for even-ness/odd-ness!
+
+</SubQuestion>
+
+<SubQuestion qid="Q13b" points={2}>
+
+Evaluate the following:
+
+$$
+\begin{matrix}
+0~mod~1 \\
+1~mod~1 \\
+2~mod~1 \\
+3~mod~1 \\
+4~mod~1
+\end{matrix}
+$$
+
+Briefly explain why modulo 1 seems to map everything to 0!
+
+</SubQuestion>
+
+<SubQuestion qid="Q13c" points={2}>
+
+Evaluate the following:
+
+$$3~mod~0$$
+
+Briefly explain your findings!
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END OF LN7
+
+---
+
+With all those problems completed we now say good-bye to the Numbers standard. We covered topics from Number Theory and Abstract Algebra through the lens of Type Theory.
+
+We will use this knowledge of the Booleans, Integers, and their operators as a base to investigate and explore new Types and new operators for Grouping and Ordering our instances!
+
+</WrittenSection>
+
+<ProgrammingSection
+  points={40}
+  description="In this programming assignment you will apply your understanding of type theory and operations to build a farm management system in Python!"
+  githubClassroomUrl="https://classroom.github.com/a/UB2L6HVO"
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802239/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+### Directory Structure
+
+Your repository will contain the following files:
+
+```
+CMSI-2820-HW2/
+├── .gitignore
+├── farm.py
+├── test_farm.py
+└── README.md
+```
+
+### Helper Resources
+
+As a refresher, here is the helper video that goes from complete start to finish for the process of receiving, setting up, and turning in your programming portion of the HW:
+
+[📹 **Helper Video** (Zoom Recording)](https://lmula.zoom.us/rec/share/LHMwk2fFto5pKnfMEKK5ZBdiwkRO0WacAkDyfbdqMrDz8Eo9dwyFlnYq5a_I8iX3.aa-YDE0MpCpp2sK8)
+
+</ProgrammingSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802240/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+## Logic Creative Project: Playground Arguments
+
+The creative endeavor I am suggesting for Logic is to apply your logic knowledge to a real world event/experience/memory! (However always remember that you can work out an alternate creative endeavour if you want to involve your hobbies! You can make creative works in any form such as games, drawings, paintings, dioramas, sculptures, videos, fake blogs, memes, anything!) (For instance, while I am working on this HW I am listening to music! Want to analyze a song with logic? Write your own logical song? Go for it!) (Just make sure to talk to me first!)
+
+We saw in class that Logic, while being a greater philosophical topic, is about evaluation of truth and the inference of new truths! I would like you to take any "playground" argument and convince me of your beliefs about it!
+
+### What is a Playground Argument?
+
+Any argument with no stakes in harming others, such as:
+
+- "Is water wet?"
+- "Is a hotdog a sandwich?"
+- "Is a Poptart a calzone?"
+
+You are allowed to make your own "playground" argument if you'd like.
+
+### Requirements
+
+Take your playground argument and use the tools we saw in class to prove to me your stance on the matter is correct:
+
+- Intuitionistic Logic
+- Propositional Logic
+- Logical Connectives
+- Natural Deduction
+
+You don't need to use all the tools we saw in class to make a good argument to me, however, **the more tools you do use, the more points you get!**
+
+### Examples of Approaches
+
+- You could take a collection of propositions that represent your argument and display why they are a valid stance using Natural Deduction!
+- You could argue from intuitionism in prose! Give me an intuitionistic argument for why you are right by arguing that other stances lead to absurdities or falsehoods!
+
+**This optional project can be submitted until one week after the homework due date.**
+
+</OptionalSection>
+
+---
+
+## Submission Guidelines
+
+### Written Section
+
+- Submit your handwritten or typed solutions to Brightspace as a **single PDF**
+- Make sure your name and student ID are on every page
+- Show all your work and clearly explain your reasoning for each question
+- Include all visual representations (Venn diagrams, number lines) clearly labeled
+
+### Programming Section
+
+- Accept the GitHub Classroom assignment using the link above
+- Clone the repository to your local machine
+- Complete the implementation in the provided Python files
+- Run the tests to ensure your code works correctly
+- Commit and push your changes to GitHub
+- Submit the link to your repository on Brightspace
+
+### Optional Section
+
+- Submit your creative project to Brightspace
+- Include a PDF document explaining your logical reasoning
+- If you created physical or digital artifacts, include photos/links
+- Clearly show which logical tools you used from class
+
+### Grading Rubric
+
+| Component      | Points  | Description                             |
+| -------------- | ------- | --------------------------------------- |
+| Q1             | 6       | Type notation practice                  |
+| Q2             | 14      | Constructive proofs and type evaluation |
+| Q3-Q5          | 12      | Boolean algebra laws                    |
+| Q6-Q10         | 10      | Properties of operators                 |
+| Q11-Q13        | 18      | Modular arithmetic                      |
+| Programming    | 40      | Farm management system in Python        |
+| Optional Extra | 20      | Logic creative project                  |
+| **Total**      | **100** | (**120 with extra credit**)             |
+
+## Resources
+
+- **Lecture Notes**: LN4 (Type Theory), LN5 (Boolean Algebra), LN6 (Integer Arithmetic), LN7 (Modular Arithmetic)
+- **Textbook**: Relevant chapters on discrete mathematics and number theory
+- **Office Hours**: Check course page for schedule
+
+Think deeply about types, operations, and their properties! 🔢✨

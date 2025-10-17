@@ -1,0 +1,464 @@
+import {
+  HomeworkIntro,
+  WrittenSection,
+  ProgrammingSection,
+  OptionalSection,
+} from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  hwNumber: 5,
+  title: "HW5: Order In The Court",
+  topics: [
+    "Rule of Sums and Products",
+    "Inclusion-Exclusion Principle",
+    "Permutations",
+    "Combinations",
+    "Double Counting",
+    "Bijective Proof",
+    "Pigeonhole Principle",
+  ],
+  points: {
+    written: 80,
+    programming: 20,
+    optional: 20,
+  },
+}
+
+export const hwEvent = getHomeworkEvent(metadata.hwNumber)
+
+<HomeworkIntro
+  title={metadata.title}
+  dueDate={formatDate(hwEvent?.date)}
+  dueTime={hwEvent?.dueTime || "11:59 PM"}
+  topics={metadata.topics}
+  description={hwEvent?.description || ""}
+/>
+
+<WrittenSection
+  points={80}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802246/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+<QuestionBox qid="Q1" points={3}>
+
+In your own words, describe the following rules/laws and give a real-world example of their use:
+
+- a. Rule of Sums
+- b. Rule of Products
+- c. Inclusion-Exclusion Principle
+
+</QuestionBox>
+
+<QuestionBox qid="Q2" title="Counting Problems" points="12 total">
+
+Using the Rule of Sums, Rule of Products, and the Inclusion-Exclusion principle, give answers to the following questions:
+
+<SubQuestion qid="Q2a" points={4}>
+
+You are visiting a conference with a team of 4 individuals besides yourself. You are responsible for setting up everyone schedules for the events. The conference features talks, workshops, lectures, Q & A's, and even some one-on-one experiences. The full itinerary for the conference can be found below in a table (An x means that the event is happening at that time, a blank means it is not happening):
+
+| Event      | 8am - 10am | 10am - 12pm | 12pm - 2pm | 2pm - 4pm |
+| ---------- | ---------- | ----------- | ---------- | --------- |
+| Talk       | x          | x           | x          |           |
+| Workshop   |            | x           |            | x         |
+| Lecture    | x          | x           |            |           |
+| Q & A      |            |             | x          | x         |
+| One-on-One |            |             | x          | x         |
+
+Your 4 team members Sam, Martin, Heidi, and Terri have the following requests for the conference:
+
+**Sam:** "I'd like to go to only workshops, I prefer to be hands on."
+
+**Martin:** "Send me to one of everything if possible please!"
+
+**Heidi:** "I want to meet new people, so send me to all the events that Sam, Martin, and Terri are not going to!"
+
+**Terri:** "I don't mind going to any events you send me to as long as you send me to as many as possible!"
+
+Give a set for each team member that represents the events you have set up for them to attend that fulfills each members requests. Then give the total number of events visited by each team member.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={4}>
+
+A restaurant is testing 2 new menus. They would like to stand out by giving their customers the most options possible. They have outlined the menus in counts below:
+
+**Menu 1:**
+
+| Course    | Options |
+| --------- | ------- |
+| Appetizer | 3       |
+| Entree    | 8       |
+| Dessert   | 4       |
+
+**Menu 2:**
+
+| Course    | Options |
+| --------- | ------- |
+| Appetizer | 5       |
+| Entree    | 2       |
+| Dessert   | 12      |
+
+Give the total numbers of possible 3-course-meals for each menu and then say which menu has more potential 3-course-meals.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={4}>
+
+You work for an airport conglomerate and work with ground teams to procure information about airplanes leaving and landing. Management has made a new financial plan to charge airline companies based on the number of unique aircraft that operate out of the hangars. You have collected flight-logs and must give the unique number of aircraft that have visited an airport. The flight logs are provided below:
+
+| Flight | From | To  | Departure | Aircraft ID |
+| ------ | ---- | --- | --------- | ----------- |
+| AA123  | JFK  | LAX | 08:00     | N123AA      |
+| BA456  | LHR  | JFK | 09:30     | G-BA456     |
+| DL789  | ATL  | ORD | 10:15     | JA606NH     |
+| UA101  | SFO  | SEA | 11:00     | N101UA      |
+| AF202  | CDG  | JFK | 07:45     | F-GAF202    |
+| LH303  | FRA  | LAX | 12:00     | F-GAF202    |
+| QF404  | SYD  | LAX | 22:00     | VH-QF404    |
+| EK505  | DXB  | JFK | 02:30     | N123AA      |
+| NH606  | NRT  | LAX | 23:00     | JA606NH     |
+| AC707  | YYZ  | LAX | 08:30     | N123AA      |
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END LN17
+
+---
+
+<QuestionBox qid="Q3" title="Combinations vs Permutations" points="8 total">
+
+You are shopping for locks so you can seal up your luggage for a flight. You pass many different designs in the airport, upset that many of them are overpriced. One cheap one in the back happens to catch your eye as it seems to be making an interesting claim: "World's Best Combination lock! 9/10 Combinatorialists recommend!" This doesn't make sense to you as Mathematicians are very careful with their language in combinatorics. Use this intuition to answer the following questions:
+
+<SubQuestion qid="Q3a" points={2}>
+
+Describe the difference between a combination and a permutation.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={2}>
+
+Argue the following claim: "Combination locks should be called Permutation locks".
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={2}>
+
+Describe the function of an actual, mathematically accurate, "Combination" lock.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3d" points={2}>
+
+Assuming you had a "permutation" lock and a "combination" lock, where each lock featured 4 cylinders with 10 choices each, divide the number of "combinations" by the number of "permutations" to find the ratio of the number of possible sequences for each lock. Which would you prefer to have on your luggage?
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q4" title="Permutations and Combinations" points="15 total">
+
+The following questions involve solving for permutations or combinations. Provide the work used to reach your final answer. An example is provided below:
+
+**Example:** Find the total number of size 3 groups in a 17 person class
+
+**Answer:**
+
+- Given: $n=17$, $k=3$
+- Apply combination formula: $\binom{17}{3}$
+- Result: $680$
+
+<SubQuestion qid="Q4a" points={5}>
+
+You are interning at a library when you notice a pile of books with only 1 letter in bold on their spines. Since it was your birthday last week and your coworkers played a small prank on your to celebrate it, you decided some payback is in order. You devise a devious plan to spell out their names with the 1 letter books on the shelf. After setting up with books for John and Rachel, you realize that you do not remember the names of the other two coworkers involved. The only thing you can remember is that their names were 8 letters and 12 letters respectively. You have 24 books to use to spell their names, how many arrangements would you have to search to put their names on the shelf?
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={10}>
+
+You are working with a locksmith on repairing some **combination locks** (Think of this as the typical way we think of combinations locks which are actually permutation locks). You help sell repaired locks second-hand and guarantee that the repaired locks retain at least half of their original number of valid lock sequences or a refund is offered. One day a customer comes in complaining that a lock that was sold to them was defective and they want their money back. The customers says "Whenever I try a combo with a 3 on the second cylinder, the lock never locks! I deserve my money back for this!". They hand over the lock and allow you to inspect it. The combo lock is very old and of a very odd design. It has 4 total cylinders you can turn to make the lock sequence. However, the cylinders are octagonal only allowing for 0 through 7 instead of the typical 0 through 9. The customers claim checks out. No matter how many sequences you try, if cylinder two is ever on 3, the lock sequence never allows the lock to close. Investigate how many original arrangements this lock had when it was new, then decide wether the defect violates the refund policy.
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q5" title="Lock Sequences Analysis" points="10 total">
+
+Continuing your job with the locksmith, you notice your boss in a bad mood. You decide to ask why they are upset. "We've been giving so many refunds, we are about to go broke! I don't understand! I thought for sure having 50% of the original combos would be easy! How many locks do you come across where less than half the cylinders don't work!" They storm off to their office where you catch a glimpse of a spreadsheet filled with red before they close the door. You decide to investigate a few patterns to help out your boss.
+
+<SubQuestion qid="Q5a" points={3}>
+
+Your boss mentioned the following: "How many locks do you come across where less than half the cylinders don't work!" This gets you wondering. What do you have to lose on the combo lock for your lock to lose half of your lock sequences? Is it actually half the cylinders? Investigate the following: If you have a combination lock with 0-9 on each cylinder and 5 total cylinders, How many sequences are lost if you lose just a single choice on one cylinder.
+
+</SubQuestion>
+
+<SubQuestion qid="Q5b" points={3}>
+
+On the same lock as before, how many lock sequences are lost if you lose 2 entire cylinders?
+
+</SubQuestion>
+
+<SubQuestion qid="Q5c" points={3}>
+
+Given how the previous two answers came out, what do you have to lose on a lock to lose exactly half your lock sequences?
+
+</SubQuestion>
+
+<SubQuestion qid="Q5d" points={1}>
+
+Given how your investigation went, explain to your boss why a refund policy of half the combos is actually much easier to have happen than they thought!
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END LN18
+
+---
+
+<QuestionBox qid="Q6" title="Vandermonde's Identity" points="16 total">
+
+Vandermonde's Identity is a combinatorics identity that represents the following equivalence on the Integers:
+
+**Where:** $0 \lt r \lt m+n$
+
+$$
+\binom{m+n}{r} = \sum_{k=0}^{r} \binom{m}{k} \binom{n}{r-k}
+$$
+
+As an example of how its read, we can make groups between cats and dogs. Given m dogs and n cats, making groups of r size would be m+n choose r. This gives us the left hand side, however, the right hand side is less obvious. Given m dogs and n cats, we can find the total ways to make groups of r size by summing the ways to make groups of only dogs from size 0 to k, and multiply it with the number of ways to make groups of only cats of size r to 0. In a simplified manner, the left hand side is trying to communicate the idea that making groups of cats and dogs can be done by simply making groups out of the dogs and cats combined or, what the right hand side is trying to communicate is, by finding all the ways to make a group filled with just dogs and then find the number of ways we could fill the remaining spots with just cats.
+
+In the following sub-problems you will investigate a double counting proof of Vandermonde's Identity
+
+<SubQuestion qid="Q6a" points={4}>
+
+Investigate the left hand side of the identity using the following:
+
+$$
+m=3, n=2, r=2
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q6b" points={4}>
+
+Investigate the right hand side of the identity and ensure it holds with the left hand side for the same values:
+
+$$
+m=3, n=2, r=2
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q6c" points={4}>
+
+Draw Pascal's Triangle out to the 5th row and use it to show that the left and right hand sides of Vandermonde's Identity are equal, for our previous values of m, n and r, by circling all entries that are used and draw a line to connect the entries that are multiplied together. Then place a square around the entry the represents the answer.
+
+</SubQuestion>
+
+<SubQuestion qid="Q6d" points={4}>
+
+Having completed the previous parts, summarize the process used for the right hand side of Vandermonde's Identity. Then, in your own words, give an explanation as to why it performs the same action as the left hand side.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END LN19
+
+---
+
+<QuestionBox qid="Q7" title="Bijective Proof" points="15 total">
+
+George Cantor was famous for proving that there are different sizes of infinity. More specifically, that while the set of Integers and Real numbers are both infinite, the set of Real numbers is actually a larger infinity. Using a Bijective argument, we can show this fact. The following sub-problems will investigate this concept.
+
+<SubQuestion qid="Q7a" points={5}>
+
+Prove that the domain of the Integers and the Codomain of just the even integers are the same size by making a bijective function that maps one to the other in the following sub-problems:
+
+**Q7a1:** Give the function that maps all Integers to all Even Integers
+
+**Q7a2:** Explain why your function is injective
+
+**Q7a3:** Explain why your function is surjective
+
+</SubQuestion>
+
+<SubQuestion qid="Q7b" points={5}>
+
+Explain why drawing the previous bijection shows that the set of all integers and the set of all even integers are the same size.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7c" points={5}>
+
+Prove that the domains of the Integers and the Real numbers are not the same size by explaining why it is impossible to make a bijective function between them by answering the following:
+
+**Q7c1:** Give an injective function from the Integers to the Reals and then explain why you cannot make one that is surjective
+
+**Q7c2:** Give a surjective function from the Reals to the Integers and then explain why you cannot make one that is injective.
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q8" title="Pigeonhole Principle" points="4 total">
+
+The Pigeonhole Principle is a simple concept that states that if you have more pigeons than pigeonholes, at least one pigeonhole will have more than one pigeon. Put more generally, if you have a limited number of slots and have more items to place in those slots than you have slots, you will have to grapple with the resulting overflow. These "overflows" lead to very interesting an non-intuitive facts. The following sub-problems will display to you a few of them.
+
+<SubQuestion qid="Q8a" points={1}>
+
+Explain why in any 27 word English sentence, at least 2 words must start with the same letter.
+
+</SubQuestion>
+
+<SubQuestion qid="Q8b" points={1}>
+
+Explain why if you pick 5 numbers from the integers 1 to 8, then two of them must add up to 9.
+
+</SubQuestion>
+
+<SubQuestion qid="Q8c" points={1}>
+
+Given only names with English letters, explain why it takes only 677 people to guarantee that at least 2 people have the same initials.
+
+</SubQuestion>
+
+<SubQuestion qid="Q8d" points={1}>
+
+Given a infinite container holding an infinite number of colored balls, being either red, blue, black, or green, give the minimum of grabs out of this drawer to make a pair of balls that is the same color.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END LN20
+
+---
+
+</WrittenSection>
+
+<ProgrammingSection
+  points={20}
+  description=""
+  githubClassroomUrl="https://classroom.github.com/a/GKzh8XdU"
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802247/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+### Directory Structure
+
+Your repository will contain the following files:
+
+```
+CMSI-2820-HW5/
+├── .gitignore
+├── README.md
+├── court.py
+├── test_court.py
+└── proceedings.py
+```
+
+### Helper Resources
+
+As a refresher, here is the helper video that goes from complete start to finish for the process of receiving, setting up, and turning in your programming portion of the HW:
+
+[📹 **Helper Video** (Zoom Recording)](https://lmula.zoom.us/rec/share/LHMwk2fFto5pKnfMEKK5ZBdiwkRO0WacAkDyfbdqMrDz8Eo9dwyFlnYq5a_I8iX3.aa-YDE0MpCpp2sK8)
+
+</ProgrammingSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802252/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+## Functions in Your Life: A Reflection
+
+Functions are a bit too general as it stands right now to make a small creative project out of. Since they can be used to understand/define/simulate anything there is a distinct issue with applying them, in that they apply themselves everywhere. So instead of trying to "decode" something you enjoy into a bunch of tiny interactions, I'd rather use this optional assignment for reflection and sharing.
+
+### The Input/Output of Your Hobby
+
+Functions can be understood as a map from inputs to outputs. When you put something in, you get something out. So I would like you to do the same but for your hobby. Why do you enjoy your hobbies? When you put your effort into your personal projects, what do you get out of them? It is just the satisfaction of getting better? Do you like to make works an sell them for extra spending cash? I would like you to take this optional to give a brief reflection on why you keeping "using the same function" over an over again (That function being your hobby!).
+
+### The Function Body: Creating a Guide
+
+Once you've reflected on your hobby, then we will represent the other crucial part of a function, their "bodies". To reflect functions as ordered instructions, I would like you to put together a small guide/introduction of how to get into, and what someone might get out of, your hobby! After all, its hard to know whether you should be running a function or not unless you have some documentation!
+
+### Example: Rock Climbing
+
+For instance, if I were to complete this optional, I would choose to reflect on my hobby of rock climbing. I would begin by reflecting on what I personally get out of it. This includes a number of things, but in short it keeps me active, its difficulty means I am always faced with a challenge to improve, and the focus required to follow a difficult **beta** (a set of move by move instructions for how you climb from the start to finish of a climb, usually used for difficult climbs where certain techniques may be required to reach the top) is a good way to clear my mind of distractions that are bothering me (like a meditation of sorts). Once I finished reflecting on what I get out of rock climbing, I would then make a guide to help introduce people to climbing. This could take the form of a cool flyer, a blog, a fake advertisement for a company, or a video. This is where you can get creative as for many hobbies there might be preferred or cool introductions to them that are personalized. Since rock climbing is so specific, I might create a montage of really mind bending moves you wouldn't expect to get people drawn in!
+
+### Grading
+
+Due to the open ended, and mostly personal, nature of this optional, I will be grading it purely on participation with the two major components:
+
+- **Reflection** (10 points): What you get out of your hobby
+- **Guide/Introduction** (10 points): How others can get started with your hobby
+
+Once you have completed your reflection and guide/intro, you can turn it in via brightspace! If you have any questions about this optional feel free to ask me!
+
+**This optional project can be submitted until one week after the homework due date.**
+
+</OptionalSection>
+
+---
+
+## Submission Guidelines
+
+### Written Section
+
+- Submit your handwritten or typed solutions to Brightspace as a **single PDF**
+- Make sure your name and student ID are on every page
+- Show all your work and clearly explain your reasoning for each question
+- Include all diagrams and visual representations clearly labeled
+
+### Programming Section
+
+- Accept the GitHub Classroom assignment using the link above
+- Clone the repository to your local machine
+- Complete the implementation in the provided Python files
+- Run the tests to ensure your code works correctly
+- Commit and push your changes to GitHub
+- Submit the link to your repository on Brightspace
+
+### Optional Section
+
+- Submit your creative project to Brightspace
+- Include a PDF document with your reflection and guide
+- If you created physical or digital artifacts, include photos/links
+- Be thoughtful and creative in your presentation
+
+### Grading Rubric
+
+| Component      | Points  | Description                                |
+| -------------- | ------- | ------------------------------------------ |
+| Q1             | 3       | Counting rules and principles              |
+| Q2             | 12      | Applied counting problems                  |
+| Q3             | 8       | Combinations vs permutations               |
+| Q4             | 15      | Permutations and combinations calculations |
+| Q5             | 10      | Lock sequences analysis                    |
+| Q6             | 16      | Vandermonde's Identity and double counting |
+| Q7             | 15      | Bijective proof and infinity               |
+| Q8             | 4       | Pigeonhole Principle applications          |
+| Programming    | 20      | Court proceedings implementation in Python |
+| Optional Extra | 20      | Hobby reflection and guide                 |
+| **Total**      | **100** | (**120 with extra credit**)                |
+
+## Resources
+
+- **Lecture Notes**: LN17 (Counting), LN18 (Permutations/Combinations), LN19 (Double Counting), LN20 (Pigeonhole Principle)
+- **Textbook**: Relevant chapters on combinatorics and counting
+- **Office Hours**: Check course page for schedule
+
+Count carefully and think combinatorially! 🔢📊✨

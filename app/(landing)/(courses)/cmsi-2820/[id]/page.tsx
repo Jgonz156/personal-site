@@ -3,6 +3,10 @@ import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Suspense } from "react"
 import { MDXPageContent } from "@/components/mdx-page-content"
+import {
+  ContentThemeProvider,
+  type ContentType,
+} from "@/components/content-theme-provider"
 
 // Define the type for params (Next.js 13+ App Router)
 type PageProps = {
@@ -44,7 +48,7 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
   lecture: {
     prefix: "ln",
     folder: "notes",
-    total: 28,
+    total: 27,
     label: "Lecture Note",
     shortLabel: "LN",
     gridColumns: "grid-cols-7 sm:grid-cols-10",
@@ -52,7 +56,7 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
   homework: {
     prefix: "hw",
     folder: "homeworks",
-    total: 10,
+    total: 6,
     label: "Homework",
     shortLabel: "HW",
     gridColumns: "grid-cols-5 sm:grid-cols-10",
@@ -64,64 +68,6 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
 // Legacy constants for backward compatibility
 const TOTAL_NOTES = CONTENT_TYPES.lecture.total
 const TOTAL_HOMEWORKS = CONTENT_TYPES.homework.total
-
-// Metadata for each lecture note
-const lectureMetadata: Record<
-  number,
-  { title: string; date: string; topics: string[] }
-> = {
-  1: {
-    title: "Lecture Note 1: Introduction to Discrete Math",
-    date: "Spring 2025",
-    topics: [
-      "Course overview",
-      "Introduction to mathematical reasoning",
-      "Basic logic concepts",
-    ],
-  },
-  2: {
-    title: "Lecture Note 2: Propositional Logic",
-    date: "Spring 2025",
-    topics: [
-      "Propositions and truth values",
-      "Logical operators",
-      "Truth tables",
-    ],
-  },
-  3: {
-    title: "Lecture Note 3: Predicate Logic and Quantifiers",
-    date: "Spring 2025",
-    topics: ["Predicates", "Universal and existential quantifiers", "Negation"],
-  },
-  // Add metadata for all 28 notes...
-  // You can expand this as you create your content
-}
-
-// Metadata for each homework
-const homeworkMetadata: Record<
-  number,
-  { title: string; dueDate: string; dueTime: string; topics: string[] }
-> = {
-  1: {
-    title: "Homework 1: Logic Fundamentals",
-    dueDate: "January 20, 2025",
-    dueTime: "11:59 PM",
-    topics: ["Propositional Logic", "Truth Tables", "Logical Equivalence"],
-  },
-  2: {
-    title: "Homework 2: Number Systems",
-    dueDate: "February 3, 2025",
-    dueTime: "11:59 PM",
-    topics: ["Binary", "Hexadecimal", "Modular Arithmetic"],
-  },
-  3: {
-    title: "Homework 3: Set Theory",
-    dueDate: "February 17, 2025",
-    dueTime: "11:59 PM",
-    topics: ["Set Operations", "Venn Diagrams", "Proofs"],
-  },
-  // Add metadata for all homeworks as needed
-}
 
 // Generic function to dynamically import MDX content for any content type
 async function loadMDXContent(config: ContentTypeConfig, itemNumber: number) {
@@ -149,6 +95,20 @@ function getContentTypeFromId(id: string): ContentTypeConfig | null {
   return null
 }
 
+// Helper function to map content prefix to theme type
+function getThemeType(prefix: string): ContentType {
+  switch (prefix) {
+    case "hw":
+      return "homework"
+    case "ex":
+      return "exam"
+    case "ln":
+      return "lecture"
+    default:
+      return "default"
+  }
+}
+
 export default async function ContentPage({ params }: PageProps) {
   // Await the params object
   const { id } = await params
@@ -174,8 +134,8 @@ export default async function ContentPage({ params }: PageProps) {
 
   // Handle Lecture Notes
   if (isLectureNote) {
-    // Get metadata and MDX content
-    const metadata = lectureMetadata[itemNumber] || {
+    // Simple fallback metadata for lectures (can be enhanced later like homeworks)
+    const metadata = {
       title: `${contentType.label} ${itemNumber}`,
       date: "Spring 2025",
       topics: ["Coming soon"],
@@ -188,101 +148,103 @@ export default async function ContentPage({ params }: PageProps) {
     const hasNext = itemNumber < contentType.total
 
     return (
-      <MDXPageContent>
-        <div className="container mx-auto p-6 max-w-4xl">
-          {/* Header */}
-          <div className="mb-6">
-            <Link
-              href="/cmsi-2820"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 mb-4"
-            >
-              ← Back to Course
-            </Link>
-            <h1 className="text-4xl font-bold mb-2">{metadata.title}</h1>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>📅 {metadata.date}</span>
-              <span>•</span>
-              <span>
-                {contentType.label} {itemNumber} of {contentType.total}
-              </span>
-            </div>
-          </div>
-
-          {/* Topics Covered */}
-          <div className="mb-6 p-4 border rounded-lg bg-muted/30">
-            <h3 className="font-semibold mb-2">Topics Covered:</h3>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              {metadata.topics.map((topic, index) => (
-                <li key={index}>{topic}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Main Content - MDX */}
-          <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
-            {MDXContent ? (
-              <Suspense fallback={<div>Loading content...</div>}>
-                <MDXContent />
-              </Suspense>
-            ) : (
-              <div className="text-center p-8 border rounded-lg bg-muted/30">
-                <p className="text-muted-foreground">
-                  Content for this {contentType.label.toLowerCase()} is coming
-                  soon.
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Create a file at{" "}
-                  <code className="bg-muted px-2 py-1 rounded">
-                    content/cmsi-2820/{contentType.folder}/{contentType.prefix}
-                    {itemNumber}.mdx
-                  </code>{" "}
-                  to add content.
-                </p>
+      <ContentThemeProvider contentType={getThemeType(contentType.prefix)}>
+        <MDXPageContent>
+          <div className="container mx-auto p-6 max-w-4xl">
+            {/* Header */}
+            <div className="mb-6">
+              <Link
+                href="/cmsi-2820"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 mb-4"
+              >
+                ← Back to Course
+              </Link>
+              <h1 className="text-4xl font-bold mb-2">{metadata.title}</h1>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>📅 {metadata.date}</span>
+                <span>•</span>
+                <span>
+                  {contentType.label} {itemNumber} of {contentType.total}
+                </span>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between pt-6 border-t">
-            {hasPrevious ? (
-              <Link
-                href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>
-                  {contentType.shortLabel} {itemNumber - 1}
-                </span>
-              </Link>
-            ) : (
-              <div></div>
-            )}
+            {/* Topics Covered */}
+            <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+              <h3 className="font-semibold mb-2">Topics Covered:</h3>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                {metadata.topics.map((topic: string, index: number) => (
+                  <li key={index}>{topic}</li>
+                ))}
+              </ul>
+            </div>
 
-            {hasNext ? (
-              <Link
-                href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
-              >
-                <span>
-                  {contentType.shortLabel} {itemNumber + 1}
-                </span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <div></div>
-            )}
-          </div>
+            {/* Main Content - MDX */}
+            <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
+              {MDXContent ? (
+                <Suspense fallback={<div>Loading content...</div>}>
+                  <MDXContent />
+                </Suspense>
+              ) : (
+                <div className="text-center p-8 border rounded-lg bg-muted/30">
+                  <p className="text-muted-foreground">
+                    Content for this {contentType.label.toLowerCase()} is coming
+                    soon.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Create a file at{" "}
+                    <code className="bg-muted px-2 py-1 rounded">
+                      content/cmsi-2820/{contentType.folder}/
+                      {contentType.prefix}
+                      {itemNumber}.mdx
+                    </code>{" "}
+                    to add content.
+                  </p>
+                </div>
+              )}
+            </div>
 
-          {/* Quick Navigation */}
-          <div className="mt-8 p-4 border rounded-lg bg-muted/30">
-            <h3 className="font-semibold mb-3">All {contentType.label}s</h3>
-            <div className={`grid ${contentType.gridColumns} gap-2`}>
-              {Array.from({ length: contentType.total }, (_, i) => i + 1).map(
-                (num) => (
-                  <Link
-                    key={num}
-                    href={`/cmsi-2820/${contentType.prefix}${num}`}
-                    className={`
+            {/* Navigation */}
+            <div className="flex items-center justify-between pt-6 border-t">
+              {hasPrevious ? (
+                <Link
+                  href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>
+                    {contentType.shortLabel} {itemNumber - 1}
+                  </span>
+                </Link>
+              ) : (
+                <div></div>
+              )}
+
+              {hasNext ? (
+                <Link
+                  href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+                >
+                  <span>
+                    {contentType.shortLabel} {itemNumber + 1}
+                  </span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <div></div>
+              )}
+            </div>
+
+            {/* Quick Navigation */}
+            <div className="mt-8 p-4 border rounded-lg bg-muted/30">
+              <h3 className="font-semibold mb-3">All {contentType.label}s</h3>
+              <div className={`grid ${contentType.gridColumns} gap-2`}>
+                {Array.from({ length: contentType.total }, (_, i) => i + 1).map(
+                  (num) => (
+                    <Link
+                      key={num}
+                      href={`/cmsi-2820/${contentType.prefix}${num}`}
+                      className={`
                   text-center py-2 rounded border text-sm font-medium transition-colors
                   ${
                     num === itemNumber
@@ -290,28 +252,21 @@ export default async function ContentPage({ params }: PageProps) {
                       : "hover:bg-muted border-border"
                   }
                 `}
-                  >
-                    {num}
-                  </Link>
-                )
-              )}
+                    >
+                      {num}
+                    </Link>
+                  )
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </MDXPageContent>
+        </MDXPageContent>
+      </ContentThemeProvider>
     )
   }
 
   // Handle Homeworks
   if (isHomework) {
-    // Get metadata and MDX content
-    const metadata = homeworkMetadata[itemNumber] || {
-      title: `${contentType.label} ${itemNumber}`,
-      dueDate: "TBD",
-      dueTime: "11:59 PM",
-      topics: ["Coming soon"],
-    }
-
     const MDXContent = await loadMDXContent(contentType, itemNumber)
 
     // Navigation
@@ -319,83 +274,85 @@ export default async function ContentPage({ params }: PageProps) {
     const hasNext = itemNumber < contentType.total
 
     return (
-      <MDXPageContent topLevelSectionClass={contentType.topLevelSectionClass}>
-        <div className="container mx-auto p-6 max-w-4xl">
-          {/* Header */}
-          <div className="mb-6">
-            <Link
-              href="/cmsi-2820"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 mb-4"
-            >
-              ← Back to Course
-            </Link>
-          </div>
-
-          {/* Main Content - MDX */}
-          <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
-            {MDXContent ? (
-              <Suspense fallback={<div>Loading content...</div>}>
-                <MDXContent />
-              </Suspense>
-            ) : (
-              <div className="text-center p-8 border rounded-lg bg-muted/30">
-                <p className="text-muted-foreground">
-                  Content for this {contentType.label.toLowerCase()} is coming
-                  soon.
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Create a file at{" "}
-                  <code className="bg-muted px-2 py-1 rounded">
-                    content/cmsi-2820/{contentType.folder}/{contentType.prefix}
-                    {itemNumber}.mdx
-                  </code>{" "}
-                  to add content.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between pt-6 border-t">
-            {hasPrevious ? (
+      <ContentThemeProvider contentType={getThemeType(contentType.prefix)}>
+        <MDXPageContent topLevelSectionClass={contentType.topLevelSectionClass}>
+          <div className="container mx-auto p-6 max-w-4xl">
+            {/* Back to Course Link */}
+            <div className="mb-6">
               <Link
-                href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+                href="/cmsi-2820"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
               >
-                <ChevronLeft className="w-4 h-4" />
-                <span>
-                  {contentType.shortLabel} {itemNumber - 1}
-                </span>
+                ← Back to Course
               </Link>
-            ) : (
-              <div></div>
-            )}
+            </div>
 
-            {hasNext ? (
-              <Link
-                href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
-              >
-                <span>
-                  {contentType.shortLabel} {itemNumber + 1}
-                </span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <div></div>
-            )}
-          </div>
+            {/* Main Content - MDX (includes HomeworkIntro with all metadata) */}
+            <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
+              {MDXContent ? (
+                <Suspense fallback={<div>Loading content...</div>}>
+                  <MDXContent />
+                </Suspense>
+              ) : (
+                <div className="text-center p-8 border rounded-lg bg-muted/30">
+                  <p className="text-muted-foreground">
+                    Content for this {contentType.label.toLowerCase()} is coming
+                    soon.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Create a file at{" "}
+                    <code className="bg-muted px-2 py-1 rounded">
+                      content/cmsi-2820/{contentType.folder}/
+                      {contentType.prefix}
+                      {itemNumber}.mdx
+                    </code>{" "}
+                    to add content.
+                  </p>
+                </div>
+              )}
+            </div>
 
-          {/* Quick Navigation */}
-          <div className="mt-8 p-4 border rounded-lg bg-muted/30">
-            <h3 className="font-semibold mb-3">All {contentType.label}s</h3>
-            <div className={`grid ${contentType.gridColumns} gap-2`}>
-              {Array.from({ length: contentType.total }, (_, i) => i + 1).map(
-                (num) => (
-                  <Link
-                    key={num}
-                    href={`/cmsi-2820/${contentType.prefix}${num}`}
-                    className={`
+            {/* Navigation */}
+            <div className="flex items-center justify-between pt-6 border-t">
+              {hasPrevious ? (
+                <Link
+                  href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>
+                    {contentType.shortLabel} {itemNumber - 1}
+                  </span>
+                </Link>
+              ) : (
+                <div></div>
+              )}
+
+              {hasNext ? (
+                <Link
+                  href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+                >
+                  <span>
+                    {contentType.shortLabel} {itemNumber + 1}
+                  </span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <div></div>
+              )}
+            </div>
+
+            {/* Quick Navigation */}
+            <div className="mt-8 p-4 border rounded-lg bg-muted/30">
+              <h3 className="font-semibold mb-3">All {contentType.label}s</h3>
+              <div className={`grid ${contentType.gridColumns} gap-2`}>
+                {Array.from({ length: contentType.total }, (_, i) => i + 1).map(
+                  (num) => (
+                    <Link
+                      key={num}
+                      href={`/cmsi-2820/${contentType.prefix}${num}`}
+                      className={`
                     text-center py-2 rounded border text-sm font-medium transition-colors
                     ${
                       num === itemNumber
@@ -403,15 +360,16 @@ export default async function ContentPage({ params }: PageProps) {
                         : "hover:bg-muted border-border"
                     }
                   `}
-                  >
-                    {num}
-                  </Link>
-                )
-              )}
+                    >
+                      {num}
+                    </Link>
+                  )
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </MDXPageContent>
+        </MDXPageContent>
+      </ContentThemeProvider>
     )
   }
 

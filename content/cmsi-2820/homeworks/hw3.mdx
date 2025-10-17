@@ -1,0 +1,195 @@
+import {
+  HomeworkIntro,
+  WrittenSection,
+  ProgrammingSection,
+  OptionalSection,
+} from "@/components/homework-sections"
+import { QuestionBox } from "@/components/question-box"
+import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  hwNumber: 3,
+  title: "HW3: Storage Wars",
+  topics: ["Collections", "Abstract Algebra", "Relations", "Operations"],
+  points: {
+    written: 20,
+    programming: 80,
+    optional: 20,
+  },
+}
+
+export const hwEvent = getHomeworkEvent(metadata.hwNumber)
+
+<HomeworkIntro
+  title={metadata.title}
+  dueDate={formatDate(hwEvent?.date)}
+  dueTime={hwEvent?.dueTime || "11:59 PM"}
+  topics={metadata.topics}
+  description={hwEvent?.description || ""}
+/>
+
+<WrittenSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802241/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+<QuestionBox qid="Q1" points={5}>
+
+What is the most fundamental property of a Tuple and describe the function of its two main operators. Give an example for both operators.
+
+</QuestionBox>
+
+---
+
+### END OF LN8
+
+---
+
+<QuestionBox qid="Q2" points={7}>
+
+What is the most fundamental property of a set and summarize the differences between sets and tuples (Discuss the table we made in class). Give an example of a set and a tuple when contrasting the two.
+
+</QuestionBox>
+
+---
+
+### END OF LN9
+
+---
+
+<QuestionBox qid="Q3" points={8}>
+
+We discussed previously how performing logic was contained within performing algebra on the integers. Put another way we discovered that the operations of the logical connectives were the same as the arithmetic operations on the integers 1 and 0. Explain how a similar relationship exists from the arithmetic operations on the integers to the operations of sets. Put another way, how might the operations of sets be thought of as superseding the arithmetic operations on the integers?
+
+</QuestionBox>
+
+---
+
+### END OF LN10
+
+---
+
+</WrittenSection>
+
+<ProgrammingSection
+  points={80}
+  description=""
+  githubClassroomUrl="https://classroom.github.com/a/3GjUTguV"
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802242/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+### Directory Structure
+
+Your repository will contain the following files:
+
+```
+CMSI-2820-HW3/
+├── expected_outputs/
+│   ├── demo_1.txt
+│   ├── demo_2.txt
+│   ├── demo_3.txt
+│   ├── demo_5.txt
+│   ├── demo_6.txt
+│   ├── demo_7.txt
+│   ├── demo_9.txt
+│   ├── demo_10.txt
+│   ├── set_1.txt
+│   ├── set_2.txt
+│   ├── set_3.txt
+│   ├── set_4.txt
+│   ├── set_5.txt
+│   ├── set_6.txt
+│   └── set_7.txt
+├── .gitignore
+├── mappa.py
+├── README.md
+├── setflix_titles.csv
+├── setflix.py
+├── test_storage_wars.py
+├── tiktup.py
+└── type_helper.py
+```
+
+### Helper Resources
+
+As a refresher, here is the helper video that goes from complete start to finish for the process of receiving, setting up, and turning in your programming portion of the HW:
+
+[📹 **Helper Video** (Zoom Recording)](https://lmula.zoom.us/rec/share/LHMwk2fFto5pKnfMEKK5ZBdiwkRO0WacAkDyfbdqMrDz8Eo9dwyFlnYq5a_I8iX3.aa-YDE0MpCpp2sK8)
+
+</ProgrammingSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802243/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+## Abstract Algebra in Your Hobbies
+
+The creative endeavor I am suggesting for the Numbers standard is the same as with the Logic standard, integrate your learning into a real world event/experience/memory! (However always remember that you can work out an alternate creative endeavour if you want to involve your hobbies! You can make creative works in any form such as games, drawings, paintings, dioramas, sculptures, videos, fake blogs, memes, anything!) (For instance, while I am working on this HW I am remembering what it was like to visit the grand canyon! Want to break down a hiking trail into Venn diagrams? Create your own rock climbing beta guided by the integers? Go for it!) (Just make sure to talk to me first!)
+
+We saw in class that Numbers, while being an instance in their own right, were a "cover" of sorts for a large world of abstract algebra. We were able to perform what we typically know as "addition" without numbers at all! With that said, the creative endeavor I am suggesting for the number standard is to find abstract algebraic operations in your hobbies!
+
+### Finding Abstract Algebra in Your Hobbies
+
+How do you find abstract algebra in your hobbies? Well, consider what it really means to be associative or commutative and see if you can find that in the interactions of your hobbies! For instance:
+
+- If you are a **dancer**, you could consider the commutative property in the way moves lead into one another!
+- If you are a **musician**, you could consider the associative property in the way you play your instrument!
+- Does your hobby include addition or subtraction? What about closure?
+
+### Your Task
+
+Take your abstract algebraic patterns in your hobby and write to me about how they inherently display the properties of abstract algebra! Then try and create a collection of "arithmetic" operations within your hobby!
+
+For instance, I enjoy rock climbing, and a sample process would be potentially investigating the link between addition and combining climbs together that are next to each other. I could even investigate if "down climbing" is a form of beta negation! I could then try and find see if there are ways in which I can rock climb that seem to represent subtraction!
+
+**The more properties you include and the more operations you find, the more points you earn!**
+
+**This optional project can be submitted until one week after the homework due date.**
+
+</OptionalSection>
+
+---
+
+## Submission Guidelines
+
+### Written Section
+
+- Submit your handwritten or typed solutions to Brightspace as a **single PDF**
+- Make sure your name and student ID are on every page
+- Show all your work and clearly explain your reasoning for each question
+
+### Programming Section
+
+- Accept the GitHub Classroom assignment using the link above
+- Clone the repository to your local machine
+- Complete the implementation in the provided Python files
+- Run the tests to ensure your code works correctly
+- Commit and push your changes to GitHub
+- Submit the link to your repository on Brightspace
+
+### Optional Section
+
+- Submit your creative project to Brightspace
+- Include a PDF document explaining your abstract algebraic reasoning
+- If you created physical or digital artifacts, include photos/links
+- Clearly show which properties and operations you identified from class
+
+### Grading Rubric
+
+| Component      | Points  | Description                           |
+| -------------- | ------- | ------------------------------------- |
+| Q1             | 5       | Tuples and their operators            |
+| Q2             | 7       | Sets vs Tuples comparison             |
+| Q3             | 8       | Sets superseding integer operations   |
+| Programming    | 80      | Storage Wars implementation in Python |
+| Optional Extra | 20      | Abstract algebra in your hobbies      |
+| **Total**      | **100** | (**120 with extra credit**)           |
+
+## Resources
+
+- **Lecture Notes**: LN8 (Tuples), LN9 (Sets), LN10 (Set Operations)
+- **Textbook**: Relevant chapters on discrete mathematics and collections
+- **Office Hours**: Check course page for schedule
+
+Explore the power of collections and abstract algebra! 📦✨

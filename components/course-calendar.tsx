@@ -3,7 +3,6 @@
 import * as React from "react"
 import { DateTime } from "luxon"
 import { ChevronLeft, ChevronRight, ExternalLink, Clock } from "lucide-react"
-import { useTheme } from "next-themes"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,14 +42,10 @@ const MONTHS = [
 ]
 
 export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
-  const { theme, resolvedTheme } = useTheme()
   const [currentDate, setCurrentDate] = React.useState(DateTime.now())
   const [selectedDate, setSelectedDate] = React.useState<DateTime | undefined>(
     DateTime.now()
   )
-
-  // Determine if dark mode is active
-  const isDark = resolvedTheme === "dark" || theme === "dark"
 
   const handleDateSelect = (date: DateTime) => {
     setSelectedDate(date)
@@ -195,8 +190,8 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
               const events = getEventsForDate(dayInfo.date)
               const hasEvents = events.length > 0
               const eventStyle = eventType
-                ? getCalendarDayStyle(eventType, isDark)
-                : {}
+                ? getCalendarDayStyle(eventType)
+                : undefined
 
               // If the day has events and is in current month, wrap in Popover
               if (hasEvents && dayInfo.isCurrentMonth) {
@@ -212,10 +207,9 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
                             "ring-2 ring-offset-1 ring-foreground/50",
                           dayInfo.isSelected &&
                             !eventType &&
-                            "bg-primary text-primary-foreground",
-                          eventType && "font-semibold"
+                            "bg-primary text-primary-foreground"
                         )}
-                        style={eventType ? eventStyle : {}}
+                        style={eventStyle}
                       >
                         {dayInfo.day}
                       </Button>
@@ -252,10 +246,9 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
                       "ring-2 ring-offset-1 ring-foreground/50",
                     dayInfo.isSelected &&
                       !eventType &&
-                      "bg-primary text-primary-foreground",
-                    eventType && "font-semibold"
+                      "bg-primary text-primary-foreground"
                   )}
-                  style={eventType ? eventStyle : {}}
+                  style={eventStyle}
                 >
                   {dayInfo.day}
                 </Button>

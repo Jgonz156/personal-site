@@ -2,7 +2,9 @@ import type { NextConfig } from "next"
 import createMDX from "@next/mdx"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
+import rehypeSlug from "rehype-slug"
 import rehypeMathjax from "rehype-mathjax/chtml"
+import rehypeHighlight from "rehype-highlight"
 
 const nextConfig: NextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
@@ -15,6 +17,8 @@ const withMDX = createMDX({
   options: {
     remarkPlugins: [remarkGfm, remarkMath],
     rehypePlugins: [
+      rehypeSlug, // Add IDs to headings for anchor links
+      rehypeHighlight, // Add syntax highlighting to code blocks
       [
         rehypeMathjax,
         {

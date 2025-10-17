@@ -104,12 +104,17 @@ export default function CMSI2820Home() {
     const today = DateTime.now().startOf("day")
 
     // Find the most recent event (lecture, homework, or exam) that has already occurred
+    // Use availableDate for homework/exams (when released), or date for lectures
     const pastEvents = courseSpecificEvents
       .filter((event) => {
-        const eventDate = event.date.startOf("day")
-        return eventDate <= today && event.standard
+        const relevantDate = event.availableDate || event.date
+        return relevantDate.startOf("day") <= today && event.standard
       })
-      .sort((a, b) => b.date.toMillis() - a.date.toMillis())
+      .sort((a, b) => {
+        const dateA = a.availableDate || a.date
+        const dateB = b.availableDate || b.date
+        return dateB.toMillis() - dateA.toMillis()
+      })
 
     if (pastEvents.length > 0) {
       return pastEvents[0].standard
@@ -118,10 +123,14 @@ export default function CMSI2820Home() {
     // If no past events, find the next upcoming event
     const futureEvents = courseSpecificEvents
       .filter((event) => {
-        const eventDate = event.date.startOf("day")
-        return eventDate > today && event.standard
+        const relevantDate = event.availableDate || event.date
+        return relevantDate.startOf("day") > today && event.standard
       })
-      .sort((a, b) => a.date.toMillis() - b.date.toMillis())
+      .sort((a, b) => {
+        const dateA = a.availableDate || a.date
+        const dateB = b.availableDate || b.date
+        return dateA.toMillis() - dateB.toMillis()
+      })
 
     return futureEvents.length > 0 ? futureEvents[0].standard : null
   }
@@ -136,11 +145,7 @@ export default function CMSI2820Home() {
         : event.type === "lecture"
         ? "bg-blue-500/10 border-blue-500/30 hover:border-blue-500"
         : event.type === "exam"
-        ? /*
         ? "bg-red-500/10 border-red-500/30 hover:border-red-500"
-        : event.type === "project"
-        */
-          "bg-purple-500/10 border-purple-500/30 hover:border-purple-500"
         : "bg-muted/30 border-border"
 
     const textColor =
@@ -149,10 +154,7 @@ export default function CMSI2820Home() {
         : event.type === "lecture"
         ? "text-blue-700 dark:text-blue-400"
         : event.type === "exam"
-        ? /*? "text-red-700 dark:text-red-400"
-        : event.type === "project"
-        */
-          "text-purple-700 dark:text-purple-400"
+        ? "text-red-700 dark:text-red-400"
         : "text-foreground"
 
     const typeIcon =
@@ -161,10 +163,17 @@ export default function CMSI2820Home() {
         : event.type === "lecture"
         ? "📚"
         : event.type === "exam"
-        ? /*"📋"
-        : event.type === "project"
-        ?*/ "💻"
+        ? "📋"
         : "📌"
+
+    const buttonColor =
+      event.type === "homework"
+        ? "bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700"
+        : event.type === "lecture"
+        ? "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+        : event.type === "exam"
+        ? "bg-red-600 hover:bg-red-700 text-white dark:bg-red-600 dark:hover:bg-red-700"
+        : "bg-primary hover:bg-primary/90 text-primary-foreground"
 
     // Get button text based on event type
     const getContentButtonText = () => {
@@ -217,7 +226,9 @@ export default function CMSI2820Home() {
               className="block w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium">
+              <button
+                className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${buttonColor}`}
+              >
                 <FileText className="w-4 h-4" />
                 {getContentButtonText()}
               </button>

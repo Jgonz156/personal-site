@@ -2,111 +2,359 @@ import {
   HomeworkIntro,
   WrittenSection,
   ProgrammingSection,
-  OptionalSection,
 } from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+import {
+  getHomeworkEvent,
+  formatDate,
+  HomeworkMetadata,
+} from "@/lib/homework-metadata"
+
+export const metadata = {
+  hwNumber: 1,
+  title: "HW1: Think Class! Think!",
+  topics: [
+    "Intuitionistic Logic",
+    "Propositional Logic",
+    "First Order Logic",
+    "Natural Deduction",
+    "Higher Order Logic",
+  ],
+  points: {
+    written: 75,
+    programming: 5,
+  },
+}
+
+export const hwEvent = getHomeworkEvent(metadata.hwNumber)
 
 <HomeworkIntro
-  title="Homework 1: Logic Fundamentals"
-  dueDate="January 20, 2025"
-  dueTime="11:59 PM"
-  topics={[
-    "Propositional Logic",
-    "Truth Tables",
-    "Logical Equivalence",
-    "Boolean Algebra",
-  ]}
-  description="This homework focuses on the fundamentals of propositional logic. You will practice constructing truth tables, proving logical equivalences, and applying boolean algebra to simplify expressions."
+  title={metadata.title}
+  dueDate={formatDate(hwEvent?.date)}
+  dueTime={hwEvent?.dueTime || "11:59 PM"}
+  topics={metadata.topics}
+  description={hwEvent?.description || ""}
 />
 
 <WrittenSection
-  points={60}
-  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=123456&grpid=0"
+  points={75}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802236/detailsview#802236"
 >
 
-Submit your answers to the following questions on paper. Show all your work and clearly explain your reasoning.
+We saw in LN1 that logic is a wide and varied field with many interpretations. Here we will keep things simple with our mental model of what exists in reality and what might be considered absurd. We will practice first by moving away from the "informal" model of intuitionistic logic that uses our world and current knowledge as the context by which to evaluate statements. Instead we will stay more "formal" and I will be giving you a context to work with!
 
-## Question 1: Truth Tables (15 points)
+When it comes to evaluating these contexts **DO NOT** place more into them than what is already there. We can only do that via the process of Inference with Natural Deduction (There are actually many more ways to do it, but that is what we are focusing on in this class)! We will practice that further "down the page" so lets begin simply and build up!
 
-Construct complete truth tables for the following propositions:
+I will give an example of what we are looking to do. Here is the context for just my example: "Haley is friends with a lot of people! Haley does not like pancakes made upside down." A context is made up of declarative statements we accept as fact. Sometimes its **Positive Information** (Declarative statements that tell you how reality is) like the first sentence or its **Negative information** (Declarative statements that tell you how reality isn't) like the second sentence. We have 2 facts and that is ALL we can work with to evaluate propositions. So lets formalize our above context like the below:
 
-a) $(P \land Q) \lor (\neg P \land R)$
+$$\top : Reality$$
 
-b) $(P \rightarrow Q) \land (Q \rightarrow R)$
+| Fact       | Type | Description                                   |
+| ---------- | ---- | --------------------------------------------- |
+| **Fact 1** | +    | Haley is friends with a lot of people!        |
+| **Fact 2** | -    | Haley does not like pancakes made upside down |
 
-c) $\neg(P \lor Q) \leftrightarrow (\neg P \land \neg Q)$
+I'm not entirely sure how to make a pancake upside down, but none the less it is a fact Haley doesn't like them that way. So if we were to be asked to, in this context, evaluate the following statement: "Rory is friends with Haley" then we know the statement is True. Simple enough. What about this one: "Haley likes her pancakes made right side up." True right? Actually no! That is Classical reasoning! We can't just assume the opposite when we know the negative in Intuitionism (This is why its very important that we mark our facts/information as plus and minus)! What if she doesn't like them right side up either because she does not like pancakes at all? We must take care to only use the information we have. So the previous statement is what then? Well we have no information to answer it "in Reality" so its absurd! In our limited reality we have no facts related to that statement so it is analogous to declaring something that doesn't exist! So, in the following homework make sure not to make this mistake!
 
-For each truth table, identify whether the proposition is a tautology, contradiction, or contingency.
+<QuestionBox qid="Q1" title="I Spy" points="10 total">
 
-## Question 2: Logical Equivalence (20 points)
+Given the following Image, based on the popular Children's Book Series _I Spy_, evaluate the following propositions. The reality that we are working with is the image below, nothing more and nothing less. Evaluate the propositions in that context as only one of the following, $T:True,\text{ } F:False,\text{ or }\bot :Absurd$, and explain your reasoning.
 
-Prove that the following pairs of propositions are logically equivalent using logical equivalence laws (do not use truth tables):
+![I Spy Image](/cmsi-2820/homeworks/HW1-ISPY.png)
 
-a) $\neg(P \rightarrow Q) \equiv P \land \neg Q$
+<SubQuestion qid="Q1a" points={1}>
+  Evaluate: "There are exactly 2 Nutcrackers."
+</SubQuestion>
 
-b) $(P \lor Q) \land (\neg P \lor R) \equiv (P \land R) \lor (Q \land \neg P) \lor (Q \land R)$
+<SubQuestion qid="Q1b" points={1}>
+  Evaluate: "In between 2 oranges there is a christmas tree."
+</SubQuestion>
 
-**Hint**: For part (b), you may find it helpful to use the distributive law and De Morgan's laws.
+<SubQuestion qid="Q1c" points={1}>
+  Evaluate: "There are 4 planes."
+</SubQuestion>
 
-## Question 3: Boolean Simplification (15 points)
+<SubQuestion qid="Q1d" points={1}>
+  Evaluate: "There is a hairbrush." (Careful)
+</SubQuestion>
 
-Simplify the following boolean expressions using boolean algebra laws. Show each step and cite the law you used.
+<SubQuestion qid="Q1e" points={2}>
+  Evaluate: "There is a red coin with a Snow Man on it."
+</SubQuestion>
 
-a) $(A \land B) \lor (A \land \neg B)$
+<SubQuestion qid="Q1f" points={2}>
+  Evaluate: "There is no such thing as a pine cone."
+</SubQuestion>
 
-b) $\neg(\neg A \lor B) \land (A \lor C)$
+<SubQuestion qid="Q1g" points={2}>
+  Evaluate: "There is a little Santa."
+</SubQuestion>
 
-c) $(A \land B \land C) \lor (A \land B \land \neg C) \lor (\neg A \land B \land C)$
+</QuestionBox>
 
-## Question 4: Proofs (10 points)
+<QuestionBox qid="Q2" title="Visual Model" points={5}>
 
-Using the rules of inference (Modus Ponens, Modus Tollens, etc.), prove the following argument is valid:
+The mental image we made in lecture is valuable as it helps us organize graphically what is occurring in reality. Redraw a different version of the same visual model with the following requirements:
 
-**Premises:**
+1. Three Unique "Things"
+2. Two "Properties" on each of those "Things"
+3. One "Interaction" between each of those "Things"
+4. The visual model clearly divides reality from absurdity
+5. The visual model does not include previously discussed "Things"
 
-1. $P \rightarrow Q$
-2. $Q \rightarrow R$
-3. $P$
+</QuestionBox>
 
-**Conclusion:** $R$
+---
+
+### END OF LN1
+
+---
+
+In LN2 we "zoomed" in on these informal propositions we've been working on to discover the atomics we are actually working with when we informally reason about logic in the real world. This discussion begun with defining a few terms, discovering the intuition behind where they come from, and then subsequently formalizing a small set of operators to use to create compound propositions.
+
+Here we will work with these reduced, yet more complicated propositions as variables rather than informal sentences as we discovered in lecture that english carries with it far more information than we can currently investigate.
+
+Due to LN2 not reaching Implication in the notes, this section has been adjusted to reflect this and those problems have been moved to LN3's section.
+
+<QuestionBox qid="Q3" title="Logical Connectives" points="10 total">
+
+In class we saw 5 logical connectives that we can use to form larger compound propositions. In your own words, give a brief explanation as to how each of these logical connectives operate and give an example usage for each.
+
+<SubQuestion qid="Q3a" points={2}>
+  Describe and give an example of Logical Equivalence. (Make sure to specify
+  some reality)
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={2}>
+  Describe and give an example of Negation.
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={2}>
+  Describe and give an example of Conjunction.
+</SubQuestion>
+
+<SubQuestion qid="Q3d" points={2}>
+  Describe and give an example of Disjunction.
+</SubQuestion>
+
+<SubQuestion qid="Q3e" points={2}>
+  Describe and give an example of Implication.
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q4" title="Evaluating Compound Propositions" points="12 total">
+
+Given the following finite context below, evaluate whether the following compound propositions are True, False, or Absurd. Since we have not defined the exact order of operations (PEMDAS) I will define it now. The operator that has the highest precedence (do this one first) is Negation. It is followed by the rest of the operators in exactly this order: Conjunction, Disjunction, Implication, then the lowest precedence operator is Logical Equivalence. This forms PNCDILe as our equivalent to PEMDAS. Admittedly it is not as nice and that hanging e is due to it being Logical "E"quivalence. Also the P at the front is still Parenthesis because you always do parenthesis first.
+
+$$\top : Reality$$
+
+| Variable | Value |
+| -------- | ----- |
+| $A$      | True  |
+| $B$      | False |
+
+<SubQuestion qid="Q4a" points={1}>
+
+$$A\land \bot$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={1}>
+
+$$B\lor \bot$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4c" points={1}>
+
+$$(B \lor A) \land B$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4d" points={1}>
+
+$$\neg(A \land B)$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4e" points={1}>
+
+$$(A \lor \bot) \lor B$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4f" points={1}>
+
+$$\neg(A \lor B) \equiv (\neg A \land \neg B)$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4g" points={2}>
+
+$$\bot\equiv \bot$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4h" points={2}>
+
+$$\neg \bot$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4i" points={2}>
+
+$$((A \lor B) \land A) \equiv ((A \land B) \lor B)$$
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q5" title="Duality" points={5}>
+
+Interestingly, logical connectives can be used to explain properties of one another. We saw that in class we could use logical equivalence to help define the operation of other operators and that negation allowed us to "flip" from True to False. With that said, can you write the compound propositions that displays that Conjunction and Disjunction are duals (Opposites)? (It helps to investigate this with a truth table)
+
+</QuestionBox>
+
+---
+
+### END OF LN2
+
+---
+
+In LN3 we built off our new set of operators we were using to "evaluate" compound propositions to discover and investigate the Inferential/Argumentative abilities that extend from them using Natural Deduction. Here we practice Natural Deduction to introduce a series of new pieces of information to our limited, finite contexts/realities.
+
+<QuestionBox qid="Q6" title="Positive and Negative Information" points="5 total">
+
+As we saw in lecture, propositions can declare affirmative (positive) information about reality or non-affirmative (negative) information about reality. In the following question you will be asked about this distinction.
+
+<SubQuestion qid="Q6a" points={2}>
+  Explain what positive information is in your own words and give an example of
+  its use.
+</SubQuestion>
+
+<SubQuestion qid="Q6b" points={3}>
+  Explain what negative information is in your own words and give an example of
+  its use.
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q7" title="Compound Propositions in English" points="10 total">
+
+In class we saw that logical connectives act as "information glue" and can connect pre-existing propositions together to form larger ones. Below you are given a list of propositional variables assigned to propositions and you are tasked with combining them together using a given compound proposition as a blueprint. Give the resulting compound proposition as an English statement for your answer. (Don't worry if the resulting propositions are true, false, or absurd as some of them say very funny things!)
+
+$$
+\begin{matrix}
+A \equiv \text{"It is a nice day today."} \\
+B \equiv \text{"There is no way today is Friday."} \\
+C \equiv \text{"I like the cold."} \\
+D \equiv \text{"Housing prices are low."} \\
+E \equiv \text{"Homework is due."} \\
+F \equiv \text{"It is not winter."} \\
+G \equiv \text{"It is summer."} \\
+\end{matrix}
+$$
+
+<SubQuestion qid="Q7a" points={2}>
+
+$$D \to C$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q7b" points={2}>
+
+$$A \to (B \land D)$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q7c" points={2}>
+
+$$G \equiv \neg F$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q7d" points={2}>
+
+$$E \equiv \neg B$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q7e" points={2}>
+
+$$(A \land B) \equiv (\neg E \land G)$$
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q8" title="Philosophy of Logic Systems" points="15 total">
+
+In class we spoke at length about the philosophy surrounding the creation and use of logic systems. In the following question you will be asked to comment on why specific design decisions for Intuitionistic logic were made.
+
+<SubQuestion qid="Q8a" points={5}>
+  Why is it beneficial for Intuitionistic logic to recognize the "limited
+  Knowledge" of individuals and what is the atypical foundational atomic that we
+  gain as a result?
+</SubQuestion>
+
+<SubQuestion qid="Q8b" points={5}>
+  Why is it beneficial for Intuitionistic logic to distinguish between positive
+  and negative information?
+</SubQuestion>
+
+<SubQuestion qid="Q8c" points={5}>
+  Explain what is meant by referring to Classical Logic as the "Logic of God"
+  and Intuitionistic Logic as the "Logic of People"
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q9" title="Personal Reality" points={3}>
+
+Given that realities allow us to contextualize our reasoning and that everyone has a different one associated with their own experiences, give an example of a reality that you have and how it might differ from someone else's by showing how it would change a proposition from True to False or vice versa in the respective realities.
+
+</QuestionBox>
+
+---
+
+### END OF LN3
+
+---
+
+Whew! That was a lot about logic, and unfortunately for the purposes of this foundational course we will take intuitionistic logic no further. Of course the topics we practiced and the intuition we gathered from our investigations will become useful again as we discover more topics in discrete mathematics, however we will not be expanding further into pure logic.
+
+There is a wide range of more logical connectives we could have discovered and understood. This foundational look at viewing how to evaluate and infer information from new operators will always be valid if you choose to dive into this topic further on your own in an independent study or research! There is plenty more to discover in discrete however so we move forward from here ready to take on Numbers!
 
 </WrittenSection>
 
 <ProgrammingSection
-  points={30}
-  description="In this programming assignment, you will implement a truth table generator and a logical expression evaluator in Python. The program should be able to parse logical expressions and compute their truth values for all possible input combinations."
-  githubClassroomUrl="https://classroom.github.com/assignment-invitations/your-invitation-link"
-  githubRepoUrl="https://github.com/your-course/hw1-logic-evaluator"
-  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=123457&grpid=0"
-/>
-
-<OptionalSection
-  points={10}
-  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=123458&grpid=0"
+  points={25}
+  description="In this programming assignment you will look into how we can represent our logical connectives programmatically in Python! The motivation for this is to investigate how we can operationalize what we discovered in class into code! Once we see how this is done, we will always have it in the back of our 'tool belt' for handling complex conditionals or branching code!"
+  githubClassroomUrl="https://classroom.github.com/a/bE384tPa"
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802237/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
 >
 
-## Build a Logic Circuit Simulator
+### Directory Structure
 
-For extra credit, create a physical or digital logic circuit that implements a simple logical expression of your choice. You can use:
+Your repository will contain the following files:
 
-- **Physical Option**: Build a circuit using LEDs, switches, and logic gates (AND, OR, NOT) on a breadboard
-- **Digital Option**: Create an interactive web-based logic circuit simulator using HTML/CSS/JavaScript
+```
+CMSI-2820-HW1/
+├── .gitignore
+├── logical_connectives.py
+├── logical_connectives_test.py
+├── lllof.py
+└── README.md
+```
 
-### Requirements:
+### Helper Resources
 
-1. Your circuit must implement at least one compound logical expression with 3 or more gates
-2. Document your circuit with a diagram showing the gate connections
-3. Demonstrate that your circuit correctly evaluates the expression for all input combinations
-4. Write a brief reflection (1-2 paragraphs) explaining what you learned
+As a refresher, here is the helper video that goes from complete start to finish for the process of receiving, setting up, and turning in your programming portion of the HW:
 
-### Submission:
+[📹 **Helper Video** (Zoom Recording)](https://lmula.zoom.us/rec/share/LHMwk2fFto5pKnfMEKK5ZBdiwkRO0WacAkDyfbdqMrDz8Eo9dwyFlnYq5a_I8iX3.aa-YDE0MpCpp2sK8)
 
-- For physical circuits: Submit photos/video of your working circuit along with your documentation
-- For digital circuits: Submit a link to your hosted simulator or a zip file with the code
-- Include your written reflection and circuit diagram in a PDF
-
-**This extra credit project can be submitted until one week after the homework due date.**
-
-</OptionalSection>
+</ProgrammingSection>
 
 ---
 
@@ -116,30 +364,37 @@ For extra credit, create a physical or digital logic circuit that implements a s
 
 - Submit your handwritten or typed solutions to Brightspace as a **single PDF**
 - Make sure your name and student ID are on every page
-- Number your pages and staple them together if submitting physically
+- Show all your work and clearly explain your reasoning for each question
 
 ### Programming Section
 
-- Push your code to the GitHub repository created via GitHub Classroom
-- Include a `README.md` with instructions on how to run your program
-- Make sure all tests pass before submitting
+- Accept the GitHub Classroom assignment using the link above
+- Clone the repository to your local machine
+- Complete the implementation in the provided Python files
+- Run the tests to ensure your code works correctly
+- Commit and push your changes to GitHub
+- Submit the link to your repository on Brightspace
 
 ### Grading Rubric
 
-| Component      | Points | Criteria                                   |
-| -------------- | ------ | ------------------------------------------ |
-| Written Q1     | 15     | Correct truth tables, proper format        |
-| Written Q2     | 20     | Valid proofs, clear step-by-step reasoning |
-| Written Q3     | 15     | Correct simplifications, laws cited        |
-| Written Q4     | 10     | Valid proof using rules of inference       |
-| Programming    | 30     | Code quality, correctness, tests passing   |
-| Optional Extra | 10     | Circuit functionality, documentation       |
-| **Total**      | **90** | (**100 with extra credit**)                |
+| Component   | Points  | Description                                   |
+| ----------- | ------- | --------------------------------------------- |
+| Q1          | 10      | I Spy evaluations with proper reasoning       |
+| Q2          | 5       | Visual model of reality vs absurdity          |
+| Q3          | 10      | Logical connective descriptions and examples  |
+| Q4          | 12      | Compound proposition evaluations              |
+| Q5          | 5       | Duality of conjunction and disjunction        |
+| Q6          | 5       | Positive and negative information explanation |
+| Q7          | 10      | Translating formal logic to English           |
+| Q8          | 15      | Philosophy of logic systems                   |
+| Q9          | 3       | Personal reality example                      |
+| Programming | 25      | Python implementation of logical connectives  |
+| **Total**   | **100** |                                               |
 
 ## Resources
 
-- **Textbook**: Chapter 1 (Logic and Proofs), Chapter 2 (Boolean Algebra)
-- **Lecture Notes**: LN1, LN2, LN3
-- **Office Hours**: Tuesdays and Thursdays, 3-5 PM (or by appointment)
+- **Lecture Notes**: LN1 (Intuitionistic Logic), LN2 (Propositional Logic), LN3 (Natural Deduction)
+- **Textbook**: Relevant chapters on logic and discrete mathematics
+- **Office Hours**: Check course page for schedule
 
-Good luck! 🚀
+Good luck! Think carefully and logically! 🧠✨

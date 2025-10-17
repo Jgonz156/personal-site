@@ -1,0 +1,368 @@
+import {
+  HomeworkIntro,
+  WrittenSection,
+  OptionalSection,
+} from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  hwNumber: 4,
+  title: "HW4: Silence of the Lambdas",
+  topics: [
+    "Lambda Calculus",
+    "Reductions",
+    "Free and Bound Variables",
+    "Function Classes",
+    "Function Properties",
+  ],
+  points: {
+    written: 100,
+    optional: 20,
+  },
+}
+
+export const hwEvent = getHomeworkEvent(metadata.hwNumber)
+
+<HomeworkIntro
+  title={metadata.title}
+  dueDate={formatDate(hwEvent?.date)}
+  dueTime={hwEvent?.dueTime || "11:59 PM"}
+  topics={metadata.topics}
+  description={hwEvent?.description || ""}
+/>
+
+<WrittenSection
+  points={100}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802244/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+<QuestionBox qid="Q1" title="Matching Lambda Concepts" points={20}>
+
+In this problem you are tasked with matching items from the left-hand-side to the right-hand side. The items are general to lambdas/functions, so make the best matching pairs that you can, however there is an intended match for each item. There are no "extra" items, there are 10 pairs in total that must be constructed, and there are no pairs made from items on the same side.
+
+| Left-hand side                     | Right-hand side                                           |
+| ---------------------------------- | --------------------------------------------------------- |
+| a. named function                  | 1. $\lambda a.\,a\,a \rightarrow \lambda b.\,b\,b$        |
+| b. $\alpha$-conversion             | 2. $\lambda w.\,\text{print}\,w \rightarrow \text{print}$ |
+| c. $\lambda xy.\,x \cdot y$        | 3. `lambda x, y: x(y)`                                    |
+| d. $\lambda xy.\,\text{mul}\,x\,y$ | 4. `lambda x, y: x * y`                                   |
+| e. unnamed function                | 5. `lambda a: lambda b: a`                                |
+| f. $\lambda xy.\,x\,y$             | 6. `lambda b: lambda a: b`                                |
+| g. $\beta$-conversion              | 7. `def mul(x, y): return x * y`                          |
+| h. $\eta$-conversion               | 8. $\lambda a.a$                                          |
+| i. $\lambda b.\,\lambda a.\,b$     | 9. `lambda x, y: mul(x, y)`                               |
+| j. $\lambda a.\,\lambda b.\,a$     | 10. $(\lambda bc.\,b+c)\,1\,2 \rightarrow 1+2$            |
+
+</QuestionBox>
+
+---
+
+### END OF LN12
+
+---
+
+<QuestionBox qid="Q2" title="Free and Bound Variables" points="25 total">
+
+In this problem you are given 2 Python programs and 3 lambda calculus expressions. Your job is to identify the Free and Bound variables in the programs/expressions. Identify the free variables by highlighting/underlining all occurrences of them in the program/expression.
+
+<SubQuestion qid="Q2a" points={5}>
+
+In this sub-problem you are given the following Python program:
+
+```python
+x = 12
+y = "I'm free, I promise ;)"
+w = "Hello"
+w += " World!"
+def B(a, b, x):
+    if True:
+        return a, b
+    else:
+        return x
+```
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={5}>
+
+In this sub-problem you are given the following Python program:
+
+```python
+"I'm Free!"
+augend = 10
+addend = 27
+def A(a, b, m):
+    return m * (augend + b)
+multiplier = 2
+def B(f, y, x):
+    x * multiplier
+    print(f(y + addend))
+```
+
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={5}>
+
+In this sub-problem you are given the following Lambda Calculus expression:
+
+$$
+x_1~(\lambda x_2.~add~x_2~x_3)~x_4
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q2d" points={5}>
+
+In this sub-problem you are given the following Lambda Calculus expression:
+
+$$
+(\lambda a.a~b~\lambda c.a)~(\lambda b.a~c~b)~d~a
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q2e" points={5}>
+
+In this sub-problem you are given the following Lambda Calculus expression:
+
+$$
+\lambda x.~(\lambda x.~y~x~w~x)~w~y~x~\lambda w.~x~y~w~w~(\lambda y.~w~y~x)~x
+$$
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END OF LN13
+
+---
+
+<QuestionBox qid="Q3" title="Lambda Conversions" points="30 total">
+
+In the following problem you are tasked with performing successful alpha, beta, and gamma conversions using proper substitution on the following lambda calculus expressions.
+
+<SubQuestion qid="Q3a" points={2}>
+
+Perform an alpha conversion on the following lambda:
+
+$$
+\lambda x.~x~y
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={2}>
+
+Perform a beta conversion on the following lambda expression:
+
+$$
+(\lambda w.~add~w~w)~3
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={3}>
+
+Perform a gamma conversion on the following lambda:
+
+$$
+\lambda xy.~mul~x~y
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q3d" points={5}>
+
+Perform the following proper substitutions on the lambda calculus expression:
+
+$$
+((\lambda x.~\lambda y.~x)[w/x])[z/w]
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q3e" points={5}>
+
+Perform the following proper substitutions on the lambda calculus expression:
+
+$$
+(\lambda z.w)[y/w])[(\lambda f. \lambda x.~f~x)/y]
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q3f" points={6}>
+
+Perform the proper substitution on the following lambda:
+
+$$
+(\lambda t.~(\lambda x.~x~t~w))[t/w]
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q3g" points={7}>
+
+Use all the conversion rules to simplify the following lambda expression as much as possible (Assume "mul" is a function that takes two arguments and multiplies them):
+
+$$
+(\lambda x.~(\lambda a.~\lambda b.~x~x~a~b~x~a~b))~mul~2~3
+$$
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END OF LN14
+
+---
+
+<QuestionBox qid="Q4" title="Function Properties" points="25 total">
+
+In this problem you are tasked with identifying the Domain, Codomain, Image, and Pre-image for a number of lambdas. For each of the lambdas you must also identify if the function is Injective, Surjective, and/or Bijective. Accompany each lambda with a two oval mapping diagram to organize your information. The type information is given in the following new format:
+
+$$
+\lambda x.~x:~\mathbb{Z} \to \mathbb{Z}
+$$
+
+In this new format the left-hand-side of the colon is the lambda expression and the right-hand-side features the input type with an arrow pointing toward the output type.
+
+<SubQuestion qid="Q4a" points={6}>
+
+State all the requested information for the following lambda:
+
+$$
+\lambda x.~x^2:~\mathbb{Z} \to \mathbb{Z}
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={6}>
+
+State all the requested information for the following lambda:
+
+$$
+\lambda a.~a~\div~2:~\mathbb{Z} \to \mathbb{R}
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4c" points={6}>
+
+For the following lambda, a new unary operator is introduced. The new operator is the floor operation which rounds a real number down to the nearest integer. It is visually represented similarly to absolute value except it uses two "hockey sticks" as opposed to two pipes. Here are a few examples:
+
+$$
+\lfloor ~3.14~ \rfloor = 3, \lfloor ~-3.14~ \rfloor = -4, \lfloor ~0~ \rfloor = 0
+$$
+
+State all the requested information for the following lambda:
+
+$$
+\lambda y.\lfloor ~y~ \rfloor:~\mathbb{R} \to \mathbb{Z}
+$$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4d" points={7}>
+
+State all the requested information for the following lambda:
+
+$$
+\lambda w.~(2\cdot w)+1:~\mathbb{R} \to \mathbb{R}
+$$
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+### END OF LN15
+
+---
+
+</WrittenSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802245/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
+>
+
+## Order vs Disorder: A Collections Experiment
+
+As with the other creative endeavors from the previous Optional HW's, integrate your learning into a real world event/experience/memory! (However always remember that you can work out an alternate creative endeavour if you want to involve your hobbies! You can make creative works in any form such as games, drawings, paintings, dioramas, sculptures, videos, fake blogs, memes, anything!) (For instance, while I am working on this HW I am hungry and can imagine a number of ways that you could organize a grocery store into sets and tuples. Are shelves ordered? In what ways? what about bargain deal aisles, are they unordered? I could make a set/tuple representation of all of Ralphs!) (Just make sure to talk to me first!)
+
+### The Fundamental Difference
+
+We saw in class that Collections, while of course being responsible for holding other types, was more complicated than simply picking a basket to throw things in. When choosing to represent a collection of items, the decision between using a set or tuple was more fundamental than just needing to hold onto some values. Choosing a Set inherently suggested that membership was all that mattered and that there was no special meaning to being anywhere in the group. Choosing a Tuple suggested that order was important and that your collections of elements could not be understood in any other manner. With this said, my suggestion for your creative endeavour is to really feel what the difference between a set and a tuple is by taking something in your hobby that is ordered and attempt to engage with it in an unordered manner and take something that is normally unordered and engage with it in an ordered manner. Document the results to me!
+
+### Finding Something Ordered
+
+What does it mean to find something ordered in your hobby? Well, look for something that is always done in the same manner or something that is normally done with consistency and see what you can accomplish when you do it inconsistently! To give some examples:
+
+- **Lego building**: If you like building structures with Legos, what would happen if you bounced around the booklet of build instructions? Could you still make the build? Is it possible to assemble the varying built pieces together still? What type of builds "survive" this change?
+- **Volleyball**: If you play Volleyball, what would happen if you allowed any one to go anywhere when a court rotation is typically done? Can the game be salvaged? Do you strategies change?
+- **Music**: If you are a musician, what would happen if you played the notes of a song in a different order? Would it still sound the same? Would it still be recognizable? Do certain songs "maintain" their identity more than others?
+
+### Finding Something Unordered
+
+What about finding something unordered in your hobby? Search for something that is typically done at any time or without conditions and see how things change when you enforce consistency upon it! For instance:
+
+- **Social Media**: If you absent mindedly scroll through your For You Page for funny posts, how would your experience be different if you forced yourself to go through the posts in alphabetical order by creator? Would you still enjoy your FYP? Does it make it more or less enjoyable to always see a certain content creator first? Would you end up unfollowing/unsubscribing to certain people?
+- **Eating**: If you like eating food off your plate in any order, what would happen if you forced yourself to always eat in a clockwise manner? Would you still enjoy your meal? How would you change the plate to be more enjoyable under these constraints? Would you always eat mixed-bowl style meals to get around this?
+- **Gaming**: If you like to play video games with friends, what would happen if the only way to close the game was to be successful first ("End on a win")? How quick are certain games to get out of? How does adding more people to your group change your odds of success? Would you start avoiding certain game genres? Are certain genres of game unaffected?
+
+### Your Task
+
+Take the ordered and unordered experiences you get from your hobby and write/show/display to me how they are different as a result. Explain to me what the experience is normally like and then explain what specific parts of that experience changes for better or for worse when you "switch the collection type" around!
+
+For instance, I enjoy lecturing for this course, I am your professor after all, and something that is typically ordered is how we go through lecture. Everything builds on the next thing, so what would happen if for one lecture I did the announcements at the end, the recap in the middle, put examples out of order? Would the lecture still be understandable? Would it still be enjoyable for me to teach this way or for you to learn in those conditions? What kind of lectures can survive this change? What I would do is try to lecture in this manner and identify what parts of the lecture are still successful and what parts are not and then I would write down how making it unordered specifically changed it. Then I would identify something that is typically unordered about my teaching, such as how I pick students to answer questions, and I would see what would happen if I always picked students in order from front of the class to back of the class. Would that shift students around the classroom? Would is make answering the question more or less stressful? Would more or less people show up to class? I would then try this process out for a lecture or two and then write down the changes I noticed that specifically arose due to the change in picking students.
+
+I am only asking that you perform this investigation for one ordered and one unordered experience in your hobby. If you want to do more that is great and will get you more points! However, the main way to gain points is to pick something interesting and be thoughtful in your description (and theories that you come up with along the way) about how swapping order for disorder and disorder for order changes the experience! The more properties you include and the more operations you find, the more points you earn!
+
+**This optional project can be submitted until one week after the homework due date.**
+
+</OptionalSection>
+
+---
+
+## Submission Guidelines
+
+### Written Section
+
+- Submit your handwritten or typed solutions to Brightspace as a **single PDF**
+- Make sure your name and student ID are on every page
+- Show all your work and clearly explain your reasoning for each question
+- For Q2, clearly highlight or underline free variables in your submission
+- For Q4, include mapping diagrams for each lambda function
+
+### Optional Section
+
+- Submit your creative project to Brightspace
+- Include a PDF document explaining your ordered/unordered experiments
+- If you created physical or digital artifacts, include photos/links
+- Clearly document what changed when you "switched collection types"
+
+### Grading Rubric
+
+| Component      | Points  | Description                             |
+| -------------- | ------- | --------------------------------------- |
+| Q1             | 20      | Lambda calculus matching                |
+| Q2             | 25      | Free and bound variables                |
+| Q3             | 30      | Lambda conversions and substitutions    |
+| Q4             | 25      | Function properties and classifications |
+| Optional Extra | 20      | Collections experiment in your hobbies  |
+| **Total**      | **100** | (**120 with extra credit**)             |
+
+## Resources
+
+- **Lecture Notes**: LN12 (Lambda Calculus), LN13 (Free/Bound Variables), LN14 (Conversions), LN15 (Function Properties)
+- **Textbook**: Relevant chapters on lambda calculus and function theory
+- **Office Hours**: Check course page for schedule
+
+Master the lambda calculus and unlock the power of functional abstraction! λ✨

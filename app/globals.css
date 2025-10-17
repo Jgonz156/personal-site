@@ -68,6 +68,97 @@
   }
 }
 
+/* Content Type Theming */
+@layer base {
+  /* Make the theme wrapper transparent to layout */
+  .content-theme-wrapper {
+    display: contents;
+  }
+
+  /* Homework Theme - Green */
+  [data-content-theme="homework"] {
+    --primary: 142 76% 36%;
+    --primary-foreground: 138 76% 97%;
+    --ring: 142 76% 36%;
+  }
+
+  .dark [data-content-theme="homework"] {
+    --primary: 142 71% 45%;
+    --primary-foreground: 144 61% 9%;
+    --ring: 142 71% 45%;
+  }
+
+  /* Exam Theme - Red */
+  [data-content-theme="exam"] {
+    --primary: 0 72% 51%;
+    --primary-foreground: 0 86% 97%;
+    --ring: 0 72% 51%;
+  }
+
+  .dark [data-content-theme="exam"] {
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 86% 97%;
+    --ring: 0 84% 60%;
+  }
+
+  /* Lecture Theme - Blue */
+  [data-content-theme="lecture"] {
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 20% 98%;
+    --ring: 221 83% 53%;
+  }
+
+  .dark [data-content-theme="lecture"] {
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --ring: 217 91% 60%;
+  }
+
+  /* Default Theme - Purple (current) */
+  [data-content-theme="default"] {
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+
+  .dark [data-content-theme="default"] {
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --ring: 263.4 70% 50.4%;
+  }
+}
+
+/* Calendar Event Colors */
+@layer base {
+  :root {
+    /* Light mode - lighter pastel colors */
+    --calendar-lecture-bg: 147 197 253; /* blue-300 */
+    --calendar-lecture-fg: 30 58 138; /* blue-900 */
+    --calendar-exam-bg: 252 165 165; /* red-300 */
+    --calendar-exam-fg: 127 29 29; /* red-900 */
+    --calendar-homework-bg: 134 239 172; /* green-300 */
+    --calendar-homework-fg: 20 83 45; /* green-900 */
+    --calendar-office-bg: 209 213 219; /* gray-300 */
+    --calendar-office-fg: 31 41 55; /* gray-900 */
+    --calendar-holiday-bg: 253 224 71; /* yellow-300 */
+    --calendar-holiday-fg: 113 63 18; /* yellow-900 */
+  }
+
+  .dark {
+    /* Dark mode - darker saturated colors */
+    --calendar-lecture-bg: 29 78 216; /* blue-700 */
+    --calendar-lecture-fg: 239 246 255; /* blue-50 */
+    --calendar-exam-bg: 185 28 28; /* red-700 */
+    --calendar-exam-fg: 254 242 242; /* red-50 */
+    --calendar-homework-bg: 21 128 61; /* green-700 */
+    --calendar-homework-fg: 220 252 231; /* green-50 */
+    --calendar-office-bg: 75 85 99; /* gray-600 */
+    --calendar-office-fg: 249 250 251; /* gray-50 */
+    --calendar-holiday-bg: 202 138 4; /* yellow-600 */
+    --calendar-holiday-fg: 254 249 195; /* yellow-50 */
+  }
+}
+
 /* Custom layout styles */
 @layer components {
   /* Dynamic grid layout for navbar and sidebar collapse */
@@ -118,5 +209,198 @@
 
   .layout-grid.sidebar-expanded {
     grid-template-columns: auto 1fr;
+  }
+}
+
+/* Syntax Highlighting - Highlight.js (GitHub Style) */
+@layer components {
+  /* Code block container */
+  pre {
+    @apply rounded-lg overflow-x-auto my-4;
+  }
+
+  pre code {
+    @apply block p-4 text-sm leading-relaxed;
+  }
+
+  /* Light mode syntax highlighting - GitHub style */
+  :root {
+    pre code.hljs {
+      background-color: hsl(var(--muted));
+      color: hsl(var(--foreground));
+    }
+  }
+
+  .dark pre code.hljs {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+
+  /* Highlight.js classes - VS Code style */
+  /* Comments */
+  .hljs-comment,
+  .hljs-quote {
+    color: #008000; /* Green */
+    font-style: italic;
+  }
+
+  .dark .hljs-comment,
+  .dark .hljs-quote {
+    color: #6a9955; /* VS Code comment green */
+    font-style: italic;
+  }
+
+  /* Keywords (if, for, def, class, import, etc.) */
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-literal,
+  .hljs-type {
+    color: #0000ff; /* Blue */
+  }
+
+  .dark .hljs-keyword,
+  .dark .hljs-selector-tag,
+  .dark .hljs-literal,
+  .dark .hljs-type {
+    color: #569cd6; /* VS Code keyword blue */
+  }
+
+  /* Strings */
+  .hljs-string,
+  .hljs-meta .hljs-string {
+    color: #a31515; /* Red-brown */
+  }
+
+  .dark .hljs-string,
+  .dark .hljs-meta .hljs-string {
+    color: #ce9178; /* VS Code string orange */
+  }
+
+  /* Function names and class names */
+  .hljs-title,
+  .hljs-section,
+  .hljs-selector-id,
+  .hljs-function .hljs-title {
+    color: #795e26; /* Brown */
+  }
+
+  .dark .hljs-title,
+  .dark .hljs-section,
+  .dark .hljs-selector-id,
+  .dark .hljs-function .hljs-title {
+    color: #dcdcaa; /* VS Code function yellow */
+  }
+
+  /* Numbers and constants */
+  .hljs-number {
+    color: #098658; /* Green */
+  }
+
+  .dark .hljs-number {
+    color: #b5cea8; /* VS Code number light green */
+  }
+
+  /* Variables and parameters */
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-params {
+    color: #001080; /* Dark blue */
+  }
+
+  .dark .hljs-variable,
+  .dark .hljs-template-variable,
+  .dark .hljs-params {
+    color: #9cdcfe; /* VS Code variable light blue */
+  }
+
+  /* Built-in functions and classes */
+  .hljs-built_in,
+  .hljs-class .hljs-title {
+    color: #267f99; /* Teal */
+  }
+
+  .dark .hljs-built_in,
+  .dark .hljs-class .hljs-title {
+    color: #4ec9b0; /* VS Code class teal */
+  }
+
+  /* Attributes and properties */
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-tag .hljs-attr {
+    color: #0451a5; /* Bright blue */
+  }
+
+  .dark .hljs-attr,
+  .dark .hljs-attribute,
+  .dark .hljs-tag .hljs-attr {
+    color: #9cdcfe; /* VS Code attribute light blue */
+  }
+
+  /* Decorators (Python) */
+  .hljs-meta {
+    color: #795e26; /* Brown */
+  }
+
+  .dark .hljs-meta {
+    color: #dcdcaa; /* VS Code decorator yellow */
+  }
+
+  /* Operators */
+  .hljs-operator {
+    color: #000000; /* Black */
+  }
+
+  .dark .hljs-operator {
+    color: #d4d4d4; /* VS Code light gray */
+  }
+
+  /* Tags (HTML/XML) */
+  .hljs-tag {
+    color: #800000; /* Dark red */
+  }
+
+  .dark .hljs-tag {
+    color: #808080; /* VS Code tag gray */
+  }
+
+  /* Deletions (diffs) */
+  .hljs-deletion {
+    color: #a31515;
+    background-color: rgba(255, 200, 200, 0.3);
+  }
+
+  .dark .hljs-deletion {
+    color: #f48771;
+    background-color: rgba(255, 0, 0, 0.2);
+  }
+
+  /* Additions (diffs) */
+  .hljs-addition {
+    color: #098658;
+    background-color: rgba(200, 255, 200, 0.3);
+  }
+
+  .dark .hljs-addition {
+    color: #b5cea8;
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+
+  /* Emphasis and strong */
+  .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .hljs-strong {
+    font-weight: 600;
+  }
+
+  /* Punctuation */
+  .hljs-punctuation {
+    color: #000000;
+  }
+
+  .dark .hljs-punctuation {
+    color: #d4d4d4;
   }
 }

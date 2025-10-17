@@ -116,7 +116,8 @@ export function WrittenSection({
 
 interface ProgrammingSectionProps {
   points: number
-  description: string
+  description?: string
+  children?: ReactNode
   githubRepoUrl?: string
   githubClassroomUrl?: string
   brightspaceUrl?: string
@@ -125,6 +126,7 @@ interface ProgrammingSectionProps {
 export function ProgrammingSection({
   points,
   description,
+  children,
   githubRepoUrl,
   githubClassroomUrl,
   brightspaceUrl,
@@ -132,48 +134,56 @@ export function ProgrammingSection({
   return (
     <div className="mb-8">
       <SectionHeader title="Programming Section" points={points} icon="💻" />
-      <div className="not-prose space-y-4">
-        <p className="text-muted-foreground">{description}</p>
 
-        <div className="flex flex-wrap gap-3">
-          {githubClassroomUrl && (
-            <Button asChild variant="default" size="lg">
-              <a
-                href={githubClassroomUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="w-4 h-4 mr-2" />
-                Accept GitHub Classroom Assignment
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </a>
-            </Button>
-          )}
-
-          {githubRepoUrl && (
-            <Button asChild variant="outline" size="lg">
-              <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer">
-                <Github className="w-4 h-4 mr-2" />
-                View Repository
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </a>
-            </Button>
-          )}
-
-          {brightspaceUrl && (
-            <Button asChild variant="default" size="lg">
-              <a
-                href={brightspaceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <GraduationCap className="w-4 h-4 mr-2" />
-                Submit to Brightspace
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </a>
-            </Button>
-          )}
+      {/* Description (if provided as prop) */}
+      {description && (
+        <div className="not-prose mb-4">
+          <p className="text-muted-foreground">{description}</p>
         </div>
+      )}
+
+      {/* MDX Content (if provided as children) */}
+      {children && (
+        <div className="prose prose-neutral dark:prose-invert max-w-none mb-4">
+          {children}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="not-prose flex flex-wrap gap-3">
+        {githubClassroomUrl && (
+          <Button asChild variant="default" size="lg">
+            <a
+              href={githubClassroomUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Github className="w-4 h-4 mr-2" />
+              Accept GitHub Classroom Assignment
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </a>
+          </Button>
+        )}
+
+        {githubRepoUrl && (
+          <Button asChild variant="outline" size="lg">
+            <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer">
+              <Github className="w-4 h-4 mr-2" />
+              View Repository
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </a>
+          </Button>
+        )}
+
+        {brightspaceUrl && (
+          <Button asChild variant="default" size="lg">
+            <a href={brightspaceUrl} target="_blank" rel="noopener noreferrer">
+              <GraduationCap className="w-4 h-4 mr-2" />
+              Submit to Brightspace
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </a>
+          </Button>
+        )}
       </div>
     </div>
   )
