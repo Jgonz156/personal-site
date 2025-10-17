@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { CalendarDays } from "lucide-react"
 import {
   SidebarGroup,
@@ -9,7 +10,11 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { getTodaysEvents, getEventTypeColor, getEventTypeIcon } from "@/lib/course-data"
+import {
+  getTodaysEvents,
+  getEventTypeColor,
+  getEventTypeIcon,
+} from "@/lib/course-data"
 import { cn } from "@/lib/utils"
 
 export function TodaySection() {
@@ -28,8 +33,8 @@ export function TodaySection() {
           </div>
         ) : (
           <SidebarMenu>
-            {todaysEvents.map((event) => (
-              <SidebarMenuItem key={event.id} className="mb-2">
+            {todaysEvents.map((event) => {
+              const CardContent = (
                 <div className="px-2 py-2 rounded-md hover:bg-sidebar-accent transition-colors">
                   <div className="flex items-start gap-2">
                     <span className="text-lg" title={event.type}>
@@ -60,12 +65,23 @@ export function TodaySection() {
                     </div>
                   </div>
                 </div>
-              </SidebarMenuItem>
-            ))}
+              )
+
+              return (
+                <SidebarMenuItem key={event.id} className="mb-2">
+                  {event.contentUrl ? (
+                    <Link href={event.contentUrl} className="block">
+                      {CardContent}
+                    </Link>
+                  ) : (
+                    CardContent
+                  )}
+                </SidebarMenuItem>
+              )
+            })}
           </SidebarMenu>
         )}
       </SidebarGroupContent>
     </SidebarGroup>
   )
 }
-
