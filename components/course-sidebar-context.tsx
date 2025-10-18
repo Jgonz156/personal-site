@@ -7,6 +7,7 @@ import React, {
   ReactNode,
   useEffect,
 } from "react"
+import { usePathname } from "next/navigation"
 
 interface CourseSidebarContextType {
   isOpen: boolean
@@ -25,6 +26,7 @@ export function CourseSidebarProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const pathname = usePathname()
 
   // Detect mobile viewport
   useEffect(() => {
@@ -36,6 +38,13 @@ export function CourseSidebarProvider({ children }: { children: ReactNode }) {
     window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    if (isMobile) {
+      setIsOpen(false)
+    }
+  }, [pathname, isMobile])
 
   const toggleSidebar = () => {
     if (isMobile) {
