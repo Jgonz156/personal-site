@@ -1,13 +1,13 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
-import ActivityCard from "../components/activity-card"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
+import ActivityCard from "../components/activity-card";
 
 export default function CMSI3510() {
   return (
@@ -352,7 +352,7 @@ export default function CMSI3510() {
                   },
                 ]}
               />
-              {/*}
+
               <NotesCard
                 title="LN 14: Continuous Fragmentation"
                 description="In this lecture we investigate memory allocation! We begin with studying contiguous memory allocation techniques like fixed and dynamic partitioning.
@@ -360,11 +360,12 @@ export default function CMSI3510() {
                 notesSlug="" //"/cmsi-3510/ln13"
                 sectionRecordings={[
                   {
-                    buttonText: "Class Video",
-                    url: "https://lmula.zoom.us/rec/share/NiQ9Dn92YMJWQb12sSWJwXHuN_3tDem86UQymlXSf_vPILcXTw2Qh1TzQlluxzC2.gMCpnMvcdhXgJa4E",
+                    buttonText: "Class Recording",
+                    url: "https://lmula.zoom.us/rec/share/b8a-Mtt0DpwOXz1gFFOe3lm4Ot3RwjvRx3WWT8LX_mi5hnegYTk-0zYmI6TpSzwd.jN7qvZkP-hpbqHJl",
                   },
                 ]}
               />
+              {/*}
               <NotesCard
                 title="LN 15: Infinite Memory... Sort of"
                 description="In this lecture we continue looking into memory allocation. We begin with Virtual Memory and how it is used to
@@ -427,5 +428,5 @@ export default function CMSI3510() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-import { Chip, Divider, Sheet } from "@mui/joy"
-import Footer from "../../../components/footer"
-import AutoStoriesIcon from "@mui/icons-material/AutoStories"
-import CourseNavBar from "../components/course-nav-bar"
-import AssignmentCard from "../components/assignment-card"
-import ExamCard from "../components/exam-card"
-import NotesCard from "../components/notes-card"
-import Standard from "../components/standard"
-import Speak from "../components/speak"
+import { Chip, Divider, Sheet } from "@mui/joy";
+import Footer from "../../../components/footer";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import CourseNavBar from "../components/course-nav-bar";
+import AssignmentCard from "../components/assignment-card";
+import ExamCard from "../components/exam-card";
+import NotesCard from "../components/notes-card";
+import Standard from "../components/standard";
+import Speak from "../components/speak";
 
 export default function CMSI2820() {
   return (
@@ -451,23 +451,18 @@ export default function CMSI2820() {
                   },
                 ]}
               />
-              {/*
               <NotesCard
                 title="LN 15: In the Domain of Sheep"
                 description="In this lecture we investigate the patterns that can be found in a lambdas inputs and outputs. We cover domain, codomain, image, pre-image and how an investigation into them gives us three function classes: Injective, Surjective, and Bijective"
                 notesSlug=""
                 sectionRecordings={[
                   {
-                    buttonText: "Last Semester Section 1 Video",
-                    url: "https://lmula.zoom.us/rec/share/HIdQ6-URRZZCuTjhTQcY_DIxZLYHoEVJenFNVgemiQv-e6Ika8mdqAjmeP9R_4V3.mefUEt9tHARLzW4_?startTime=1729184582000",
+                    buttonText: "Morning Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/6ZgT8reVqIhe8hPORjYRnKBTPEmSPnjdNkecSEEZfzkWcHjABjABy5codIklKdgN.WXLrZyJSwzIEZBBl",
                   },
                   {
-                    buttonText: "Last Semester Section 2 Video",
-                    url: "https://lmula.zoom.us/rec/share/81I4FSyqGlphg499OH6K7SGm0GJkNcKzKLyUAG3hewAApI12S5WuKW1qlhp0UMNd.I6Qwggd9GnsSVcDj?startTime=1729198100000",
-                  },
-                  {
-                    buttonText: "Last Semester Section 3 Video",
-                    url: "https://lmula.zoom.us/rec/share/tevUmc_LCdP9UZJSXX98LysG5F9x5TEjwQAIv1dL-xbXquUPK-cIRBnF7AvyKse3.6_fBLQ3U4TIzHomt?startTime=1729213895000",
+                    buttonText: "Night Lecture Video",
+                    url: "https://lmula.zoom.us/rec/share/CaTbXJc3CmYxJ--LxVyz2vz7qaPkZBsO0rI5Mro4CWXAszo9COkkhj4S9mK4e9_X.1BWfqGZpkO9_ZhRL",
                   },
                 ]}
               />
@@ -476,7 +471,6 @@ export default function CMSI2820() {
                 description="In this homework we practice lambdas, their reductions, their properties, and their creation!"
                 assignmentSlug="/cmsi-2820/hw4"
               />
-              */}
             </Standard>
             {/*
             <Standard
@@ -706,5 +700,5 @@ export default function CMSI2820() {
       </Sheet>
       <Footer />
     </>
-  )
+  );
 }
