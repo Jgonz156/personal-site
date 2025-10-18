@@ -30,11 +30,15 @@ import {
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-// Sample courses data
+// Available courses - update this list when adding new courses
 const courses = [
   { id: "cmsi-2820", code: "CMSI 2820", name: "Discrete Math for CS" },
-  { id: "cmsi-3801", code: "CMSI 3801", name: "Programming Languages" },
-  { id: "cmsi-2021", code: "CMSI 2021", name: "Data Structures" },
+  { id: "cmsi-3510", code: "CMSI 3510", name: "Operating Systems" },
+  {
+    id: "cmsi-5850",
+    code: "CMSI 5850",
+    name: "Programming Languages Foundations",
+  },
 ]
 
 export default function MobileNav() {

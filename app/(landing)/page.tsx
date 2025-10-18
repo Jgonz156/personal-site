@@ -17,20 +17,18 @@ export default function SiteHome() {
       code: "CMSI 2820",
       level: "Sophomore",
       description:
-        "Deep dive into discrete mathematics and its foundations in computer science.",
+        "Deep dive into the mathematics that forms the foundation of computer science.",
       link: "/cmsi-2820",
-      image:
-        "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+      image: "/landing/discrete-landing-photo.webp",
     },
     {
       title: "Operating Systems",
       code: "CMSI 3510",
       level: "Junior",
       description:
-        "Introduction to operating systems and their design and implementation.",
+        'Demystifying the "magic" that supports your everyday computing.',
       link: "/cmsi-3510",
-      image:
-        "https://images.unsplash.com/photo-1555949963-aa79dcbae5bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+      image: "/landing/operating-systems-landing-photo.jpg",
     },
     {
       title: "Programming Language Foundations",
@@ -39,8 +37,7 @@ export default function SiteHome() {
       description:
         "Mathematical foundations of the syntax and semantics of programming languages.",
       link: "/cmsi-5850",
-      image:
-        "https://images.unsplash.com/photo-1551288049-ff6e48b1e5ad?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+      image: "/landing/foundations-landing-photo.webp",
     },
   ]
 
@@ -132,7 +129,7 @@ export default function SiteHome() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1562774053-701939374585?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`,
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/landing/Loyola-Marymount-University.jpeg')`,
           }}
         />
         <div className="relative flex items-center justify-center h-full">

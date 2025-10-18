@@ -1,0 +1,60 @@
+import { ExamIntro, ExamRules } from "@/components/exam-sections"
+import { getExamEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  exNumber: 2,
+  title: "EX2: Numbers Exam",
+  standard: "2 (Numbers)",
+  topics: [
+    "Constructive Proofs",
+    "Abstract Algebra",
+    "Integers",
+    "Booleans",
+    "Arithmetic Evaluation",
+  ],
+  totalPoints: 10,
+  totalQuestions: 5,
+  hasTimer: true,
+  allowedAttempts: "1",
+  examUrl:
+    "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802315/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277",
+}
+
+export const examEvent = getExamEvent(metadata.exNumber)
+
+<ExamIntro
+  title={metadata.title}
+  examDate={formatDate(examEvent?.date)}
+  examTime={examEvent?.dueTime}
+  standard={metadata.standard}
+  topics={metadata.topics}
+  totalPoints={metadata.totalPoints}
+  totalQuestions={metadata.totalQuestions}
+  description={examEvent?.description}
+  hasTimer={metadata.hasTimer}
+  allowedAttempts={metadata.allowedAttempts}
+  examUrl={metadata.examUrl}
+/>
+
+## About This Exam
+
+This exam is part of the optional midterm series. It covers **Standard 2: Numbers**, focusing on number theory, arithmetic operations, and abstract algebra concepts that we've explored.
+
+You can take this exam independently of the other midterm exams (Logic and Collections). Take only the exams for standards where you want to improve your grade.
+
+<ExamRules>
+
+### Important Notes
+
+- This exam covers **Standard 2: Numbers**
+- **1 attempt** with a **30-minute timer**
+- Timer accommodations are automatically reflected in Brightspace
+- Points earned apply **only to the Numbers standard**
+- **Open everything** except soliciting answers (no Stack Overflow posts, no asking classmates)
+- Part of the optional midterm series - take as many sections as you'd like!
+
+</ExamRules>
+
+## Ready?
+
+When you're ready to take the exam, click the button above to access it on Brightspace. Good luck!

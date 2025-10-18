@@ -1,0 +1,275 @@
+import {
+  LectureIntro,
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { getLectureEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  lnNumber: 16,
+  title: "LN16: Laws and Orders",
+  topics: [
+    "The Rule of Sums",
+    "The Rule of Products",
+    "Disjoint Sets",
+    "The Inclusion-Exclusion Principle",
+  ],
+}
+
+export const lectureEvent = getLectureEvent(metadata.lnNumber)
+
+<LectureIntro
+  title={metadata.title}
+  lectureDate={formatDate(lectureEvent?.date)}
+  standard={lectureEvent?.standard || "Combinatorics"}
+  topics={metadata.topics}
+  description={lectureEvent?.description}
+  recordingUrls={lectureEvent?.recordings}
+/>
+
+## What is Combinatorics?
+
+Combinatorics is the mathematics of **counting**. While that might sound simple, the questions we ask quickly become fascinating:
+
+- How many different ways can you arrange 5 books on a shelf?
+- If you flip a coin 10 times, how many different sequences could you see?
+- How many possible passwords are there with 8 characters?
+- How many ways can you choose 3 students from a class of 30?
+
+These aren't just academic puzzles, they're the foundation of probability theory, computer science algorithms, cryptography, and much more!
+
+Counting is a general problem found in many different areas of mathematics. Sometimes we are counting the number of
+possible polygons in geometry, the number of rectangles we can fit under a curve in calculus, or even how many times we
+run certain lines of code to determine the complexity of an algorithm.
+
+As it turns out there are many different ways to count and on top of that there are many things we choose not to count. Below, lets
+define four major categories of "counting" problems:
+
+- Enumeration Problems: Counting a number of objects
+- Existential/Selection Problems: Locating a specific object amongst others
+- Construction Problems: Constructing an object from others
+- Optimization Problems: Finding the best object amongst others
+
+These don't sound so bad, but we lack formal mechanisms to proceduralize the solving of problems in these areas.
+
+Whilst solving these problems as a human is relatively straightforward, we need to rely on the previous primitives, properties, and operations
+we investigated previously to ensure we can get Computers to solve these problems.
+
+Before we can decide which of our previous tools to use, lets first familiarize ourselves with some Enumeration problems!
+
+---
+
+## Enumeration
+
+Enumeration problems fundamentally rely of a few important rules that we will investigate in turn:
+
+- Disjoint Sets
+- The Rule of Sums
+- The Rule of Products
+- The Inclusion-Exclusion Principle
+
+## The Fundamental Counting Principles
+
+### The Rule of Sums (Addition Principle)
+
+If you have to make a choice between **disjoint** options (meaning you can only pick one), you **add** the number of ways to do each.
+
+<LectureNotes>
+
+**The Rule of Sums**: If task A can be done in $m$ ways and task B can be done in $n$ ways, and **you can't do both**, then you can do either A or B in $m + n$ ways.
+
+**Key requirement**: The sets must be **disjoint** (no overlap)!
+
+</LectureNotes>
+
+#### Example 1: Choosing a Dessert
+
+At a restaurant, you can choose:
+
+- 3 types of ice cream, OR
+- 4 types of cake
+
+How many dessert options do you have?
+
+**Solution**: Since you can only choose one dessert, we use the Rule of Sums:
+
+$$3 + 4 = 7 \text\{ dessert options\}$$
+
+---
+
+### The Rule of Products (Multiplication Principle)
+
+If you have to make **multiple independent choices in sequence**, you **multiply** the number of ways to do each.
+
+<LectureNotes>
+
+**The Rule of Products**: If task A can be done in $m$ ways and task B can be done in $n$ ways, and **you must do both**, then you can do A followed by B in $m \times n$ ways.
+
+**Key requirement**: The choices must be **independent** of each other!
+
+</LectureNotes>
+
+#### Example 2: Making an Outfit
+
+You're getting dressed and need to choose:
+
+- One of 5 shirts
+- One of 3 pairs of pants
+
+How many different outfits can you make?
+
+**Solution**: You must make both choices, so we use the Rule of Products:
+
+$$5 \times 3 = 15 \text\{ possible outfits\}$$
+
+---
+
+## Disjoint Sets
+
+Two sets are **disjoint** if they have no elements in common. This is crucial for the Rule of Sums!
+
+| Sets                         | Disjoint? | Why?               |
+| ---------------------------- | --------- | ------------------ |
+| \{1, 2, 3\} and \{4, 5, 6\}  | ✅ Yes    | No shared elements |
+| \{1, 2, 3\} and \{3, 4, 5\}  | ❌ No     | Both contain 3     |
+| Even numbers and Odd numbers | ✅ Yes    | No number is both  |
+
+> **Important**: When using the Rule of Sums, always verify your sets are disjoint! If they overlap, you'll overcount.
+
+---
+
+## Combining the Rules
+
+Most real problems require using **both** rules together!
+
+### Example 3: Password Strength
+
+A simple password must:
+
+- Start with a letter (26 choices)
+- Then have a digit (10 choices)
+- Then have another letter (26 choices)
+
+How many passwords are possible?
+
+**Solution**: We need to make all three choices, so multiply:
+
+$$26 \times 10 \times 26 = 6,760 \text\{ possible passwords\}$$
+
+### Example 4: Travel Plans
+
+You're planning a trip and need to decide:
+
+1. **Transportation**: Drive (1 way) OR Fly (3 airlines to choose from)
+2. **Hotel**: 4 hotels available
+
+How many ways can you plan your trip?
+
+**Solution**:
+
+- First, count transportation options: $1 + 3 = 4$ ways (Rule of Sums)
+- Then, multiply by hotel choices: $4 \times 4 = 16$ total plans (Rule of Products)
+
+---
+
+## Practice Problems
+
+Try these to test your understanding!
+
+### Problem 1: Restaurant Menu
+
+A restaurant offers:
+
+- 5 appetizers
+- 8 main courses
+- 3 desserts
+
+If you must order all three courses, how many different meals can you create?
+
+<details>
+<summary>**Show Solution**</summary>
+
+You must make all three choices, so use the Rule of Products:
+
+$$5 \times 8 \times 3 = 120 \text\{ different meals\}$$
+
+</details>
+
+### Problem 2: License Plates
+
+A license plate consists of:
+
+- 3 letters (A-Z)
+- Followed by 3 digits (0-9)
+
+How many different license plates are possible?
+
+<details>
+<summary>**Show Solution**</summary>
+
+Each position is an independent choice:
+
+$$26 \times 26 \times 26 \times 10 \times 10 \times 10 = 17,576,000 \text\{ license plates\}$$
+
+Or more concisely: $26^3 \times 10^3$
+
+</details>
+
+### Problem 3: Committee Selection (Challenge)
+
+You need to form a 2-person committee from a group of:
+
+- 4 seniors
+- 5 juniors
+
+The committee must have people from the same class (both seniors OR both juniors). How many ways can you form the committee?
+
+> **Hint**: This combines both rules! First figure out how many ways to pick 2 from each class, then add.
+
+<details>
+<summary>**Show Solution**</summary>
+
+- Ways to pick 2 seniors: $4 \times 3 = 12$ ways (first pick × second pick)
+- Ways to pick 2 juniors: $5 \times 4 = 20$ ways
+- Total: $12 + 20 = 32$ ways (Rule of Sums - they're disjoint options)
+
+_Note: We'll learn a better formula for this type of problem soon!_
+
+</details>
+
+---
+
+## Key Takeaways
+
+- **Rule of Sums**: Add when you choose **one option from disjoint sets**
+- **Rule of Products**: Multiply when you make **multiple independent choices**
+- **Disjoint sets** have no overlap - essential for the Rule of Sums
+- Most problems require **combining both rules**
+- Always think: "Am I choosing OR doing?" (add) vs "Am I choosing AND doing?" (multiply)
+
+---
+
+## Coming Up Next
+
+In the next lecture, we'll dive deeper into counting with:
+
+- **Factorials** ($n!$) - for counting arrangements
+- **Permutations** - ordered selections
+- **Combinations** - unordered selections
+
+Get ready for the classic question: "What's the difference between permutations and combinations?" 🎲
+
+<LectureResources>
+
+### Practice More
+
+- Try creating your own counting problems from everyday situations
+- Think about passwords, phone numbers, and other sequences you encounter
+- Challenge: How many different ways can you rearrange the letters in your name?
+
+### Additional Reading
+
+- Chapter 5 in your discrete math textbook
+- Look up "Fundamental Counting Principle" for more examples
+
+</LectureResources>

@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useNavbar } from "@/components/navbar-context"
 import StandardsDiagram from "@/components/standards-diagram"
 
-export default function Syllabus() {
+export default function CMSI3510Syllabus() {
   const { setPageSections } = useNavbar()
 
   useEffect(() => {
@@ -23,12 +23,12 @@ export default function Syllabus() {
         level: 1,
       },
       { id: "assignments-policies", title: "Assignments & Policies", level: 1 },
-      { id: "student-services", title: "Student Services", level: 1 },
       {
         id: "student-responsibilities",
         title: "Student Responsibilities",
         level: 1,
       },
+      { id: "student-services", title: "Student Services", level: 1 },
       { id: "faq", title: "FAQ", level: 1 },
     ])
 
@@ -39,9 +39,7 @@ export default function Syllabus() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">
-        CMSI 2820: Discrete Mathematics for Computer Science
-      </h1>
+      <h1 className="text-3xl font-bold mb-6">CMSI 3510: Operating Systems</h1>
       <p className="text-sm text-muted-foreground mb-6">
         Loyola Marymount University | Fall 2025
       </p>
@@ -60,20 +58,17 @@ export default function Syllabus() {
               <strong>Email:</strong> Julian.Gonzalez@lmu.edu
             </p>
             <p>
-              <strong>Office Hours:</strong> Monday & Wednesday, 2:00 PM - 5:00
-              PM
+              <strong>Office Hours:</strong> By appointment
             </p>
             <p>
-              <strong>Prerequisites:</strong> CMSI 1010 or ENGR 160 or ENGR 1200
+              <strong>Prerequisites:</strong> CMSI 2210 and/or CMSI 284 or EECE
+              3140
             </p>
             <div className="pt-2">
-              <p className="font-semibold mb-2">Sections:</p>
-              <div className="pl-4 space-y-1">
+              <p className="font-semibold mb-2">Section:</p>
+              <div className="pl-4">
                 <p>
-                  <strong>Section 1:</strong> Pereira 207, 9:55 AM – 11:35 AM
-                </p>
-                <p>
-                  <strong>Section 2:</strong> Pereira 207, 6:00 PM – 7:40 PM
+                  <strong>Section 1:</strong> Pereira 127, 1:45 PM – 3:25 PM
                 </p>
               </div>
             </div>
@@ -88,25 +83,27 @@ export default function Syllabus() {
           <h2 className="text-2xl font-semibold mb-3">Course Description</h2>
           <div className="space-y-3 text-muted-foreground">
             <p>
-              This 4-unit course combines discrete mathematics theory with
-              practical application in Python. Topics include Intuitionistic
-              Propositional and Predicate Logic, Number Theory, Type Theory,
-              Combinatorics, Graph Theory, Set Theory, and other concepts
-              relevant to the Discrete Foundations of Computer Science.
+              This 4-unit course combines the modern development of Operating
+              Systems with practical application in Rust. Topics include
+              Concurrent and Parallel Programming, investigations of computer
+              hardware architecture, Scheduling, Memory Management, I/O
+              management, and other concepts relevant to the view of Kernel
+              Systems.
             </p>
             <p>
-              This course meets in person in a synchronous, lecture-based
-              format. Recordings of all lectures will be uploaded to the course
-              site for asynchronous access, typically after class. You are
-              encouraged to ask questions at any time during lectures.
+              This course is offered in a synchronous, lecture-based format,
+              meeting in person. Recordings of all lectures will be uploaded to
+              the course site for asynchronous access, typically after class.
+              You are encouraged to ask questions at any time during lectures.
             </p>
             <p>
-              Coursework consists of written and programming assignments, as
-              well as optional creative projects and optional midterm and final
-              assessments for additional credit. Collaboration is encouraged,
-              but all submitted work must be your own original work. If you work
-              with others or use outside sources, cite them appropriately so I
-              can accurately assess each student's understanding.
+              Coursework consists of programming assignments, mandatory in-class
+              activities, as well as optional creative projects and optional
+              midterm and final assessments for additional credit. Collaboration
+              is encouraged, but all submitted work must be your own original
+              work. If you work with others or use outside sources, cite them
+              appropriately so I can accurately assess each student&apos;s
+              understanding.
             </p>
             <p>
               This 4-unit course requires a minimum of 12 hours of work per
@@ -121,57 +118,52 @@ export default function Syllabus() {
         <section id="learning-outcomes">
           <h2 className="text-2xl font-semibold mb-3">Learning Outcomes</h2>
           <p className="text-muted-foreground mb-4">
-            This course aims to provide a rigorous foundation in the mathematics
-            underlying Computer Science. Many of the common problems you will
-            solve and need to represent both conceptually and in code have
-            distinct patterns. While the course may not cover all topics in
-            depth, you will develop the following core competencies:
+            Modern computing often conceals its complexity behind layers of
+            abstraction, allowing software engineers to treat systems as if they
+            operate by "magic." In this course, we will strip away that sense of
+            mystery by examining the principles and mechanisms that make modern
+            computing possible. While the breadth of operating systems cannot be
+            fully covered in a single semester, you will develop the following
+            core competencies:
           </p>
           <ol className="list-decimal list-outside ml-6 space-y-3 text-muted-foreground">
             <li>
-              Understand the fundamentals of{" "}
-              <strong>Intuitionistic Logic</strong>, including differences from
-              Classical Logic, and its applications in propositional and
-              predicative reasoning, higher-order extensions, and its
-              relationship to Type Theory.
+              <strong>Model and implement concurrent systems in Rust</strong>,
+              explain the representations of concurrency (threads, processes,
+              and tasks), and use synchronization primitives (e.g., mutexes,
+              semaphores, channels) to coordinate concurrent execution.
             </li>
             <li>
-              Explore <strong>Boolean numbers</strong> and their role in
-              computer logic, Venn diagrams, natural numbers, algebraic
-              properties of operations (commutativity, associativity), and
-              arithmetic operations such as modular arithmetic and integer
-              division.
+              <strong>
+                Analyze and explain computer hardware architecture
+              </strong>{" "}
+              at the level relevant to OS development, including memory
+              hierarchies, processor modes, and I/O systems.
             </li>
             <li>
-              Examine fundamental <strong>collection types</strong>, including
-              sets and tuples, their operations (union, intersection, powerset,
-              Cartesian product), and the representation of relationships
-              through set membership.
+              <strong>Design and evaluate process scheduling algorithms</strong>
+              , understanding trade-offs between throughput, response time, and
+              fairness.
             </li>
             <li>
-              Study <strong>functions</strong> in the context of the Lambda
-              Calculus and typed lambda calculus, including their reductions
-              (Alpha, Beta, Gamma) and comparison to set-theoretic functions.
+              <strong>
+                Implement and reason about memory management systems
+              </strong>
+              , including virtual memory, paging, and allocation strategies.
             </li>
             <li>
-              Investigate <strong>combinatorics</strong>, including
-              combinations, permutations, factorial algebra, tetration, the
-              pigeonhole principle, and inductive proof techniques.
+              <strong>Develop system-level programs in Rust</strong> that
+              interact with OS APIs, manage resources safely, and handle errors
+              appropriately.
             </li>
             <li>
-              Develop a strong understanding of <strong>graph theory</strong>,
-              covering simple and directed graphs, trees, paths, cycles,
-              connectivity, and graph isomorphisms, and apply these concepts to
-              solve complex problems such as the traveling salesman problem and
-              minimum spanning trees.
+              <strong>Articulate the design principles and trade-offs</strong>{" "}
+              that shape modern operating systems, including security,
+              performance, and abstraction.
             </li>
             <li>
-              Recognize how previous concepts are reinterpreted through{" "}
-              <strong>Set Theory versus Type Theory</strong>.
-            </li>
-            <li>
-              Apply <strong>Python</strong> to analyze, solve, and engage with
-              discrete mathematics problems and algorithmic techniques.
+              Apply <strong>Rust</strong> to implement low-level system
+              components and understand its advantages in systems programming.
             </li>
           </ol>
         </section>
@@ -184,13 +176,36 @@ export default function Syllabus() {
           </p>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground">
             <li>A laptop/desktop with unrestricted terminal access</li>
-            <li>Python 3 and an IDE (e.g., VSCode)</li>
+            <li>Rust and an IDE (e.g., VSCode)</li>
             <li>Reliable internet access</li>
           </ul>
           <p className="text-muted-foreground mt-3">
             All reading materials, including textbooks, articles, videos, and
-            other media, will be available on the course site.
+            other media, will be available on the course site. Primary
+            references include:
           </p>
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-6 mt-2">
+            <li>
+              <strong>The Rust Programming Language Book</strong> (free online
+              at{" "}
+              <a
+                href="https://doc.rust-lang.org/book/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                doc.rust-lang.org/book/
+              </a>
+              )
+            </li>
+            <li>
+              <strong>
+                Operating Systems and Middleware: Supporting Controlled
+                Interaction
+              </strong>{" "}
+              by Max Hailperin (available on course site)
+            </li>
+          </ul>
         </section>
 
         <section id="grading-system">
@@ -205,77 +220,116 @@ export default function Syllabus() {
 
           <div className="mb-6">
             <StandardsDiagram
-              courseID="CMSI 2820: Discrete Mathematics for CS"
-              coursePointTotal={480}
+              courseID="CMSI 3510: Operating Systems"
+              coursePointTotal={240}
               standards={[
                 {
                   standardID: "Syllabus",
                   pointTotal: 0,
-                  homework: [{ id: "HW 0", points: 3, gradedWith: "Syllabus" }],
-                  exams: [{ id: "EX S0", points: 2, gradedWith: "Syllabus" }],
+                  homework: [
+                    { id: "HW 0", points: 3, gradedWith: "Syllabus" },
+                    { id: "OHW 0", points: 1, gradedWith: "Syllabus" },
+                  ],
+                  exams: [{ id: "EX S0", points: 1, gradedWith: "Syllabus" }],
                 },
                 {
-                  standardID: "Logic",
-                  pointTotal: 80,
-                  homework: [{ id: "HW 1", points: 100, gradedWith: "Logic" }],
-                },
-                {
-                  standardID: "Numbers",
+                  standardID: "Concurrent Programming",
                   pointTotal: 80,
                   homework: [
-                    { id: "HW 2", points: 100, gradedWith: "Numbers" },
-                    { id: "OHW 1", points: 20, gradedWith: "Logic" },
+                    {
+                      id: "HW 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "HW 2",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "AC 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
                   ],
                 },
                 {
-                  standardID: "Collections",
+                  standardID: "Computer Hardware",
                   pointTotal: 80,
                   homework: [
-                    { id: "HW 3", points: 100, gradedWith: "Collections" },
-                    { id: "OHW 2", points: 20, gradedWith: "Numbers" },
+                    {
+                      id: "HW 3",
+                      points: 30,
+                      gradedWith: "Computer Hardware",
+                    },
+                    {
+                      id: "HW 4",
+                      points: 30,
+                      gradedWith: "Computer Hardware",
+                    },
+                    {
+                      id: "AC 2",
+                      points: 30,
+                      gradedWith: "Computer Hardware",
+                    },
+                    {
+                      id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Concurrent Programming",
+                    },
                   ],
                 },
                 {
-                  standardID: "Midterm",
-                  exams: [
-                    { id: "OEX S1", points: 10, gradedWith: "Logic" },
-                    { id: "OEX S2", points: 10, gradedWith: "Numbers" },
-                    { id: "OEX S3", points: 10, gradedWith: "Collections" },
-                  ],
-                },
-                {
-                  standardID: "Functions",
+                  standardID: "Operating Systems",
                   pointTotal: 80,
                   homework: [
-                    { id: "HW 4", points: 100, gradedWith: "Functions" },
-                    { id: "OHW 3", points: 20, gradedWith: "Collections" },
-                  ],
-                },
-                {
-                  standardID: "Combinatorics",
-                  pointTotal: 80,
-                  homework: [
-                    { id: "HW 5", points: 100, gradedWith: "Combinatorics" },
-                    { id: "OHW 4", points: 20, gradedWith: "Functions" },
-                  ],
-                },
-                {
-                  standardID: "Graph Theory",
-                  pointTotal: 80,
-                  homework: [
-                    { id: "HW 6", points: 100, gradedWith: "Graph Theory" },
-                    { id: "OHW 5", points: 20, gradedWith: "Combinatorics" },
+                    {
+                      id: "HW 5",
+                      points: 30,
+                      gradedWith: "Operating Systems",
+                    },
+                    {
+                      id: "HW 6",
+                      points: 30,
+                      gradedWith: "Operating Systems",
+                    },
+                    {
+                      id: "AC 3",
+                      points: 30,
+                      gradedWith: "Operating Systems",
+                    },
+                    {
+                      id: "OHW 2",
+                      points: 20,
+                      gradedWith: "Computer Hardware",
+                    },
                   ],
                 },
                 {
                   standardID: "Final",
                   homework: [
-                    { id: "OHW 6", points: 20, gradedWith: "Graph Theory" },
+                    {
+                      id: "OHW 3",
+                      points: 20,
+                      gradedWith: "Operating Systems",
+                    },
                   ],
                   exams: [
-                    { id: "OEX S4", points: 10, gradedWith: "Functions" },
-                    { id: "OEX S5", points: 10, gradedWith: "Combinatorics" },
-                    { id: "OEX S6", points: 10, gradedWith: "Graph Theory" },
+                    {
+                      id: "OEX S1",
+                      points: 10,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "OEX S2",
+                      points: 10,
+                      gradedWith: "Computer Hardware",
+                    },
+                    {
+                      id: "OEX S3",
+                      points: 10,
+                      gradedWith: "Operating Systems",
+                    },
                   ],
                 },
               ]}
@@ -285,8 +339,8 @@ export default function Syllabus() {
           <div className="bg-muted/50 rounded-lg p-4">
             <p className="font-semibold mb-3">Course Structure</p>
             <p className="text-sm text-muted-foreground mb-3">
-              The course is divided into six standards (modules), each worth 80
-              points (total: 480). Assignments are organized as follows:
+              The course is divided into three standards (modules), each worth
+              80 points (total: 240). Assignments are organized as follows:
             </p>
             <table className="w-full text-sm">
               <thead>
@@ -299,44 +353,38 @@ export default function Syllabus() {
               <tbody>
                 <tr className="border-b border-border">
                   <td className="py-2">Syllabus</td>
-                  <td className="py-2">HW0 (3 pts), EX S0 (2 pts)</td>
+                  <td className="py-2">
+                    HW0 (3 pts), OHW0 (1 pt), EX S0 (1 pt)
+                  </td>
                   <td className="py-2 text-right">5 (bonus)</td>
                 </tr>
                 <tr className="border-b border-border">
-                  <td className="py-2">Logic</td>
-                  <td className="py-2">HW1 (100 pts)</td>
+                  <td className="py-2">Concurrent Programming</td>
+                  <td className="py-2">
+                    HW1 (30 pts), HW2 (30 pts), AC1 (30 pts)
+                  </td>
                   <td className="py-2 text-right">80 needed</td>
                 </tr>
                 <tr className="border-b border-border">
-                  <td className="py-2">Numbers</td>
-                  <td className="py-2">HW2 (100 pts), OHW1 (20 pts)</td>
-                  <td className="py-2 text-right">80 needed</td>
-                </tr>
-                <tr className="border-b border-border">
-                  <td className="py-2">Collections</td>
-                  <td className="py-2">HW3 (100 pts), OHW2 (20 pts)</td>
-                  <td className="py-2 text-right">80 needed</td>
-                </tr>
-                <tr className="border-b border-border">
-                  <td className="py-2">Functions</td>
-                  <td className="py-2">HW4 (100 pts), OHW3 (20 pts)</td>
-                  <td className="py-2 text-right">80 needed</td>
-                </tr>
-                <tr className="border-b border-border">
-                  <td className="py-2">Combinatorics</td>
-                  <td className="py-2">HW5 (100 pts), OHW4 (20 pts)</td>
+                  <td className="py-2">Computer Hardware</td>
+                  <td className="py-2">
+                    HW3 (30 pts), HW4 (30 pts), AC2 (30 pts), OHW1 (20 pts)
+                  </td>
                   <td className="py-2 text-right">80 needed</td>
                 </tr>
                 <tr>
-                  <td className="py-2">Graph Theory</td>
-                  <td className="py-2">HW6 (100 pts), OHW5 (20 pts)</td>
+                  <td className="py-2">Operating Systems</td>
+                  <td className="py-2">
+                    HW5 (30 pts), HW6 (30 pts), AC3 (30 pts), OHW2 (20 pts)
+                  </td>
                   <td className="py-2 text-right">80 needed</td>
                 </tr>
               </tbody>
             </table>
             <p className="text-sm text-muted-foreground mt-3">
-              Optional exams (Midterm, Final) provide additional opportunities
-              to recover points in earlier standards.
+              Optional exams (Final) and homework (OHW3) provide additional
+              opportunities to recover points in earlier standards. Activities
+              (AC) are mandatory in-class participation days.
             </p>
           </div>
         </section>
@@ -350,14 +398,20 @@ export default function Syllabus() {
               <h3 className="font-semibold text-foreground mb-2">Homework</h3>
               <p className="text-muted-foreground">
                 Each standard has a primary homework (HW) and an optional
-                homework (OHW) targeting the previous standard. Homeworks are
-                broken down into two major areas: <strong>written</strong> and{" "}
-                <strong>programming</strong>. The written portion will consist
-                of theoretical problems that are best solved on paper. The
-                programming portion will be distributed as a Python skeleton
-                that must be completed to pass a series of unit tests that
-                require applying our theory into practice. All homework,
-                optional or otherwise, is due on Fridays.
+                homework (OHW) targeting the previous standard. Homeworks
+                consist of hands-on Rust programming assignments that apply
+                course concepts. All homework, optional or otherwise, is due on
+                Fridays.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">Activities</h3>
+              <p className="text-muted-foreground">
+                Activities (AC) are mandatory in-class participation days that
+                provide hands-on experience with course concepts. These are
+                graded on attendance and participation. Dates will be announced
+                well in advance.
               </p>
             </div>
 
@@ -366,12 +420,11 @@ export default function Syllabus() {
                 Unexcused Extensions
               </h3>
               <p className="text-muted-foreground">
-                Automatic, unexcused extensions are available: turning in one
-                portion of the Homework (written or programming) on Saturday
-                results in a 5pt deduction. Turning in a portion on Sunday gives
-                you the previous 5-point penalty and an additional 10-point
-                deduction. Submitting a portion after Sunday without an excuse
-                results in the loss of all points.
+                Automatic, unexcused extensions are available: turning in a
+                homework on Saturday results in a 5pt deduction. Turning it in
+                on Sunday gives you the previous 5-point penalty and an
+                additional 10-point deduction. Submitting after Sunday without
+                an excuse results in the loss of all points.
               </p>
             </div>
 
@@ -388,10 +441,9 @@ export default function Syllabus() {
             <div>
               <h3 className="font-semibold text-foreground mb-2">Exams</h3>
               <p className="text-muted-foreground">
-                The Midterm and Final are optional. They provide focused
-                opportunities to boost scores in prior standards. If you have
-                reached the point total required to pass a standard (80pts),
-                then they are optional.
+                The Final is optional. It provides focused opportunities to
+                boost scores in prior standards. If you have reached the point
+                total required to pass a standard (80pts), then it is optional.
               </p>
             </div>
 
@@ -948,9 +1000,9 @@ export default function Syllabus() {
               </summary>
               <p className="text-muted-foreground text-sm mt-3">
                 No, they will still be over Brightspace digitally to be taken
-                anytime during the week, like the midterm. However, since I am
-                required to be in those assigned rooms for 2 hours I will
-                provide them as an open study days for help during finals week.
+                anytime during the week. However, since I am required to be in
+                those assigned rooms for 2 hours I will provide them as open
+                study days for help during finals week.
               </p>
             </details>
 

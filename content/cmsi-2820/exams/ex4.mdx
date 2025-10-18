@@ -1,0 +1,84 @@
+import { ExamIntro, ExamRules } from "@/components/exam-sections"
+import { getExamEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  exNumber: 4,
+  title: "EX4: Final Exam",
+  standard: "4, 5, 6 (Functions, Combinatorics, Graph Theory)",
+  topics: [
+    "Lambda Calculus",
+    "Function Properties",
+    "Permutations",
+    "Combinations",
+    "Graph Operations",
+    "Graph Theory",
+  ],
+  totalPoints: 30,
+  totalQuestions: 15,
+  hasTimer: true,
+  allowedAttempts: "1 per section",
+  // No single examUrl - this will be a multi-part exam like the midterm
+}
+
+export const examEvent = getExamEvent(metadata.exNumber)
+
+<ExamIntro
+  title={metadata.title}
+  examDate={formatDate(examEvent?.date)}
+  examTime={examEvent?.dueTime}
+  standard={metadata.standard}
+  topics={metadata.topics}
+  totalPoints={metadata.totalPoints}
+  totalQuestions={metadata.totalQuestions}
+  description={examEvent?.description}
+  hasTimer={metadata.hasTimer}
+  allowedAttempts={metadata.allowedAttempts}
+/>
+
+## About the Final Exam
+
+This is the optional final exam that covers the last three standards: **Functions**, **Combinatorics**, and **Graph Theory**. Like the midterm, this exam is structured to give you flexibility in which sections you take.
+
+Each section focuses on one standard and can be taken independently. You only need to take the sections for standards where you want to improve your grade.
+
+The complete final is **15 questions total** and worth **30 points** if you take all three sections.
+
+<ExamRules>
+
+### Important Notes
+
+- Covers **Standards 4, 5, and 6**
+- Each section: **1 attempt** with a **30-minute timer**
+- Timer accommodations are automatically reflected in Brightspace
+- **Open everything** except soliciting answers (no Stack Overflow posts, no asking classmates)
+- Take as many sections as you'd like - they're independent of each other!
+
+</ExamRules>
+
+---
+
+## Exam Sections
+
+_Note: Individual exam section links will be added here when they become available on Brightspace._
+
+### Standard 4: Functions
+
+- Lambda Calculus
+- Function Properties and Types
+- **10 points, 5 questions**
+
+### Standard 5: Combinatorics
+
+- Permutations and Combinations
+- Counting Principles
+- **10 points, 5 questions**
+
+### Standard 6: Graph Theory
+
+- Graph Operations and Properties
+- Graph Algorithms
+- **10 points, 5 questions**
+
+## Ready?
+
+Links to each section will be available on Brightspace when the exam opens. Good luck!

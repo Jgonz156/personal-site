@@ -28,30 +28,14 @@ type ContentTypeConfig = {
 /**
  * CONTENT_TYPES - Configuration for all MDX content types
  *
- * To add a new content type (exams, projects, activities, etc.):
- * 1. Add a new entry to this object
- * 2. Create a folder in content/cmsi-2820/ with the folder name
- * 3. Add MDX files with the naming pattern: {prefix}{number}.mdx
- * 4. (Optional) Add metadata for the new type below
- *
- * Example:
- *   exam: {
- *     prefix: "ex",           // URL: /cmsi-2820/ex1
- *     folder: "exams",         // Path: content/cmsi-2820/exams/ex1.mdx
- *     minNumber: 1,           // First item number (usually 0 or 1)
- *     total: 3,               // Last item number (ex: ex1, ex2, ex3)
- *     label: "Exam",          // Display: "Exam 1"
- *     shortLabel: "EX",       // Navigation: "EX 1"
- *     gridColumns: "grid-cols-3", // Grid layout for navigation
- *     topLevelSectionClass: "exam-section-header", // Optional: custom section class
- *   }
+ * TODO: Update the total counts as you add more content
  */
 const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
   lecture: {
     prefix: "ln",
     folder: "notes",
     minNumber: 1,
-    total: 27,
+    total: 0, // TODO: Update when you add lectures
     label: "Lecture Note",
     shortLabel: "LN",
     gridColumns: "grid-cols-7 sm:grid-cols-10",
@@ -60,7 +44,7 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
     prefix: "hw",
     folder: "homeworks",
     minNumber: 0,
-    total: 6,
+    total: 0, // TODO: Update when you add homeworks
     label: "Homework",
     shortLabel: "HW",
     gridColumns: "grid-cols-7 sm:grid-cols-10",
@@ -70,23 +54,18 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
     prefix: "ex",
     folder: "exams",
     minNumber: 0,
-    total: 4,
+    total: 0, // TODO: Update when you add exams
     label: "Exam",
     shortLabel: "EX",
     gridColumns: "grid-cols-5 sm:grid-cols-10",
   },
-  // Add new content types here following the pattern above
 }
-
-// Legacy constants for backward compatibility
-const TOTAL_NOTES = CONTENT_TYPES.lecture.total
-const TOTAL_HOMEWORKS = CONTENT_TYPES.homework.total
 
 // Generic function to dynamically import MDX content for any content type
 async function loadMDXContent(config: ContentTypeConfig, itemNumber: number) {
   try {
     const MDXContent = await import(
-      `@/content/cmsi-2820/${config.folder}/${config.prefix}${itemNumber}.mdx`
+      `@/content/cmsi-5850/${config.folder}/${config.prefix}${itemNumber}.mdx`
     ).then((mod) => mod.default)
     return MDXContent
   } catch (error) {
@@ -152,7 +131,6 @@ export default async function ContentPage({ params }: PageProps) {
 
   // Handle Lecture Notes
   if (isLectureNote) {
-    // Simple fallback metadata for lectures (can be enhanced later like homeworks)
     const metadata = {
       title: `${contentType.label} ${itemNumber}`,
       date: "Spring 2025",
@@ -172,7 +150,7 @@ export default async function ContentPage({ params }: PageProps) {
             {/* Header */}
             <div className="mb-6">
               <Link
-                href="/cmsi-2820"
+                href="/cmsi-5850"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 mb-4"
               >
                 ← Back to Course
@@ -212,7 +190,7 @@ export default async function ContentPage({ params }: PageProps) {
                   <p className="text-sm text-muted-foreground mt-2">
                     Create a file at{" "}
                     <code className="bg-muted px-2 py-1 rounded">
-                      content/cmsi-2820/{contentType.folder}/
+                      content/cmsi-5850/{contentType.folder}/
                       {contentType.prefix}
                       {itemNumber}.mdx
                     </code>{" "}
@@ -226,7 +204,7 @@ export default async function ContentPage({ params }: PageProps) {
             <div className="flex items-center justify-between pt-6 border-t">
               {hasPrevious ? (
                 <Link
-                  href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
+                  href={`/cmsi-5850/${contentType.prefix}${itemNumber - 1}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -240,7 +218,7 @@ export default async function ContentPage({ params }: PageProps) {
 
               {hasNext ? (
                 <Link
-                  href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
+                  href={`/cmsi-5850/${contentType.prefix}${itemNumber + 1}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <span>
@@ -263,7 +241,7 @@ export default async function ContentPage({ params }: PageProps) {
                 ).map((num) => (
                   <Link
                     key={num}
-                    href={`/cmsi-2820/${contentType.prefix}${num}`}
+                    href={`/cmsi-5850/${contentType.prefix}${num}`}
                     className={`
                   text-center py-2 rounded border text-sm font-medium transition-colors
                   ${
@@ -299,14 +277,14 @@ export default async function ContentPage({ params }: PageProps) {
             {/* Back to Course Link */}
             <div className="mb-6">
               <Link
-                href="/cmsi-2820"
+                href="/cmsi-5850"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
               >
                 ← Back to Course
               </Link>
             </div>
 
-            {/* Main Content - MDX (includes HomeworkIntro with all metadata) */}
+            {/* Main Content - MDX */}
             <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
               {MDXContent ? (
                 <Suspense fallback={<div>Loading content...</div>}>
@@ -321,7 +299,7 @@ export default async function ContentPage({ params }: PageProps) {
                   <p className="text-sm text-muted-foreground mt-2">
                     Create a file at{" "}
                     <code className="bg-muted px-2 py-1 rounded">
-                      content/cmsi-2820/{contentType.folder}/
+                      content/cmsi-5850/{contentType.folder}/
                       {contentType.prefix}
                       {itemNumber}.mdx
                     </code>{" "}
@@ -335,7 +313,7 @@ export default async function ContentPage({ params }: PageProps) {
             <div className="flex items-center justify-between pt-6 border-t">
               {hasPrevious ? (
                 <Link
-                  href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
+                  href={`/cmsi-5850/${contentType.prefix}${itemNumber - 1}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -349,7 +327,7 @@ export default async function ContentPage({ params }: PageProps) {
 
               {hasNext ? (
                 <Link
-                  href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
+                  href={`/cmsi-5850/${contentType.prefix}${itemNumber + 1}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <span>
@@ -372,7 +350,7 @@ export default async function ContentPage({ params }: PageProps) {
                 ).map((num) => (
                   <Link
                     key={num}
-                    href={`/cmsi-2820/${contentType.prefix}${num}`}
+                    href={`/cmsi-5850/${contentType.prefix}${num}`}
                     className={`
                     text-center py-2 rounded border text-sm font-medium transition-colors
                     ${
@@ -408,14 +386,14 @@ export default async function ContentPage({ params }: PageProps) {
             {/* Back to Course Link */}
             <div className="mb-6">
               <Link
-                href="/cmsi-2820"
+                href="/cmsi-5850"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
               >
                 ← Back to Course
               </Link>
             </div>
 
-            {/* Main Content - MDX (includes ExamIntro with all metadata) */}
+            {/* Main Content - MDX */}
             <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
               {MDXContent ? (
                 <Suspense fallback={<div>Loading content...</div>}>
@@ -430,7 +408,7 @@ export default async function ContentPage({ params }: PageProps) {
                   <p className="text-sm text-muted-foreground mt-2">
                     Create a file at{" "}
                     <code className="bg-muted px-2 py-1 rounded">
-                      content/cmsi-2820/{contentType.folder}/
+                      content/cmsi-5850/{contentType.folder}/
                       {contentType.prefix}
                       {itemNumber}.mdx
                     </code>{" "}
@@ -444,7 +422,7 @@ export default async function ContentPage({ params }: PageProps) {
             <div className="flex items-center justify-between pt-6 border-t">
               {hasPrevious ? (
                 <Link
-                  href={`/cmsi-2820/${contentType.prefix}${itemNumber - 1}`}
+                  href={`/cmsi-5850/${contentType.prefix}${itemNumber - 1}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -458,7 +436,7 @@ export default async function ContentPage({ params }: PageProps) {
 
               {hasNext ? (
                 <Link
-                  href={`/cmsi-2820/${contentType.prefix}${itemNumber + 1}`}
+                  href={`/cmsi-5850/${contentType.prefix}${itemNumber + 1}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <span>
@@ -481,7 +459,7 @@ export default async function ContentPage({ params }: PageProps) {
                 ).map((num) => (
                   <Link
                     key={num}
-                    href={`/cmsi-2820/${contentType.prefix}${num}`}
+                    href={`/cmsi-5850/${contentType.prefix}${num}`}
                     className={`
                     text-center py-2 rounded border text-sm font-medium transition-colors
                     ${
@@ -523,3 +501,4 @@ export async function generateStaticParams() {
 
   return allParams
 }
+

@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils"
 
 interface CourseCalendarProps {
   onDateSelect?: (date: DateTime) => void
+  courseId?: string // Optional: filter events by course
 }
 
 const DAYS_OF_WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
@@ -41,7 +42,10 @@ const MONTHS = [
   "December",
 ]
 
-export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
+export function CourseCalendar({
+  onDateSelect,
+  courseId,
+}: CourseCalendarProps) {
   const [currentDate, setCurrentDate] = React.useState(DateTime.now())
   const [selectedDate, setSelectedDate] = React.useState<DateTime | undefined>(
     DateTime.now()
@@ -186,8 +190,12 @@ export function CourseCalendar({ onDateSelect }: CourseCalendarProps) {
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1">
             {calendarDays.map((dayInfo, index) => {
-              const eventType = getEventTypeForDate(dayInfo.date)
-              const events = getEventsForDate(dayInfo.date)
+              // Filter events by courseId if provided
+              const allEvents = getEventsForDate(dayInfo.date)
+              const events = courseId
+                ? allEvents.filter((e) => e.courseId === courseId)
+                : allEvents
+              const eventType = events.length > 0 ? events[0].type : null
               const hasEvents = events.length > 0
               const eventStyle = eventType
                 ? getCalendarDayStyle(eventType)

@@ -12,13 +12,21 @@ import {
 } from "@/components/ui/sidebar"
 import {
   getTodaysEvents,
+  getCourseTodaysEvents,
   getEventTypeColor,
   getEventTypeIcon,
 } from "@/lib/course-data"
 import { cn } from "@/lib/utils"
 
-export function TodaySection() {
-  const todaysEvents = getTodaysEvents()
+interface TodaySectionProps {
+  courseId?: string // Optional: filter events by course
+}
+
+export function TodaySection({ courseId }: TodaySectionProps = {}) {
+  // Use course-specific events if courseId provided, otherwise all events
+  const todaysEvents = courseId
+    ? getCourseTodaysEvents(courseId)
+    : getTodaysEvents()
 
   return (
     <SidebarGroup>

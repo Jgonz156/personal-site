@@ -1,0 +1,84 @@
+import { ExamIntro, ExamRules } from "@/components/exam-sections"
+import { MultiSelectQuestion } from "@/components/multi-select-question"
+import { getExamEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  exNumber: 0,
+  title: "EX0: Syllabus Exam",
+  standard: "0 (Syllabus)",
+  topics: [
+    "Classroom rules",
+    "Contact information",
+    "Course standards",
+    "LMU student services",
+  ],
+  totalPoints: 2,
+  totalQuestions: 5,
+  hasTimer: false,
+  allowedAttempts: "Unlimited",
+  examUrl:
+    "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802312/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277",
+}
+
+export const examEvent = getExamEvent(metadata.exNumber)
+
+## What do Exams Look Like?
+
+Welcome to the exam page! It's relatively sparse here since this section serves only to present you with a button to go to Brightspace to access the exam!
+
+Typically what would be here is any specific information pertaining to the exam that is necessary to know, such as what standards it's based on, what topics will be covered, how many questions it has, when the due date and time is, and more.
+
+I'll take this space to explain a few things about my exams. They aren't really "exams" how you are probably used to them. They really are closer to what you might know as a "quiz". They aren't worth an insane amount of your grade and they aren't made to take very long to complete. The goal is to be a portable, third method for gaining points toward a standard in the event life gets in the way of learning and your scores on your main homework assignment and optional just didn't end up how you wanted them.
+
+They are **NOT collaborative** and they are **NOT open note**. This is because they are comprehension questions (These would be difficult to look up anyway as they will mostly pertain directly to an example we referenced in class). For example, if this were a course on networks it would include a question like this:
+
+<MultiSelectQuestion
+  question="We've seen that in class, copper cables are still used as a common medium for setting up networking lines as they are cheap and efficient for small deployments, but they have some draw backs with electromagnetic interference, and long range data integrity. Which is NOT an example of a good location to deploy copper cable based networking, select all that apply:"
+  choices={[
+    "A) A small run between two at home access points",
+    "B) A 'jumper' server communication cable between a router and a switch on the same rack",
+    "C) A data cable designed to transmit infrequent data from a car's backup sensor to its ECU (Engine Control Unit)",
+    "D) A data cable in an MRI (Magnetic Resonance Imaging) machine responsible for transmitting patient data to a local ethernet port.",
+    "E) A new high speed data transmission line under the ocean to connect Ireland to South Carolina.",
+  ]}
+  answers={[0, 0, 0, 1, 1]}
+  incorrectMessage="In fairness to you, this is a subject that we are not covering in this class and this might literally be the first time you've ever been faced with a question like this, but unfortunately your answer is incorrect."
+  correctMessage="Nice, that is correct!"
+/>
+
+Now of course this example is a bit contrived as the problem description heavily implies the two answers, but the idea is the same; Exam questions will not require notes, calculators, or time consuming AI prompting to answer. Hence, why none of those things are allowed (If you are wondering about the problem, the answer is D and E).
+
+If I do make a question that requires outside information or tools I will state that they do and that you are allowed to use them. For instance, I might give a question about a fragment Python code. You are always allowed to use Python to "test" your choices if testing is relevant to the question.
+
+Overall, my exams are less like "exams" and more like small pop quizzes. Now we should get on to what "this" exam is actually about!
+
+---
+
+<ExamIntro
+  title={metadata.title}
+  examDate={formatDate(examEvent?.date)}
+  examTime={examEvent?.dueTime}
+  standard={metadata.standard}
+  topics={metadata.topics}
+  totalPoints={metadata.totalPoints}
+  totalQuestions={metadata.totalQuestions}
+  description={examEvent?.description}
+  hasTimer={metadata.hasTimer}
+  allowedAttempts={metadata.allowedAttempts}
+  examUrl={metadata.examUrl}
+/>
+
+<ExamRules>
+
+### Important Notes
+
+- This exam covers **Standard 0: The Syllabus**
+- You have **unlimited attempts** with **no timer**
+- The exam is **not collaborative** and **not open note**
+- However, it's a comprehension-based exam about the syllabus, so feel free to review the [course syllabus](/cmsi-2820/syllabus) before taking it!
+
+</ExamRules>
+
+## Ready?
+
+When you're ready to take the exam, click the button above to access it on Brightspace. Good luck!

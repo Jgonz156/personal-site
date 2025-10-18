@@ -20,6 +20,7 @@ interface CourseSidebarProps {
   setIsOpen: (open: boolean) => void
   isCollapsed: boolean
   setIsCollapsed: (collapsed: boolean) => void
+  courseId?: string // Optional: filter events by course
 }
 
 export function CourseSidebar({
@@ -27,6 +28,7 @@ export function CourseSidebar({
   setIsOpen,
   isCollapsed,
   setIsCollapsed,
+  courseId,
 }: CourseSidebarProps) {
   const toggleCollapse = () => setIsCollapsed(!isCollapsed)
 
@@ -50,13 +52,13 @@ export function CourseSidebar({
           </div>
         </SheetHeader>
         <div className="flex flex-col h-full overflow-y-auto pb-20">
-          <CourseCalendar />
+          <CourseCalendar courseId={courseId} />
           <Separator className="my-4" />
           <CalendarLegend />
           <Separator className="my-4" />
-          <TodaySection />
+          <TodaySection courseId={courseId} />
           <Separator className="my-4" />
-          <UpcomingSection />
+          <UpcomingSection courseId={courseId} />
         </div>
       </SheetContent>
     </Sheet>
@@ -78,13 +80,13 @@ export function CourseSidebar({
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <CourseCalendar />
+            <CourseCalendar courseId={courseId} />
             <Separator />
             <CalendarLegend />
             <Separator />
-            <TodaySection />
+            <TodaySection courseId={courseId} />
             <Separator />
-            <UpcomingSection />
+            <UpcomingSection courseId={courseId} />
           </div>
         </>
       )}

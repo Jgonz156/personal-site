@@ -13,13 +13,21 @@ import {
 } from "@/components/ui/sidebar"
 import {
   getUpcomingHomeworkAndExams,
+  getCourseUpcomingHomeworkAndExams,
   getEventTypeColor,
   getEventTypeIcon,
 } from "@/lib/course-data"
 import { cn } from "@/lib/utils"
 
-export function UpcomingSection() {
-  const upcomingEvents = getUpcomingHomeworkAndExams(30)
+interface UpcomingSectionProps {
+  courseId?: string // Optional: filter events by course
+}
+
+export function UpcomingSection({ courseId }: UpcomingSectionProps = {}) {
+  // Use course-specific events if courseId provided, otherwise all events
+  const upcomingEvents = courseId
+    ? getCourseUpcomingHomeworkAndExams(courseId, 30)
+    : getUpcomingHomeworkAndExams(30)
 
   const formatDate = (date: DateTime) => {
     const today = DateTime.now().startOf("day")

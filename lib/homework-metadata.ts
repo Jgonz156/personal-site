@@ -1,28 +1,40 @@
-import { courseEvents, type CourseEvent } from "./course-data"
+import { courseEvents, getCourseEvents, type CourseEvent } from "./course-data"
 
 /**
  * Get homework event data from course-data.ts
  * This is the single source of truth for dates and core information
  */
-export function getHomeworkEvent(hwNumber: number): CourseEvent | null {
+export function getHomeworkEvent(
+  hwNumber: number,
+  courseId?: string
+): CourseEvent | null {
   const hwId = `hw${hwNumber}`
-  return courseEvents.find((event) => event.id === hwId) || null
+  const events = courseId ? getCourseEvents(courseId) : courseEvents
+  return events.find((event) => event.id === hwId) || null
 }
 
 /**
  * Get lecture event data from course-data.ts
  */
-export function getLectureEvent(lnNumber: number): CourseEvent | null {
+export function getLectureEvent(
+  lnNumber: number,
+  courseId?: string
+): CourseEvent | null {
   const lnId = `ln${lnNumber}`
-  return courseEvents.find((event) => event.id === lnId) || null
+  const events = courseId ? getCourseEvents(courseId) : courseEvents
+  return events.find((event) => event.id === lnId) || null
 }
 
 /**
  * Get exam event data from course-data.ts
  */
-export function getExamEvent(exNumber: number): CourseEvent | null {
+export function getExamEvent(
+  exNumber: number,
+  courseId?: string
+): CourseEvent | null {
   const exId = `ex${exNumber}`
-  return courseEvents.find((event) => event.id === exId) || null
+  const events = courseId ? getCourseEvents(courseId) : courseEvents
+  return events.find((event) => event.id === exId) || null
 }
 
 /**
@@ -51,4 +63,16 @@ export interface LectureMetadata {
   lnNumber: number
   title: string
   topics: string[]
+}
+
+export interface ExamMetadata {
+  exNumber: number
+  title: string
+  standard: string
+  topics: string[]
+  totalPoints: number
+  totalQuestions: number
+  hasTimer?: boolean
+  allowedAttempts?: string
+  examUrl?: string // Optional: for multi-part exams, individual sections have their own links
 }
