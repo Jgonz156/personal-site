@@ -75,6 +75,15 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
     shortLabel: "EX",
     gridColumns: "grid-cols-5 sm:grid-cols-10",
   },
+  activity: {
+    prefix: "ac",
+    folder: "activities",
+    minNumber: 1,
+    total: 0, // Update this when you add activities
+    label: "Activity",
+    shortLabel: "AC",
+    gridColumns: "grid-cols-5 sm:grid-cols-10",
+  },
   // Add new content types here following the pattern above
 }
 
@@ -117,6 +126,8 @@ function getThemeType(prefix: string): ContentType {
       return "exam"
     case "ln":
       return "lecture"
+    case "ac":
+      return "activity"
     default:
       return "default"
   }

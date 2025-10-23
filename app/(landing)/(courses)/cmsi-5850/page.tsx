@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { DateTime } from "luxon"
 import { courseEvents, CourseEvent } from "@/lib/course-data"
 import { ChevronDown, ChevronRight, FileText, Video } from "lucide-react"
@@ -141,6 +141,8 @@ export default function CMSI5850Home() {
         ? "bg-blue-500/10 border-blue-500/30 hover:border-blue-500"
         : event.type === "exam"
         ? "bg-red-500/10 border-red-500/30 hover:border-red-500"
+        : event.type === "activity"
+        ? "bg-orange-500/10 border-orange-500/30 hover:border-orange-500"
         : "bg-muted/30 border-border"
 
     const textColor =
@@ -150,6 +152,8 @@ export default function CMSI5850Home() {
         ? "text-blue-700 dark:text-blue-400"
         : event.type === "exam"
         ? "text-red-700 dark:text-red-400"
+        : event.type === "activity"
+        ? "text-orange-700 dark:text-orange-400"
         : "text-foreground"
 
     const typeIcon =
@@ -159,6 +163,8 @@ export default function CMSI5850Home() {
         ? "📚"
         : event.type === "exam"
         ? "📋"
+        : event.type === "activity"
+        ? "🎯"
         : "📌"
 
     const buttonColor =
@@ -168,6 +174,8 @@ export default function CMSI5850Home() {
         ? "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
         : event.type === "exam"
         ? "bg-red-600 hover:bg-red-700 text-white dark:bg-red-600 dark:hover:bg-red-700"
+        : event.type === "activity"
+        ? "bg-orange-600 hover:bg-orange-700 text-white dark:bg-orange-600 dark:hover:bg-orange-700"
         : "bg-primary hover:bg-primary/90 text-primary-foreground"
 
     // Get button text based on event type
@@ -179,6 +187,8 @@ export default function CMSI5850Home() {
           return "View Assignment"
         case "exam":
           return "View Exam Details"
+        case "activity":
+          return "View Activity"
         default:
           return "View Details"
       }
@@ -281,9 +291,8 @@ export default function CMSI5850Home() {
               const isCurrent = currentStandard === standard.name
 
               return (
-                <>
+                <React.Fragment key={standard.name}>
                   <tr
-                    key={standard.name}
                     onClick={() => toggleStandard(standard.name)}
                     className={`cursor-pointer transition-colors hover:bg-muted/30 ${
                       isCurrent ? "bg-primary/5" : ""
@@ -345,7 +354,7 @@ export default function CMSI5850Home() {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               )
             })}
           </tbody>

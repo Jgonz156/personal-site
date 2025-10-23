@@ -1,9 +1,9 @@
 import { ReactNode } from "react"
 
 interface QuestionBoxProps {
-  qid: string
+  qid?: string
   title?: string
-  points: number | string
+  points?: number | string
   children: ReactNode
   variant?: "main" | "sub"
 }
@@ -16,10 +16,11 @@ export function QuestionBox({
   variant = "main",
 }: QuestionBoxProps) {
   const isMain = variant === "main"
+  const hasHeader = qid || title || points
 
   return (
     <div
-      id={qid.toLowerCase()}
+      id={qid ? qid.toLowerCase() : undefined}
       data-question-type={isMain ? "main" : "sub"}
       className={`
         question-box scroll-mt-24
@@ -30,56 +31,66 @@ export function QuestionBox({
         }
       `}
     >
-      {/* Question Header */}
-      <div
-        className={`
-          flex items-baseline justify-between gap-4 mb-3
-          ${isMain ? "flex-wrap" : "flex-nowrap"}
-        `}
-      >
-        <div className="flex items-baseline gap-2 flex-1">
-          <span
-            className={`
-              font-mono font-bold
-              ${isMain ? "text-lg text-primary" : "text-base text-primary/90"}
-            `}
-          >
-            {qid}
-          </span>
-          {title && (
-            <>
-              <span className="text-muted-foreground">—</span>
-              <span
-                className={`
-                  font-semibold
-                  ${isMain ? "text-lg" : "text-base"}
-                `}
-              >
-                {title}
-              </span>
-            </>
-          )}
-        </div>
-
+      {/* Question Header - Only show if we have qid, title, or points */}
+      {hasHeader && (
         <div
           className={`
-            flex-shrink-0 font-semibold
-            ${
-              isMain
-                ? "px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm"
-                : "px-2 py-0.5 bg-primary/20 text-primary rounded text-xs"
-            }
+            flex items-baseline justify-between gap-4 mb-3
+            ${isMain ? "flex-wrap" : "flex-nowrap"}
           `}
         >
-          {typeof points === "number" ? (
-            <>
-              {points} {points === 1 ? "pt" : "pts"}
-            </>
-          ) : (
-            points
+          <div className="flex items-baseline gap-2 flex-1">
+            {qid && (
+              <span
+                className={`
+                  font-mono font-bold
+                  ${
+                    isMain
+                      ? "text-lg text-primary"
+                      : "text-base text-primary/90"
+                  }
+                `}
+              >
+                {qid}
+              </span>
+            )}
+            {title && (
+              <>
+                {qid && <span className="text-muted-foreground">—</span>}
+                <span
+                  className={`
+                    font-semibold
+                    ${isMain ? "text-lg" : "text-base"}
+                  `}
+                >
+                  {title}
+                </span>
+              </>
+            )}
+          </div>
+
+          {points !== undefined && (
+            <div
+              className={`
+                flex-shrink-0 font-semibold
+                ${
+                  isMain
+                    ? "px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm"
+                    : "px-2 py-0.5 bg-primary/20 text-primary rounded text-xs"
+                }
+              `}
+            >
+              {typeof points === "number" ? (
+                <>
+                  {points} {points === 1 ? "pt" : "pts"}
+                </>
+              ) : (
+                points
+              )}
+            </div>
           )}
         </div>
-      </div>
+      )}
 
       {/* Question Content */}
       <div

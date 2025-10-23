@@ -1,0 +1,230 @@
+import { QuestionBox } from "@/components/question-box"
+
+export const metadata = {
+  acNumber: 1,
+  title: "AC 1: Getting Folded",
+  standard: "Concurrent Programming",
+  description:
+    "Experience data and task parallelism through competitive origami racing",
+  learningObjectives: [
+    "Understand data parallelism (batching) vs task parallelism (pipelining)",
+    "Experience load balancing and coordination challenges in parallel systems",
+    "Identify trade-offs between different parallelization strategies",
+    "Apply partitioning concepts to concurrent programming",
+  ],
+  estimatedTime: "80 minutes",
+  materials: [
+    "Printer paper (1-2 reams)",
+    "Scissors (enough for half the class)",
+    "Origami instructions (Sanbou-box and Tulip)",
+    "Timer",
+    "Trash cans for failed attempts",
+  ],
+}
+
+# {metadata.title}
+
+## Overview
+
+Welcome to your first hands-on activity! You'll experience **data parallelism** (batching) and **task parallelism** (pipelining) by racing to fold origami figures as quickly as possible.
+
+**Data Parallelism:** Everyone follows all steps individually (like multiple threads executing the same code on different data)
+
+**Task Parallelism:** Each person handles one step and passes to the next (like an assembly line or pipeline)
+
+Which approach is faster? You'll find out!
+
+## Learning Objectives
+
+<ul>
+  {metadata.learningObjectives.map((objective, index) => (
+    <li key={index}>{objective}</li>
+  ))}
+</ul>
+
+## Materials Needed
+
+<ul>
+  {metadata.materials.map((material, index) => (
+    <li key={index}>{material}</li>
+  ))}
+</ul>
+
+### Origami Instructions
+
+You'll need these two origami designs:
+
+- **[Sanbou-box Instructions](https://origami.me/sanbou-box/)** - A traditional Japanese box
+- **[Tulip Instructions](https://origami.me/tulip/)** - A simple flower design
+
+<QuestionBox>
+**Pro Tip:** Print these instructions or have students access them on mobile devices. Each student should be able to reference them during the activity.
+
+</QuestionBox>
+
+---
+
+## Activity Structure (4 Stages)
+
+This activity consists of **4 competitive rounds** (20 minutes each):
+
+1. **Stage 1:** Data Parallel vs Task Parallel (Sanbou-box)
+2. **Stage 2:** Same teams swap roles (Sanbou-box)
+3. **Stage 3:** Data Parallel vs Task Parallel (Tulip)
+4. **Stage 4:** Same teams swap roles (Tulip)
+
+**Optional Stage 5:** Free-form - combine techniques however you want!
+
+---
+
+## Setup Instructions (For Instructor)
+
+1. **Divide the class in half** - Team 1 and Team 2 (split by classroom location)
+2. **Assign roles for Stage 1:**
+   - One team: Data Parallel
+   - Other team: Task Parallel
+3. **Choose the first origami design** (Sanbou-box or Tulip)
+4. **Explain the rules** for each team type (see below)
+5. **Start the 20-minute timer** and let students compete!
+
+After each stage, teams swap roles and/or switch to a new design.
+
+---
+
+## Data Parallel Team Rules
+
+**Your Goal:** Each person folds complete origami figures individually (like threads executing identical code on different data)
+
+### You MUST:
+
+- Work individually from start to finish on each figure
+- Cut your own paper (make it square)
+- Follow all steps in order - no skipping!
+- Turn in completed figures to the instructor for counting
+
+### You CANNOT:
+
+- Have teammates physically help with your figure
+- Skip steps or cut corners (literally or metaphorically!)
+- Submit incomplete or rushed figures (they may be disqualified)
+
+### You CAN:
+
+- Talk, ask for help, and encourage teammates
+- Move around and have fun!
+- Restart if you make a mistake
+
+<QuestionBox>
+**Think About It:** This is like running the same program on multiple CPUs, each processing different data. What happens if some "threads" (people) are faster than others?
+
+</QuestionBox>
+
+---
+
+## Task Parallel Team Rules
+
+**Your Goal:** Create an assembly line where each person handles ONE specific step (like a pipeline)
+
+### You MUST:
+
+- Be assigned to specific step(s) in the instructions
+- ONLY do your assigned step(s)
+- Pass your work to the next person in the pipeline
+- Cover all steps (assign multiple people to slow steps if needed)
+
+### You CANNOT:
+
+- Help with someone else's step
+- Skip any instructions in the sequence
+- Have a "quality control" person fix mistakes with scissors
+- Submit incomplete or rushed figures (they may be disqualified)
+
+### You CAN:
+
+- Have multiple people doing the same step (load balancing!)
+- Have one person handle multiple steps if there aren't enough people
+- Designate someone to cut paper (they're the "data source")
+- Talk, coordinate, and have fun!
+
+<QuestionBox>
+**Think About It:** This is like a pipeline in a CPU or assembly line in a factory. What happens if one step is much slower than the others? How do you balance the workload?
+
+</QuestionBox>
+
+---
+
+## Discussion Questions
+
+After completing all stages, discuss as a class:
+
+<QuestionBox>
+**Q1:** What was the most difficult part of the **Data Parallel** approach?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q2:** What was the most difficult part of the **Task Parallel** approach?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q3:** What would the "perfect" origami instructions look like for **Data Parallelism** to be most efficient?
+
+_Hint: Think about number of steps, complexity, and individual skill variation._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q4:** What would the "perfect" origami instructions look like for **Task Parallelism** to be most efficient?
+
+_Hint: Think about step complexity, dependencies, and load balancing._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q5:** How do the difficulties you encountered map to real challenges when programming with threads?
+
+_Consider: coordination, load balancing, bottlenecks, and communication overhead._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q6:** If you could design a hybrid approach (Stage 5), what would it look like? How would you combine data and task parallelism?
+
+</QuestionBox>
+
+---
+
+## Key Takeaways
+
+**Data Parallelism (Batching):**
+
+- ✅ Simple to coordinate (everyone does the same thing)
+- ✅ Scales with more "threads" (people)
+- ❌ Limited by individual skill variation
+- ❌ No specialization benefits
+
+**Task Parallelism (Pipelining):**
+
+- ✅ Can optimize each step individually
+- ✅ Enables specialization (people get good at their step)
+- ❌ Limited by the slowest step (bottleneck)
+- ❌ Requires coordination and handoffs
+
+**In Real Programming:**
+
+- Most systems use **both** techniques
+- Rust's concurrency model helps you safely implement both
+- Understanding trade-offs helps you choose the right approach
+
+---
+
+## Grading
+
+**Participation-based** - No winner or loser! Just engage, try your best, and participate in the discussion.
+
+---
+
+**Estimated Time:** {metadata.estimatedTime}
+
+**Standard:** {metadata.standard}

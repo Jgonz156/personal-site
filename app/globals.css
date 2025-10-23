@@ -114,6 +114,19 @@
     --ring: 217 91% 60%;
   }
 
+  /* Activity Theme - Orange */
+  [data-content-theme="activity"] {
+    --primary: 25 95% 53%;
+    --primary-foreground: 210 20% 98%;
+    --ring: 25 95% 53%;
+  }
+
+  .dark [data-content-theme="activity"] {
+    --primary: 25 95% 60%;
+    --primary-foreground: 33 100% 96%;
+    --ring: 25 95% 60%;
+  }
+
   /* Default Theme - Purple (current) */
   [data-content-theme="default"] {
     --primary: 262.1 83.3% 57.8%;
@@ -136,6 +149,8 @@
     --calendar-lecture-fg: 30 58 138; /* blue-900 */
     --calendar-exam-bg: 252 165 165; /* red-300 */
     --calendar-exam-fg: 127 29 29; /* red-900 */
+    --calendar-activity-bg: 253 186 116; /* orange-300 */
+    --calendar-activity-fg: 124 45 18; /* orange-900 */
     --calendar-homework-bg: 134 239 172; /* green-300 */
     --calendar-homework-fg: 20 83 45; /* green-900 */
     --calendar-office-bg: 209 213 219; /* gray-300 */
@@ -150,6 +165,8 @@
     --calendar-lecture-fg: 239 246 255; /* blue-50 */
     --calendar-exam-bg: 185 28 28; /* red-700 */
     --calendar-exam-fg: 254 242 242; /* red-50 */
+    --calendar-activity-bg: 194 65 12; /* orange-700 */
+    --calendar-activity-fg: 255 247 237; /* orange-50 */
     --calendar-homework-bg: 21 128 61; /* green-700 */
     --calendar-homework-fg: 220 252 231; /* green-50 */
     --calendar-office-bg: 75 85 99; /* gray-600 */

@@ -1,0 +1,439 @@
+import { QuestionBox } from "@/components/question-box"
+
+export const metadata = {
+  acNumber: 2,
+  title: "AC 2: Saved by The Schedule",
+  standard: "Computer Hardware",
+  description:
+    "Experience CPU scheduling by competing as workers in Batch, Interactive, and Real-Time systems",
+  learningObjectives: [
+    "Experience the priorities of Batch, Interactive, and Real-Time systems",
+    "Understand FCFS, Round Robin, and EDF scheduling algorithms",
+    "Feel the impact of time quanta, deadlines, and context switching",
+    "Compare throughput vs responsiveness vs deadline constraints",
+  ],
+  estimatedTime: "75 minutes",
+  materials: [
+    "Simple math worksheets (printed, 1-2 reams worth)",
+    "Writing utensils (different colors per student if possible)",
+    "Timer and bell/alert system",
+    "4 collection buckets (one per team)",
+  ],
+}
+
+# {metadata.title}
+
+## Overview
+
+Welcome back to elementary school! You'll complete math worksheets under different **scheduling system constraints** to experience how CPUs schedule tasks.
+
+**3 Stages:**
+
+1. **Batch System** - Focus on throughput (FCFS scheduling)
+2. **Interactive System** - Focus on responsiveness (Round Robin scheduling)
+3. **Real-Time System** - Focus on deadlines (EDF scheduling)
+
+You'll feel the frustrations of context switching, deadline pressure, and coordination overhead firsthand!
+
+## Learning Objectives
+
+<ul>
+  {metadata.learningObjectives.map((objective, index) => (
+    <li key={index}>{objective}</li>
+  ))}
+</ul>
+
+## Materials Needed
+
+<ul>
+  {metadata.materials.map((material, index) => (
+    <li key={index}>{material}</li>
+  ))}
+</ul>
+
+### Where to Find Worksheets
+
+Any simple math worksheets will work! Choose something **easy enough to be fast-paced but challenging enough to keep things manageable**.
+
+Recommended resource: **[Super Teacher Worksheets](https://www.superteacherworksheets.com/)**
+
+<QuestionBox>
+**Pro Tip:** If possible, give each student a different colored pen/pencil. This helps visualize context switching in the Interactive stage!
+
+</QuestionBox>
+
+---
+
+## Activity Structure
+
+This activity has **3 stages** (~15 minutes each):
+
+1. **Stage 1: Batch System** - Maximize throughput with FCFS scheduling
+2. **Stage 2: Interactive System** - Maximize responsiveness with Round Robin
+3. **Stage 3: Real-Time System** - Meet deadlines with EDF scheduling
+
+After each stage: count scores, reflect, and discuss!
+
+---
+
+## Setup Instructions (For Instructor)
+
+1. **Divide the class into 4 equal teams** (by classroom location - quadrants work well)
+2. **Give each student a writing utensil** (different colors if possible)
+3. **Set up 4 collection buckets** (one per team)
+4. **Print plenty of worksheets** (at least 50-100, depending on class size)
+5. **Prepare timer and bell/alert system**
+
+You'll act as the **scheduler** controlling task distribution!
+
+---
+
+## Stage 1: Batch System (~15 minutes)
+
+### Goal
+
+**Maximize throughput** - Complete as many worksheets as possible!
+
+Batch systems prioritize getting the most work done in the least time. High hardware utilization, high job throughput, minimal restrictions.
+
+### Algorithm: First-Come, First-Served (FCFS)
+
+**You (the instructor) are the scheduler.** Students are "CPU cores" executing tasks.
+
+### How It Works
+
+1. Students come to you (the scheduler) to receive a worksheet
+2. You hand them the next worksheet in the queue (FCFS order)
+3. Students return to their seats and complete the worksheet
+4. When done, they bring it back to you for quality check
+5. If correct → add to team's bucket and they get another worksheet
+6. If incorrect → return it to fix, then resubmit
+
+### Rules
+
+**You MUST:**
+
+- Work individually on your worksheet
+- Get your own worksheets from the instructor
+- Complete all problems correctly (no rushing!)
+- Submit to the instructor yourself
+
+**You CANNOT:**
+
+- Have teammates write for you (but you can talk and ask for help!)
+- Have someone else get/submit worksheets for you
+- Skip problems or cut corners (incomplete work = no points)
+
+**You CAN:**
+
+- Talk, chat, have fun, get loud, move around!
+
+### Instructor Notes
+
+You can adjust the activity to show interesting patterns:
+
+- Pre-sort jobs by difficulty
+- Offer choices between easy/hard worksheets
+- Vary worksheet complexity to simulate different burst times
+
+<QuestionBox>
+**Think About It:** This models a simple batch processing system. What happens if some "cores" (students) are faster than others? How does job length affect throughput?
+
+</QuestionBox>
+
+---
+
+## Stage 2: Interactive System (~15 minutes)
+
+### Goal
+
+**Maximize responsiveness** - Make progress on many jobs at once!
+
+Interactive systems prioritize making the device feel "snappy" and responsive. Less focus on overall throughput, more focus on ensuring all jobs make progress.
+
+### Algorithm: Round Robin (with role rotation!)
+
+**You (the instructor) control the time quanta with a bell.**
+
+### New Roles
+
+Teams now have two roles:
+
+- **Workers** - Stay seated, complete worksheets
+- **Runner** - Collects/submits work, distributes new worksheets (CANNOT work on worksheets!)
+
+### How It Works
+
+1. **Before the bell:** Workers work on their current worksheet. Runner manages getting new work from you and collecting completed work to submit.
+2. **When the bell rings:** Two things happen simultaneously:
+   - All workers pass their current worksheet to the next worker (counter-clockwise recommended)
+   - Roles rotate - runner becomes a worker, next worker becomes runner
+3. Repeat until stage time is up!
+
+### Rules
+
+**As a Worker:**
+
+- Only work on the worksheet currently in front of you
+- Stay seated
+- Pass your worksheet when the bell rings (even if incomplete!)
+- When you become runner, immediately stop working
+
+**As a Runner:**
+
+- Manage your team's workflow
+- Get new worksheets from instructor
+- Submit completed work to instructor
+- CANNOT work on any worksheets yourself
+- When bell rings, become a worker
+
+**Everyone:**
+
+- No cutting corners - quality still matters!
+- Can talk, chat, and coordinate!
+
+### Instructor Notes
+
+- Vary the time quanta! Try 2 minutes, then 1 minute, then 30 seconds
+- Shorter quanta = more context switching overhead
+- Observe the multi-colored worksheets - visual evidence of context switching!
+
+<QuestionBox>
+**Think About It:** How does frequent context switching affect productivity? Do shorter time quanta feel more "responsive" even if throughput drops? Notice the different colored pens on each worksheet!
+
+</QuestionBox>
+
+---
+
+## Stage 3: Real-Time System (~15 minutes)
+
+### Goal
+
+**Meet deadlines** - Complete work before the deadline, or lose points!
+
+Real-time systems prioritize meeting deadlines over throughput or responsiveness. Used in critical applications where "late" = "failure".
+
+### Algorithm: Earliest Deadline First (EDF)
+
+**You (the instructor) control deadlines with a bell.** Teams self-schedule!
+
+### How It Works
+
+1. **At the start:** Divide all worksheets into 4 equal piles, give one pile to each team
+2. **Teams self-organize:** Groups decide how to distribute work among themselves
+3. **Bell signals deadline reached:** Everyone STOPS immediately
+4. **Scoring:**
+   - Completed worksheets = points
+   - Incomplete worksheets = **negative points** ⚠️
+5. Next work period begins - repeat!
+
+### Rules
+
+**You MUST:**
+
+- Stop working immediately when the bell rings
+- Accept negative points for incomplete work
+
+**You CANNOT:**
+
+- Cut corners - quality still matters!
+
+**You CAN:**
+
+- Distribute work however you want within your team
+- Swap worksheets with teammates as desired
+- Self-manage submission and collection
+- Talk, strategize, coordinate, and have fun!
+
+### Strategy Considerations
+
+Teams might:
+
+- Sort worksheets by difficulty (schedule easy ones first)
+- Assign multiple worksheets per person
+- Risk incomplete work to attempt more points
+- Play it safe and only take what they can finish
+
+### Instructor Notes
+
+- Vary deadline lengths! Try 5 minutes, then 3 minutes, then 2 minutes
+- Negative points create real urgency - just like missing a deadline in embedded systems!
+- Watch teams balance risk vs safety
+
+<QuestionBox>
+**Think About It:** How did deadline pressure change your strategy? Did your team take risks or play it safe? How does this relate to embedded systems (pacemakers, antilock brakes) where missing deadlines can be dangerous?
+
+</QuestionBox>
+
+## Discussion Questions
+
+After all stages are complete, gather everyone and discuss these questions. **Connect student experiences back to hardware/software concepts!**
+
+### Batch System Reflection
+
+<QuestionBox>
+**Q1:** What was your strategy in the Batch System? Did you feel successful? Would being able to choose between easy/hard worksheets have changed your approach?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q2:** What changes would have helped your team complete more tasks? (More people? Better tools? More time? Different job sizes?)
+
+</QuestionBox>
+
+<QuestionBox>
+**Q3:** What does the "perfect" batch of jobs look like for a Batch System? (Think about job variety, complexity, and team size)
+
+</QuestionBox>
+
+### Interactive System Reflection
+
+<QuestionBox>
+**Q4:** What was your strategy as a worker vs as a runner? How did the bell affect your decisions? Did you wish teammates did things differently?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q5:** Were you ever *relieved* when the bell rang? Or was it always frustrating? How did your feelings change as time quanta got shorter or longer?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q6:** How many different colors did you see on completed worksheets? What was common between worksheets with many colors vs few colors? How did quality differ?
+
+_This visualizes context switching overhead!_
+
+</QuestionBox>
+
+<QuestionBox>
+**Q7:** What does the "perfect" batch of jobs look like for an Interactive System? Consider both workers and runners.
+
+</QuestionBox>
+
+### Real-Time System Reflection
+
+<QuestionBox>
+**Q8:** What was your team's strategy? How did the deadline bell affect decisions? What would you do differently?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q9:** Did you make decisions that led to high/low point loss? Did you have enough time to strategize? Would you change your risk tolerance?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q10:** When deadlines got shorter or longer, how did your strategy change? Did you assign roles or have people specialize?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q11:** What does the "perfect" batch of jobs look like for a Real-Time System? (Consider deadline timing and job predictability)
+
+</QuestionBox>
+
+### Final Thoughts
+
+<QuestionBox>
+**Q12:** Any final frustrations, insights, strategies, or recommendations? Try to map your experience onto hardware or software concepts we've learned!
+
+</QuestionBox>
+
+---
+
+## Key Takeaways
+
+**Batch Systems (FCFS):**
+
+- ✅ Simple, straightforward
+- ✅ Maximizes throughput when jobs are similar
+- ❌ Can suffer from convoy effect (long jobs block short ones)
+- ❌ Poor responsiveness
+
+**Interactive Systems (Round Robin):**
+
+- ✅ Fair - everyone makes progress
+- ✅ Feels responsive even if slower overall
+- ❌ Context switching overhead (those different colored pens!)
+- ❌ Lower throughput than batch systems
+
+**Real-Time Systems (EDF):**
+
+- ✅ Guarantees deadlines (when possible)
+- ✅ Optimal among deadline-based schedulers
+- ❌ Requires predictable job lengths
+- ❌ Failure = catastrophic (negative points = danger!)
+
+---
+
+## Grading
+
+**Participation-based** - No winner or loser! Just engage, strategize, and participate in the discussion.
+
+---
+
+## Alternate Assignment (For Absences)
+
+Couldn't make it to class? You can make up the points by completing this alternate assignment!
+
+### Watch This Video
+
+Watch this excellent video from **Core Dumped** about CPU scheduling. George explains scheduling algorithms and their trade-offs beautifully.
+
+While watching, keep the **3 system types** in mind: Batch, Interactive, and Real-Time.
+
+**Video:** [The Fancy Algorithms That Make Your Computer Feel Smoother](https://www.youtube.com/embed/O2tV9q6784k)
+
+### Answer These Questions
+
+Submit a PDF with your answers to Brightspace:
+
+<QuestionBox>
+**Q1:** What specific scheduling algorithms mentioned in the video would be most appropriate for each system type (Batch, Interactive, and Real-Time), and why? Provide specific application examples.
+
+_Note: Real-Time algorithms aren't discussed directly - consider which algorithms would work best._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q2:** The video mentions metrics like turnaround time, waiting time, and throughput. How does the relative importance of these metrics shift across Batch, Interactive, and Real-Time systems?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q3:** Suppose you're designing an OS for a hospital's medical equipment. What equipment would you classify as batch, interactive, or real-time? Justify your choices and suggest appropriate scheduling techniques.
+
+</QuestionBox>
+
+<QuestionBox>
+**Q4:** Compare and contrast how starvation might occur in each system type. How do scheduling algorithms for each type prevent starvation?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q5:** How might modern multi-core processors change the scheduling approaches discussed in the video? Consider how parallelism affects each system type differently.
+
+</QuestionBox>
+
+<QuestionBox>
+**Q6:** The video discusses preemption. How does the importance and implementation of preemption differ between Batch, Interactive, and Real-Time systems?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q7:** The video mentions predicting CPU bursts. You don't need a mathematical solution, but consider all 3 system types - how would you predict CPU bursts for each? What factors would you consider?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q8:** Create a visual metaphor or analogy to explain the differences between the three system types to someone with no technical background. What would it be and why?
+
+</QuestionBox>
+
+**Submission:** Upload your PDF to the Brightspace assignment link provided by your instructor.
+
+---
+
+**Estimated Time:** {metadata.estimatedTime}
+
+**Standard:** {metadata.standard}

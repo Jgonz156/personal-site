@@ -1,0 +1,79 @@
+import { QuestionBox } from "@/components/question-box"
+
+# ACTIVITY TEMPLATE - Use this as a starting point for new activity MDX files
+
+This template demonstrates the structure for activity pages in the course site.
+Activities are hands-on, in-class or out-of-class exercises that help reinforce concepts.
+
+METADATA EXPORT:
+
+- Export a metadata object with activity details
+- Keep it simple - title, description, and key learning objectives
+
+COMPONENTS:
+
+- QuestionBox: For guided questions and prompts
+- Standard MDX components: headings, lists, code blocks, etc.
+
+================================================================================
+
+export const metadata = {
+  acNumber: 1, // Change to match your activity number
+  title: "AC1: Activity Title Here",
+  standard: "Standard Name",
+  description: "Brief description of what students will do",
+  learningObjectives: ["Objective 1", "Objective 2", "Objective 3"],
+  estimatedTime: "50 minutes",
+  materials: ["Material 1", "Material 2"],
+}
+
+# {metadata.title}
+
+## Overview
+
+Brief introduction to the activity and what students will be doing.
+
+## Learning Objectives
+
+By the end of this activity, you will be able to:
+
+{metadata.learningObjectives.map((objective, index) => (
+
+<li key={index}>{objective}</li>
+))}
+
+## Materials Needed
+
+{metadata.materials.map((material, index) => (
+
+<li key={index}>{material}</li>
+))}
+
+## Instructions
+
+### Part 1: Setup
+
+Step-by-step instructions for the first part of the activity.
+
+<QuestionBox>
+**Checkpoint Question:**
+
+What do you think will happen if...?
+
+</QuestionBox>
+
+### Part 2: Main Activity
+
+Continue with more instructions...
+
+### Part 3: Reflection
+
+Wrap up with reflection questions or discussion prompts.
+
+## Submission
+
+If applicable, explain what students need to submit and where.
+
+---
+
+**Estimated Time:** {metadata.estimatedTime}

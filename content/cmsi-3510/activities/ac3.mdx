@@ -1,0 +1,281 @@
+import { QuestionBox } from "@/components/question-box"
+
+export const metadata = {
+  acNumber: 3,
+  title: "AC 3: Final Activity",
+  standard: "Review",
+  description:
+    "Comprehensive hands-on activity synthesizing all course concepts",
+  learningObjectives: [
+    "Apply concurrent programming concepts to solve real-world problems",
+    "Analyze system behavior using hardware knowledge",
+    "Design solutions that consider both concurrency and hardware constraints",
+    "Synthesize multiple course concepts in an integrated way",
+  ],
+  estimatedTime: "75 minutes",
+  materials: [
+    "Computer with Rust installed",
+    "Activity worksheet",
+    "Whiteboard/paper for planning",
+  ],
+}
+
+# {metadata.title}
+
+## Overview
+
+This final activity brings together **all the major concepts** from the course:
+
+- Concurrent programming in Rust
+- CPU scheduling and process management
+- Memory management and virtual memory
+- I/O systems and device management
+
+You'll work through a comprehensive scenario that requires you to apply multiple concepts simultaneously, just like you would in real-world systems programming.
+
+## Learning Objectives
+
+By the end of this activity, you will be able to:
+
+<ul>
+  {metadata.learningObjectives.map((objective, index) => (
+    <li key={index}>{objective}</li>
+  ))}
+</ul>
+
+## Materials Needed
+
+<ul>
+  {metadata.materials.map((material, index) => (
+    <li key={index}>{material}</li>
+  ))}
+</ul>
+
+## Scenario: Building a Multi-threaded File Processor
+
+### The Problem
+
+You're tasked with building a program that processes large log files from multiple sources concurrently. The system must:
+
+1. **Read** log files from disk (I/O-bound)
+2. **Parse** log entries (CPU-bound)
+3. **Analyze** entries to detect patterns (CPU-bound)
+4. **Write** results to an output file (I/O-bound)
+
+### Constraints
+
+- Multiple log files may arrive simultaneously
+- Memory is limited - you can't load all files at once
+- The system must remain responsive to new files arriving
+- Results must be written safely without corruption
+
+<QuestionBox>
+**Key Question:**
+
+How would you design this system to be efficient, safe, and responsive? Consider:
+
+- Thread architecture
+- Synchronization needs
+- Memory management
+- I/O scheduling
+
+</QuestionBox>
+
+## Part 1: Architecture Design (20 minutes)
+
+### Tasks
+
+Working in groups of 2-3, design your system architecture:
+
+1. **Thread Model**
+
+   - How many threads will you use?
+   - What will each thread be responsible for?
+   - Will you use a thread pool or spawn threads dynamically?
+
+2. **Data Flow**
+
+   - How does data move between threads?
+   - What synchronization primitives will you need? (Mutex, Channel, RwLock?)
+   - Where might deadlocks occur? How will you prevent them?
+
+3. **Memory Management**
+
+   - How will you handle memory allocation?
+   - What happens if files are too large for memory?
+   - How will you manage the lifetime of shared data?
+
+4. **I/O Strategy**
+   - How will you handle multiple files arriving at once?
+   - Will you use blocking or async I/O?
+   - How will you prioritize which files to process first?
+
+### Deliverable
+
+Create a **block diagram** showing:
+
+- Threads/tasks
+- Data structures
+- Synchronization points
+- Data flow arrows
+
+<QuestionBox>
+**Design Review Questions:**
+
+1. What happens if one thread panics? Will your system crash?
+2. How does your design handle the case where files arrive faster than they can be processed?
+3. What's the maximum memory usage in the worst case?
+
+</QuestionBox>
+
+## Part 2: Implementation Planning (25 minutes)
+
+### Task 1: Identify Potential Issues
+
+For your design, identify:
+
+1. **Race Conditions**
+
+   - What shared data exists?
+   - Which accesses need synchronization?
+   - Justify each Mutex/RwLock choice
+
+2. **Deadlock Scenarios**
+
+   - Can threads wait for each other in a cycle?
+   - What's your deadlock prevention strategy?
+
+3. **Performance Bottlenecks**
+   - What's the slowest part of your pipeline?
+   - Is your design CPU-bound or I/O-bound?
+   - How does it scale with more cores?
+
+### Task 2: Rust Implementation Sketch
+
+Write **pseudocode** showing:
+
+- Thread spawning
+- Data structure definitions
+- Critical sections with proper synchronization
+- Error handling
+
+You don't need complete Rust code, but show the key concurrent sections.
+
+<QuestionBox>
+**Rust Ownership Question:**
+
+How will you handle ownership of:
+
+- The log file data being processed?
+- The output buffer being written?
+- Configuration shared across threads?
+
+Will you use `Arc`? `Rc`? Move semantics? Explain your choices.
+
+</QuestionBox>
+
+## Part 3: System Analysis (15 minutes)
+
+### Scheduling Analysis
+
+Assume your system runs on a 4-core CPU:
+
+1. If parsing takes 100ms and analysis takes 200ms per file, what's your maximum throughput?
+2. How would a **Round Robin** scheduler affect your threads differently than a **Priority** scheduler?
+3. What context switching overhead should you expect?
+
+### Memory Analysis
+
+Assume:
+
+- Each log file is 10 MB
+- Your parsing buffer is 1 MB
+- Your analysis structures need 2 MB per file
+
+1. With 8 GB of RAM, how many files can you process concurrently?
+2. What happens when you exceed physical memory?
+3. How does page fault behavior affect your performance?
+
+### I/O Analysis
+
+Assume:
+
+- Disk read speed: 100 MB/s
+- Disk write speed: 50 MB/s
+- Network speed (if loading remotely): 20 MB/s
+
+1. Is your system I/O-bound or CPU-bound?
+2. How would you optimize for the bottleneck?
+3. Should you use buffered I/O or direct I/O?
+
+<QuestionBox>
+**Integration Question:**
+
+How do all these factors (scheduling, memory, I/O) interact?
+
+For example: If you're page faulting a lot, how does that affect thread scheduling?
+
+</QuestionBox>
+
+## Part 4: Reflection and Discussion (15 minutes)
+
+### Class Discussion
+
+Each group presents their design (2-3 minutes each):
+
+- Thread architecture
+- Key synchronization choices
+- Main performance bottleneck
+- One interesting challenge they solved
+
+### Reflection Questions
+
+Individually, answer:
+
+1. **Concurrency:** What was the hardest part about reasoning about multiple threads?
+
+2. **Hardware:** How did understanding CPU/memory/I/O constraints influence your design?
+
+3. **Rust:** How did Rust's ownership system help (or hinder) your design?
+
+4. **Trade-offs:** What trade-off in your design are you least confident about?
+
+5. **Learning:** What concept from this course was most important for this activity?
+
+<QuestionBox>
+**The Big Picture:**
+
+Operating systems solve problems like this **every day** - managing multiple processes, scheduling CPU time, handling memory constraints, and coordinating I/O.
+
+How has this course changed your understanding of what happens "under the hood" when you run programs?
+
+</QuestionBox>
+
+## Submission
+
+Submit:
+
+1. Your architecture block diagram
+2. Implementation pseudocode (key sections)
+3. System analysis answers (Part 3)
+4. Individual reflection answers
+
+**Due:** As specified by your instructor
+
+---
+
+**Estimated Time:** {metadata.estimatedTime}
+
+**Standard:** {metadata.standard}
+
+---
+
+## Optional Extension: Actual Implementation
+
+If time permits (or as homework), implement a simplified version of your design:
+
+- Just handle 2-3 small test files
+- Use channels for thread communication
+- Print progress messages to show concurrency
+
+This is optional but highly recommended for solidifying your understanding!

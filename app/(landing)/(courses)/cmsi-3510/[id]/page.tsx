@@ -35,7 +35,7 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
     prefix: "ln",
     folder: "notes",
     minNumber: 1,
-    total: 0, // TODO: Update when you add lectures
+    total: 21,
     label: "Lecture Note",
     shortLabel: "LN",
     gridColumns: "grid-cols-7 sm:grid-cols-10",
@@ -44,7 +44,7 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
     prefix: "hw",
     folder: "homeworks",
     minNumber: 0,
-    total: 0, // TODO: Update when you add homeworks
+    total: 2,
     label: "Homework",
     shortLabel: "HW",
     gridColumns: "grid-cols-7 sm:grid-cols-10",
@@ -54,9 +54,18 @@ const CONTENT_TYPES: Record<string, ContentTypeConfig> = {
     prefix: "ex",
     folder: "exams",
     minNumber: 0,
-    total: 0, // TODO: Update when you add exams
+    total: 3,
     label: "Exam",
     shortLabel: "EX",
+    gridColumns: "grid-cols-5 sm:grid-cols-10",
+  },
+  activity: {
+    prefix: "ac",
+    folder: "activities",
+    minNumber: 1,
+    total: 3,
+    label: "Activity",
+    shortLabel: "AC",
     gridColumns: "grid-cols-5 sm:grid-cols-10",
   },
 }
@@ -96,6 +105,8 @@ function getThemeType(prefix: string): ContentType {
       return "exam"
     case "ln":
       return "lecture"
+    case "ac":
+      return "activity"
     default:
       return "default"
   }
@@ -124,10 +135,11 @@ export default async function ContentPage({ params }: PageProps) {
     notFound()
   }
 
-  // Determine if this is a lecture note, homework, or exam (for metadata lookup)
+  // Determine if this is a lecture note, homework, exam, or activity (for metadata lookup)
   const isLectureNote = contentType.prefix === "ln"
   const isHomework = contentType.prefix === "hw"
   const isExam = contentType.prefix === "ex"
+  const isActivity = contentType.prefix === "ac"
 
   // Handle Lecture Notes
   if (isLectureNote) {
@@ -382,6 +394,115 @@ export default async function ContentPage({ params }: PageProps) {
     return (
       <ContentThemeProvider contentType={getThemeType(contentType.prefix)}>
         <MDXPageContent topLevelSectionClass={contentType.topLevelSectionClass}>
+          <div className="container mx-auto p-6 max-w-4xl">
+            {/* Back to Course Link */}
+            <div className="mb-6">
+              <Link
+                href="/cmsi-3510"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+              >
+                ← Back to Course
+              </Link>
+            </div>
+
+            {/* Main Content - MDX */}
+            <div className="prose prose-neutral dark:prose-invert max-w-none mb-8">
+              {MDXContent ? (
+                <Suspense fallback={<div>Loading content...</div>}>
+                  <MDXContent />
+                </Suspense>
+              ) : (
+                <div className="text-center p-8 border rounded-lg bg-muted/30">
+                  <p className="text-muted-foreground">
+                    Content for this {contentType.label.toLowerCase()} is coming
+                    soon.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Create a file at{" "}
+                    <code className="bg-muted px-2 py-1 rounded">
+                      content/cmsi-3510/{contentType.folder}/
+                      {contentType.prefix}
+                      {itemNumber}.mdx
+                    </code>{" "}
+                    to add content.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center justify-between pt-6 border-t">
+              {hasPrevious ? (
+                <Link
+                  href={`/cmsi-3510/${contentType.prefix}${itemNumber - 1}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>
+                    {contentType.shortLabel} {itemNumber - 1}
+                  </span>
+                </Link>
+              ) : (
+                <div></div>
+              )}
+
+              {hasNext ? (
+                <Link
+                  href={`/cmsi-3510/${contentType.prefix}${itemNumber + 1}`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted transition-colors"
+                >
+                  <span>
+                    {contentType.shortLabel} {itemNumber + 1}
+                  </span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <div></div>
+              )}
+            </div>
+
+            {/* Quick Navigation */}
+            <div className="mt-8 p-4 border rounded-lg bg-muted/30">
+              <h3 className="font-semibold mb-3">All {contentType.label}s</h3>
+              <div className={`grid ${contentType.gridColumns} gap-2`}>
+                {Array.from(
+                  { length: contentType.total - contentType.minNumber + 1 },
+                  (_, i) => i + contentType.minNumber
+                ).map((num) => (
+                  <Link
+                    key={num}
+                    href={`/cmsi-3510/${contentType.prefix}${num}`}
+                    className={`
+                    text-center py-2 rounded border text-sm font-medium transition-colors
+                    ${
+                      num === itemNumber
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "hover:bg-muted border-border"
+                    }
+                  `}
+                  >
+                    {num}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </MDXPageContent>
+      </ContentThemeProvider>
+    )
+  }
+
+  // Handle Activities
+  if (isActivity) {
+    const MDXContent = await loadMDXContent(contentType, itemNumber)
+
+    // Navigation
+    const hasPrevious = itemNumber > contentType.minNumber
+    const hasNext = itemNumber < contentType.total
+
+    return (
+      <ContentThemeProvider contentType={getThemeType(contentType.prefix)}>
+        <MDXPageContent>
           <div className="container mx-auto p-6 max-w-4xl">
             {/* Back to Course Link */}
             <div className="mb-6">

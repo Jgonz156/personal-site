@@ -8,6 +8,7 @@ export type EventType =
   | "homework"
   | "exam"
   | "lecture"
+  | "activity"
   //  | "lab"
   //  | "project"
   //  | "reading"
@@ -74,7 +75,9 @@ export function getUpcomingHomeworkAndExams(
   return courseEvents
     .filter(
       (event) =>
-        (event.type === "homework" || event.type === "exam") &&
+        (event.type === "homework" ||
+          event.type === "exam" ||
+          event.type === "activity") &&
         event.date >= today &&
         event.date <= futureDate
     )
@@ -89,9 +92,10 @@ export function getEventTypeForDate(date: DateTime): EventType | null {
   const events = getEventsForDate(date)
   if (events.length === 0) return null
 
-  // Priority order: exam > homework > project > lecture > office-hours > holiday > others
+  // Priority order: exam > activity > homework > project > lecture > office-hours > holiday > others
   const priorityOrder: EventType[] = [
     "exam",
+    "activity",
     "homework",
     //"project",
     "lecture",
@@ -147,7 +151,9 @@ export function getCourseUpcomingHomeworkAndExams(
   return getCourseEvents(courseId)
     .filter(
       (event) =>
-        (event.type === "homework" || event.type === "exam") &&
+        (event.type === "homework" ||
+          event.type === "exam" ||
+          event.type === "activity") &&
         event.date >= today &&
         event.date <= futureDate
     )
@@ -173,9 +179,10 @@ export function getCourseEventTypeForDate(
   const events = getCourseEventsForDate(courseId, date)
   if (events.length === 0) return null
 
-  // Priority order: exam > homework > project > lecture > office-hours > holiday > others
+  // Priority order: exam > activity > homework > project > lecture > office-hours > holiday > others
   const priorityOrder: EventType[] = [
     "exam",
+    "activity",
     "homework",
     "lecture",
     "office-hours",
@@ -202,6 +209,8 @@ export function getCalendarDayColor(type: EventType): string {
       return "!bg-red-500 !text-white hover:!bg-red-600 border-2 !border-red-600 font-semibold"
     case "homework":
       return "!bg-green-500 !text-white hover:!bg-green-600 border-2 !border-green-600 font-semibold"
+    case "activity":
+      return "!bg-orange-500 !text-white hover:!bg-orange-600 border-2 !border-orange-600 font-semibold"
     case "office-hours":
       return "!bg-gray-500 !text-white hover:!bg-gray-600 border-2 !border-gray-600 font-semibold"
     case "holiday":
@@ -212,7 +221,7 @@ export function getCalendarDayColor(type: EventType): string {
     case "lab":
       return "!bg-teal-500 !text-white hover:!bg-teal-600 border-2 !border-teal-600 font-semibold"
     case "reading":
-      return "!bg-orange-500 !text-white hover:!bg-orange-600 border-2 !border-orange-600 font-semibold"
+      return "!bg-pink-500 !text-white hover:!bg-pink-600 border-2 !border-pink-600 font-semibold"
     */
     default:
       return "!bg-gray-400 !text-white hover:!bg-gray-500 border-2 !border-gray-500 font-semibold"
@@ -238,6 +247,12 @@ export function getCalendarDayStyle(type: EventType): React.CSSProperties {
       return {
         backgroundColor: "rgb(var(--calendar-homework-bg))",
         color: "rgb(var(--calendar-homework-fg))",
+        fontWeight: "600",
+      }
+    case "activity":
+      return {
+        backgroundColor: "rgb(var(--calendar-activity-bg))",
+        color: "rgb(var(--calendar-activity-fg))",
         fontWeight: "600",
       }
     case "office-hours":
@@ -269,6 +284,8 @@ export function getEventTypeColor(type: EventType): string {
       return "bg-red-500"
     case "homework":
       return "bg-green-500"
+    case "activity":
+      return "bg-orange-500"
     case "office-hours":
       return "bg-gray-500"
     case "holiday":
@@ -279,7 +296,7 @@ export function getEventTypeColor(type: EventType): string {
     case "lab":
       return "bg-teal-500"
     case "reading":
-      return "bg-orange-500"
+      return "bg-pink-500"
     */
     default:
       return "bg-gray-400"
@@ -294,6 +311,8 @@ export function getEventTypeIcon(type: EventType): string {
       return "📋"
     case "homework":
       return "📝"
+    case "activity":
+      return "🎯"
     case "office-hours":
       return "👥"
     case "holiday":

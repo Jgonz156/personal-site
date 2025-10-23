@@ -1,4 +1,9 @@
-export type ContentType = "homework" | "exam" | "lecture" | "default"
+export type ContentType =
+  | "homework"
+  | "exam"
+  | "lecture"
+  | "activity"
+  | "default"
 
 interface ContentThemeProviderProps {
   contentType: ContentType
@@ -12,6 +17,7 @@ interface ContentThemeProviderProps {
  * - homework: Green themed
  * - exam: Red themed
  * - lecture: Blue themed
+ * - activity: Orange themed
  * - default: Purple themed (current theme)
  *
  * Uses a data attribute approach to avoid client-side flash

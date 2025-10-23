@@ -2,19 +2,597 @@ import { DateTime } from "luxon"
 import type { CourseEvent } from "../course-data"
 
 export const cmsi3510Events: CourseEvent[] = [
-  // Add your CMSI-3510 Operating Systems course events here
-  // Example structure:
-  /*
   {
     id: "ln0",
-    title: "LN 0: Introduction to Operating Systems",
+    title: "LN 0: Reading Course Material!",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 1, day: 15 }),
-    description: "Introduction to operating systems concepts and course overview.",
+    date: DateTime.fromObject({ year: 2025, month: 8, day: 26 }),
+    description:
+      "Here is a sample of what the lecture notes will look like! This one just explains the color coding I use for information and displays the small interactive modules I might have throughout the notes.",
     courseId: "cmsi-3510",
-    standard: "Introduction",
+    standard: "Syllabus",
     contentUrl: "/cmsi-3510/ln0",
     recordings: [],
   },
+  {
+    id: "ln1",
+    title: "LN 1: Shaking on the Rust",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 8, day: 28 }),
+    description:
+      "In this lecture, we begin by getting a context for what Syntax and Semantics are in programming languages to appropriately set ourselves up for learning Rust. We then take a 'sneak peak' at the Rust language as is solves the Change Making Problem.",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ln1",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/4SAbrt2tDKdvgfyT2JM4o2s6zUuUTRFAgdK5M8B5a3-zH4VzJe5WYRhcVWOAFYIu.IrnfAEAivlXg4VLg",
+      },
+    ],
+  },
+  {
+    id: "3510-hol0",
+    title: "Labor Day!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 1 }),
+    description: "Happy Labor Day!",
+    courseId: "cmsi-3510",
+  },
+  {
+    id: "ln2",
+    title: "LN 2: Variable Variables",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 2 }),
+    description:
+      "In this lecture, we begin our full investigation of Rust by looking at the syntax and semantics of Variable Declarations. We cover on many topics including memory management, ownership, scope, and mutability. We then turn to VSCode to see examples.",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ln2",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/kjMnUIcFQVQ7QrMh5UrnymAG0V095yx8-TWOHypDAZdBDLL_S49LlAve2vn2SEZy.I_AsMpWdjIhr2-eO",
+      },
+    ],
+  },
+  {
+    id: "ln3",
+    title: "LN 3: What's in Your Memory?",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 4 }),
+    description:
+      "In this lecture, we take a deeper look at memory handling in rust with the stack and the heap. We also investigate the concept of references and how they are used in Rust's Ownership system to manage memory.",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ln3",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/vIHJBrCLXM8ebcnX31HA740Zb4qvQVLnKvDBmsBWG3grlpuCrE1VB-1JKpSnorix.LZcOx0vuDeDf4pIA",
+      },
+    ],
+  },
+  {
+    id: "hw0",
+    title: "HW 0: Simple Rust Calculator",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 5 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 8, day: 26 }),
+    dueTime: "11:59 PM",
+    description:
+      "This is a small assignment to get you familiar with the process of receiving and submitting assignments!",
+    courseId: "cmsi-3510",
+    standard: "Syllabus",
+    contentUrl: "/cmsi-3510/hw0",
+  },
+  {
+    id: "ex0",
+    title: "EX 0: Syllabus",
+    type: "exam",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 6 }),
+    dueTime: "11:59 PM",
+    description:
+      "Exams are an important part of how you communicate your understanding of the material! Here you will take one on the most vital parts of the course syllabus! I promise its not hard.",
+    courseId: "cmsi-3510",
+    standard: "Syllabus",
+    contentUrl: "/cmsi-3510/ex0",
+  },
+  {
+    id: "ln4",
+    title: "LN 4: Functionally Perfect",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 9 }),
+    description:
+      "In this lecture, we see all that functions have to offer in Rust and their unique Ownership management. Everything from associated functions, to closures, and more!",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ln4",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/A3hNYuklxD_Ta0IXrOACt82YzZKSP_v_DUH7_GQ93mqcVNNCujlsffNezt-kj24K.uSrxcSad1PmCMNCE",
+      },
+    ],
+  },
+  {
+    id: "ln5",
+    title: "LN 5: Optimal Struct Structure",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 11 }),
+    description:
+      "In this lecture we round off our foundational knowledge of Rust itself with structs, traits, and lifetimes. We investigate how they interact with one another to create a memory safe and comprehensive OOP system.",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ln5",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/OQI117FLojWHMdFLc3XEUH69yrz7lO9EgftO9ZJv7LAEfzHR3DmkXlOblkh-DcY.VfsxXO-aDToMQNUY",
+      },
+    ],
+  },
+  {
+    id: "ln6",
+    title: "LN 6: Hanging by a Thread",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 16 }),
+    description:
+      "In this lecture we begin our investigation of concurrent programming by starting from the beginning with a brief history of computer hardware as it relates to the OS and a large picture of how our hardware makes it all the way down to threads. We then investigate how to create threads in Rust and briefly introduce some of the oddities of Concurrent Programming.",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ln6",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/JBQr6zj69IcYmYWp_NpT29EQhx88tfJ73vfXLDoaXFnxuYi3fWR-4HsA_wpdn_nz.6LPnDIhOBgc-1tec",
+      },
+    ],
+  },
+  {
+    id: "ln7",
+    title: "LN 7: Out of Order",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 18 }),
+    description:
+      "In this lecture we sharpen our understanding of threads by investigating parallel and concurrent programming theory. By investigating Partitioning, Communication, Synchronization, and Load Balancing we can identify, summarize, and alleviate the many pitfalls of out of order programming.",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ln7",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/W_7Y5iVD3Z2kfL2UVfJQxl-yjmmKuBu6BdeoG4F_wIXlcj4KRbmNzJ91SP6nbERf._zRYL6DCIN58YWPK",
+      },
+    ],
+  },
+  {
+    id: "ac1",
+    title: "AC 1: Getting Folded",
+    type: "activity",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 23 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this in class activity, we use Competitive Origami to learn data and task partitioning for parallel programming.",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/ac1",
+  },
+  {
+    id: "ln8",
+    title: "LN 8: ICUP, I See You Process",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 25 }),
+    description:
+      "In this lecture we begin our deep dive into computer hardware by breaking down the CPU! We will discover ISAs, Registers, ALUs, and more!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln8",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/sWThYyA7d8MbHZvqW640TYU8aGx8jAKrl0h3eS29L35Q5lVYB8YADMHQEn1UVnpG.Rfk8oU6Pr0wT1Dcq",
+      },
+    ],
+  },
+  {
+    id: "ln9",
+    title: "LN 9: ...Processing Title...",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 9, day: 30 }),
+    description:
+      "In this lecture we view the many different, unique yet important perspectives of different portions of the OS and hardware to answer the most important question about our OSs, what is a process?",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln9",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/y3wYT30KNH7CaUhJK8THxLrgFcCnRYl97UJVhQQKm2gyIKNge14VP5HXqsvFvFax.yOgyIChMArVEhygo",
+      },
+    ],
+  },
+  {
+    id: "ln10",
+    title: "LN 10: Out of Context",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 2 }),
+    description:
+      "In this lecture we dive into the intricacies of when and when not to context switch between processes. This problem concerns our users expectations, our processes to complete, and the direct hardware we are using! This is the Scheduling problem!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln10",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/_VFxLk5A4GO1Kothoojne2xvHh3hr0aSjyi157aIOPevlyJzdpGyDBbvaPXZrz_k.58GVD1XGjQES7mTO",
+      },
+    ],
+  },
+  {
+    id: "hw1",
+    title: "HW 1: Doughmain Expansion",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 3 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 9, day: 4 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework you are tasked with solidifying your Rust programming skills by taking on a small file system simulator and its incomplete terminal commands! You'll get to practice structs, ownership, and references!",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/hw1",
+  },
+  {
+    id: "ln11",
+    title: "LN 11: Scheduling Calls",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 7 }),
+    description:
+      "In this lecture we continue our investigation of scheduling by learning many of the techniques used by Batch, Interactive, and even Real time systems! These include straightforward techniques like using a simple queue (FCFS) all the way to using multi-queue round robin techniques that rely on an internal lottery!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln11",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/blw8g4gGyc_nywsu6RutPigdGK18tHBBMEu44Zx_GmC7vplKfXofDmecnFUNKV8x.HUZMz4rCW7bwNl1p",
+      },
+    ],
+  },
+  {
+    id: "ln12",
+    title: "LN 12: Don't Starve",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 9 }),
+    description:
+      "In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact with them incorrectly to form a new universe of problems referred to as Deadlocking!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln12",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/T1ITG3-39HbeR-7X62CXlu5bM3vt0T2MiPb3m_CP7M0imBsZMogpBXK1plHJ0UQ7.1vhK88krGH428vX0",
+      },
+    ],
+  },
+  {
+    id: "3510-hol1",
+    title: "Autumn Day!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 10 }),
+    description: "Enjoy your Autumn Day!",
+    courseId: "cmsi-3510",
+  },
+  {
+    id: "ln13",
+    title: "LN 13: How I Met Your Memory",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 14 }),
+    description:
+      "In this lecture we investigate different memory hardware technologies, how they are used, their advantages, and their disadvantages to set up a foundation for understanding Processes fit into memory. This includes volatility, speed, size, cost, and more!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln13",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/sKCR2P-dvKeY334YKsk51ImKRzafg7yCr4JHHwJ7BiEfqC0-SYS5UfhAZEndz8EL.g6ENsZyYvtnnuFDb",
+      },
+    ],
+  },
+  {
+    id: "ln14",
+    title: "LN 14: Continuous Fragmentation",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 16 }),
+    description:
+      "In this lecture we investigate memory allocation! We begin with studying contiguous memory allocation techniques like fixed and dynamic partitioning. We then use these techniques to investigate the problem of fragmentation and setup the foundation for virtual memory!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln14",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/b8a-Mtt0DpwOXz1gFFOe3lm4Ot3RwjvRx3WWT8LX_mi5hnegYTk-0zYmI6TpSzwd.jN7qvZkP-hpbqHJl",
+      },
+    ],
+  },
+  {
+    id: "hw2",
+    title: "HW 2: Life of Pie",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 17 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 9, day: 18 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework you will get practice with concurrent programming paradigms in the form of making pizza from scratch! Prepare to engage with threads, synchronization primitives, async/await, and more!",
+    courseId: "cmsi-3510",
+    standard: "Concurrent Programming",
+    contentUrl: "/cmsi-3510/hw2",
+  },
+  {
+    id: "ac2",
+    title: "AC 2: Saved by The Schedule",
+    type: "activity",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 21 }),
+    dueTime: "11:59 PM",
+    description:
+      "In this in class activity, we use grade school worksheets as a vehicle for learning all about job timing!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ac2",
+  },
+  {
+    id: "ln15",
+    title: "LN 15: Infinite Memory... Sort of",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 23 }),
+    description:
+      "In this lecture we continue looking into memory allocation. We begin with Virtual Memory and how it is used to create the illusion of infinite memory! We then investigate how this illusion is created, and maintained, by a new non-contiguous allocation technique called paging!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln15",
+    recordings: [
+      {
+        name: "Class Video",
+        url: "https://lmula.zoom.us/rec/share/b7LYFJknPXpAvWfnbMN5yktMTiKYA-g2xeMc57mFT5UvnDQWqz4rGUXA1h_U_sn9.TdKdllpBDbnMuIwp",
+      },
+    ],
+  },
+  {
+    id: "ln16",
+    title: "LN 16: Paging Dr. Seg",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 28 }),
+    description:
+      "In this lecture we finish our investigation of memory allocation by covering a comprehensive example of paging and seeing some real world examples of how modern systems must adapt the paging technique to work with current hardware and LAS sizes. Lastly, we finish by briefly covering segmentation and how it is used with paging to create our modern systems.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln16",
+    recordings: [
+      {
+        name: "Class Video",
+        url: "https://lmula.zoom.us/rec/share/ytTcMxNEReEfUF7S-RycWjoOpz6aTFzx20FLhRrLJ6vwZ1v4TUX15K6FiCFIzfT5.VewM1G_22tdztE7z",
+      },
+    ],
+  },
+  {
+    id: "ln17",
+    title: "LN 17: Hindsight's on Port 2020",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 30 }),
+    description:
+      "In this lecture we cover the final topic of this standard, I/O devices! We'll start with a brief history of data transfer standards, cover the major techniques (Block, Character, Network, etc), upgrade our visual model of the hardware, and finish by laying the foundation for the use of direct memory access (DMA) in modern systems!",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln17",
+    recordings: [
+      {
+        name: "Class Video",
+        url: "https://lmula.zoom.us/rec/share/VCXLqT5j7Uu2AnqpdzFFAMChp9_hvDFAoLwoUAUTzLdzevk9lqVnU_q-xyGcSIkV.RsCHfe34PHsvCuU4",
+      },
+    ],
+  },
+  /*
+  {
+    id: "hw3",
+    title: "HW 3: Storage Management",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 10, day: 31 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 2 }),
+    dueTime: "11:59 PM",
+    description:
+      "Programming assignment implementing advanced scheduling algorithms and memory management techniques.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/hw3",
+  },
   */
+  {
+    id: "ln18",
+    title: "LN 18: IOU",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 4 }),
+    description:
+      "In this lecture we cover the software fundamentals of developing I/O systems. We cover the critical software principles we follow, the approaches used to make those ideals real, and then the implementation of those principals on modern systems. We cover device independence, buffering, spooling, and more.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln18",
+    recordings: [
+      {
+        name: "Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/16t0RtM5rJLTQ00kvgG2pbY6pvS-pU9YmWk5Y1WNKUPagqORf7Rxk2qA82A3yssg.RWthfGVf-Dqkj0Wo",
+      },
+    ],
+  },
+  {
+    id: "ln19",
+    title: "LN 19: Advanced Topics",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 6 }),
+    description:
+      "Exploring advanced operating systems topics and modern system architectures.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln19",
+    recordings: [],
+  },
+  {
+    id: "ln20",
+    title: "LN 20: Systems Integration",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 11 }),
+    description:
+      "Understanding how all the hardware components work together in modern operating systems.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln20",
+    recordings: [],
+  },
+  {
+    id: "ln21",
+    title: "LN 21: Performance Optimization",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 13 }),
+    description:
+      "Techniques for optimizing operating system performance and resource utilization.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln21",
+    recordings: [],
+  },
+  /*
+  {
+    id: "hw4",
+    title: "HW 4: I/O Systems",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 14 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 30 }),
+    dueTime: "11:59 PM",
+    description:
+      "Programming assignment on I/O device management and software principles.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/hw4",
+  },
+  */
+  {
+    id: "ln22",
+    title: "LN 22: System Design Patterns",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 18 }),
+    description:
+      "Common design patterns in operating systems and their applications.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln22",
+    recordings: [],
+  },
+  {
+    id: "ln23",
+    title: "LN 23: Case Studies",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 20 }),
+    description:
+      "Real-world case studies of operating system implementations and architectures.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/ln23",
+    recordings: [],
+  },
+  /*
+  {
+    id: "hw5",
+    title: "HW 5: Final Project",
+    type: "homework",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 5 }),
+    availableDate: DateTime.fromObject({ year: 2025, month: 11, day: 13 }),
+    dueTime: "11:59 PM",
+    description:
+      "Comprehensive final project integrating concurrent programming and computer hardware concepts.",
+    courseId: "cmsi-3510",
+    standard: "Computer Hardware",
+    contentUrl: "/cmsi-3510/hw5",
+  },
+  */
+  {
+    id: "3510-hol2",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 25 }),
+    description:
+      "Normally there would be class on this day, but enjoy the day off in thanks for Thanksgiving!",
+    courseId: "cmsi-3510",
+  },
+  {
+    id: "3510-hol3",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 26 }),
+    description: "Enjoy your Thanksgiving break!",
+    courseId: "cmsi-3510",
+  },
+  {
+    id: "3510-hol4",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 27 }),
+    description: "Enjoy your Thanksgiving break!",
+    courseId: "cmsi-3510",
+  },
+  {
+    id: "3510-hol5",
+    title: "Thanksgiving Break!",
+    type: "holiday",
+    date: DateTime.fromObject({ year: 2025, month: 11, day: 28 }),
+    description: "Enjoy your Thanksgiving break!",
+    courseId: "cmsi-3510",
+  },
+  {
+    id: "ln24",
+    title: "LN 24: Course Review",
+    type: "lecture",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 2 }),
+    description:
+      "Comprehensive review of concurrent programming and computer hardware topics covered throughout the semester.",
+    courseId: "cmsi-3510",
+    standard: "Review",
+    contentUrl: "/cmsi-3510/ln24",
+    recordings: [],
+  },
+  {
+    id: "ac3",
+    title: "AC 3: Final Activity",
+    type: "activity",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 4 }),
+    dueTime: "11:59 PM",
+    description:
+      "Comprehensive hands-on activity synthesizing all course concepts.",
+    courseId: "cmsi-3510",
+    standard: "Review",
+    contentUrl: "/cmsi-3510/ac3",
+  },
+  {
+    id: "final-release",
+    title: "Final Exam Release",
+    type: "exam",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 8 }),
+    description: "Final exam released and available for completion.",
+    courseId: "cmsi-3510",
+    standard: "Final",
+    contentUrl: "/cmsi-3510/final",
+  },
+  {
+    id: "final",
+    title: "Final Exam Due",
+    type: "exam",
+    date: DateTime.fromObject({ year: 2025, month: 12, day: 12 }),
+    dueTime: "11:59 PM",
+    description:
+      "Comprehensive final exam covering all course material. Good luck!",
+    courseId: "cmsi-3510",
+    standard: "Final",
+    contentUrl: "/cmsi-3510/final",
+  },
 ]

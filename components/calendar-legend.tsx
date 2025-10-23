@@ -12,6 +12,7 @@ export function CalendarLegend() {
   const legendItems = [
     { color: "bg-blue-500", label: "Lectures" },
     { color: "bg-red-500", label: "Exams" },
+    { color: "bg-orange-500", label: "Activities" },
     { color: "bg-green-500", label: "Homework" },
     { color: "bg-gray-500", label: "Office Hours" },
     { color: "bg-yellow-500", label: "Holidays" },
