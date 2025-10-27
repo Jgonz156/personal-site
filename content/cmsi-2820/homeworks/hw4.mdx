@@ -41,18 +41,18 @@ export const hwEvent = getHomeworkEvent(metadata.hwNumber)
 
 In this problem you are tasked with matching items from the left-hand-side to the right-hand side. The items are general to lambdas/functions, so make the best matching pairs that you can, however there is an intended match for each item. There are no "extra" items, there are 10 pairs in total that must be constructed, and there are no pairs made from items on the same side.
 
-| Left-hand side                     | Right-hand side                                           |
-| ---------------------------------- | --------------------------------------------------------- |
-| a. named function                  | 1. $\lambda a.\,a\,a \rightarrow \lambda b.\,b\,b$        |
-| b. $\alpha$-conversion             | 2. $\lambda w.\,\text{print}\,w \rightarrow \text{print}$ |
-| c. $\lambda xy.\,x \cdot y$        | 3. `lambda x, y: x(y)`                                    |
-| d. $\lambda xy.\,\text{mul}\,x\,y$ | 4. `lambda x, y: x * y`                                   |
-| e. unnamed function                | 5. `lambda a: lambda b: a`                                |
-| f. $\lambda xy.\,x\,y$             | 6. `lambda b: lambda a: b`                                |
-| g. $\beta$-conversion              | 7. `def mul(x, y): return x * y`                          |
-| h. $\eta$-conversion               | 8. $\lambda a.a$                                          |
-| i. $\lambda b.\,\lambda a.\,b$     | 9. `lambda x, y: mul(x, y)`                               |
-| j. $\lambda a.\,\lambda b.\,a$     | 10. $(\lambda bc.\,b+c)\,1\,2 \rightarrow 1+2$            |
+| Left-hand side                               | Right-hand side                                           |
+| -------------------------------------------- | --------------------------------------------------------- |
+| a. named function                            | 1. $\lambda a.\,a\,a \rightarrow \lambda b.\,b\,b$        |
+| b. $\alpha$-conversion                       | 2. $\lambda w.\,\text{print}\,w \rightarrow \text{print}$ |
+| c. $\lambda x. \lambda y.\,x \cdot y$        | 3. `lambda x, y: x(y)`                                    |
+| d. $\lambda x. \lambda y.\,\text{mul}\,x\,y$ | 4. `lambda x, y: x * y`                                   |
+| e. unnamed function                          | 5. `lambda a: lambda b: a`                                |
+| f. $\lambda x. \lambda y.\,x\,y$             | 6. `lambda b: lambda a: b`                                |
+| g. $\beta$-conversion                        | 7. `def mul(x, y): return x * y`                          |
+| h. $\eta$-conversion                         | 8. $\lambda a.a$                                          |
+| i. $\lambda b.\,\lambda a.\,b$               | 9. `lambda x, y: mul(x, y)`                               |
+| j. $\lambda a.\,\lambda b.\,a$               | 10. $(\lambda bc.\,b+c)\,1\,2 \rightarrow 1+2$            |
 
 </QuestionBox>
 
@@ -142,7 +142,7 @@ $$
 
 <QuestionBox qid="Q3" title="Lambda Conversions" points="30 total">
 
-In the following problem you are tasked with performing successful alpha, beta, and gamma conversions using proper substitution on the following lambda calculus expressions.
+In the following problem you are tasked with performing successful alpha, beta, and eta conversions using proper substitution on the following lambda calculus expressions.
 
 <SubQuestion qid="Q3a" points={2}>
 
@@ -166,10 +166,10 @@ $$
 
 <SubQuestion qid="Q3c" points={3}>
 
-Perform a gamma conversion on the following lambda:
+Perform an eta conversion on the following lambda:
 
 $$
-\lambda xy.~mul~x~y
+\lambda x. \lambda y.~mul~x~y
 $$
 
 </SubQuestion>
