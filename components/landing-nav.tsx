@@ -61,13 +61,13 @@ export default function LandingNav() {
               </Button>
             </Link>
 
-            <Link href="/cv">
+            <Link href="/experience">
               <Button
                 variant="ghost"
                 className="flex items-center space-x-2 text-foreground hover:text-foreground/80"
               >
                 <FileUser className="w-5 h-5" />
-                <span className="font-medium">CV</span>
+                <span className="font-medium">Experience</span>
               </Button>
             </Link>
 
@@ -128,14 +128,14 @@ export default function LandingNav() {
             </Link>
 
             {/* CV */}
-            <Link href="/cv" onClick={handleNavClick}>
+            <Link href="/experience" onClick={handleNavClick}>
               <Button
                 variant={isActive("/cv") ? "secondary" : "ghost"}
                 className="w-full justify-start gap-3"
                 size="lg"
               >
                 <FileUser className="w-5 h-5" />
-                <span>Curriculum Vitae</span>
+                <span>Experience</span>
               </Button>
             </Link>
 
