@@ -70,19 +70,141 @@ export default function CheatSheet() {
         is assigned.
       </p>
 
-      {unlockedStandards.length === 0 && (
-        <div className="border rounded-lg p-8 bg-muted/30 text-center">
-          <p className="text-lg text-muted-foreground">
-            📚 No cheat sheet sections available yet!
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Cheat sheet sections unlock when homework is assigned. Check back on
-            homework release days!
-          </p>
-        </div>
-      )}
-
       <div className="space-y-8">
+        {/* Useful Terminal Commands */}
+
+        <section
+          id="useful-terminal-commands"
+          className="border rounded-lg p-6 bg-muted/30"
+        >
+          <h2 className="text-2xl font-semibold mb-4">
+            Useful Terminal Commands
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold mb-2">Git Commands</h3>
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b-2 border-border">
+                    <th className="text-left py-2 px-4">Command</th>
+                    <th className="text-left py-2 px-4">Description</th>
+                    <th className="text-left py-2 px-4">Example</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-4">git add [file/directory/path]</td>
+                    <td className="py-2 px-4">
+                      Add a file/directory to the staging area. Use "." to add
+                      all changes currently in the working directory.
+                    </td>
+                    <td className="py-2 px-4">git add .</td>
+                    <td className="py-2 px-4">git add farm.py</td>
+                    <td className="py-2 px-4">git add src/</td>
+                  </tr>
+                </tbody>
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-4">
+                      git commit -m "[commit message]"
+                    </td>
+                    <td className="py-2 px-4">
+                      Commit changes to the repository. The -m flag is used to
+                      add a commit message to the commit and avoid the custom
+                      terminal interface.
+                    </td>
+                    <td className="py-2 px-4">
+                      git commit -m "Completed HW1! 🎉"
+                    </td>
+                    <td className="py-2 px-4">
+                      git commit -m "Fixed bug in farm.py"
+                    </td>
+                  </tr>
+                </tbody>
+
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-4">git push</td>
+                    <td className="py-2 px-4">
+                      Push changes to the remote repository. This will update
+                      GitHub's cloud copy of the repository with the changes you
+                      have made locally.
+                    </td>
+                    <td className="py-2 px-4">git push</td>
+                  </tr>
+                </tbody>
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-4">git pull</td>
+                    <td className="py-2 px-4">
+                      Pull changes from the remote repository. This will update
+                      your local copy of the repository with the changes that
+                      have been made to the cloud repository.
+                    </td>
+                    <td className="py-2 px-4">git pull</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Python Commands</h3>
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b-2 border-border">
+                    <th className="text-left py-2 px-4">Command</th>
+                    <th className="text-left py-2 px-4">Description</th>
+                    <th className="text-left py-2 px-4">Example</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-4">python -m pytest</td>
+                    <td className="py-2 px-4">
+                      Run the unit tests for the current project.
+                    </td>
+                    <td className="py-2 px-4">python -m pytest</td>
+                  </tr>
+                </tbody>
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-4">python [file.py]</td>
+                    <td className="py-2 px-4">
+                      Run the file.py file. On MacOS, you may need to use
+                      `python3` instead of `python`.
+                    </td>
+                    <td className="py-2 px-4">python proceedings.py</td>
+                    <td className="py-2 px-4">python3 test_farm.py</td>
+                  </tr>
+                </tbody>
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="py-2 px-4">
+                      python -m pip install [package]
+                    </td>
+                    <td className="py-2 px-4">
+                      Install a package using Python's Package Manager.
+                    </td>
+                    <td className="py-2 px-4">python -m pip install pytest</td>
+                    <td className="py-2 px-4">python -m pip install numpy</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {unlockedStandards.length === 0 && (
+          <div className="border rounded-lg p-8 bg-muted/30 text-center">
+            <p className="text-lg text-muted-foreground">
+              📚 No cheat sheet for course material available yet!
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Cheat sheet sections unlock when homework is assigned. Check back
+              on homework release days!
+            </p>
+          </div>
+        )}
+
         {/* Logic Section */}
         {unlockedStandards.some((s) => s.name === "Logic") && (
           <section id="logic" className="border rounded-lg p-6 bg-muted/30">

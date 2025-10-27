@@ -202,7 +202,7 @@ export function OptionalSection({
 }: OptionalSectionProps) {
   return (
     <div className="mb-8">
-      <SectionHeader title="Optional Extra Credit" points={points} icon="⭐" />
+      <SectionHeader title="Optional Section" points={points} icon="⭐" />
       <div className="prose prose-neutral dark:prose-invert max-w-none bg-amber-50 dark:bg-amber-950/20 p-6 rounded-lg border-2 border-amber-200 dark:border-amber-900">
         {children}
       </div>

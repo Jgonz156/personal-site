@@ -96,7 +96,7 @@ export function CourseSidebar({
         variant="outline"
         size="icon"
         onClick={toggleCollapse}
-        className="absolute top-20 -right-4 h-8 w-8 rounded-full bg-background shadow-md border-border z-10"
+        className="absolute top-32 -right-6 h-8 w-6 rounded-r-md bg-background shadow-md border-border z-10"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? (

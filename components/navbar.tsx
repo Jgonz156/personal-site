@@ -190,7 +190,7 @@ export default function Navbar() {
       )}
 
       {/* Chevron Toggle Button (Desktop only) */}
-      <div className="hidden md:block absolute slide-out-to-bottom-0 right-3">
+      <div className="hidden md:block absolute slide-out-to-bottom-0 right-4">
         <Button
           variant="ghost"
           size="icon"
