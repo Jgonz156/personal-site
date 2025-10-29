@@ -408,7 +408,16 @@ export const cmsi2820Events: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Functions",
     contentUrl: "/cmsi-2820/ln15",
-    recordings: [],
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/fDtSCZFBvPiv5jGudSD5GiPtqcex-9-QD6ALLg7p4hBiS07EvkGD6ColRm8A79B5.EvrqVXEO7jxgpBlV",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/6BfTlhf5Ow8bpsz8LCMal6aePJkNcokdTDnQ_gpPrKCgweNBzWUEqFRmHx_sbzDg.vQbcMIKDK3pG3QpG",
+      },
+    ],
   },
   {
     id: "hw4",
