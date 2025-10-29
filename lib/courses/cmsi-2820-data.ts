@@ -481,7 +481,12 @@ export const cmsi2820Events: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln16",
-    recordings: [],
+    recordings: [
+      {
+        name: "Replacement Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/jdnNvgZGDdVwOjhDXlOX-JfAPsMX6vbjNMs_WPj-U6PtDiDKkkExqwYQ1meQf8bL.cGmayObRRgyizkLD",
+      },
+    ],
   },
   {
     id: "ln17",
@@ -493,7 +498,12 @@ export const cmsi2820Events: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln17",
-    recordings: [],
+    recordings: [
+      {
+        name: "Replacement Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/uRE2ThHCvKqXrIal6EyORVpxJFLDXkGPwryVnp0DeT1O4nNsOzK8LIdao-bIvFXP.BRIugwWqnqcK0nsd",
+      },
+    ],
   },
   {
     id: "ln18",
