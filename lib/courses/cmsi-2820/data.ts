@@ -1,12 +1,17 @@
-import { DateTime } from "luxon"
-import type { CourseEvent } from "../course-data"
+import type { CourseEvent } from "../../course-data"
+import { createSchedule } from "../schedule-generator"
+import { cmsi2820Fall2025Schedule } from "./schedule"
 
-export const cmsi2820Events: CourseEvent[] = [
+// Create schedule generator with Fall 2025 configuration
+const schedule = createSchedule(cmsi2820Fall2025Schedule)
+
+// Generate all course events with schedule-based dates
+const allEvents: CourseEvent[] = [
   {
-    id: "ln0",
+    id: "2820-ln0",
     title: "LN 0: Reading Course Material!",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 8, day: 26 }),
+    date: schedule.getNextRecurringDate("2820-ln0"),
     description:
       "Here is a sample of what the lecture notes will look like! This one just explains the color coding I use for information and displays the small interactive modules I might have throughout the notes.",
     courseId: "cmsi-2820",
@@ -24,11 +29,11 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "hw0",
+    id: "2820-hw0",
     title: "HW 0: Practicing Homework",
     type: "homework",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 5 }),
-    availableDate: DateTime.fromObject({ year: 2025, month: 8, day: 26 }),
+    date: schedule.getSpecificDate(2025, 9, 5, "2820-hw0"),
+    availableDate: schedule.getSpecificDate(2025, 8, 26, "2820-hw0-available"),
     dueTime: "11:59 PM",
     description:
       "This is a small assignment to help you get familiar with the process of receiving and submitting assignments!",
@@ -37,10 +42,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/hw0",
   },
   {
-    id: "ex0",
+    id: "2820-ex0",
     title: "EX 0: Syllabus Exam",
     type: "exam",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 6 }),
+    date: schedule.getSpecificDate(2025, 9, 6, "2820-ex0"),
     dueTime: "11:59 PM",
     description:
       "Exams are an important part of how you communicate your understanding of the material! Here you will take one on the most vital parts of the course syllabus! I promise its not hard.",
@@ -49,10 +54,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ex0",
   },
   {
-    id: "ln1",
+    id: "2820-ln1",
     title: "LN 1: Information and Its Consequences...",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 8, day: 28 }),
+    date: schedule.getNextRecurringDate("2820-ln1"),
     description:
       "This lecture will cover the basics of many different systems of logic, where they came from, how they were used, and what it even means to craft a valid line of reasoning.",
     courseId: "cmsi-2820",
@@ -73,15 +78,16 @@ export const cmsi2820Events: CourseEvent[] = [
     id: "2820-hol0",
     title: "Labor Day!",
     type: "holiday",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 1 }),
+    date: schedule.getSpecificDate(2025, 9, 1, "2820-hol0", true),
     description: "Happy Labor Day!",
     courseId: "cmsi-2820",
+    pinned: true,
   },
   {
-    id: "ln2",
+    id: "2820-ln2",
     title: "LN 2: Making Logical Connections",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 2 }),
+    date: schedule.getNextRecurringDate("2820-ln2"),
     description:
       "This lecture will be an introduction to intuitionistic logic more formally. We will cover propositions, their variables, compound formulas, and logical connectives.",
     courseId: "cmsi-2820",
@@ -99,10 +105,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln3",
+    id: "2820-ln3",
     title: "LN 3: Assumptions Make an Argument out of You and Me",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 4 }),
+    date: schedule.getNextRecurringDate("2820-ln3"),
     description:
       "This lecture expands on propositional logic by extending our inferential abilities for each of our logical connectives by exploring Natural Deduction",
     courseId: "cmsi-2820",
@@ -120,11 +126,11 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "hw1",
+    id: "2820-hw1",
     title: "HW 1: Think Class! Think!",
     type: "homework",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 19 }),
-    availableDate: DateTime.fromObject({ year: 2025, month: 9, day: 4 }),
+    date: schedule.getSpecificDate(2025, 9, 19, "2820-hw1"),
+    availableDate: schedule.getSpecificDate(2025, 9, 4, "2820-hw1-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework you will get practice with logical terminology, evaluating propositions in finite contexts, creating propositional and predicate logic statements, translating natural language into logic, and natural deduction proofs!",
@@ -133,10 +139,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/hw1",
   },
   {
-    id: "ln4",
+    id: "2820-ln4",
     title: "LN 4: Primitive Beginnings",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 9 }),
+    date: schedule.getNextRecurringDate("2820-ln4"),
     description:
       "In this lecture we will stroll through a brief history lesson that covers the foundations of mathematics (Set, Category, and Type Theory) and then we will see a small formal introduction to Type Theory",
     courseId: "cmsi-2820",
@@ -154,10 +160,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln5",
+    id: "2820-ln5",
     title: "LN 5: Meet The Booleans, Don't Worry There's only Two of Them",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 11 }),
+    date: schedule.getNextRecurringDate("2820-ln5"),
     description:
       "In this lecture, we begin building up our grasp on types by investigating 0 and 1, better known as the Booleans. We will look at the Booleans algebraically and graphically to discover unique properties, underlying patterns, and learn what it looks like to investigate within the foundation of Type Theory.",
     courseId: "cmsi-2820",
@@ -175,10 +181,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln6",
+    id: "2820-ln6",
     title: "LN 6: The Integers, The Booleans' Infinite In-laws",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 16 }),
+    date: schedule.getNextRecurringDate("2820-ln6"),
     description:
       "In this lecture we use the integer type to investigate the larger, hidden world of operators on types. We cover associativity, commutativity, identity, and closure for the integers.",
     courseId: "cmsi-2820",
@@ -196,11 +202,11 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln7",
+    id: "2820-ln7",
     title:
       "LN 7: Division without Decimals? Positive Numbers that Add to Zero? What is this Place?!?",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 18 }),
+    date: schedule.getNextRecurringDate("2820-ln7"),
     description:
       "In this lecture, we investigate what really drives the Integer type to be so unique. We will be looking at integer division, primes, and modular arithmetic.",
     courseId: "cmsi-2820",
@@ -218,11 +224,11 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "hw2",
+    id: "2820-hw2",
     title: "HW 2: Counting Sheep",
     type: "homework",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 3 }),
-    availableDate: DateTime.fromObject({ year: 2025, month: 9, day: 18 }),
+    date: schedule.getSpecificDate(2025, 10, 3, "2820-hw2"),
+    availableDate: schedule.getSpecificDate(2025, 9, 18, "2820-hw2-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework you will get practice with the many topics covered in the notes for this standard. This includes the Booleans, the Integers, and the many operations that can be performed on them!",
@@ -231,10 +237,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/hw2",
   },
   {
-    id: "ln8",
+    id: "2820-ln8",
     title: "LN 8: Getting Our Types in a Row",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 23 }),
+    date: schedule.getNextRecurringDate("2820-ln8"),
     description:
       "In this lecture we formally investigate tuples (also known as product types in type theory) including their properties, operations, and how they are used to build up more complex types.",
     courseId: "cmsi-2820",
@@ -252,10 +258,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln9",
+    id: "2820-ln9",
     title: "LN 9: Settling In",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 25 }),
+    date: schedule.getNextRecurringDate("2820-ln9"),
     description:
       "In this lecture we investigate the Tuples older sibling, the Set. We'll investigate it formally by defining it, exploring some innate properties, and a few basic operators.",
     courseId: "cmsi-2820",
@@ -273,10 +279,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln10",
+    id: "2820-ln10",
     title: "LN 10: Settling Down",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 9, day: 30 }),
+    date: schedule.getNextRecurringDate("2820-ln10"),
     description:
       "We continue our investigation of Sets by practicing some of the many common operations found between them.",
     courseId: "cmsi-2820",
@@ -294,10 +300,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln11",
+    id: "2820-ln11",
     title: "LN 11: Relationship Counseling",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 2 }),
+    date: schedule.getNextRecurringDate("2820-ln11"),
     description:
       "We end our look at Collections by learning about relations. Typically represented as sets of tuples, we will investigate the properties of relationships between instances within a type.",
     courseId: "cmsi-2820",
@@ -315,11 +321,11 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "hw3",
+    id: "2820-hw3",
     title: "HW 3: Storage Wars",
     type: "homework",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 17 }),
-    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 2 }),
+    date: schedule.getSpecificDate(2025, 10, 17, "2820-hw3"),
+    availableDate: schedule.getSpecificDate(2025, 10, 2, "2820-hw3-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework we practice tuples, sets, their operations, and even a little more in the programming portion...",
@@ -328,10 +334,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/hw3",
   },
   {
-    id: "ln12",
+    id: "2820-ln12",
     title: "LN 12: This Lamb Don't Baa",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 7 }),
+    date: schedule.getNextRecurringDate("2820-ln12"),
     description:
       "In this lecture we introduce the lambda calculus, a system that is used to define functions in a formal way. We will cover the syntax, the rules, and the reductions that can be made to simplify functions.",
     courseId: "cmsi-2820",
@@ -349,10 +355,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln13",
+    id: "2820-ln13",
     title: "LN 13: Free Range Variables",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 9 }),
+    date: schedule.getNextRecurringDate("2820-ln13"),
     description:
       "In this lecture we continue our work with Lambdas by investigating how variables interact with functions. We discover being bound and free, how to substitute variables, and how to reduce functions formally using proper substitution.",
     courseId: "cmsi-2820",
@@ -373,15 +379,16 @@ export const cmsi2820Events: CourseEvent[] = [
     id: "2820-hol1",
     title: "Autumn Day!",
     type: "holiday",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 10 }),
+    date: schedule.getSpecificDate(2025, 10, 10, "2820-hol1", true),
     description: "Enjoy your Autumn Day!",
     courseId: "cmsi-2820",
+    pinned: true,
   },
   {
-    id: "ln14",
+    id: "2820-ln14",
     title: "LN 14: Supplying and Consuming Lambdas",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 14 }),
+    date: schedule.getNextRecurringDate("2820-ln14"),
     description:
       "In this lecture we start by recapping proper substitution and then officially define the formal alpha, beta, and gamma conversion rules. After we go over some nomenclature for functions and how to identify suppliers, consumers, and the like.",
     courseId: "cmsi-2820",
@@ -399,10 +406,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln15",
+    id: "2820-ln15",
     title: "LN 15: In the Domain of Sheep",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 16 }),
+    date: schedule.getNextRecurringDate("2820-ln15"),
     description:
       "In this lecture we investigate the patterns that can be found in a lambdas inputs and outputs. We cover domain, codomain, image, pre-image and how an investigation into them gives us three function classes: Injective, Surjective, and Bijective",
     courseId: "cmsi-2820",
@@ -420,11 +427,11 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "hw4",
+    id: "2820-hw4",
     title: "HW 4: Silence of the Lambdas",
     type: "homework",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 31 }),
-    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 16 }),
+    date: schedule.getSpecificDate(2025, 10, 31, "2820-hw4"),
+    availableDate: schedule.getSpecificDate(2025, 10, 16, "2820-hw4-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework we practice lambdas, their reductions, their properties, and their creation!",
@@ -433,11 +440,18 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/hw4",
   },
   {
-    id: "ex1",
+    id: "2820-ex1",
     title: "EX 1: Logic Exam",
     type: "exam",
-    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 13 }),
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 18 }),
+    date: schedule.getSpecificDate(2025, 10, 18, "2820-ex1", true),
+    availableDate: schedule.getSpecificDate(
+      2025,
+      10,
+      13,
+      "2820-ex1-available",
+      true
+    ),
+    pinned: true,
     dueTime: "11:59 PM",
     description:
       "Optional midterm exam covering Standard 1: Logic. 5 questions, 10 points, 30-minute timer.",
@@ -446,11 +460,18 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ex1",
   },
   {
-    id: "ex2",
+    id: "2820-ex2",
     title: "EX 2: Numbers Exam",
     type: "exam",
-    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 13 }),
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 18 }),
+    date: schedule.getSpecificDate(2025, 10, 18, "2820-ex2", true),
+    availableDate: schedule.getSpecificDate(
+      2025,
+      10,
+      13,
+      "2820-ex2-available",
+      true
+    ),
+    pinned: true,
     dueTime: "11:59 PM",
     description:
       "Optional midterm exam covering Standard 2: Numbers. 5 questions, 10 points, 30-minute timer.",
@@ -459,11 +480,18 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ex2",
   },
   {
-    id: "ex3",
+    id: "2820-ex3",
     title: "EX 3: Collections Exam",
     type: "exam",
-    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 13 }),
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 18 }),
+    date: schedule.getSpecificDate(2025, 10, 18, "2820-ex3", true),
+    availableDate: schedule.getSpecificDate(
+      2025,
+      10,
+      13,
+      "2820-ex3-available",
+      true
+    ),
+    pinned: true,
     dueTime: "11:59 PM",
     description:
       "Optional midterm exam covering Standard 3: Collections. 5 questions, 10 points, 30-minute timer.",
@@ -472,10 +500,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ex3",
   },
   {
-    id: "ln16",
+    id: "2820-ln16",
     title: "LN 16: Laws and Orders",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 21 }),
+    date: schedule.getNextRecurringDate("2820-ln16"),
     description:
       "In this lecture we will introduce a more formal manner of counting, define disjoint-ness, the rule of sums and products, and practice some combinatorics problems!",
     courseId: "cmsi-2820",
@@ -489,10 +517,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln17",
+    id: "2820-ln17",
     title: "LN 17: Factorialing in Evidence",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 23 }),
+    date: schedule.getNextRecurringDate("2820-ln17"),
     description:
       "In this lecture we will investigate factorials, permutations, and combinations with and without repeats allowed!",
     courseId: "cmsi-2820",
@@ -506,10 +534,10 @@ export const cmsi2820Events: CourseEvent[] = [
     ],
   },
   {
-    id: "ln18",
+    id: "2820-ln18",
     title: "LN 18: Double Jeopardy",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 28 }),
+    date: schedule.getNextRecurringDate("2820-ln18"),
     description:
       "In this lecture we investigate Pascal's triangle and many of its hidden properties and patterns. We develop our understanding of combinations using Pascal's Triangle to explore a new proof technique called Double Counting.",
     courseId: "cmsi-2820",
@@ -518,10 +546,10 @@ export const cmsi2820Events: CourseEvent[] = [
     recordings: [],
   },
   {
-    id: "ln19",
+    id: "2820-ln19",
     title: "LN 19: Bijection Your Honor!",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 10, day: 30 }),
+    date: schedule.getNextRecurringDate("2820-ln19"),
     description:
       "In this lecture we learn how to leverage bijective functions to solve an interesting class of combinatorics problems and introduce the pigeonhole principle.",
     courseId: "cmsi-2820",
@@ -530,11 +558,11 @@ export const cmsi2820Events: CourseEvent[] = [
     recordings: [],
   },
   {
-    id: "hw5",
+    id: "2820-hw5",
     title: "HW 5: Order in the Court!",
     type: "homework",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 14 }),
-    availableDate: DateTime.fromObject({ year: 2025, month: 10, day: 30 }),
+    date: schedule.getSpecificDate(2025, 11, 14, "2820-hw5"),
+    availableDate: schedule.getSpecificDate(2025, 10, 30, "2820-hw5-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework we investigate counting, combinations, permutations, and the many tools and intuitions that can be pulled from them!",
@@ -543,10 +571,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/hw5",
   },
   {
-    id: "ln20",
+    id: "2820-ln20",
     title: "LN 20: Going for a Walk",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 4 }),
+    date: schedule.getNextRecurringDate("2820-ln20"),
     description:
       "In this lecture we follow in the footsteps of Euler and complete the Seven Bridges of Konigsberg problem to introduce graphs formally.",
     courseId: "cmsi-2820",
@@ -555,10 +583,10 @@ export const cmsi2820Events: CourseEvent[] = [
     recordings: [],
   },
   {
-    id: "ln21",
+    id: "2820-ln21",
     title: "LN 21: Connecting with Nature",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 6 }),
+    date: schedule.getNextRecurringDate("2820-ln21"),
     description:
       "In this lecture we investigate how the alterations to the formal graph definition propagate to change our visuals. We take a look at isomorphisms, connectedness, and the handshaking Lemma.",
     courseId: "cmsi-2820",
@@ -567,10 +595,10 @@ export const cmsi2820Events: CourseEvent[] = [
     recordings: [],
   },
   {
-    id: "ln22",
+    id: "2820-ln22",
     title: "LN 22: Looking Over Edges",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 11 }),
+    date: schedule.getNextRecurringDate("2820-ln22"),
     description:
       "In this lecture we take a look at special graphs (Complete, Bipartite, Euler, Hamiltonian) and their special properties. We also take a look at cycles as a useful tool for analyzing graph properties.",
     courseId: "cmsi-2820",
@@ -579,10 +607,10 @@ export const cmsi2820Events: CourseEvent[] = [
     recordings: [],
   },
   {
-    id: "ln23",
+    id: "2820-ln23",
     title: "LN 23: Spanning the Globe",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 13 }),
+    date: schedule.getNextRecurringDate("2820-ln23"),
     description:
       "In this lecture we cover a few more special graphs in the form of trees and forests. We then end the graph theory unit by investigating minimum spanning trees and how their solutions and structures represent many real-world problems.",
     courseId: "cmsi-2820",
@@ -591,11 +619,18 @@ export const cmsi2820Events: CourseEvent[] = [
     recordings: [],
   },
   {
-    id: "hw6",
+    id: "2820-hw6",
     title: "HW 6: (Warning: Graphic Content)",
     type: "homework",
-    date: DateTime.fromObject({ year: 2025, month: 12, day: 5 }),
-    availableDate: DateTime.fromObject({ year: 2025, month: 11, day: 13 }),
+    date: schedule.getSpecificDate(2025, 12, 12, "2820-hw6", true),
+    availableDate: schedule.getSpecificDate(
+      2025,
+      11,
+      27,
+      "2820-hw6-available",
+      true
+    ),
+    pinned: true,
     dueTime: "11:59 PM",
     description:
       "In this homework we investigate all things Graph theory! This includes many types of graphs such as complete, bipartite, trees, and forests. We also investigate many of the properties and operations that can be performed such as isomorphisms, connectedness, and cycles.",
@@ -604,10 +639,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/hw6",
   },
   {
-    id: "ln24",
+    id: "2820-ln24",
     title: "LN 24: Setting the Record Straight",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 18 }),
+    date: schedule.getNextRecurringDate("2820-ln24"),
     description:
       "In this lecture we recap the semester of work to tie up our investigation of Type theory. We then contrast it against Set theory.",
     courseId: "cmsi-2820",
@@ -616,10 +651,10 @@ export const cmsi2820Events: CourseEvent[] = [
     recordings: [],
   },
   {
-    id: "ln25",
+    id: "2820-ln25",
     title: "LN 25: Arguing the Point",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 20 }),
+    date: schedule.getNextRecurringDate("2820-ln25"),
     description:
       "In this lecture we piece together all the proof techniques we learned to summarize argumentation and learn two more: Proof by Contradiction and Proof by Induction.",
     courseId: "cmsi-2820",
@@ -631,40 +666,44 @@ export const cmsi2820Events: CourseEvent[] = [
     id: "2820-hol2",
     title: "Thanksgiving Break!",
     type: "holiday",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 25 }),
+    date: schedule.getSpecificDate(2025, 11, 25, "2820-hol2", true),
     description:
       "Normally there would be class on this day, but I'm giving it back to you all in thanks for Thanksgiving!",
     courseId: "cmsi-2820",
+    pinned: true,
   },
   {
     id: "2820-hol3",
     title: "Thanksgiving Break!",
     type: "holiday",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 26 }),
+    date: schedule.getSpecificDate(2025, 11, 26, "2820-hol3", true),
     description: "Enjoy your Thanksgiving break!",
     courseId: "cmsi-2820",
+    pinned: true,
   },
   {
     id: "2820-hol4",
     title: "Thanksgiving Break!",
     type: "holiday",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 27 }),
+    date: schedule.getSpecificDate(2025, 11, 27, "2820-hol4", true),
     description: "Enjoy your Thanksgiving break!",
     courseId: "cmsi-2820",
+    pinned: true,
   },
   {
     id: "2820-hol5",
     title: "Thanksgiving Break!",
     type: "holiday",
-    date: DateTime.fromObject({ year: 2025, month: 11, day: 28 }),
+    date: schedule.getSpecificDate(2025, 11, 28, "2820-hol5", true),
     description: "Enjoy your Thanksgiving break!",
     courseId: "cmsi-2820",
+    pinned: true,
   },
   {
-    id: "ln26",
+    id: "2820-ln26",
     title: "LN 26: Pure Discrete Mathematics and Artificial Intelligence",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 12, day: 2 }),
+    date: schedule.getNextRecurringDate("2820-ln26"),
     description:
       "Special lecture on how discrete mathematics concepts apply to artificial intelligence and machine learning.",
     courseId: "cmsi-2820",
@@ -672,10 +711,10 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ln26",
   },
   {
-    id: "ln27",
+    id: "2820-ln27",
     title: "LN 27: Games and Systems Architecture Pipelines",
     type: "lecture",
-    date: DateTime.fromObject({ year: 2025, month: 12, day: 4 }),
+    date: schedule.getNextRecurringDate("2820-ln27"),
     description:
       "Special lecture on how discrete mathematics is used in game development and systems architecture.",
     courseId: "cmsi-2820",
@@ -683,15 +722,21 @@ export const cmsi2820Events: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ln27",
   },
   {
-    id: "ex4",
+    id: "2820-ex4",
     title: "EX 4: FINAL Exam",
     type: "exam",
-    date: DateTime.fromObject({ year: 2025, month: 12, day: 12 }),
+    date: schedule.getSpecificDate(2025, 12, 13, "2820-ex4", true),
     dueTime: "11:59 PM",
     description:
       "This is the optional final exam that covers the last three standards: Functions, Combinatorics, and Graph Theory.",
     courseId: "cmsi-2820",
     standard: "Final",
     contentUrl: "/cmsi-2820/ex4",
+    pinned: true,
   },
 ]
+
+// Filter events based on cutoff date
+export const cmsi2820Events: CourseEvent[] = allEvents.filter(
+  (event) => !schedule.shouldFilterEvent(event.date, event.pinned)
+)

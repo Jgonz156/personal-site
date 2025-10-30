@@ -1,7 +1,7 @@
 import { DateTime } from "luxon"
-import { cmsi2820Events } from "./courses/cmsi-2820-data"
-import { cmsi3510Events } from "./courses/cmsi-3510-data"
-import { cmsi5850Events } from "./courses/cmsi-5850-data"
+import { cmsi2820Events } from "./courses/cmsi-2820/data"
+import { cmsi3510Events } from "./courses/cmsi-3510/data"
+import { cmsi5850Events } from "./courses/cmsi-5850/data"
 
 // Types for course events
 export type EventType =
@@ -34,6 +34,7 @@ export interface CourseEvent {
   standard?: string // e.g., "Logic", "Numbers", "Collections", etc.
   contentUrl?: string // Link to lecture notes, homework spec, exam details page
   recordings?: Recording[] // Array of named recording links
+  pinned?: boolean // If true, event date is not affected by schedule shifts
 }
 
 // Aggregate all course events from individual course files
