@@ -362,7 +362,7 @@ const allEvents: CourseEvent[] = [
     contentUrl: "/cmsi-3510/ln15",
     recordings: [
       {
-        name: "Class Video",
+        name: "Last Semester's Video",
         url: "https://lmula.zoom.us/rec/share/b7LYFJknPXpAvWfnbMN5yktMTiKYA-g2xeMc57mFT5UvnDQWqz4rGUXA1h_U_sn9.TdKdllpBDbnMuIwp",
       },
     ],
