@@ -365,6 +365,10 @@ const allEvents: CourseEvent[] = [
         name: "Last Semester's Video",
         url: "https://lmula.zoom.us/rec/share/b7LYFJknPXpAvWfnbMN5yktMTiKYA-g2xeMc57mFT5UvnDQWqz4rGUXA1h_U_sn9.TdKdllpBDbnMuIwp",
       },
+      {
+        name: "Class Video",
+        url: "https://lmula.zoom.us/rec/share/cp9_0TFGJph30fyjewwtLLMr0yNplIhH-CLvnhBCZII9cHuwQz5cDXaoyzZ3SwuS.2Wy4BytpJHYf8xKV",
+      },
     ],
   },
   {

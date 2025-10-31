@@ -531,6 +531,14 @@ const allEvents: CourseEvent[] = [
         name: "Replacement Lecture Video",
         url: "https://lmula.zoom.us/rec/share/uRE2ThHCvKqXrIal6EyORVpxJFLDXkGPwryVnp0DeT1O4nNsOzK8LIdao-bIvFXP.BRIugwWqnqcK0nsd",
       },
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/aOikiaWWVtur7SJn3ukwRQunuu2qlVGNAxTHVfd_jx1ySsHOmqjm6Q--GQAnhb7O.hYwgelN7QKAc0_a9",
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/ief1PzW2e8xpmszSPWg_e0SbqGU8SPeFMDOwEOQZGlpp9y9Y4Gg-g5R0YdyAzz5W.OhM8sCCQj3TzvMdS",
+      },
     ],
   },
   {
