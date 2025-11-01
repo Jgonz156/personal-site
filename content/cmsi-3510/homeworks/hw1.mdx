@@ -1,0 +1,112 @@
+import {
+  HomeworkIntro,
+  ReadingSection,
+  ProgrammingSection,
+} from "@/components/homework-sections"
+import { QuestionBox } from "@/components/question-box"
+import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
+
+export const metadata = {
+  hwNumber: 1,
+  title: "HW1: Doughmain Expansion",
+  topics: ["Structs", "Ownership", "References"],
+  points: {
+    reading: 0,
+    programming: 30,
+  },
+}
+
+export const hwEvent = getHomeworkEvent(metadata.hwNumber)
+
+<HomeworkIntro
+  title={metadata.title}
+  dueDate={formatDate(hwEvent?.date)}
+  dueTime={hwEvent?.dueTime || "11:59 PM"}
+  topics={metadata.topics}
+  description={hwEvent?.description || ""}
+/>
+
+This homework assignment is about getting used to programming in Rust with a small yet substantial project! The project is implementing a complete self-contained simulation of a file system with a custom CLI interface!
+
+<ReadingSection points={metadata.points.reading}>
+
+As this project is quite all encompassing as it goes for foundational Rust features, you will need to make good use of your reading resources! With what truly little time we have in class, you will need to rely on the reading material to get you the full picture. The sections below give you direct and indirect help with organizing your thoughts about structs, memory management, and references in Rust.
+
+<QuestionBox qid="R1">
+
+In "The Rust Language Book" read:
+- Ch 4: Understanding Ownership
+- Ch 5: Using Structs to Structure Related Data
+- Ch 6: Enums and Pattern Matching
+
+Optionally for help with the homework:
+- Ch 15: Smart Pointers
+- Ch 17: Object Oriented Programming Features of Rust
+
+(These are a bit of a stretch goal, but it will help you understand the concepts of the homework better)
+
+</QuestionBox>
+
+<QuestionBox qid="R2">
+
+While it's not one of your required materials, the Rust by Example docs are associated with the Rust Language Book and are a great resource for understanding the concepts in the book in a more direct programmatic way. You should go through all of it but for now, Read section 3: Custom Types and Section 9: Functions.
+
+[Rust By Example](https://doc.rust-lang.org/rust-by-example/)
+
+</QuestionBox>
+
+<QuestionBox qid="W1">
+
+Watch the later half of this amazing guided talk about data-driven programming by Nic Barker! While it's not in Rust (It's in C# for Unity), the concepts are universal and will help you understand the importance of structuring your data in a way that makes the best use of your resources! (The link should take you to the correct time stamp, but if it doesn't, skip to 25:50. The previous content is still good, but it is mostly review of general programming concepts)
+
+[Intro to Data Oriented Design for Games](https://youtu.be/WwkuAqObplU?t=1550)
+
+</QuestionBox>
+
+</ReadingSection>
+
+<ProgrammingSection
+  points={metadata.points.programming}
+  description="This programming assignment is about implementing a complete self-contained simulation of a file system with a custom CLI interface!"
+  githubClassroomUrl="https://classroom.github.com/a/qN_FYjrX"
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802210/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"
+>
+
+### Repository Structure
+
+Your repository will contain the following files:
+
+```
+CMSI-3510-HW1/
+├── .gitignore
+├── doughmain_expansion/
+│   ├── Cargo.toml
+│   └── src/
+│       ├── cli_commands/
+│       │   ├── mod.rs
+│       │   ├── cd.rs
+│       │   ├── ls.rs
+│       │   ├── mkdir.rs
+│       │   ├── pwd.rs
+│       │   ├── rmd.rs
+│       │   ├── rmf.rs
+│       │   ├── touch.rs
+│       │   ├── signin.rs
+│       │   ├── signout.rs
+│       │   ├── read.rs
+│       │   └── write.rs
+│       ├── lib.rs
+│       └── main.rs
+└── README.md
+```
+
+### Helper Resources
+
+Need a refresher on how to interact with the HW for this course? Watch the helper video posted to Zoom via the link below!
+
+[Helper Video](https://lmula.zoom.us/rec/share/qZJRL5B3_zx8vvp2ei9qfijhG6Yjqr0g_pap6h6THg_ffJ7_cuuvjdKq-xMF5g0P.rbEK6SGsg5zYXxMi)
+
+You can find the GitHub Classroom assignment link and the Brightspace turn in link using the buttons at the top of this section.
+
+</ProgrammingSection>
+

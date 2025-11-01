@@ -189,6 +189,25 @@ export function ProgrammingSection({
   )
 }
 
+interface ReadingSectionProps {
+  points?: number
+  children: ReactNode
+}
+
+export function ReadingSection({
+  points = 0,
+  children,
+}: ReadingSectionProps) {
+  return (
+    <div className="mb-8">
+      <SectionHeader title="Reading Section" points={points} icon="📚" />
+      <div className="prose prose-neutral dark:prose-invert max-w-none">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 interface OptionalSectionProps {
   points: number
   children: ReactNode
