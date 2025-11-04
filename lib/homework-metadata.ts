@@ -10,7 +10,13 @@ export function getHomeworkEvent(
 ): CourseEvent | null {
   const hwId = `hw${hwNumber}`
   const events = courseId ? getCourseEvents(courseId) : courseEvents
-  return events.find((event) => event.id === hwId) || null
+  // Try to find by exact ID match first (e.g., "hw1")
+  // Then try to find by ID ending (e.g., "2820-hw1", "3510-hw1")
+  return (
+    events.find((event) => event.id === hwId) ||
+    events.find((event) => event.id.endsWith(`-${hwId}`)) ||
+    null
+  )
 }
 
 /**
@@ -22,7 +28,13 @@ export function getLectureEvent(
 ): CourseEvent | null {
   const lnId = `ln${lnNumber}`
   const events = courseId ? getCourseEvents(courseId) : courseEvents
-  return events.find((event) => event.id === lnId) || null
+  // Try to find by exact ID match first (e.g., "ln1")
+  // Then try to find by ID ending (e.g., "2820-ln1", "3510-ln1")
+  return (
+    events.find((event) => event.id === lnId) ||
+    events.find((event) => event.id.endsWith(`-${lnId}`)) ||
+    null
+  )
 }
 
 /**
@@ -34,7 +46,13 @@ export function getExamEvent(
 ): CourseEvent | null {
   const exId = `ex${exNumber}`
   const events = courseId ? getCourseEvents(courseId) : courseEvents
-  return events.find((event) => event.id === exId) || null
+  // Try to find by exact ID match first (e.g., "ex1")
+  // Then try to find by ID ending (e.g., "2820-ex1", "3510-ex1")
+  return (
+    events.find((event) => event.id === exId) ||
+    events.find((event) => event.id.endsWith(`-${exId}`)) ||
+    null
+  )
 }
 
 /**
