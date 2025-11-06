@@ -383,7 +383,7 @@ const allEvents: CourseEvent[] = [
     contentUrl: "/cmsi-3510/ln16",
     recordings: [
       {
-        name: "Class Video",
+        name: "Replacement Lecture Video",
         url: "https://lmula.zoom.us/rec/share/ytTcMxNEReEfUF7S-RycWjoOpz6aTFzx20FLhRrLJ6vwZ1v4TUX15K6FiCFIzfT5.VewM1G_22tdztE7z",
       },
     ],
@@ -400,7 +400,7 @@ const allEvents: CourseEvent[] = [
     contentUrl: "/cmsi-3510/ln17",
     recordings: [
       {
-        name: "Class Video",
+        name: "Replacement Lecture Video",
         url: "https://lmula.zoom.us/rec/share/VCXLqT5j7Uu2AnqpdzFFAMChp9_hvDFAoLwoUAUTzLdzevk9lqVnU_q-xyGcSIkV.RsCHfe34PHsvCuU4",
       },
     ],

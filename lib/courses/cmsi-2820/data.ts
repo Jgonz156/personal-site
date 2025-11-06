@@ -568,7 +568,12 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln19",
-    recordings: [],
+    recordings: [
+      {
+        name: "Replacement Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/Hp-EqnnsI7Flfq9DO3ttOPuTEwo64OPFj4lx2JUQWUGXxnUJVVpthY15K_lL_wa7.pLtaZ9omjL82ZRet",
+      },
+    ],
   },
   {
     id: "2820-hw5",
