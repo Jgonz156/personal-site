@@ -400,8 +400,8 @@ const allEvents: CourseEvent[] = [
     contentUrl: "/cmsi-3510/ln17",
     recordings: [
       {
-        name: "Replacement Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/VCXLqT5j7Uu2AnqpdzFFAMChp9_hvDFAoLwoUAUTzLdzevk9lqVnU_q-xyGcSIkV.RsCHfe34PHsvCuU4",
+        name: "Class Video",
+        url: "https://lmula.zoom.us/rec/share/5MH_PbX2BSDbkpSfiW3c9_5OV3CUfUobDshrvxckch5xPYc5dhMNhhwj_2kAn7tk.Tte80Masnfh_TZ7-",
       },
     ],
   },
