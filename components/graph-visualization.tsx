@@ -47,6 +47,7 @@ export function GraphVisualization({
   useEffect(() => {
     setMounted(true)
     // Import CSS dynamically on client side only
+    // @ts-expect-error
     import("vis-network/styles/vis-network.css")
   }, [])
 
@@ -63,12 +64,12 @@ export function GraphVisualization({
       if (!containerRef.current) return
 
       // Create DataSets for nodes and edges
-      const nodesDataSet = new DataSet(nodes)
+      const nodesDataSet = new DataSet(nodes as any)
       const edgesDataSet = new DataSet(
         edges.map((edge) => ({
           ...edge,
           arrows: directed ? edge.arrows || "to" : undefined,
-        }))
+        })) as any
       )
 
       const data = {
@@ -179,7 +180,7 @@ export function GraphVisualization({
       }
 
       // Initialize network
-      network = new Network(containerRef.current, data, options)
+      network = new Network(containerRef.current, data as any, options as any)
       networkRef.current = network
 
       // Optional: Add event listeners
@@ -233,4 +234,3 @@ export function GraphVisualization({
     </div>
   )
 }
-
