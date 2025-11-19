@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Exclude vis-network from server-side bundling
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...(config.externals || []), "vis-network", "vis-data"]
+    }
+    return config
+  },
 }
 
 const withMDX = createMDX({

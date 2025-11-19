@@ -6,6 +6,7 @@ import {
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
 import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
+import { GraphVisualization } from "@/components/graph-visualization"
 
 export const metadata = {
   hwNumber: 6,
@@ -44,7 +45,24 @@ When Euler was young he visited Königsberg and saw seven magnificent bridges. H
 - Nodes: A, B, C, D, E
 - Edges: A-E, B-E, C-E, D-E
 
-_[Graph visualization placeholder: A star graph with E at the center connected to A, B, C, and D]_
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "E" },
+    { from: "B", to: "E" },
+    { from: "C", to: "E" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="350px"
+/>
 
 </SubQuestion>
 
@@ -55,7 +73,31 @@ _[Graph visualization placeholder: A star graph with E at the center connected t
 - Nodes: A, B, C, D, E, F, G
 - Edges: A-B, A-C, C-D, D-B, C-E, E-D, E-F, E-G, D-G
 
-_[Graph visualization placeholder: A connected graph with multiple cycles]_
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+    { id: "F", label: "F" },
+    { id: "G", label: "G" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "B" },
+    { from: "C", to: "E" },
+    { from: "E", to: "D" },
+    { from: "E", to: "F" },
+    { from: "E", to: "G" },
+    { from: "D", to: "G" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="400px"
+/>
 
 </SubQuestion>
 
@@ -64,6 +106,25 @@ _[Graph visualization placeholder: A connected graph with multiple cycles]_
 $$
 G = (V, E) \quad V = \{A, B, C, D\} \quad E = \{\{A, B\}, \{A, C\}, \{A, D\}, \{B, C\}, \{D, C\}\}
 $$
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "A", to: "D" },
+    { from: "B", to: "C" },
+    { from: "D", to: "C" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="350px"
+/>
 
 </SubQuestion>
 
@@ -80,12 +141,45 @@ When two graphs are "structurally" similar we say they are isomorphic to one ano
 - Nodes: A, B, C, D
 - Edges: A-B, B-C, C-D
 
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="300px"
+/>
+
 **Graph 2:**
 
 - Nodes: E, F, G, H
 - Edges: E-F, F-G, G-H, H-E
 
-_[Graph visualization placeholder: Two separate graphs to compare]_
+<GraphVisualization
+  nodes={[
+    { id: "E", label: "E" },
+    { id: "F", label: "F" },
+    { id: "G", label: "G" },
+    { id: "H", label: "H" },
+  ]}
+  edges={[
+    { from: "E", to: "F" },
+    { from: "F", to: "G" },
+    { from: "G", to: "H" },
+    { from: "H", to: "E" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="300px"
+/>
 
 </SubQuestion>
 
@@ -96,12 +190,46 @@ _[Graph visualization placeholder: Two separate graphs to compare]_
 - Nodes: A, B, C, D
 - Edges: A-B, B-C, C-D, D-B
 
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "B" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="300px"
+/>
+
 **Graph 2:**
 
 - Nodes: E, F, G, H
 - Edges: E-F, F-G, G-H, G-E
 
-_[Graph visualization placeholder: Two separate graphs with triangles to compare]_
+<GraphVisualization
+  nodes={[
+    { id: "E", label: "E" },
+    { id: "F", label: "F" },
+    { id: "G", label: "G" },
+    { id: "H", label: "H" },
+  ]}
+  edges={[
+    { from: "E", to: "F" },
+    { from: "F", to: "G" },
+    { from: "G", to: "H" },
+    { from: "G", to: "E" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="300px"
+/>
 
 </SubQuestion>
 
@@ -112,7 +240,36 @@ _[Graph visualization placeholder: Two separate graphs with triangles to compare
 - Nodes: A, B, C, D, E, F, G, H, I, J
 - Edges: A-C, A-D, A-E, B-C, B-D, B-E, F-H, F-I, F-J, G-H, G-I
 
-_[Graph visualization placeholder: Two disconnected components to analyze]_
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+    { id: "F", label: "F" },
+    { id: "G", label: "G" },
+    { id: "H", label: "H" },
+    { id: "I", label: "I" },
+    { id: "J", label: "J" },
+  ]}
+  edges={[
+    { from: "A", to: "C" },
+    { from: "A", to: "D" },
+    { from: "A", to: "E" },
+    { from: "B", to: "C" },
+    { from: "B", to: "D" },
+    { from: "B", to: "E" },
+    { from: "F", to: "H" },
+    { from: "F", to: "I" },
+    { from: "F", to: "J" },
+    { from: "G", to: "H" },
+    { from: "G", to: "I" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="400px"
+/>
 
 </SubQuestion>
 
@@ -135,7 +292,21 @@ Connected and disconnected graphs are those that are defined by the ability to e
 - Nodes: A, B, C, D
 - Edges: A-B, C-D
 
-_[Graph visualization placeholder: Two separate edges]_
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "C", to: "D" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="300px"
+/>
 
 **Answer:** $(\{A, B\}, \{\{A, B\}\}) \cup (\{C, D\}, \{\{C, D\}\})$
 
@@ -146,7 +317,17 @@ _[Graph visualization placeholder: Two separate edges]_
 - Nodes: A, B, C
 - Edges: A-B
 
-_[Graph visualization placeholder: One edge with an isolated vertex]_
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+  ]}
+  edges={[{ from: "A", to: "B" }]}
+  interactive={true}
+  allowEdit={false}
+  height="300px"
+/>
 
 </SubQuestion>
 
@@ -157,7 +338,25 @@ _[Graph visualization placeholder: One edge with an isolated vertex]_
 - Nodes: A, B, C, D
 - Edges: A-B, A-C, A-D, B-C, B-D, C-D
 
-_[Graph visualization placeholder: Complete graph K4]_
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "A", to: "D" },
+    { from: "B", to: "C" },
+    { from: "B", to: "D" },
+    { from: "C", to: "D" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="350px"
+/>
 
 </SubQuestion>
 
@@ -168,7 +367,18 @@ _[Graph visualization placeholder: Complete graph K4]_
 - Nodes: A, B, C, D
 - Edges: (none)
 
-_[Graph visualization placeholder: Four isolated vertices]_
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[]}
+  interactive={true}
+  allowEdit={false}
+  height="300px"
+/>
 
 </SubQuestion>
 
@@ -185,7 +395,32 @@ We saw a number of Graph operations in class that can be used to create new grap
 - Nodes: a, b, c, d, e, f, g
 - Edges: a-b, b-c, c-d, d-e, e-f, f-a, g-f, g-e, g-b, g-c
 
-_[Graph visualization placeholder: A hexagon with a central vertex]_
+<GraphVisualization
+  nodes={[
+    { id: "a", label: "a" },
+    { id: "b", label: "b" },
+    { id: "c", label: "c" },
+    { id: "d", label: "d" },
+    { id: "e", label: "e" },
+    { id: "f", label: "f" },
+    { id: "g", label: "g" },
+  ]}
+  edges={[
+    { from: "a", to: "b" },
+    { from: "b", to: "c" },
+    { from: "c", to: "d" },
+    { from: "d", to: "e" },
+    { from: "e", to: "f" },
+    { from: "f", to: "a" },
+    { from: "g", to: "f" },
+    { from: "g", to: "e" },
+    { from: "g", to: "b" },
+    { from: "g", to: "c" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="400px"
+/>
 
 Perform the following operations on the graph above:
 
@@ -204,9 +439,31 @@ Perform the following operations on the graph above:
 - Graph L - Nodes: x, y, z
 - Graph L - Edges: x-y, y-z
 
-_[Graph visualization placeholder: Two disconnected components]_
+<GraphVisualization
+  nodes={[
+    { id: "a", label: "a" },
+    { id: "b", label: "b" },
+    { id: "c", label: "c" },
+    { id: "d", label: "d" },
+    { id: "e", label: "e" },
+    { id: "x", label: "x" },
+    { id: "y", label: "y" },
+    { id: "z", label: "z" },
+  ]}
+  edges={[
+    { from: "a", to: "e" },
+    { from: "b", to: "e" },
+    { from: "c", to: "e" },
+    { from: "d", to: "e" },
+    { from: "x", to: "y" },
+    { from: "y", to: "z" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="350px"
+/>
 
-**NOTE:** Graph G is made up of "a" through "e" and graph L "x" through "y". Perform the following operations on the graph above:
+**NOTE:** Graph G is made up of "a" through "e" and graph L "x" through "z". Perform the following operations on the graph above:
 
 $$
 G \cup L
@@ -221,7 +478,36 @@ $$
 - Nodes: a1, b1, b2, b3, b4, c1, c2, c3, c4
 - Edges: a1-b1, a1-b2, a1-b3, a1-b4, b1-b2, b2-b3, b3-b4, b4-b1, c1-b1, c2-b2, c3-b3, c4-b4
 
-_[Graph visualization placeholder: A central vertex connected to a cycle, with additional vertices attached]_
+<GraphVisualization
+  nodes={[
+    { id: "b3", label: "b3" },
+    { id: "c2", label: "c2" },
+    { id: "b4", label: "b4" },
+    { id: "c1", label: "c1" },
+    { id: "b1", label: "b1" },
+    { id: "b2", label: "b2" },
+    { id: "c4", label: "c4" },
+    { id: "c3", label: "c3" },
+    { id: "a1", label: "a1" },
+  ]}
+  edges={[
+    { from: "a1", to: "b1" },
+    { from: "a1", to: "b2" },
+    { from: "a1", to: "b3" },
+    { from: "a1", to: "b4" },
+    { from: "b1", to: "b2" },
+    { from: "b2", to: "b3" },
+    { from: "b3", to: "b4" },
+    { from: "b4", to: "b1" },
+    { from: "c1", to: "b1" },
+    { from: "c2", to: "b2" },
+    { from: "c3", to: "b3" },
+    { from: "c4", to: "b4" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="450px"
+/>
 
 Perform the following operations on the graph above:
 
@@ -251,13 +537,13 @@ Draw $K_5$
 
 <SubQuestion qid="Q5b" points={1}>
 
-Draw $K_{1,2}$ (With all possible edges)
+Draw $K_\{1,2\}$ (With all possible edges)
 
 </SubQuestion>
 
 <SubQuestion qid="Q5c" points={3}>
 
-Draw $K_{1,1,1}$ (With all possible edges) $\cup K_3$
+Draw $K_\{1,1,1\}$ (With all possible edges) $\cup K_3$
 
 </SubQuestion>
 
@@ -290,7 +576,7 @@ There is a tree of order 8 and size 10.
 There is a forrest with 3 connected components comprised of the following:
 
 - $K_3$
-- $K_{1,1}$
+- $K_\{1,1\}$
 - $(\{A,B\},\{\})$
 
 </SubQuestion>
@@ -393,6 +679,29 @@ Once you have completed your investigation, you can turn it in via brightspace! 
 **This optional project can be submitted until one week after the homework due date.**
 
 </OptionalSection>
+
+---
+
+## Interactive Graph Example
+
+Here's an example of an editable graph where you can add/remove nodes and edges. Try it out!
+
+<GraphVisualization
+  nodes={[
+    { id: "1", label: "Node 1" },
+    { id: "2", label: "Node 2" },
+    { id: "3", label: "Node 3" },
+  ]}
+  edges={[
+    { from: "1", to: "2" },
+    { from: "2", to: "3" },
+  ]}
+  interactive={true}
+  allowEdit={true}
+  height="400px"
+/>
+
+> **Note:** The interactive graph above shows the editing capabilities. You can drag nodes to reposition them, add new nodes by clicking the "+" button, connect nodes by drawing edges, and delete elements. This feature can be enabled or disabled per graph as needed for different homework problems.
 
 ---
 
