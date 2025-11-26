@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Users,
   Star,
+  ChevronDown,
 } from "lucide-react"
 import LandingNav from "@/components/landing-nav"
 import Footer from "@/components/footer"
@@ -133,11 +134,11 @@ export default function SiteHome() {
           }}
         />
         <div className="relative flex items-center justify-center h-full">
-          <div className="text-center text-white px-6">
+          <div className="text-center text-white px-10 py-8 bg-black/40 backdrop-blur-sm rounded-2xl">
             <h1 className="text-6xl font-bold mb-6 tracking-tight">
               Julian Gonzalez
             </h1>
-            <p className="text-2xl mb-4 font-light">
+            <p className="text-2xl font-light">
               Professor of Computer Science
             </p>
             {/*
@@ -146,6 +147,14 @@ export default function SiteHome() {
             </p>
             */}
           </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white animate-bounce-slow bg-black/40 backdrop-blur-sm px-5 py-3 rounded-full">
+          <span className="text-sm font-light tracking-widest uppercase">
+            Scroll
+          </span>
+          <ChevronDown className="h-6 w-6" />
         </div>
       </div>
 
