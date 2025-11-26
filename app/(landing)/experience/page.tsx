@@ -11,115 +11,28 @@ import {
   Lightbulb,
   Trophy,
   User,
+  Download,
+  Award,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import LandingNav from "@/components/landing-nav"
 import Footer from "@/components/footer"
+import { downloadResumePdf } from "@/components/resume-pdf"
+import {
+  professionalSummary,
+  education,
+  experience,
+  teachingInterests,
+  courseDevelopment,
+  achievements,
+  independentStudies,
+  previousExperience,
+  technicalSkills,
+} from "@/lib/resume-data"
 
 export default function ExperiencePage() {
-  const education = [
-    {
-      degree: "M.S. in Computer Science",
-      institution: "Loyola Marymount University",
-      location: "Los Angeles, CA",
-      year: "2023-2024",
-      focus: "Specialization in Operating Systems and Parallel Computing",
-      thesis: "Heterogeneous Architecture and Efficient Scheduling Algorithms",
-    },
-    {
-      degree: "B.S. in Computer Science",
-      institution: "Loyola Marymount University",
-      location: "Los Angeles, CA",
-      year: "2019-2023",
-      focus: "Minor in Applied Mathematics",
-    },
-  ]
-
-  const experience = [
-    {
-      title: "Visiting Assistant Professor of Computer Science",
-      institution: "Loyola Marymount University",
-      location: "Los Angeles, CA",
-      period: "Fall 2024 - Present",
-      responsibilities: [
-        "Teaching core computer science courses: Discrete Mathematics (CMSI 2820), Operating Systems (CMSI 3510), and Programming Language Foundations (CMSI 5850)",
-        "Redesigned Discrete Mathematics course from the ground up, developing new curriculum, assignments, and teaching materials",
-        "Redesigned Operating Systems course, modernizing content to include contemporary systems programming and parallel computing concepts",
-        "Mentor students through office hours and project guidance, fostering their development as software engineers and computer scientists",
-        "Proctor student Independent Study (CMSI X999) and Research Projects",
-      ],
-    },
-  ]
-
-  const teachingInterests = [
-    "Operating Systems & Low-Level Systems Programming",
-    "Parallel & Concurrent Computing",
-    "Discrete Mathematics & Formal Logic",
-    "Automata & Computational Theory",
-    "Programming Language Theory",
-    "CS Education & Pedagogy",
-  ]
-
-  const courseDevelopment = [
-    {
-      course: "CMSI 2820: Discrete Mathematics for Computer Science",
-      description:
-        "Completely redesigned course curriculum to emphasize practical applications of discrete math in computer science. Developed new problem sets, interactive examples, and assessment strategies focused on building intuition alongside formal understanding.",
-      highlights: [
-        "Created comprehensive course website with lecture notes and interactive examples",
-        "Designed assessments that balance theoretical rigor with practical application",
-        "Integrated real-world CS applications throughout the curriculum",
-      ],
-    },
-    {
-      course: "CMSI 3510: Operating Systems",
-      description:
-        "Rebuilt course from the ground up to reflect modern operating systems concepts and parallel computing paradigms. Focused on hands-on systems programming and understanding OS internals.",
-      highlights: [
-        "Developed new lab assignments using contemporary systems programming tools",
-        "Incorporated parallel programming and concurrency concepts throughout",
-        "Created materials connecting low-level architecture to high-level OS abstractions",
-      ],
-    },
-  ]
-
-  const previousExperience = [
-    {
-      role: "FRC Robotics - Manufacturing Lead",
-      organization: "Team 4201 Vitruvian Bots, Da Vinci Science High School",
-      period: "2018 - 2019",
-      description:
-        "Led manufacturing division for competitive robotics team. Managed CNC machining, budget, and team of 8 members. Team won World Championship in 2019.",
-    },
-  ]
-
-  const technicalSkills = {
-    "Programming Languages": [
-      "Python",
-      "JavaScript/TypeScript",
-      "Java/Kotlin",
-      "C/C++",
-      "Swift",
-      "Rust",
-      "HTML/CSS",
-    ],
-    "Systems & Tools": [
-      "Linux/Unix",
-      "Git",
-      "React/Next.js",
-      "Node.js",
-      "Bash",
-    ],
-    "Teaching & Development": [
-      "LaTeX",
-      "Markdown/MDX",
-      "Web Development",
-      "Course Management Systems",
-      "AutoCAD/MasterCAM (from FRC)",
-    ],
-  }
-
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Bar */}
@@ -140,6 +53,17 @@ export default function ExperiencePage() {
                 courses—here's my journey in education and technology.
               </p>
             </div>
+            <div>
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2"
+                onClick={downloadResumePdf}
+              >
+                <Download className="h-5 w-5" />
+                Download Resume
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -154,14 +78,7 @@ export default function ExperiencePage() {
               About
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Computer science educator passionate about making complex
-              technical concepts accessible to all students. My path from
-              mechanical engineering and FRC robotics to computer science gives
-              me a unique perspective on systems-level thinking and hands-on
-              learning. I believe in creating engaging learning environments
-              where students from any background can thrive—a philosophy
-              directly informed by my master's thesis on heterogeneous
-              architecture and optimal resource scheduling.
+              {professionalSummary}
             </p>
           </div>
         </section>
@@ -249,6 +166,75 @@ export default function ExperiencePage() {
           </div>
         </section>
 
+        {/* Achievements & Competitions */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center">
+            <Award className="h-8 w-8 mr-3 text-primary" />
+            Achievements & Competitions
+          </h2>
+          <div className="space-y-6">
+            {achievements.map((achievement, index) => (
+              <div
+                key={index}
+                className="bg-card rounded-lg p-6 shadow-md border border-border hover:shadow-lg transition-shadow"
+              >
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-card-foreground">
+                      {achievement.title}
+                    </h3>
+                    <p className="text-lg text-primary font-semibold">
+                      {achievement.organization}
+                    </p>
+                  </div>
+                  <div className="flex items-center text-muted-foreground font-medium">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {achievement.period}
+                  </div>
+                </div>
+                <p className="text-muted-foreground">{achievement.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Research & Mentorship */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center">
+            <Users className="h-8 w-8 mr-3 text-primary" />
+            Research & Mentorship
+          </h2>
+          <div className="space-y-6">
+            {independentStudies.map((study, index) => (
+              <div
+                key={index}
+                className="bg-card rounded-lg p-6 shadow-md border border-border hover:shadow-lg transition-shadow"
+              >
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-card-foreground">
+                      {study.title}
+                    </h3>
+                    <p className="text-primary font-semibold">
+                      {study.student}
+                    </p>
+                  </div>
+                  <div className="flex items-center text-muted-foreground font-medium">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {study.period}
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-2">{study.description}</p>
+                {study.outcome && (
+                  <p className="text-sm text-primary font-medium italic">
+                    → {study.outcome}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Course Development */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center">
@@ -312,7 +298,7 @@ export default function ExperiencePage() {
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center">
             <Trophy className="h-8 w-8 mr-3 text-primary" />
-            Previous Experience
+            Additional Experience
           </h2>
           <div className="space-y-4">
             {previousExperience.map((exp, index) => (
@@ -380,14 +366,25 @@ export default function ExperiencePage() {
             educator interested in course design and CS pedagogy, I'd love to
             hear from you.
           </p>
-          <Button
-            size="lg"
-            className="gap-2"
-            onClick={() => (window.location.href = "/about-me")}
-          >
-            <Mail className="h-5 w-5" />
-            Get in Touch
-          </Button>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button
+              size="lg"
+              className="gap-2"
+              onClick={() => (window.location.href = "/about-me")}
+            >
+              <Mail className="h-5 w-5" />
+              Get in Touch
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2"
+              onClick={downloadResumePdf}
+            >
+              <Download className="h-5 w-5" />
+              Download Resume
+            </Button>
+          </div>
         </section>
       </div>
       <Footer />

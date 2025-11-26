@@ -6,6 +6,8 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import { NavbarProvider } from "@/components/navbar-context"
 import LayoutWrapper from "@/components/layout-wrapper"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,6 +74,8 @@ export default function RootLayout({
           <ScrollToTop />
           {children}
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
