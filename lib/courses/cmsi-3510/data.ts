@@ -424,7 +424,7 @@ const allEvents: CourseEvent[] = [
   },
   {
     id: "3510-ln19",
-    title: "LN 19: Advanced Topics",
+    title: "LN 19: Hard Software and Soft Hardware",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln19"),
     description:
@@ -432,7 +432,12 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-3510",
     standard: "Computer Hardware",
     contentUrl: "/cmsi-3510/ln19",
-    recordings: [],
+    recordings: [
+      {
+        name: "Class Video",
+        url: "https://lmula.zoom.us/rec/share/AQH6s0E3M-triNORwwmxmsQFWFbGVj-_DKBI3eNLgL_Fe4SNQuDYOPg3UguTksuN.E2FnLwzgWD77V9lX",
+      },
+    ],
   },
   {
     id: "3510-ln20",

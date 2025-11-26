@@ -661,7 +661,15 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln23",
-    recordings: [],
+    recordings: [{
+      name: "Morning Lecture Video",
+      url: "https://lmula.zoom.us/rec/share/jSCGR8zpceMC20WVE_VBdiUtQqeuVLyMC_KEtfBEnMVEto1kJhkVggRTNsZPb_Vt.J9s-lh332GXnTS0E"
+    },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/xRct1kJalvAdhSd-QXxVS4D5zUCn4kZ4fqhO5J1OhyHNzqcoTmtT5FDNzz1ARtIo.27_g-Mh-ZUgfRLsG"
+      },
+    ],
   },
   {
     id: "2820-hw6",
