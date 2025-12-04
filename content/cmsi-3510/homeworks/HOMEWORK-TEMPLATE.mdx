@@ -1,200 +1,79 @@
 import {
-  HomeworkIntro,
-  WrittenSection,
+  ReadingSection,
   ProgrammingSection,
   OptionalSection,
 } from "@/components/homework-sections"
-import { QuestionBox, SubQuestion } from "@/components/question-box"
-import {
-  getHomeworkEvent,
-  formatDate,
-  HomeworkMetadata,
-} from "@/lib/homework-metadata"
+import { QuestionBox } from "@/components/question-box"
 
-# METADATA EXPORT - SINGLE SOURCE OF TRUTH
+{/* 
+  HOMEWORK TEMPLATE
+  =================
+  
+  The intro section (title, due date, topics, description) is now rendered 
+  AUTOMATICALLY by the page component using data from data.ts.
+  
+  To add a new homework:
+  1. Create hwX.mdx in the homeworks folder
+  2. Add the homework event to lib/courses/cmsi-3510/data.ts with all metadata:
+     - hwTopics: string[]
+     - hwPoints: { reading?, programming?, optional? }
+     - hwGithubClassroomUrl?: string
+     - hwBrightspaceUrl?: string
+  3. Write the actual content below using ReadingSection, ProgrammingSection, etc.
+  
+  NO NEED to export metadata or use HomeworkIntro in MDX anymore!
+*/}
 
-This metadata is exported and used by the page.tsx file to display homework info.
-The homework number (hwNumber) is used to fetch date information from course-data.ts,
-ensuring dates are only defined once.
+Brief intro about this homework assignment goes here.
 
-# Always export this metadata object from your MDX file!
+<ReadingSection points={0}>
 
-export const metadata = {
-  hwNumber: 0, // Change this to match your homework number
-  title: "Homework X: Title Here",
-  topics: ["Topic 1", "Topic 2", "Topic 3"],
-  points: {
-    written: 60,
-    programming: 30,
-    optional: 10,
-  },
-}
+The sections below give you direct and indirect help with organizing your thoughts.
 
-# MDX BEST PRACTICES FOR MATH AND TABLES
+<QuestionBox qid="R1">
 
-1. INLINE MATH: Use $...$ for inline math expressions
-   Example: $\lambda x. x$ or $A \rightarrow B$
+Reading assignment description here.
 
-2. BLOCK MATH: Use $$...$$ for display math (centered equations)
-   Example:
-
-   $$
-   \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
-   $$
-
-3. AVOID \begin{matrix}, \begin{cases}, and other complex LaTeX environments
-   These often contain curly braces {} that MDX tries to parse as JSX, causing errors.
-
-4. USE MARKDOWN TABLES INSTEAD for side-by-side layouts or structured data:
-
-   Two-column matching problems:
-   | Left Column | Right Column |
-   | -------------------------- | ------------------------- |
-   | a. $\lambda x. x$ | 1. `def identity(x): x` |
-   | b. $\alpha$-conversion | 2. Rename variables |
-
-   Variable definitions:
-   | Variable | Value |
-   | -------- | ----- |
-   | $A$ | True |
-   | $B$ | False |
-
-   Fact tables with metadata:
-   | Fact | Type | Description |
-   | ---------- | ---- | -------------------- |
-   | **Fact 1** | + | Positive information |
-   | **Fact 2** | - | Negative information |
-
-5. SIMPLE LISTS: For numbered or bulleted requirements, use markdown lists:
-
-   Good:
-
-   1. First requirement
-   2. Second requirement
-
-   Bad (don't use this):
-
-   ```
-   $$
-   \begin{matrix}
-   \text{1. First requirement} \\
-   \text{2. Second requirement}
-   \end{matrix}
-   $$
-   ```
-
-6. CODE BLOCKS: Use triple backticks with language specification:
-
-   ```python
-   def example():
-       return 42
-   ```
-
-7. INLINE CODE: Use single backticks for inline code: `lambda x: x`
-
-================================================================================
-
-_
-Fetch homework data from course-data.ts - this is the single source of truth for dates!
-The rest comes from the metadata export above.
-_
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
-
-<WrittenSection
-  points={60}
-  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=XXXXX&grpid=0"
->
-
-Instructions for the written section. Students should submit their answers on paper.
-
-<QuestionBox qid="Q1" title="Question Title" points={10}>
-
-Your question here...
-
-<SubQuestion qid="Q1a" points={2}>
-  Sub-question content here...
-</SubQuestion>
-
-<SubQuestion qid="Q1b" points={2}>
-  Another sub-question...
-</SubQuestion>
+[Link to resource](https://example.com)
 
 </QuestionBox>
 
-<QuestionBox qid="Q2" title="Another Question" points={5}>
-
-Your question here...
-
-</QuestionBox>
-
-</WrittenSection>
+</ReadingSection>
 
 <ProgrammingSection
   points={30}
-  description="Description of the programming assignment. What will students build? What concepts will they practice?"
-  githubClassroomUrl="https://classroom.github.com/assignment-invitations/your-invitation-link"
-  githubRepoUrl="https://github.com/your-course/hw-repo-name"
-  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=XXXXX&grpid=0"
-/>
-
-<OptionalSection
-  points={10}
-  brightspaceUrl="https://brightspace.yourschool.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=XXXXX&grpid=0"
+  description="Description of the programming assignment."
+  githubClassroomUrl="https://classroom.github.com/..."
+  brightspaceUrl=""
 >
 
-## Title for Extra Credit Project
+### Repository Structure
 
-Description of the optional extra credit project. This should be a hands-on, hobby-related project that students can complete in person.
+Your repository will contain the following files:
 
-### Requirements:
+```
+CMSI-3510-HWX/
+├── .gitignore
+├── project_folder/
+│   ├── Cargo.toml
+│   └── src/
+│       └── main.rs
+└── README.md
+```
 
-1. Requirement 1
-2. Requirement 2
-3. Requirement 3
+### Helper Resources
 
-### Submission:
+Need a refresher on how to interact with the HW for this course? Watch the helper video:
 
-- How should students submit this?
-- What format should it be in?
-- Any special instructions?
+[Helper Video](https://lmula.zoom.us/...)
 
-**This extra credit project can be submitted until [deadline].**
+</ProgrammingSection>
+
+<OptionalSection
+  points={0}
+  brightspaceUrl=""
+>
+
+Optional section content here.
 
 </OptionalSection>
-
----
-
-## Submission Guidelines
-
-### Written Section
-
-- Format and submission instructions
-
-### Programming Section
-
-- Code submission instructions
-- Testing requirements
-
-### Grading Rubric
-
-| Component      | Points | Criteria                   |
-| -------------- | ------ | -------------------------- |
-| Written Q1     | XX     | Description                |
-| Written Q2     | XX     | Description                |
-| Programming    | XX     | Description                |
-| Optional Extra | XX     | Description                |
-| **Total**      | **XX** | (**XX with extra credit**) |
-
-## Resources
-
-- **Textbook**: Relevant chapters
-- **Lecture Notes**: LN1, LN2, etc.
-- **Office Hours**: Schedule here

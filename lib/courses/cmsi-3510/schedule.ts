@@ -16,6 +16,8 @@ export const cmsi3510Fall2025Schedule: ScheduleConfig = {
   skipDates: [
     DateTime.fromObject({ year: 2025, month: 9, day: 1 }), // Labor Day
     DateTime.fromObject({ year: 2025, month: 10, day: 10 }), // Autumn Day
+    DateTime.fromObject({ year: 2025, month: 11, day: 6 }).minus({ days: 7 }), // Sick
+    DateTime.fromObject({ year: 2025, month: 11, day: 18 }).minus({ days: 7 }), // Done
   ],
 
   // Full weeks to skip entirely (not just individual days)

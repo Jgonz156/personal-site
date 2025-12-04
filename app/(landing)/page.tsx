@@ -72,7 +72,7 @@ export default function SiteHome() {
       year: "2015",
       description:
         "This book provides a comprehensive introduction to the theory of operating systems and middleware, covering topics such as process synchronization, message passing, and distributed systems.",
-      link: "https://ia902302.us.archive.org/27/items/osm-rev1.2.pdf",
+      link: "https://ia902302.us.archive.org/27/items/osm-rev1.2/osm-rev1.2.pdf",
       image:
         "/landing/OperatingSystemsAndMiddleware-SupportingControlledInteractions.png",
     },

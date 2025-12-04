@@ -1,30 +1,11 @@
 import {
-  HomeworkIntro,
   WrittenSection,
   ProgrammingSection,
   OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
 
-export const metadata = {
-  hwNumber: 0,
-  title: "HW0: Practicing Homework!",
-  topics: [
-    "Getting familiar with homework format",
-    "GitHub Classroom workflow",
-    "Python and PyTest setup",
-  ],
-  points: {
-    written: 1,
-    programming: 1,
-    optional: 1,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-## What do Homeworks look like?
+## What do Homeworks Look Like?
 
 Homeworks, as stated in the syllabus, are broken into 2 main sections (3 if you count the Optional Homework since it will also be found on this page at the bottom). The first is the written portion of the homework.
 
@@ -42,18 +23,10 @@ Now that we've described what homeworks look like at a high level, lets meet you
 
 ---
 
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
-
 This homework assignment is about letting me learn a little about you! The questions I asked here are important to me as they give me a "feel" for who I'm talking to in class. As I said in class I am very conversational and you can't have a proper conversation with someone you know nothing about! I mean you can, they just aren't as fun!
 
 <WrittenSection
-  points={metadata.points.written}
+  points={1}
   submissionUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=348419&grpid=0&isprv=0&bp=0&ou=283545"
 >
 
@@ -100,7 +73,7 @@ Once you have completed all these questions, submit the answers to me on BrightS
 </WrittenSection>
 
 <ProgrammingSection
-  points={metadata.points.programming}
+  points={1}
   submissionUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=348420&grpid=0&isprv=0&bp=0&ou=283545"
   githubUrl="https://classroom.github.com/a/RsHo51aJ"
 >
@@ -148,7 +121,7 @@ You can find the GitHub Classroom assignment link and the Brightspace turn in li
 </ProgrammingSection>
 
 <OptionalSection
-  points={metadata.points.optional}
+  points={1}
   submissionUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=348421&grpid=0&isprv=0&bp=0&ou=283545"
 >
 

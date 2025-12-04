@@ -1,135 +1,40 @@
-import { ExamIntro, ExamRules } from "@/components/exam-sections"
-import { MultiSelectQuestion } from "@/components/multi-select-question"
-import { getExamEvent, formatDate } from "@/lib/homework-metadata"
+import { ExamRules } from "@/components/exam-sections"
 
-# EXAM TEMPLATE - Use this as a starting point for new exam MDX files
-
-This template demonstrates the structure for exam pages in the course site.
-Exams are simpler than homeworks and focus on providing:
-
-1. Information about the exam format and rules
-2. Details about what's covered
-3. A link to take the exam on Brightspace
-
-METADATA EXPORT:
-
-- Export a metadata object with exam details
-- The exam number (exNumber) fetches date info from course-data.ts
-- This ensures a single source of truth for dates
-
-COMPONENTS:
-
-- ExamIntro: Displays exam details and the "Take Exam" button
-- ExamRules: Highlights important rules and guidelines
-- MultiSelectQuestion: Optional, for example questions
-
-================================================================================
-
-export const metadata = {
-  exNumber: 0, // Change to match your exam number
-  title: "EX0: Exam Title Here",
-  standard: "X (Standard Name)",
-  topics: ["Topic 1", "Topic 2", "Topic 3"],
-  totalPoints: 10,
-  totalQuestions: 5,
-  hasTimer: false, // true if timed
-  allowedAttempts: "Unlimited", // or "1", "2", "3", etc.
-  examUrl: "https://brightspace.lmu.edu/...", // OPTIONAL: Only include for single-part exams
-  // For multi-part exams (like midterms), omit examUrl and add separate links in the content
-}
-
-export const examEvent = getExamEvent(metadata.exNumber)
-
-# INTRODUCTORY CONTENT
-
-Before the ExamIntro component, you can add any explanatory text about:
-
-- What the exam format is like
-- General exam policies
-- Example questions (using MultiSelectQuestion component)
-
-# This section appears before the exam details card.
+{/* 
+  EXAM TEMPLATE
+  =============
+  
+  The intro section (title, date, topics, points, etc.) is now rendered 
+  AUTOMATICALLY by the page component using data from data.ts.
+  
+  To add a new exam:
+  1. Create exX.mdx in the exams folder
+  2. Add the exam event to lib/courses/cmsi-3510/data.ts with all metadata:
+     - exTopics: string[]
+     - exTotalPoints: number
+     - exTotalQuestions: number
+     - exHasTimer: boolean
+     - exAllowedAttempts: string
+     - exExamUrl?: string
+  3. Write the actual exam content below
+  
+  NO NEED to export metadata or use ExamIntro in MDX anymore!
+*/}
 
 ## About This Exam
 
-Add any introductory content here to explain the exam format, rules, or provide context.
-
-You can include example questions using the MultiSelectQuestion component:
-
-<MultiSelectQuestion
-  question="Example multiple choice question text here. Students can select multiple answers."
-  choices={[
-    "Option A - First choice",
-    "Option B - Second choice",
-    "Option C - Third choice",
-    "Option D - Fourth choice",
-  ]}
-  answers={[1, 0, 1, 0]}
-  incorrectMessage="Not quite! Review the material and try again."
-  correctMessage="Correct! You've got it!"
-/>
-
----
-
-# EXAM DETAILS SECTION
-
-The ExamIntro component displays all the key information about the exam:
-
-- Title and standard
-- Due date and time (from course-data.ts)
-- Points and number of questions
-- Timer and attempts information
-- Topics covered
-- Direct link to take the exam (only if examUrl is provided)
-
-All props are pulled from the metadata object and examEvent.
-
-NOTE: If examUrl is provided, a "Take the Exam" button will appear.
-For multi-part exams (like midterms), omit examUrl and add separate buttons
-in the content below.
-
-<ExamIntro
-  title={metadata.title}
-  examDate={formatDate(examEvent?.date)}
-  examTime={examEvent?.dueTime}
-  standard={metadata.standard}
-  topics={metadata.topics}
-  totalPoints={metadata.totalPoints}
-  totalQuestions={metadata.totalQuestions}
-  description={examEvent?.description}
-  hasTimer={metadata.hasTimer}
-  allowedAttempts={metadata.allowedAttempts}
-  examUrl={metadata.examUrl}
-/>
-
-# EXAM RULES (OPTIONAL)
-
-Use the ExamRules component to highlight important rules and guidelines.
-This creates a yellow-bordered warning box.
-================================================================================
+Add any introductory content here.
 
 <ExamRules>
 
 ### Important Notes
 
-- Rule or note #1
-- Rule or note #2
-- You can use **markdown** formatting here
-- Including [links](/cmsi-2820/syllabus) to other pages
+- This exam covers **Standard X: Topic**
+- **X attempts** with **timer info**
+- **Open/Closed** notes policy
 
 </ExamRules>
 
-# ADDITIONAL CONTENT (OPTIONAL)
+## Ready?
 
-Add any other content here that students should read before taking the exam.
-This could include:
-
-- Study tips
-- Review links
-- # Additional context
-
-## Before You Start
-
-Add any final notes or reminders here before students click through to Brightspace.
-
-Good luck!
+When you're ready to take the exam, click the button above to access it on Brightspace. Good luck!

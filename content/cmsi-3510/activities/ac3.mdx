@@ -1,281 +1,478 @@
 import { QuestionBox } from "@/components/question-box"
 
-export const metadata = {
-  acNumber: 3,
-  title: "AC 3: Final Activity",
-  standard: "Review",
-  description:
-    "Comprehensive hands-on activity synthesizing all course concepts",
-  learningObjectives: [
-    "Apply concurrent programming concepts to solve real-world problems",
-    "Analyze system behavior using hardware knowledge",
-    "Design solutions that consider both concurrency and hardware constraints",
-    "Synthesize multiple course concepts in an integrated way",
-  ],
-  estimatedTime: "75 minutes",
-  materials: [
-    "Computer with Rust installed",
-    "Activity worksheet",
-    "Whiteboard/paper for planning",
-  ],
-}
-
-# {metadata.title}
-
 ## Overview
 
-This final activity brings together **all the major concepts** from the course:
+Welcome to the I/O Communication Gauntlet! You'll experience three distinct forms of I/O communication by physically simulating the challenges that operating systems face when moving data between devices.
 
-- Concurrent programming in Rust
-- CPU scheduling and process management
-- Memory management and virtual memory
-- I/O systems and device management
+**3 Device Types:**
 
-You'll work through a comprehensive scenario that requires you to apply multiple concepts simultaneously, just like you would in real-world systems programming.
+1. **Block Devices** - Maximize throughput over a damaged transmission medium
+2. **Character Devices** - Maximize responsiveness with a handcrafted serial connection
+3. **Network Devices** - Maximize data integrity over an unreliable network
+
+You'll feel the frustrations of damaged media, buffer management, packet loss, and the engineering trade-offs that make I/O so challenging!
 
 ## Learning Objectives
 
 By the end of this activity, you will be able to:
 
-<ul>
-  {metadata.learningObjectives.map((objective, index) => (
-    <li key={index}>{objective}</li>
-  ))}
-</ul>
+- Understand the fundamental differences between block, character, and network devices
+- Experience the trade-offs between throughput, latency, and reliability
+- Feel the impact of transmission errors, buffering, and packet reordering
+- Connect physical intuition to software solutions like error correction, flow control, and reliable delivery
 
 ## Materials Needed
 
-<ul>
-  {metadata.materials.map((material, index) => (
-    <li key={index}>{material}</li>
-  ))}
-</ul>
+Below are the materials needed for each activity, plus general supplies for running them all:
 
-## Scenario: Building a Multi-threaded File Processor
+**General Supplies:**
 
-### The Problem
-
-You're tasked with building a program that processes large log files from multiple sources concurrently. The system must:
-
-1. **Read** log files from disk (I/O-bound)
-2. **Parse** log entries (CPU-bound)
-3. **Analyze** entries to detect patterns (CPU-bound)
-4. **Write** results to an output file (I/O-bound)
-
-### Constraints
-
-- Multiple log files may arrive simultaneously
-- Memory is limited - you can't load all files at once
-- The system must remain responsive to new files arriving
-- Results must be written safely without corruption
-
-<QuestionBox>
-**Key Question:**
-
-How would you design this system to be efficient, safe, and responsive? Consider:
-
-- Thread architecture
-- Synchronization needs
-- Memory management
-- I/O scheduling
-
-</QuestionBox>
-
-## Part 1: Architecture Design (20 minutes)
-
-### Tasks
-
-Working in groups of 2-3, design your system architecture:
-
-1. **Thread Model**
-
-   - How many threads will you use?
-   - What will each thread be responsible for?
-   - Will you use a thread pool or spawn threads dynamically?
-
-2. **Data Flow**
-
-   - How does data move between threads?
-   - What synchronization primitives will you need? (Mutex, Channel, RwLock?)
-   - Where might deadlocks occur? How will you prevent them?
-
-3. **Memory Management**
-
-   - How will you handle memory allocation?
-   - What happens if files are too large for memory?
-   - How will you manage the lifetime of shared data?
-
-4. **I/O Strategy**
-   - How will you handle multiple files arriving at once?
-   - Will you use blocking or async I/O?
-   - How will you prioritize which files to process first?
-
-### Deliverable
-
-Create a **block diagram** showing:
-
-- Threads/tasks
-- Data structures
-- Synchronization points
-- Data flow arrows
-
-<QuestionBox>
-**Design Review Questions:**
-
-1. What happens if one thread panics? Will your system crash?
-2. How does your design handle the case where files arrive faster than they can be processed?
-3. What's the maximum memory usage in the worst case?
-
-</QuestionBox>
-
-## Part 2: Implementation Planning (25 minutes)
-
-### Task 1: Identify Potential Issues
-
-For your design, identify:
-
-1. **Race Conditions**
-
-   - What shared data exists?
-   - Which accesses need synchronization?
-   - Justify each Mutex/RwLock choice
-
-2. **Deadlock Scenarios**
-
-   - Can threads wait for each other in a cycle?
-   - What's your deadlock prevention strategy?
-
-3. **Performance Bottlenecks**
-   - What's the slowest part of your pipeline?
-   - Is your design CPU-bound or I/O-bound?
-   - How does it scale with more cores?
-
-### Task 2: Rust Implementation Sketch
-
-Write **pseudocode** showing:
-
-- Thread spawning
-- Data structure definitions
-- Critical sections with proper synchronization
-- Error handling
-
-You don't need complete Rust code, but show the key concurrent sections.
-
-<QuestionBox>
-**Rust Ownership Question:**
-
-How will you handle ownership of:
-
-- The log file data being processed?
-- The output buffer being written?
-- Configuration shared across threads?
-
-Will you use `Arc`? `Rc`? Move semantics? Explain your choices.
-
-</QuestionBox>
-
-## Part 3: System Analysis (15 minutes)
-
-### Scheduling Analysis
-
-Assume your system runs on a 4-core CPU:
-
-1. If parsing takes 100ms and analysis takes 200ms per file, what's your maximum throughput?
-2. How would a **Round Robin** scheduler affect your threads differently than a **Priority** scheduler?
-3. What context switching overhead should you expect?
-
-### Memory Analysis
-
-Assume:
-
-- Each log file is 10 MB
-- Your parsing buffer is 1 MB
-- Your analysis structures need 2 MB per file
-
-1. With 8 GB of RAM, how many files can you process concurrently?
-2. What happens when you exceed physical memory?
-3. How does page fault behavior affect your performance?
-
-### I/O Analysis
-
-Assume:
-
-- Disk read speed: 100 MB/s
-- Disk write speed: 50 MB/s
-- Network speed (if loading remotely): 20 MB/s
-
-1. Is your system I/O-bound or CPU-bound?
-2. How would you optimize for the bottleneck?
-3. Should you use buffered I/O or direct I/O?
-
-<QuestionBox>
-**Integration Question:**
-
-How do all these factors (scheduling, memory, I/O) interact?
-
-For example: If you're page faulting a lot, how does that affect thread scheduling?
-
-</QuestionBox>
-
-## Part 4: Reflection and Discussion (15 minutes)
-
-### Class Discussion
-
-Each group presents their design (2-3 minutes each):
-
-- Thread architecture
-- Key synchronization choices
-- Main performance bottleneck
-- One interesting challenge they solved
-
-### Reflection Questions
-
-Individually, answer:
-
-1. **Concurrency:** What was the hardest part about reasoning about multiple threads?
-
-2. **Hardware:** How did understanding CPU/memory/I/O constraints influence your design?
-
-3. **Rust:** How did Rust's ownership system help (or hinder) your design?
-
-4. **Trade-offs:** What trade-off in your design are you least confident about?
-
-5. **Learning:** What concept from this course was most important for this activity?
-
-<QuestionBox>
-**The Big Picture:**
-
-Operating systems solve problems like this **every day** - managing multiple processes, scheduling CPU time, handling memory constraints, and coordinating I/O.
-
-How has this course changed your understanding of what happens "under the hood" when you run programs?
-
-</QuestionBox>
-
-## Submission
-
-Submit:
-
-1. Your architecture block diagram
-2. Implementation pseudocode (key sections)
-3. System analysis answers (Part 3)
-4. Individual reflection answers
-
-**Due:** As specified by your instructor
+- Timer (20 minutes per stage)
+- Trash cans for failed attempts
+- Scoreboard for tracking progress
+- Bell for signaling stage transitions
 
 ---
 
-**Estimated Time:** {metadata.estimatedTime}
+## Stage Overview
 
-**Standard:** {metadata.standard}
+This activity has **3 stages** (~20 minutes each). To accommodate larger classes, split into three groups and run stages concurrently, rotating between activities:
+
+| Group | Stage 1 | Stage 2 | Stage 3 |
+|-------|---------|---------|---------|
+| **Group 1** | Block Devices | Character Devices | Network Devices |
+| **Group 2** | Character Devices | Network Devices | Block Devices |
+| **Group 3** | Network Devices | Block Devices | Character Devices |
+
+Set a timer for 20 minutes per stage. When the timer runs out, tally scores and rotate!
+
+<QuestionBox>
+**Scoring:** Each group tracks their own score. At the end, compare performance across different I/O types. Did some activities naturally produce higher scores? Why might that be?
+
+</QuestionBox>
 
 ---
 
-## Optional Extension: Actual Implementation
+## Stage 1: Block Devices
 
-If time permits (or as homework), implement a simplified version of your design:
+### The Scenario
 
-- Just handle 2-3 small test files
-- Use channels for thread communication
-- Print progress messages to show concurrency
+You're simulating **block device communication** over a damaged transmission medium—like reading/writing to a hard disk with bad sectors or a scratched optical disc.
 
-This is optional but highly recommended for solidifying your understanding!
+### Materials Needed
+
+- RC vehicle(s)
+- Origami instructions (your "data blocks")
+- Paper
+- Race track with obstacles
+- Start and finish line markers
+- Discard pile for damaged data
+
+### Setup
+
+1. Create a race track with clear start and finish lines
+2. Add obstacles to simulate "bad sectors" (books, cones, barriers)
+3. Set up a construction zone at the start line
+4. Place a collection area at the finish line
+5. Designate a discard pile for damaged/lost data
+
+### How It Works
+
+**Your team is a disk controller!** The RC vehicle is your read/write head, and origami represents data blocks.
+
+1. **Construct Data:** Build origami figures at the start line (these are your "data blocks")
+2. **Load Data:** Place completed origami on the RC vehicle
+3. **Transport:** Drive the RC vehicle through the obstacle course to the finish line
+4. **Verify:** The proctor checks if data arrived intact
+5. **Score:** Intact data = points! Damaged/lost data = discard pile
+
+### Rules
+
+**You MUST:**
+
+- Construct origami yourself (no pre-made data!)
+- Transport data via the RC vehicle only
+- Navigate through/around all obstacles
+- Accept the proctor's ruling on data integrity
+
+**You CANNOT:**
+
+- Carry data by hand across the track
+- Remove or move obstacles
+- Interfere with other teams' vehicles
+
+**You CAN:**
+
+- Have multiple people constructing data simultaneously
+- Strategize about vehicle loading and navigation
+- Restart a delivery attempt if data falls off before the finish
+- Talk, coordinate, and have fun!
+
+<QuestionBox>
+**Think About It:** This simulates seek time (navigation), data integrity (keeping origami intact), and throughput (how much data reaches the destination). What happens when the "medium" (track) is more damaged?
+
+</QuestionBox>
+
+### Tweaks & Variations
+
+Instructors can modify difficulty:
+
+- **Multiple Vehicles:** Add collision management (like multiple disk heads)
+- **Complex Data:** Different origami designs = different block sizes
+- **Worse Conditions:** More obstacles = more bad sectors
+- **Time Pressure:** Shorter deadlines = faster seek requirements
+
+---
+
+## Stage 2: Character Devices
+
+### The Scenario
+
+You're simulating **character device communication**—like a serial port or UART that transmits data as a continuous stream of bytes through a physical channel.
+
+### Materials Needed
+
+- Tape (lots of it!)
+- Paper and cardboard
+- Balls of varying types (plastic ball-pit balls, golf balls, ping-pong balls)
+- Collection bins (these are your "buffers")
+- Materials for marking "No Man's Land" (tape, rope, cones)
+
+### Setup
+
+1. Mark a "No Man's Land" zone (6-10 feet wide)
+2. Set up the sending station on one side
+3. Place collection bins (buffers) on the receiving side
+4. Provide construction materials to the team
+5. Scatter different ball types at the sending station
+
+### How It Works
+
+**Your team is building a serial connection!** Construct a structure that can transport a continuous stream of data across No Man's Land.
+
+1. **Build:** Use tape and paper to construct a channel across No Man's Land
+2. **Stabilize:** Your structure may have supports within the zone, but you CANNOT be inside during transmission
+3. **Transmit:** Roll balls through your structure from the sending side
+4. **Buffer:** Balls should land in collection bins on the receiving side
+5. **Score:** Count successfully buffered balls at the end!
+
+### Rules
+
+**You MUST:**
+
+- Build a self-supporting structure (no holding it during transmission!)
+- Stay outside No Man's Land during data transfer
+- Use only provided materials
+- Direct balls into the buffer bins
+
+**You CANNOT:**
+
+- Enter No Man's Land while transmitting
+- Use external supports (walls, furniture) outside your materials
+- Catch balls by hand on the receiving end
+- Throw balls—they must roll/slide through your channel
+
+**You CAN:**
+
+- Rebuild or modify your structure between transmission attempts
+- Retrieve fallen balls for re-transmission after a transmission period ends
+- Have designated "senders" and "receivers"
+- Use different ball types strategically
+- Talk, coordinate, and have fun!
+
+<QuestionBox>
+**Think About It:** This simulates bandwidth (channel width), buffering (collection bins), and flow control (can your receiver keep up?). What happens when you send too many balls too fast?
+
+</QuestionBox>
+
+### Tweaks & Variations
+
+Instructors can modify difficulty:
+
+- **Mixed Data Types:** Different balls = different character types (some roll better!)
+- **More Materials:** Cardboard, classroom furniture = more engineering options
+- **Buffer Limits:** Smaller bins = buffer overflow risk
+- **Longer Distance:** Wider No Man's Land = more signal degradation
+
+---
+
+## Stage 3: Network Devices
+
+### The Scenario
+
+You're simulating **network device communication**—like Ethernet or Wi-Fi where packets travel unreliably and may arrive out of order or not at all.
+
+### Materials Needed
+
+- Small bags (these are your "packets")
+- Puzzle pieces (your actual data)
+- Cornhole boards and bags
+- Assembly area for puzzle reconstruction
+
+### Setup
+
+1. Set up cornhole boards at opposite ends of the play area
+2. Establish a throw line for senders
+3. Prepare puzzle pieces and bags on the sending side
+4. Create an assembly area on the receiving side
+5. Have multiple puzzles available for bonus points
+
+### How It Works
+
+**Your team is implementing TCP/IP!** Bags are packets, puzzle pieces are data, and cornhole represents the unreliable network.
+
+1. **Packetize:** Load puzzle pieces into bags (deciding how much data per packet)
+2. **Transmit:** Throw bags toward the cornhole board (this is your unreliable network!)
+3. **Receive:** Successfully landed bags go to the receiving team
+4. **Reassemble:** Receivers must reconstruct the puzzle from received packets
+5. **Score:** Points for puzzle completion percentage and/or completed puzzles!
+
+### Rules
+
+**You MUST:**
+
+- Throw from behind the designated line
+- Accept packet loss (missed throws = lost packets)
+- Reassemble puzzles only from successfully received packets
+
+**You CANNOT:**
+
+- Walk packets across (no out-of-band delivery!)
+- Open bags before they land successfully
+- Interfere with other teams' transmissions
+
+**You CAN:**
+
+- Retry failed throws with the same packet
+- Decide your own packet sizes (more pieces per bag = riskier)
+- Request "retransmission" of needed pieces (communication allowed!)
+- Have designated throwers, receivers, and assemblers
+- Talk, coordinate, and have fun!
+
+<QuestionBox>
+**Think About It:** This simulates packet loss (missed throws), packet size trade-offs (more data = heavier = harder to throw), and reassembly (receiver must reconstruct order). Why might smaller packets be safer?
+
+</QuestionBox>
+
+### Tweaks & Variations
+
+Instructors can modify difficulty:
+
+- **Heavier Pieces:** Wooden puzzle pieces = heavier packets = more drops
+- **Multiple Puzzles:** Jumbled sets = need for packet identification
+- **Variable Distance:** Longer throws = higher latency, more loss
+- **Smaller Bags:** Less capacity = more packets needed = more overhead
+
+---
+
+## Overall Rules
+
+These rules apply across ALL stages:
+
+**Prohibited:**
+
+- Interfering with other groups' activities
+- Using materials designated for other groups
+- Contributing or soliciting advice across groups
+- Damaging materials needed for activity integrity
+
+**Permitted:**
+
+- Asking instructors for clarification
+- Self-organizing into roles or sub-teams
+- Using technology for calculations or strategy
+- Getting LOUD and having FUN!
+
+---
+
+## Discussion Questions
+
+After completing all stages, gather everyone for discussion. **Connect your physical experiences to real I/O challenges!**
+
+### Block Device Reflection
+
+<QuestionBox>
+**Q1:** What was the most frustrating part of the Block Device activity? Did you lose more data to construction failures or transportation failures? How does this relate to the difference between **manufacturing defects** vs **bad sectors** on a real disk?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q2:** Did you develop any strategies to improve throughput? Did you try sending multiple pieces at once, or focus on one reliable delivery at a time? How does this relate to **disk scheduling algorithms** that try to minimize seek time?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q3:** If your origami got damaged, you had to discard it and start over. Real disks use **error-correcting codes (ECC)** to recover from minor damage. What would the equivalent look like in this activity? How much "extra" origami would you need to send to tolerate some damage?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q4:** The obstacles on your track simulated bad sectors. Real operating systems maintain **bad block lists** and remap around damaged areas. Did your team develop any "maps" of the safest routes? Would that have helped?
+
+</QuestionBox>
+
+### Character Device Reflection
+
+<QuestionBox>
+**Q5:** What was the hardest part of building your serial channel? Did balls ever pile up faster than they could be processed? This is the **buffer overflow** problem—how did you handle it (or fail to handle it)?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q6:** Different ball types (heavy, light, bouncy) behaved differently in your channel. Serial devices deal with **varying data rates** and **flow control**. Did you wish you could tell the sender to "slow down"? That's exactly what **hardware flow control (RTS/CTS)** does!
+
+</QuestionBox>
+
+<QuestionBox>
+**Q7:** Your structure had to be self-supporting—you couldn't hold it during transmission. Real serial cables are passive too! But what if you could have **active repeaters** along the way? How would that change your design? This is how **RS-485** networks work over long distances.
+
+</QuestionBox>
+
+<QuestionBox>
+**Q8:** Did any balls fall out of your channel? This is similar to **bit errors** in serial communication. Real protocols use **parity bits** and **checksums** to detect this. What would a "checksum" look like for your ball stream?
+
+</QuestionBox>
+
+### Network Device Reflection
+
+<QuestionBox>
+**Q9:** How did you decide how many puzzle pieces to put in each bag? More pieces = fewer throws needed, but heavier bags are harder to land. This is the **packet size trade-off** (MTU). What was your optimal size?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q10:** Did packets ever arrive in a different order than you sent them? Real networks deal with **packet reordering** constantly. How did your receivers know how to reassemble the puzzle? Would **sequence numbers** have helped?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q11:** When a bag missed, did you retry immediately or move on and try again later? This is the difference between **stop-and-wait** vs **sliding window** protocols. Which strategy worked better for your team?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q12:** The cornhole board is your unreliable network—some packets get through, some don't. Real networks use **acknowledgments (ACKs)** so senders know what arrived. Did your team develop any signaling? How did receivers communicate what they still needed?
+
+</QuestionBox>
+
+### Cross-Cutting Questions
+
+<QuestionBox>
+**Q13:** Rank the three I/O types by how **frustrating** they felt. Now rank them by which one your team scored highest on. Are these rankings the same? What does this tell you about the relationship between **complexity** and **performance**?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q14:** All three activities involved moving data from point A to point B, but they felt very different. In your own words, what's the **fundamental difference** between block, character, and network I/O? Use your physical experience to explain it.
+
+</QuestionBox>
+
+<QuestionBox>
+**Q15:** Real operating systems often use **DMA (Direct Memory Access)** to handle I/O without CPU involvement. In each activity, what would "DMA" look like? What if you could set up a process and walk away?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q16:** If you could redesign any of these activities to make your team more efficient, what would you change? Now consider: is your improvement similar to any real I/O optimization technique (caching, prefetching, batching, pipelining)?
+
+</QuestionBox>
+
+### Final Thoughts
+
+<QuestionBox>
+**Q17:** What surprised you most about this activity? Did any of the physical challenges map to OS concepts you'd heard about but didn't fully understand until now?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q18:** Operating systems spend enormous effort abstracting away I/O complexity so programmers can just call `read()` and `write()`. After this activity, do you have more appreciation for what happens underneath those simple system calls?
+
+</QuestionBox>
+
+---
+
+## Key Takeaways
+
+**Block Devices (Hard Disks, SSDs, Optical Media):**
+
+- ✅ High throughput for large, sequential transfers
+- ✅ Data persists after power loss
+- ❌ Seek time is a major bottleneck
+- ❌ Physical media can be damaged
+- 🔧 OS Solution: Disk scheduling, bad block management, caching
+
+**Character Devices (Serial Ports, Keyboards, Sensors):**
+
+- ✅ Simple, continuous byte stream
+- ✅ Low latency for small amounts of data
+- ❌ No inherent structure—must parse manually
+- ❌ Buffer overflow if receiver can't keep up
+- 🔧 OS Solution: Buffering, flow control, line disciplines
+
+**Network Devices (Ethernet, Wi-Fi, Internet):**
+
+- ✅ Can communicate over any distance
+- ✅ Supports many-to-many communication
+- ❌ Unreliable—packets can be lost, duplicated, or reordered
+- ❌ Requires complex protocols for reliability
+- 🔧 OS Solution: Protocol stacks (TCP/IP), checksums, retransmission
+
+**The Universal Challenge:**
+
+All I/O involves balancing **throughput**, **latency**, and **reliability**. You can optimize for one or two, but rarely all three. The operating system's job is to hide this complexity and present simple abstractions to applications!
+
+---
+
+## Grading
+
+**Completion-based** - Engage with all three stages, participate in discussion, and reflect on the connections to OS concepts. Full participation = full points!
+
+---
+
+## Alternate Assignment (For Absences)
+
+Couldn't make it to class? Complete this alternate assignment for credit.
+
+### Watch These Videos
+
+Watch these videos about I/O devices and their interfaces:
+
+1. **[How do Hard Drives Work?](https://www.youtube.com/watch?v=wtdnatmVdIg)** - Covers block device mechanics
+2. **[Serial Communication Explained](https://www.youtube.com/watch?v=IyGwvGzrqp8)** - Covers character devices and UART
+3. **[How Does the Internet Work?](https://www.youtube.com/watch?v=TNQsmPf24go)** - Covers network packet switching
+
+### Answer These Questions
+
+Submit a PDF with your answers to Brightspace:
+
+<QuestionBox>
+**Q1:** Based on the hard drive video, explain why **sequential reads** are much faster than **random reads** on a traditional spinning disk. How does the physical mechanism of the device create this limitation?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q2:** The serial communication video discusses **baud rate** and **bit timing**. If two devices have mismatched baud rates, what happens to the data? Relate this to the "different ball types" scenario in the Character Device activity.
+
+</QuestionBox>
+
+<QuestionBox>
+**Q3:** The internet video explains **packet switching** and **routing**. Why do packets from the same source sometimes arrive out of order? What layer of the network stack is responsible for fixing this?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q4:** Compare and contrast how the three I/O device types handle **data loss**. What mechanisms exist at the hardware and OS level to detect and recover from lost or corrupted data?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q5:** Imagine you're designing an embedded system for a car. Which I/O type would you use for: (a) reading GPS coordinates, (b) storing maps, (c) communicating with other vehicles? Justify each choice.
+
+</QuestionBox>
+
+<QuestionBox>
+**Q6:** The class activity simulated **physical** challenges with each I/O type. For each device type, describe one challenge that exists in the **digital/electronic** domain that we couldn't easily simulate physically.
+
+</QuestionBox>
+
+**Submission:** Upload your PDF to the Brightspace assignment link provided

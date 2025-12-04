@@ -1,26 +1,5 @@
-import { ExamIntro, ExamRules } from "@/components/exam-sections"
+import { ExamRules } from "@/components/exam-sections"
 import { MultiSelectQuestion } from "@/components/multi-select-question"
-import { getExamEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  exNumber: 0,
-  title: "EX0: Syllabus Exam",
-  standard: "0 (Syllabus)",
-  topics: [
-    "Classroom rules",
-    "Contact information",
-    "Course standards",
-    "LMU student services",
-  ],
-  totalPoints: 2,
-  totalQuestions: 5,
-  hasTimer: false,
-  allowedAttempts: "Unlimited",
-  examUrl:
-    "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802312/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277",
-}
-
-export const examEvent = getExamEvent(metadata.exNumber)
 
 ## What do Exams Look Like?
 
@@ -53,20 +32,6 @@ If I do make a question that requires outside information or tools I will state 
 Overall, my exams are less like "exams" and more like small pop quizzes. Now we should get on to what "this" exam is actually about!
 
 ---
-
-<ExamIntro
-  title={metadata.title}
-  examDate={formatDate(examEvent?.date)}
-  examTime={examEvent?.dueTime}
-  standard={metadata.standard}
-  topics={metadata.topics}
-  totalPoints={metadata.totalPoints}
-  totalQuestions={metadata.totalQuestions}
-  description={examEvent?.description}
-  hasTimer={metadata.hasTimer}
-  allowedAttempts={metadata.allowedAttempts}
-  examUrl={metadata.examUrl}
-/>
 
 <ExamRules>
 

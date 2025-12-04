@@ -1,36 +1,13 @@
 import {
-  HomeworkIntro,
   ReadingSection,
   ProgrammingSection,
   OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  hwNumber: 2,
-  title: "HW2: Life of Pie",
-  topics: ["Concurrency", "Threads", "Mutual Exclusion"],
-  points: {
-    reading: 0,
-    programming: 30,
-    optional: 20,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
 
 This homework assignment is about getting our feet wet with modeling concurrent systems! We are going to be simulating the very concurrent and complex nature of making a Pizza from scratch in a Kitchen with multiple chefs!
 
-<ReadingSection points={metadata.points.reading}>
+<ReadingSection points={0}>
 
 This simulation is quite intricate and will leverage much of your current Rust knowledge. However, Rust's style of concurrent operation with Tokio and its synchronization primitives is a lot to read through. You will need to make good use of your reading resources to manage them successfully and not get overwhelmed! With what truly little time we have in class, you will need to rely on the reading material to get you the full picture. The sections below give you direct and indirect help with organizing your thoughts about threads, concurrent ownership, and use of synchronization primitives in Rust.
 
@@ -67,7 +44,7 @@ Don't read this in its entirety, but the Rust Tokio library is a powerful tool f
 </ReadingSection>
 
 <ProgrammingSection
-  points={metadata.points.programming}
+  points={30}
   description="This programming assignment is about implementing a concurrent pizza-making simulation in Rust!"
   githubClassroomUrl="https://classroom.github.com/a/gu_K8XCD"
   brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802217/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"
@@ -115,7 +92,7 @@ You can find the GitHub Classroom assignment link and the Brightspace turn in li
 </ProgrammingSection>
 
 <OptionalSection
-  points={metadata.points.optional}
+  points={20}
   brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802215/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"
 >
 

@@ -1,40 +1,8 @@
 import {
-  HomeworkIntro,
   WrittenSection,
   ProgrammingSection,
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
-import {
-  getHomeworkEvent,
-  formatDate,
-  HomeworkMetadata,
-} from "@/lib/homework-metadata"
-
-export const metadata = {
-  hwNumber: 1,
-  title: "HW1: Think Class! Think!",
-  topics: [
-    "Intuitionistic Logic",
-    "Propositional Logic",
-    "First Order Logic",
-    "Natural Deduction",
-    "Higher Order Logic",
-  ],
-  points: {
-    written: 75,
-    programming: 5,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
 
 <WrittenSection
   points={75}

@@ -1,32 +1,9 @@
 import {
-  HomeworkIntro,
   WrittenSection,
   ProgrammingSection,
   OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  hwNumber: 3,
-  title: "HW3: Storage Wars",
-  topics: ["Collections", "Abstract Algebra", "Relations", "Operations"],
-  points: {
-    written: 20,
-    programming: 80,
-    optional: 20,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
 
 <WrittenSection
   points={20}

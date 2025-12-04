@@ -1,40 +1,9 @@
 import {
-  HomeworkIntro,
   WrittenSection,
   ProgrammingSection,
   OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  hwNumber: 5,
-  title: "HW5: Order In The Court",
-  topics: [
-    "Rule of Sums and Products",
-    "Inclusion-Exclusion Principle",
-    "Permutations",
-    "Combinations",
-    "Double Counting",
-    "Bijective Proof",
-    "Pigeonhole Principle",
-  ],
-  points: {
-    written: 80,
-    programming: 20,
-    optional: 20,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
 
 <WrittenSection
   points={80}

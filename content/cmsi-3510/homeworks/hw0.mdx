@@ -1,28 +1,9 @@
 import {
-  HomeworkIntro,
   ReadingSection,
   ProgrammingSection,
   OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  hwNumber: 0,
-  title: "HW0: Simple Rust Calculator",
-  topics: [
-    "There are no particular topics for this HW",
-    "However if there were multiple",
-    "They would show up here",
-  ],
-  points: {
-    reading: 0,
-    programming: 3,
-    optional: 1,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
 
 ## What do Homeworks look like?
 
@@ -38,17 +19,9 @@ Now that we've described what homeworks look like at a high level, lets meet you
 
 ---
 
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
-
 This homework assignment is about getting used to the flow of receiving our code skeleton as a template repository from GitHub Classroom. The content of this homework will be to make a simple calculator function in rust. It is a very simple problem, since we are only trying to get familiar with the process of receiving, completing, and turning in HW.
 
-<ReadingSection points={metadata.points.reading}>
+<ReadingSection points={0}>
 
 This section is just here as an example to display what it would look like if I asked you to read a specific section of the textbook for the homework assignment.
 
@@ -65,7 +38,7 @@ In "The Rust Language Book", read Foreword, Introduction, and Ch 1: Getting Star
 </ReadingSection>
 
 <ProgrammingSection
-  points={metadata.points.programming}
+  points={3}
   description="Get familiar with the GitHub Classroom workflow and basic Rust project structure."
   githubClassroomUrl="https://classroom.github.com/a/0GOtOTyd"
   brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802212/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"
@@ -117,7 +90,7 @@ You can find the GitHub Classroom assignment link and the Brightspace turn in li
 </ProgrammingSection>
 
 <OptionalSection
-  points={metadata.points.optional}
+  points={1}
   brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802216/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"
 >
 

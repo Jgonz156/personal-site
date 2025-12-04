@@ -1,34 +1,4 @@
-import { ExamIntro, ExamRules } from "@/components/exam-sections"
-import { getExamEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  exNumber: 3,
-  title: "EX3: Collections Exam",
-  standard: "3 (Collections)",
-  topics: ["Tuples", "Sets", "Collection Operations", "Logical Quantification"],
-  totalPoints: 10,
-  totalQuestions: 5,
-  hasTimer: true,
-  allowedAttempts: "1",
-  examUrl:
-    "https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802316/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277",
-}
-
-export const examEvent = getExamEvent(metadata.exNumber)
-
-<ExamIntro
-  title={metadata.title}
-  examDate={formatDate(examEvent?.date)}
-  examTime={examEvent?.dueTime}
-  standard={metadata.standard}
-  topics={metadata.topics}
-  totalPoints={metadata.totalPoints}
-  totalQuestions={metadata.totalQuestions}
-  description={examEvent?.description}
-  hasTimer={metadata.hasTimer}
-  allowedAttempts={metadata.allowedAttempts}
-  examUrl={metadata.examUrl}
-/>
+import { ExamRules } from "@/components/exam-sections"
 
 ## About This Exam
 

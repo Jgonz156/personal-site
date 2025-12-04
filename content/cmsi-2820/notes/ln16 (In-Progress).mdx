@@ -1,31 +1,12 @@
 import {
-  LectureIntro,
   LectureNotes,
   LectureResources,
 } from "@/components/lecture-sections"
-import { getLectureEvent, formatDate } from "@/lib/homework-metadata"
 
-export const metadata = {
-  lnNumber: 16,
-  title: "LN16: Laws and Orders",
-  topics: [
-    "The Rule of Sums",
-    "The Rule of Products",
-    "Disjoint Sets",
-    "The Inclusion-Exclusion Principle",
-  ],
-}
-
-export const lectureEvent = getLectureEvent(metadata.lnNumber)
-
-<LectureIntro
-  title={metadata.title}
-  lectureDate={formatDate(lectureEvent?.date)}
-  standard={lectureEvent?.standard || "Combinatorics"}
-  topics={metadata.topics}
-  description={lectureEvent?.description}
-  recordingUrls={lectureEvent?.recordings}
-/>
+{/* 
+  Note: The intro section is now rendered automatically by the page component 
+  using data from lib/courses/cmsi-2820/data.ts
+*/}
 
 ## What is Combinatorics?
 

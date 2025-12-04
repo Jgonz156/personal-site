@@ -1,26 +1,24 @@
 import {
-  LectureIntro,
   LectureNotes,
   LectureResources,
 } from "@/components/lecture-sections"
-import { getLectureEvent, formatDate } from "@/lib/homework-metadata"
 
-export const metadata = {
-  lnNumber: 0, // Change to match your lecture number
-  title: "LN0: Lecture Title Here",
-  topics: ["Topic 1", "Topic 2", "Topic 3"],
-}
-
-export const lectureEvent = getLectureEvent(metadata.lnNumber)
-
-<LectureIntro
-  title={metadata.title}
-  lectureDate={formatDate(lectureEvent?.date)}
-  standard={lectureEvent?.standard || "Standard Name"}
-  topics={metadata.topics}
-  description={lectureEvent?.description}
-  recordingUrls={lectureEvent?.recordings}
-/>
+{/* 
+  LECTURE NOTES TEMPLATE
+  ======================
+  
+  The intro section (title, date, standard, topics, recordings) is now rendered 
+  AUTOMATICALLY by the page component using data from data.ts.
+  
+  To add new lecture notes:
+  1. Create lnX.mdx in the notes folder
+  2. Add the lecture event to lib/courses/cmsi-2820/data.ts with all metadata:
+     - lnTopics: string[] (optional, for topic tags)
+     - recordings: Recording[] (for recording links)
+  3. Write the actual lecture content below
+  
+  NO NEED to export metadata or use LectureIntro in MDX anymore!
+*/}
 
 ## Introduction
 
@@ -74,7 +72,6 @@ Tables are great for comparing concepts:
 | ------- | ------------- | --------- |
 | Term A  | Description A | Example A |
 | Term B  | Description B | Example B |
-| Term C  | Description C | Example C |
 
 ### Lists
 
@@ -94,7 +91,7 @@ Tables are great for comparing concepts:
 
 ## Important Formulas
 
-You can write formulas inline or as blocks. For complex math, you might want to use:
+You can write formulas inline or as blocks:
 
 - Inline: Let f(x) = x² + 2x + 1
 - Block formulas can be written out clearly with spacing
@@ -119,14 +116,6 @@ State the problem clearly.
 
 **Hint**: Provide helpful hints in bold.
 
-### Problem 2: Intermediate
-
-Build on previous concepts.
-
-### Problem 3: Challenge
-
-Push students to think deeper.
-
 ---
 
 ## Summary
@@ -147,7 +136,7 @@ Preview the next lecture to maintain continuity and build anticipation.
 
 ### LectureNotes Component
 
-Use the `LectureNotes` component to highlight important concepts or formulas:
+Use the `LectureNotes` component to highlight important concepts:
 
 <LectureNotes>
 
@@ -157,7 +146,6 @@ Important points to remember:
 
 - Point 1
 - Point 2
-- Point 3
 
 </LectureNotes>
 
@@ -171,7 +159,6 @@ Use the `LectureResources` component for additional materials:
 
 - Additional practice problems
 - Links to external resources
-- Suggested reading
 
 ### Additional Reading
 

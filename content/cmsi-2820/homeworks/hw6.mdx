@@ -1,33 +1,10 @@
 import {
-  HomeworkIntro,
   WrittenSection,
   ProgrammingSection,
   OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
 import { GraphVisualization } from "@/components/graph-visualization"
-
-export const metadata = {
-  hwNumber: 6,
-  title: "HW6: (Warning: Graphic Content)",
-  topics: ["Graph Theory", "Special Graphs", "Isomorphism", "Graph Operations"],
-  points: {
-    written: 70,
-    programming: 30,
-    optional: 20,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
 
 <WrittenSection
   points={70}

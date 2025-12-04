@@ -1,36 +1,8 @@
 import {
-  HomeworkIntro,
   WrittenSection,
   OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  hwNumber: 4,
-  title: "HW4: Silence of the Lambdas",
-  topics: [
-    "Lambda Calculus",
-    "Reductions",
-    "Free and Bound Variables",
-    "Function Classes",
-    "Function Properties",
-  ],
-  points: {
-    written: 100,
-    optional: 20,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
 
 <WrittenSection
   points={100}

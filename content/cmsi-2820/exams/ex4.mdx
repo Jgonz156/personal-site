@@ -1,39 +1,4 @@
-import { ExamIntro, ExamRules } from "@/components/exam-sections"
-import { getExamEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  exNumber: 4,
-  title: "EX4: Final Exam",
-  standard: "4, 5, 6 (Functions, Combinatorics, Graph Theory)",
-  topics: [
-    "Lambda Calculus",
-    "Function Properties",
-    "Permutations",
-    "Combinations",
-    "Graph Operations",
-    "Graph Theory",
-  ],
-  totalPoints: 30,
-  totalQuestions: 15,
-  hasTimer: true,
-  allowedAttempts: "1 per section",
-  // No single examUrl - this will be a multi-part exam like the midterm
-}
-
-export const examEvent = getExamEvent(metadata.exNumber)
-
-<ExamIntro
-  title={metadata.title}
-  examDate={formatDate(examEvent?.date)}
-  examTime={examEvent?.dueTime}
-  standard={metadata.standard}
-  topics={metadata.topics}
-  totalPoints={metadata.totalPoints}
-  totalQuestions={metadata.totalQuestions}
-  description={examEvent?.description}
-  hasTimer={metadata.hasTimer}
-  allowedAttempts={metadata.allowedAttempts}
-/>
+import { ExamRules } from "@/components/exam-sections"
 
 ## About the Final Exam
 

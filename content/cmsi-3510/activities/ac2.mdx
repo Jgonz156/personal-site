@@ -1,28 +1,5 @@
 import { QuestionBox } from "@/components/question-box"
 
-export const metadata = {
-  acNumber: 2,
-  title: "AC 2: Saved by The Schedule",
-  standard: "Computer Hardware",
-  description:
-    "Experience CPU scheduling by competing as workers in Batch, Interactive, and Real-Time systems",
-  learningObjectives: [
-    "Experience the priorities of Batch, Interactive, and Real-Time systems",
-    "Understand FCFS, Round Robin, and EDF scheduling algorithms",
-    "Feel the impact of time quanta, deadlines, and context switching",
-    "Compare throughput vs responsiveness vs deadline constraints",
-  ],
-  estimatedTime: "75 minutes",
-  materials: [
-    "Simple math worksheets (printed, 1-2 reams worth)",
-    "Writing utensils (different colors per student if possible)",
-    "Timer and bell/alert system",
-    "4 collection buckets (one per team)",
-  ],
-}
-
-# {metadata.title}
-
 ## Overview
 
 Welcome back to elementary school! You'll complete math worksheets under different **scheduling system constraints** to experience how CPUs schedule tasks.
@@ -37,19 +14,17 @@ You'll feel the frustrations of context switching, deadline pressure, and coordi
 
 ## Learning Objectives
 
-<ul>
-  {metadata.learningObjectives.map((objective, index) => (
-    <li key={index}>{objective}</li>
-  ))}
-</ul>
+- Experience the priorities of Batch, Interactive, and Real-Time systems
+- Understand FCFS, Round Robin, and EDF scheduling algorithms
+- Feel the impact of time quanta, deadlines, and context switching
+- Compare throughput vs responsiveness vs deadline constraints
 
 ## Materials Needed
 
-<ul>
-  {metadata.materials.map((material, index) => (
-    <li key={index}>{material}</li>
-  ))}
-</ul>
+- Simple math worksheets (printed, 1-2 reams worth)
+- Writing utensils (different colors per student if possible)
+- Timer and bell/alert system
+- 4 collection buckets (one per team)
 
 ### Where to Find Worksheets
 
@@ -431,9 +406,3 @@ _Note: Real-Time algorithms aren't discussed directly - consider which algorithm
 </QuestionBox>
 
 **Submission:** Upload your PDF to the Brightspace assignment link provided by your instructor.
-
----
-
-**Estimated Time:** {metadata.estimatedTime}
-
-**Standard:** {metadata.standard}

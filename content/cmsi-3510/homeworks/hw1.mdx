@@ -1,34 +1,12 @@
 import {
-  HomeworkIntro,
   ReadingSection,
   ProgrammingSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
-import { getHomeworkEvent, formatDate } from "@/lib/homework-metadata"
-
-export const metadata = {
-  hwNumber: 1,
-  title: "HW1: Doughmain Expansion",
-  topics: ["Structs", "Ownership", "References"],
-  points: {
-    reading: 0,
-    programming: 30,
-  },
-}
-
-export const hwEvent = getHomeworkEvent(metadata.hwNumber)
-
-<HomeworkIntro
-  title={metadata.title}
-  dueDate={formatDate(hwEvent?.date)}
-  dueTime={hwEvent?.dueTime || "11:59 PM"}
-  topics={metadata.topics}
-  description={hwEvent?.description || ""}
-/>
 
 This homework assignment is about getting used to programming in Rust with a small yet substantial project! The project is implementing a complete self-contained simulation of a file system with a custom CLI interface!
 
-<ReadingSection points={metadata.points.reading}>
+<ReadingSection points={0}>
 
 As this project is quite all encompassing as it goes for foundational Rust features, you will need to make good use of your reading resources! With what truly little time we have in class, you will need to rely on the reading material to get you the full picture. The sections below give you direct and indirect help with organizing your thoughts about structs, memory management, and references in Rust.
 
@@ -66,7 +44,7 @@ Watch the later half of this amazing guided talk about data-driven programming b
 </ReadingSection>
 
 <ProgrammingSection
-  points={metadata.points.programming}
+  points={30}
   description="This programming assignment is about implementing a complete self-contained simulation of a file system with a custom CLI interface!"
   githubClassroomUrl="https://classroom.github.com/a/qN_FYjrX"
   brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802210/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf"

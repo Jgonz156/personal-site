@@ -1,0 +1,78 @@
+import {
+  ReadingSection,
+  ProgrammingSection,
+} from "@/components/homework-sections"
+import { QuestionBox } from "@/components/question-box"
+
+This homework assignment is about managing system expectations, processes, and scheduling!
+You are going to be programming the heart of an operating system: the scheduler!
+
+<ReadingSection points={0}>
+
+The sections below give you direct and indirect help with organizing your thoughts about scheduling, batch systems, interactive systems, and real-time systems.
+
+<QuestionBox qid="R1">
+
+In "The Rust Language Book" read:
+- Ch 8: Common Collections
+- Ch 13: Functional Language Features: Iterators and Closures
+
+These chapters will help with familiarizing yourself with the type of data structures you will be working with in
+the programming assignment.
+
+[The Rust Language Book](https://doc.rust-lang.org/book/)
+
+</QuestionBox>
+
+<QuestionBox qid="R2">
+
+Read Chapter 3: Scheduling (Page 45-92) from our course textbook. Its provides a great 
+overiew of the concerns, concepts, and algorithms for scheduling in operating systems.
+Whilst it specifies thread scheduling, the concepts are applicable to process scheduling as well.
+
+[Operating Systems and Middleware: Supporting Controlled Interaction](https://ia902302.us.archive.org/27/items/osm-rev1.2/osm-rev1.2.pdf)
+
+</QuestionBox>
+
+</ReadingSection>
+
+<ProgrammingSection
+  points={30}
+  description="This programming assignment is about implementing a scheduler for pizza orders in Rust!"
+  githubClassroomUrl=""
+  brightspaceUrl=""
+>
+
+### Repository Structure
+
+Your repository will contain the following files:
+
+```
+CMSI-3510-HW3/
+├── .gitignore
+├── hot_pie_tato/
+│   ├── Cargo.toml
+│   ├── Cargo.lock
+│   └── src/
+│       ├── edf.rs
+│       ├── fcfs.rs
+│       ├── lib.rs
+│       ├── lottery.rs
+│       ├── main.rs
+│       ├── order.rs
+│       ├── round_robin.rs
+│       ├── scheduler.rs
+│       ├── sjf.rs
+│       └── visualization.rs
+└── README.md
+```
+
+### Helper Resources
+
+Need a refresher on how to interact with the HW for this course? Watch the helper video posted to Zoom via the link below!
+
+[Helper Video](https://lmula.zoom.us/rec/share/qZJRL5B3_zx8vvp2ei9qfijhG6Yjqr0g_pap6h6THg_ffJ7_cuuvjdKq-xMF5g0P.rbEK6SGsg5zYXxMi)
+
+You can find the GitHub Classroom assignment link and the Brightspace turn in link using the buttons at the top of this section.
+
+</ProgrammingSection>

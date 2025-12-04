@@ -35,6 +35,40 @@ export interface CourseEvent {
   contentUrl?: string // Link to lecture notes, homework spec, exam details page
   recordings?: Recording[] // Array of named recording links
   pinned?: boolean // If true, event date is not affected by schedule shifts
+
+  // ============================================================
+  // PREFIXED CONTENT METADATA
+  // Type the prefix (hw, ex, ln, ac) for IDE IntelliSense autocomplete
+  // ============================================================
+
+  // hw* - Homework-specific fields
+  hwTopics?: string[]
+  hwPoints?: {
+    written?: number
+    programming?: number
+    reading?: number
+    optional?: number
+  }
+  hwGithubClassroomUrl?: string
+  hwBrightspaceUrl?: string
+
+  // ex* - Exam-specific fields
+  exTopics?: string[]
+  exTotalPoints?: number
+  exTotalQuestions?: number
+  exHasTimer?: boolean
+  exAllowedAttempts?: string
+  exExamUrl?: string
+  exBrightspaceUrl?: string
+
+  // ln* - Lecture-specific fields
+  lnTopics?: string[]
+
+  // ac* - Activity-specific fields
+  acTopics?: string[]
+  acLearningObjectives?: string[]
+  acEstimatedTime?: string
+  acMaterials?: string[]
 }
 
 // Aggregate all course events from individual course files

@@ -1,181 +1,51 @@
 import {
-  LectureIntro,
   LectureNotes,
   LectureResources,
 } from "@/components/lecture-sections"
-import { getLectureEvent, formatDate } from "@/lib/homework-metadata"
 
-export const metadata = {
-  lnNumber: 0, // Change to match your lecture number
-  title: "LN0: Lecture Title Here",
-  topics: ["Topic 1", "Topic 2", "Topic 3"],
-}
-
-export const lectureEvent = getLectureEvent(metadata.lnNumber)
-
-<LectureIntro
-  title={metadata.title}
-  lectureDate={formatDate(lectureEvent?.date)}
-  standard={lectureEvent?.standard || "Standard Name"}
-  topics={metadata.topics}
-  description={lectureEvent?.description}
-  recordingUrls={lectureEvent?.recordings}
-/>
+{/* 
+  LECTURE NOTES TEMPLATE
+  ======================
+  
+  The intro section (title, date, standard, topics, recordings) is now rendered 
+  AUTOMATICALLY by the page component using data from data.ts.
+  
+  To add new lecture notes:
+  1. Create lnX.mdx in the notes folder
+  2. Add the lecture event to lib/courses/cmsi-5850/data.ts with all metadata:
+     - lnTopics: string[] (optional, for topic tags)
+     - recordings: Recording[] (for recording links)
+  3. Write the actual lecture content below
+  
+  NO NEED to export metadata or use LectureIntro in MDX anymore!
+*/}
 
 ## Introduction
 
-Brief introduction paragraph explaining what this lecture covers.
+Brief introduction explaining what this lecture covers.
 
-> **MDX Note**: When writing set notation like \{1, 2, 3\}, always escape curly braces with backslashes!  
-> **Math Note**: When using `\text{...}` in LaTeX, escape the braces: `\text\{...\}` to avoid MDX parsing issues.
+## Main Content
 
-## Section 1: Main Topic
-
-Start with the core concepts. Use clear headings to organize your content.
-
-### Subsection
-
-Break down complex topics into manageable pieces.
-
-> **Key Insight**: Use blockquotes for important notes and insights.
-
----
-
-## Examples
-
-Show concrete examples to illustrate concepts:
-
-### Example 1: Basic Case
-
-```javascript
-// You can include code examples in any language
-function example() {
-  return "This is a code block"
-}
-```
-
-### Example 2: Advanced Case
-
-You can also show mathematical notation directly:
-
-- Let x ∈ ℕ
-- Then x² ≥ 0
-- Therefore ∀x ∈ ℕ, x² ≥ 0
-
----
-
-## Visual Aids
-
-### Tables
-
-Tables are great for comparing concepts:
-
-| Concept | Definition    | Example   |
-| ------- | ------------- | --------- |
-| Term A  | Description A | Example A |
-| Term B  | Description B | Example B |
-| Term C  | Description C | Example C |
-
-### Lists
-
-**Ordered lists** for sequences:
-
-1. First step
-2. Second step
-3. Third step
-
-**Unordered lists** for collections:
-
-- Point one
-- Point two
-- Point three
-
----
-
-## Important Formulas
-
-You can write formulas inline or as blocks. For complex math, you might want to use:
-
-- Inline: Let f(x) = x² + 2x + 1
-- Block formulas can be written out clearly with spacing
-
-**Key Formulas**:
-
-```
-Sum formula: Σ(i=1 to n) i = n(n+1)/2
-
-Product formula: n! = n × (n-1) × (n-2) × ... × 1
-```
-
----
-
-## Practice Problems
-
-Include practice problems to reinforce learning.
-
-### Problem 1: Basic Application
-
-State the problem clearly.
-
-**Hint**: Provide helpful hints in bold.
-
-### Problem 2: Intermediate
-
-Build on previous concepts.
-
-### Problem 3: Challenge
-
-Push students to think deeper.
+Your lecture content goes here.
 
 ---
 
 ## Summary
 
-Recap the main points:
-
 - Key concept 1
 - Key concept 2
-- Key concept 3
-
-## Coming Up Next
-
-Preview the next lecture to maintain continuity and build anticipation.
-
----
-
-## Using Special Components
-
-### LectureNotes Component
-
-Use the `LectureNotes` component to highlight important concepts or formulas:
 
 <LectureNotes>
 
-**Key Formula**: The fundamental theorem states that...
-
-Important points to remember:
-
-- Point 1
-- Point 2
-- Point 3
+**Key Formula or Concept**: Important points to remember.
 
 </LectureNotes>
 
-### LectureResources Component
-
-Use the `LectureResources` component for additional materials:
-
 <LectureResources>
 
-### Practice More
+### Additional Resources
 
-- Additional practice problems
-- Links to external resources
-- Suggested reading
-
-### Additional Reading
-
-- Chapter X in your textbook
-- Related papers or articles
+- Textbook chapters
+- Papers and articles
 
 </LectureResources>

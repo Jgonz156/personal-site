@@ -203,7 +203,7 @@ export default function CMSI3510Syllabus() {
                 Operating Systems and Middleware: Supporting Controlled
                 Interaction
               </strong>{" "}
-              by Max Hailperin (available on course site)
+              by Max Hailperin (available <a href="https://ia902302.us.archive.org/27/items/osm-rev1.2/osm-rev1.2.pdf" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">here</a>)
             </li>
           </ul>
         </section>

@@ -1,29 +1,5 @@
 import { QuestionBox } from "@/components/question-box"
 
-export const metadata = {
-  acNumber: 1,
-  title: "AC 1: Getting Folded",
-  standard: "Concurrent Programming",
-  description:
-    "Experience data and task parallelism through competitive origami racing",
-  learningObjectives: [
-    "Understand data parallelism (batching) vs task parallelism (pipelining)",
-    "Experience load balancing and coordination challenges in parallel systems",
-    "Identify trade-offs between different parallelization strategies",
-    "Apply partitioning concepts to concurrent programming",
-  ],
-  estimatedTime: "80 minutes",
-  materials: [
-    "Printer paper (1-2 reams)",
-    "Scissors (enough for half the class)",
-    "Origami instructions (Sanbou-box and Tulip)",
-    "Timer",
-    "Trash cans for failed attempts",
-  ],
-}
-
-# {metadata.title}
-
 ## Overview
 
 Welcome to your first hands-on activity! You'll experience **data parallelism** (batching) and **task parallelism** (pipelining) by racing to fold origami figures as quickly as possible.
@@ -37,17 +13,20 @@ Which approach is faster? You'll find out!
 ## Learning Objectives
 
 <ul>
-  {metadata.learningObjectives.map((objective, index) => (
-    <li key={index}>{objective}</li>
-  ))}
+  <li>Understand data parallelism (batching) vs task parallelism (pipelining)</li>
+  <li>Experience load balancing and coordination challenges in parallel systems</li>
+  <li>Identify trade-offs between different parallelization strategies</li>
+  <li>Apply partitioning concepts to concurrent programming</li>
 </ul>
 
 ## Materials Needed
 
 <ul>
-  {metadata.materials.map((material, index) => (
-    <li key={index}>{material}</li>
-  ))}
+  <li>Printer paper (1-2 reams)</li>
+  <li>Scissors (enough for half the class)</li>
+  <li>Origami instructions (Sanbou-box and Tulip)</li>
+  <li>Timer</li>
+  <li>Trash cans for failed attempts</li>
 </ul>
 
 ### Origami Instructions
@@ -225,6 +204,6 @@ _Consider: coordination, load balancing, bottlenecks, and communication overhead
 
 ---
 
-**Estimated Time:** {metadata.estimatedTime}
+## Grading Details
 
-**Standard:** {metadata.standard}
+**Participation-based** - No winner or loser! Just engage, try your best, and participate in the discussion.
