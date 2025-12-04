@@ -524,7 +524,7 @@ const allEvents: CourseEvent[] = [
     hwTopics: ["Scheduling", "Batch Systems", "Interactive Systems", "Real-Time Systems"],
     hwPoints: { reading: 0, programming: 30 },
     pinned: true,
-    hwGithubClassroomUrl: "",
+    hwGithubClassroomUrl: "https://classroom.github.com/a/ZRyafgQZ",
     hwBrightspaceUrl: "",
   },
   {
