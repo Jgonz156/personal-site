@@ -839,7 +839,16 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Set Theory",
     contentUrl: "/cmsi-2820/ln25",
-    recordings: [],
+    recordings: [
+      {
+        name: "Morning Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/7qTxu8eRbNFdhmirDqEFw2h9M_llGrmauk7HBvI7Fc7P4MoG0MWrBXYRRNbF8b8r.kNJRpvqeC5K-5t7J"
+      },
+      {
+        name: "Night Lecture Video",
+        url: "https://lmula.zoom.us/rec/share/mm95Snfd52As_02SHqACxmBmwgPdngRn4RMhYzVG3SuN_2wQJgZivqvKyIKKcrPs.Hp6Ke6UPRW-ixEDA"
+      },
+    ],
   },
   {
     id: "2820-hol2",
