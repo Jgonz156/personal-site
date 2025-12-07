@@ -611,6 +611,7 @@ const allEvents: CourseEvent[] = [
     standard: "Final",
     contentUrl: "/cmsi-3510/ex1",
     pinned: true,
+    exBrightspaceUrl: "https://brightspace.lmu.edu/d2l/lms/quizzing/user/quizzes_list.d2l?ou=283548"
   },
 ]
 
