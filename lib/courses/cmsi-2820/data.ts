@@ -944,7 +944,7 @@ const allEvents: CourseEvent[] = [
     exTotalQuestions: 15,
     exHasTimer: true,
     exAllowedAttempts: "1 per section",
-    exBrightspaceUrl: "https://brightspace.lmu.edu/d2l/lms/quizzing/user/quizzes_list.d2l?ou=283545"
+    exExamUrl: "https://brightspace.lmu.edu/d2l/lms/quizzing/user/quizzes_list.d2l?ou=283545"
   },
 ]
 
