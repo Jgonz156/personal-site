@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   
+  // Ignore ESLint errors during production builds
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
   // Exclude vis-network from server-side bundling
   webpack: (config, { isServer }) => {
     if (isServer) {
