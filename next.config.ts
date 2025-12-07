@@ -9,10 +9,7 @@ import rehypeHighlight from "rehype-highlight"
 const nextConfig: NextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
-  // Optionally, add any other Next.js config below
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  
   // Exclude vis-network from server-side bundling
   webpack: (config, { isServer }) => {
     if (isServer) {
