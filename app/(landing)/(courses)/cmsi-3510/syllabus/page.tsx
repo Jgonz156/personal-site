@@ -221,7 +221,7 @@ export default function CMSI3510Syllabus() {
           <div className="mb-6">
             <StandardsDiagram
               courseID="CMSI 3510: Operating Systems"
-              coursePointTotal={240}
+              coursePointTotal={150}
               standards={[
                 {
                   standardID: "Syllabus",
@@ -234,15 +234,10 @@ export default function CMSI3510Syllabus() {
                 },
                 {
                   standardID: "Concurrent Programming",
-                  pointTotal: 80,
+                  pointTotal: 50,
                   homework: [
                     {
                       id: "HW 1",
-                      points: 30,
-                      gradedWith: "Concurrent Programming",
-                    },
-                    {
-                      id: "HW 2",
                       points: 30,
                       gradedWith: "Concurrent Programming",
                     },
@@ -255,15 +250,10 @@ export default function CMSI3510Syllabus() {
                 },
                 {
                   standardID: "Computer Hardware",
-                  pointTotal: 80,
+                  pointTotal: 50,
                   homework: [
                     {
-                      id: "HW 3",
-                      points: 30,
-                      gradedWith: "Computer Hardware",
-                    },
-                    {
-                      id: "HW 4",
+                      id: "HW 2",
                       points: 30,
                       gradedWith: "Computer Hardware",
                     },
@@ -281,15 +271,10 @@ export default function CMSI3510Syllabus() {
                 },
                 {
                   standardID: "Operating Systems",
-                  pointTotal: 80,
+                  pointTotal: 50,
                   homework: [
                     {
-                      id: "HW 5",
-                      points: 30,
-                      gradedWith: "Operating Systems",
-                    },
-                    {
-                      id: "HW 6",
+                      id: "HW 3",
                       points: 30,
                       gradedWith: "Operating Systems",
                     },
@@ -307,13 +292,13 @@ export default function CMSI3510Syllabus() {
                 },
                 {
                   standardID: "Final",
-                  homework: [
-                    {
-                      id: "OHW 3",
-                      points: 20,
-                      gradedWith: "Operating Systems",
-                    },
-                  ],
+                  // homework: [
+                  //   {
+                  //     id: "OHW 3",
+                  //     points: 20,
+                  //     gradedWith: "Operating Systems",
+                  //   },
+                  // ],
                   exams: [
                     {
                       id: "OEX S1",

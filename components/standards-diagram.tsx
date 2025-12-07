@@ -82,29 +82,26 @@ export default function StandardsDiagram({
   }
 
   const courseLetter = (points: number) => {
-    const courseFactor =
-      4 *
-      standards.filter(
-        (s) => !["Syllabus", "Midterm", "Final"].includes(s.standardID)
-      ).length
+    const step = coursePointTotal / 10
+
     switch (true) {
-      case points === coursePointTotal:
+      case points >= coursePointTotal:
         return "A"
-      case points >= coursePointTotal - courseFactor:
+      case points >= coursePointTotal - step:
         return "A-"
-      case points >= coursePointTotal - 2 * courseFactor:
+      case points >= coursePointTotal - 2 * step:
         return "B+"
-      case points >= coursePointTotal - 3 * courseFactor:
+      case points >= coursePointTotal - 3 * step:
         return "B"
-      case points >= coursePointTotal - 4 * courseFactor:
+      case points >= coursePointTotal - 4 * step:
         return "B-"
-      case points >= coursePointTotal - 5 * courseFactor:
+      case points >= coursePointTotal - 5 * step:
         return "C+"
-      case points >= coursePointTotal - 6 * courseFactor:
+      case points >= coursePointTotal - 6 * step:
         return "C"
-      case points >= coursePointTotal - 7 * courseFactor:
+      case points >= coursePointTotal - 7 * step:
         return "C-"
-      case points >= coursePointTotal - 8 * courseFactor:
+      case points >= coursePointTotal - 8 * step:
         return "D"
       default:
         return "F"
@@ -146,9 +143,13 @@ export default function StandardsDiagram({
         updatedFullAssignmentList
           ?.filter((a) => a.gradedWith === s.standardID)
           ?.reduce((p, c) => p + c.currentPoints, 0) ?? 0
+      // If pointTotal is 0, treat as bonus standard with no cap
+      const cappedPoints = s.pointTotal === 0
+        ? gradedWithPoints
+        : gradedWithPoints < (s.pointTotal ?? 0) ? gradedWithPoints : (s.pointTotal ?? 0)
       return {
         ...s,
-        currentPoints: gradedWithPoints < 80 ? gradedWithPoints : 80,
+        currentPoints: cappedPoints,
       }
     })
 
