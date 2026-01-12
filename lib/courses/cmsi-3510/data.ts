@@ -8,6 +8,114 @@ const schedule = createSchedule(cmsi3510Fall2025Schedule)
 // Generate all course events with schedule-based dates
 const allEvents: CourseEvent[] = [
   {
+    id: "3510-hol0",
+    title: "Martin Luther King Jr. Day!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 1, 19, "3510-hol0", true),
+    description: "Happy Martin Luther King Jr. Day!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol1",
+    title: "Ceasar Chavez Day!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 3, 31, "3510-hol1", true),
+    description: "Enjoy your Ceasar Chavez Day!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol3",
+    title: "Spring Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 3, 2, "3510-hol3", true),
+    description: "Enjoy your Spring break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol4",
+    title: "Spring Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 3, 3, "3510-hol4", true),
+    description: "Enjoy your Spring break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol5",
+    title: "Spring Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 3, 4, "3510-hol5", true),
+    description: "Enjoy your Spring break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol6",
+    title: "Spring Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 3, 5, "3510-hol6", true),
+    description: "Enjoy your Spring break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol7",
+    title: "Spring Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 3, 6, "3510-hol7", true),
+    description: "Enjoy your Spring break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol8",
+    title: "Easter Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 4, 1, "3510-hol8", true),
+    description: "Enjoy your Easter break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol9",
+    title: "Easter Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 4, 2, "3510-hol9", true),
+    description: "Enjoy your Easter break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol10",
+    title: "Easter Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 4, 3, "3510-hol10", true),
+    description: "Enjoy your Easter break!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol11",
+    title: "Reading Day",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 5, 6, "3510-hol11", true),
+    description: "Enjoy your Reading Day!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
+    id: "3510-hol12",
+    title: "Easter Break!",
+    type: "holiday",
+    date: schedule.getSpecificDate(2026, 3, 30, "3510-hol12", true),
+    description: "Normally there would be class on this day, but I'm giving it back to you all in thanks for Easter!",
+    courseId: "cmsi-3510",
+    pinned: true,
+  },
+  {
     id: "3510-ln0",
     title: "LN 0: Reading Course Material!",
     type: "lecture",
@@ -30,20 +138,7 @@ const allEvents: CourseEvent[] = [
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln1",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/4SAbrt2tDKdvgfyT2JM4o2s6zUuUTRFAgdK5M8B5a3-zH4VzJe5WYRhcVWOAFYIu.IrnfAEAivlXg4VLg",
-      },
     ],
-  },
-  {
-    id: "3510-hol0",
-    title: "Labor Day!",
-    type: "holiday",
-    date: schedule.getSpecificDate(2025, 9, 1, "3510-hol0", true),
-    description: "Happy Labor Day!",
-    courseId: "cmsi-3510",
-    pinned: true,
   },
   {
     id: "3510-ln2",
@@ -55,12 +150,7 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln2",
-    recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/kjMnUIcFQVQ7QrMh5UrnymAG0V095yx8-TWOHypDAZdBDLL_S49LlAve2vn2SEZy.I_AsMpWdjIhr2-eO",
-      },
-    ],
+    recordings: []
   },
   {
     id: "3510-ln3",
@@ -83,8 +173,8 @@ const allEvents: CourseEvent[] = [
     id: "3510-hw0",
     title: "HW 0: Simple Rust Calculator",
     type: "homework",
-    date: schedule.getSpecificDate(2025, 9, 5, "3510-hw0"),
-    availableDate: schedule.getSpecificDate(2025, 8, 26, "3510-hw0-available"),
+    date: schedule.getSpecificDate(2026, 1, 23, "3510-hw0"),
+    availableDate: schedule.getSpecificDate(2026, 1, 11, "3510-hw0-available"),
     dueTime: "11:59 PM",
     description:
       "This is a small assignment to get you familiar with the process of receiving and submitting assignments!",
@@ -97,14 +187,14 @@ const allEvents: CourseEvent[] = [
       "They would show up here",
     ],
     hwPoints: { reading: 0, programming: 3, optional: 1 },
-    hwGithubClassroomUrl: "https://classroom.github.com/a/0GOtOTyd",
-    hwBrightspaceUrl: "https://brightspace.lmu.edu/d2l/le/calendar/283548/event/802212/detailsview?searchString=&year=2025&month=9&day=3&typefilterguid=a2d8e13e-30f9-4dfb-a907-cba23f3502bf",
+    hwGithubClassroomUrl: "",
+    hwBrightspaceUrl: "",
   },
   {
     id: "3510-ex0-release",
     title: "EX 0 Release",
     type: "exam",
-    date: schedule.getSpecificDate(2025, 8, 31, "3510-ex0-release", true),
+    date: schedule.getSpecificDate(2026, 1, 18, "3510-ex0-release", true),
     description: "Syllabus exam released and available for completion.",
     courseId: "cmsi-3510",
     standard: "Syllabus",
@@ -114,7 +204,7 @@ const allEvents: CourseEvent[] = [
     id: "3510-ex0",
     title: "EX 0: Syllabus",
     type: "exam",
-    date: schedule.getSpecificDate(2025, 9, 6, "3510-ex0"),
+    date: schedule.getSpecificDate(2026, 1, 24, "3510-ex0"),
     dueTime: "11:59 PM",
     description:
       "Exams are an important part of how you communicate your understanding of the material! Here you will take one on the most vital parts of the course syllabus! I promise its not hard.",
@@ -224,7 +314,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we begin our deep dive into computer hardware by breaking down the CPU! We will discover ISAs, Registers, ALUs, and more!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "CPU",
     contentUrl: "/cmsi-3510/ln8",
     recordings: [
       {
@@ -241,7 +331,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we view the many different, unique yet important perspectives of different portions of the OS and hardware to answer the most important question about our OSs, what is a process?",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "CPU",
     contentUrl: "/cmsi-3510/ln9",
     recordings: [
       {
@@ -258,7 +348,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we dive into the intricacies of when and when not to context switch between processes. This problem concerns our users expectations, our processes to complete, and the direct hardware we are using! This is the Scheduling problem!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "CPU",
     contentUrl: "/cmsi-3510/ln10",
     recordings: [
       {
@@ -271,8 +361,8 @@ const allEvents: CourseEvent[] = [
     id: "3510-hw1",
     title: "HW 1: Doughmain Expansion",
     type: "homework",
-    date: schedule.getSpecificDate(2025, 10, 3, "3510-hw1"),
-    availableDate: schedule.getSpecificDate(2025, 9, 4, "3510-hw1-available"),
+    date: schedule.getSpecificDate(2026, 2, 13, "3510-hw1"),
+    availableDate: schedule.getSpecificDate(2026, 2, 1, "3510-hw1-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework you are tasked with solidifying your Rust programming skills by taking on a small file system simulator and its incomplete terminal commands! You'll get to practice structs, ownership, and references!",
@@ -292,7 +382,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we continue our investigation of scheduling by learning many of the techniques used by Batch, Interactive, and even Real time systems! These include straightforward techniques like using a simple queue (FCFS) all the way to using multi-queue round robin techniques that rely on an internal lottery!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "CPU",
     contentUrl: "/cmsi-3510/ln11",
     recordings: [
       {
@@ -309,7 +399,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact with them incorrectly to form a new universe of problems referred to as Deadlocking!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "CPU",
     contentUrl: "/cmsi-3510/ln12",
     recordings: [
       {
@@ -319,15 +409,6 @@ const allEvents: CourseEvent[] = [
     ],
   },
   {
-    id: "3510-hol1",
-    title: "Autumn Day!",
-    type: "holiday",
-    date: schedule.getSpecificDate(2025, 10, 10, "3510-hol1", true),
-    description: "Enjoy your Autumn Day!",
-    courseId: "cmsi-3510",
-    pinned: true,
-  },
-  {
     id: "3510-ln13",
     title: "LN 13: How I Met Your Memory",
     type: "lecture",
@@ -335,7 +416,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we investigate different memory hardware technologies, how they are used, their advantages, and their disadvantages to set up a foundation for understanding Processes fit into memory. This includes volatility, speed, size, cost, and more!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "Memory",
     contentUrl: "/cmsi-3510/ln13",
     recordings: [
       {
@@ -352,7 +433,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we investigate memory allocation! We begin with studying contiguous memory allocation techniques like fixed and dynamic partitioning. We then use these techniques to investigate the problem of fragmentation and setup the foundation for virtual memory!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "Memory",
     contentUrl: "/cmsi-3510/ln14",
     recordings: [
       {
@@ -365,8 +446,8 @@ const allEvents: CourseEvent[] = [
     id: "3510-hw2",
     title: "HW 2: Life of Pie",
     type: "homework",
-    date: schedule.getSpecificDate(2025, 10, 17, "3510-hw2"),
-    availableDate: schedule.getSpecificDate(2025, 9, 18, "3510-hw2-available"),
+    date: schedule.getSpecificDate(2026, 2, 27, "3510-hw2"),
+    availableDate: schedule.getSpecificDate(2026, 2, 15, "3510-hw2-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework you will get practice with concurrent programming paradigms in the form of making pizza from scratch! Prepare to engage with threads, synchronization primitives, async/await, and more!",
@@ -387,7 +468,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this in class activity, we use grade school worksheets as a vehicle for learning all about job timing!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "CPU",
     contentUrl: "/cmsi-3510/ac2",
     acLearningObjectives: [
       "Experience the priorities of Batch, Interactive, and Real-Time systems",
@@ -411,7 +492,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we continue looking into memory allocation. We begin with Virtual Memory and how it is used to create the illusion of infinite memory! We then investigate how this illusion is created, and maintained, by a new non-contiguous allocation technique called paging!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "Memory",
     contentUrl: "/cmsi-3510/ln15",
     recordings: [
       {
@@ -432,7 +513,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture we finish our investigation of memory allocation by covering a comprehensive example of paging and seeing some real world examples of how modern systems must adapt the paging technique to work with current hardware and LAS sizes. Lastly, we finish by briefly covering segmentation and how it is used with paging to create our modern systems.",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "Memory",
     contentUrl: "/cmsi-3510/ln16",
     recordings: [
       {
@@ -447,9 +528,9 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln17"),
     description:
-      "In this lecture we cover the final topic of this standard, I/O devices! We'll start with a brief history of data transfer standards, cover the major techniques (Block, Character, Network, etc), upgrade our visual model of the hardware, and finish by laying the foundation for the use of direct memory access (DMA) in modern systems!",
+      "In this lecture we cover I/O devices! We'll start with a brief history of data transfer standards, cover the major techniques (Block, Character, Network, etc), upgrade our visual model of the hardware, and finish by laying the foundation for the use of direct memory access (DMA) in modern systems!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "I/O and Networking",
     contentUrl: "/cmsi-3510/ln17",
     recordings: [
       {
@@ -460,13 +541,13 @@ const allEvents: CourseEvent[] = [
   },
   {
     id: "3510-ln18",
-    title: "LN 18: IOU",
+    title: "LN 18: IO and U",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln18"),
     description:
       "In this lecture we cover the software fundamentals of developing I/O systems. We cover the critical software principles we follow, the approaches used to make those ideals real, and then the implementation of those principals on modern systems. We cover device independence, buffering, spooling, and more.",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "I/O and Networking",
     contentUrl: "/cmsi-3510/ln18",
     recordings: [
       {
@@ -475,16 +556,41 @@ const allEvents: CourseEvent[] = [
       },
     ],
   },
+
   {
     id: "3510-ln19",
-    title: "LN 19: Hard Software and Soft Hardware",
+    title: "LN 19: Intro to Networking",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln19"),
     description:
+      "In this lecture we cover the basics of networking!",
+    courseId: "cmsi-3510",
+    standard: "I/O and Networking",
+    contentUrl: "/cmsi-3510/ln19",
+    recordings: [],
+  },
+  {
+    id: "3510-ln20",
+    title: "LN 20: Routing Traffic",
+    type: "lecture",
+    date: schedule.getNextRecurringDate("3510-ln20"),
+    description:
+      "In this lecture we networking hardware and the magic of routing!",
+    courseId: "cmsi-3510",
+    standard: "I/O and Networking",
+    contentUrl: "/cmsi-3510/ln20",
+    recordings: [],
+  },
+  {
+    id: "3510-ln21",
+    title: "LN 21: Hard Software and Soft Hardware",
+    type: "lecture",
+    date: schedule.getNextRecurringDate("3510-ln21"),
+    description:
       "In this lecture we become familiarized with Oracle's VirtualBox and how it can be used to create a virtual machine and run an operating system! Additionally, we use it to run Ubuntu and play with I/O devices!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
-    contentUrl: "/cmsi-3510/ln19",
+    standard: "I/O and Networking",
+    contentUrl: "/cmsi-3510/ln21",
     recordings: [
       {
         name: "Class Video",
@@ -493,15 +599,15 @@ const allEvents: CourseEvent[] = [
     ],
   },
   {
-    id: "3510-ln20",
-    title: "LN 20: The Kernel of Truth",
+    id: "3510-ln22",
+    title: "LN 22: The Kernel of Truth",
     type: "lecture",
-    date: schedule.getNextRecurringDate("3510-ln20"),
+    date: schedule.getNextRecurringDate("3510-ln22"),
     description:
       "In this lecture we continue our use of VirtualBox to download the Linux kernel, explore the source code, and build it from scratch!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
-    contentUrl: "/cmsi-3510/ln19",
+    standard: "I/O and Networking",
+    contentUrl: "/cmsi-3510/ln22",
     recordings: [
       {
         name: "Class Video",
@@ -513,56 +619,19 @@ const allEvents: CourseEvent[] = [
     id: "3510-hw3",
     title: "HW 3: Hot Pie-tato",
     type: "homework",
-    date: schedule.getSpecificDate(2025, 12, 12, "3510-hw3", true),
-    availableDate: schedule.getSpecificDate(2025, 10, 10, "3510-hw3-available"),
+    date: schedule.getSpecificDate(2026, 3, 27, "3510-hw3", true),
+    availableDate: schedule.getSpecificDate(2026, 2, 8, "3510-hw3-available"),
     dueTime: "11:59 PM",
     description:
       "In this homework you will get practice with scheduling, batch systems, interactive systems, and real-time systems!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "CPU",
     contentUrl: "/cmsi-3510/hw3",
     hwTopics: ["Scheduling", "Batch Systems", "Interactive Systems", "Real-Time Systems"],
     hwPoints: { reading: 0, programming: 30 },
     pinned: true,
     hwGithubClassroomUrl: "https://classroom.github.com/a/ZRyafgQZ",
     hwBrightspaceUrl: "",
-  },
-  {
-    id: "3510-hol2",
-    title: "Thanksgiving Break!",
-    type: "holiday",
-    date: schedule.getSpecificDate(2025, 11, 25, "3510-hol2", true),
-    description:
-      "Normally there would be class on this day, but enjoy the day off in thanks for Thanksgiving!",
-    courseId: "cmsi-3510",
-    pinned: true,
-  },
-  {
-    id: "3510-hol3",
-    title: "Thanksgiving Break!",
-    type: "holiday",
-    date: schedule.getSpecificDate(2025, 11, 26, "3510-hol3", true),
-    description: "Enjoy your Thanksgiving break!",
-    courseId: "cmsi-3510",
-    pinned: true,
-  },
-  {
-    id: "3510-hol4",
-    title: "Thanksgiving Break!",
-    type: "holiday",
-    date: schedule.getSpecificDate(2025, 11, 27, "3510-hol4", true),
-    description: "Enjoy your Thanksgiving break!",
-    courseId: "cmsi-3510",
-    pinned: true,
-  },
-  {
-    id: "3510-hol5",
-    title: "Thanksgiving Break!",
-    type: "holiday",
-    date: schedule.getSpecificDate(2025, 11, 28, "3510-hol5", true),
-    description: "Enjoy your Thanksgiving break!",
-    courseId: "cmsi-3510",
-    pinned: true,
   },
   {
     id: "3510-ac3",
@@ -573,7 +642,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this in class activity, we will be exploring the different major forms of I/O communication and how they are used in modern systems!",
     courseId: "cmsi-3510",
-    standard: "Computer Hardware",
+    standard: "I/O and Networking",
     contentUrl: "/cmsi-3510/ac3",
     acLearningObjectives: [
       "Apply concurrent programming concepts to solve real-world problems",
@@ -589,10 +658,69 @@ const allEvents: CourseEvent[] = [
     ],
   },
   {
+    id: "3510-ln23",
+    title: "LN 23: Linus Tech Tips",
+    type: "lecture",
+    date: schedule.getNextRecurringDate("3510-ln23"),
+    description:
+      "In this lecture we cover Linux architecturally using the framework we developed in previous lectures!",
+    courseId: "cmsi-3510",
+    standard: "I/O and Networking",
+    contentUrl: "/cmsi-3510/ln23",
+    recordings: [],
+  },
+  {
+    id: "3510-ln24",
+    title: "LN 24: The WAN Show",
+    type: "lecture",
+    date: schedule.getNextRecurringDate("3510-ln24"),
+    description:
+      "In this lecture we continue covering Linux architecturally!",
+    courseId: "cmsi-3510",
+    standard: "I/O and Networking",
+    contentUrl: "/cmsi-3510/ln24",
+    recordings: [],
+  },
+  {
+    id: "3510-hw4",
+    title: "HW 4: Hot and Not Ready Yet!",
+    type: "homework",
+    date: schedule.getSpecificDate(2026, 4, 17, "3510-hw4", true),
+    availableDate: schedule.getSpecificDate(2026, 4, 5, "3510-hw4-available"),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework you will get practice with memory constrained programming and allocation!",
+    courseId: "cmsi-3510",
+    standard: "Memory",
+    contentUrl: "/cmsi-3510/hw4",
+    hwTopics: ["Memory Allocation", "Memory Management"],
+    hwPoints: { reading: 0, programming: 30 },
+    hwGithubClassroomUrl: "",
+    hwBrightspaceUrl: "",
+  },
+  {
+    id: "3510-hw5",
+    title: "HW 5: Pizza-mates",
+    type: "homework",
+    date: schedule.getSpecificDate(2026, 5, 8, "3510-hw5", true),
+    availableDate: schedule.getSpecificDate(2026, 4, 19, "3510-hw5-available"),
+    dueTime: "11:59 PM",
+    description:
+      "In this homework you will get practice with Networking!",
+    courseId: "cmsi-3510",
+    standard: "I/O and Networking",
+    contentUrl: "/cmsi-3510/hw5",
+    hwTopics: ["Virtual I/O", "Networking"],
+    hwPoints: { reading: 0, programming: 30 },
+    hwGithubClassroomUrl: "",
+    hwBrightspaceUrl: "",
+    pinned: true,
+  },
+  {
     id: "3510-final-release",
     title: "Final Exam Release",
     type: "exam",
-    date: schedule.getSpecificDate(2025, 12, 7, "3510-final-release", true),
+    date: schedule.getSpecificDate(2026, 5, 7, "3510-final-release", true),
     description: "Final exam released and available for completion.",
     courseId: "cmsi-3510",
     standard: "Final",
@@ -603,7 +731,7 @@ const allEvents: CourseEvent[] = [
     id: "3510-final",
     title: "Final Exam Due",
     type: "exam",
-    date: schedule.getSpecificDate(2025, 12, 13, "3510-final", true),
+    date: schedule.getSpecificDate(2026, 5, 13, "3510-final", true),
     dueTime: "11:59 PM",
     description:
       "Comprehensive final exam covering all course material. Good luck!",

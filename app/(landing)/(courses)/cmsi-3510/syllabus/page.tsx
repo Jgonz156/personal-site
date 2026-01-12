@@ -23,6 +23,7 @@ export default function CMSI3510Syllabus() {
         level: 1,
       },
       { id: "assignments-policies", title: "Assignments & Policies", level: 1 },
+      { id: "course-schedule", title: "Course Schedule", level: 1 },
       {
         id: "student-responsibilities",
         title: "Student Responsibilities",
@@ -41,7 +42,7 @@ export default function CMSI3510Syllabus() {
     <div className="container mx-auto p-6 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6">CMSI 3510: Operating Systems</h1>
       <p className="text-sm text-muted-foreground mb-6">
-        Loyola Marymount University | Fall 2025
+        Loyola Marymount University | Spring 2026
       </p>
 
       <div className="space-y-6">
@@ -58,7 +59,7 @@ export default function CMSI3510Syllabus() {
               <strong>Email:</strong> Julian.Gonzalez@lmu.edu
             </p>
             <p>
-              <strong>Office Hours:</strong> By appointment
+              <strong>Office Hours:</strong> M - W 4:30PM - 6:30PM and Th 4:30PM - 6:00PM
             </p>
             <p>
               <strong>Prerequisites:</strong> CMSI 2210 and/or CMSI 284 or EECE
@@ -68,7 +69,7 @@ export default function CMSI3510Syllabus() {
               <p className="font-semibold mb-2">Section:</p>
               <div className="pl-4">
                 <p>
-                  <strong>Section 1:</strong> Pereira 127, 1:45 PM – 3:25 PM
+                  <strong>Section 1:</strong> M, W Doolan Hall 222, 1:45 PM - 3:25 PM
                 </p>
               </div>
             </div>
@@ -98,8 +99,8 @@ export default function CMSI3510Syllabus() {
             </p>
             <p>
               Coursework consists of programming assignments, mandatory in-class
-              activities, as well as optional creative projects and optional
-              midterm and final assessments for additional credit. Collaboration
+              activities, as well as optional creative projects and optional final 
+              assessments for additional credit. Collaboration
               is encouraged, but all submitted work must be your own original
               work. If you work with others or use outside sources, cite them
               appropriately so I can accurately assess each student&apos;s
@@ -221,7 +222,7 @@ export default function CMSI3510Syllabus() {
           <div className="mb-6">
             <StandardsDiagram
               courseID="CMSI 3510: Operating Systems"
-              coursePointTotal={150}
+              coursePointTotal={200}
               standards={[
                 {
                   standardID: "Syllabus",
@@ -234,10 +235,15 @@ export default function CMSI3510Syllabus() {
                 },
                 {
                   standardID: "Concurrent Programming",
-                  pointTotal: 50,
+                  pointTotal: 80,
                   homework: [
                     {
                       id: "HW 1",
+                      points: 30,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "HW 2",
                       points: 30,
                       gradedWith: "Concurrent Programming",
                     },
@@ -246,59 +252,78 @@ export default function CMSI3510Syllabus() {
                       points: 30,
                       gradedWith: "Concurrent Programming",
                     },
-                  ],
-                },
-                {
-                  standardID: "Computer Hardware",
-                  pointTotal: 50,
-                  homework: [
-                    {
-                      id: "HW 2",
-                      points: 30,
-                      gradedWith: "Computer Hardware",
-                    },
-                    {
-                      id: "AC 2",
-                      points: 30,
-                      gradedWith: "Computer Hardware",
-                    },
                     {
                       id: "OHW 1",
+                      points: 20,
+                      gradedWith: "Concurrent Programming",
+                    },
+                    {
+                      id: "OHW 2",
                       points: 20,
                       gradedWith: "Concurrent Programming",
                     },
                   ],
                 },
                 {
-                  standardID: "Operating Systems",
+                  standardID: "CPU",
                   pointTotal: 50,
                   homework: [
                     {
                       id: "HW 3",
                       points: 30,
-                      gradedWith: "Operating Systems",
+                      gradedWith: "CPU",
+                    },
+                    {
+                      id: "AC 2",
+                      points: 30,
+                      gradedWith: "CPU",
+                    },
+                    {
+                      id: "OHW 3",
+                      points: 20,
+                      gradedWith: "CPU",
+                    },
+                  ],
+                },
+                {
+                  standardID: "Memory",
+                  pointTotal: 20,
+                  homework: [
+                    {
+                      id: "HW 4",
+                      points: 30,
+                      gradedWith: "Memory",
+                    },
+                    {
+                      id: "OHW 4",
+                      points: 20,
+                      gradedWith: "Memory",
+                    },
+                  ],
+                },
+                {
+                  standardID: "I/O and Networking",
+                  pointTotal: 50,
+                  homework: [
+                    {
+                      id: "HW 5",
+                      points: 30,
+                      gradedWith: "I/O and Networking",
                     },
                     {
                       id: "AC 3",
                       points: 30,
-                      gradedWith: "Operating Systems",
+                      gradedWith: "I/O and Networking",
                     },
                     {
-                      id: "OHW 2",
+                      id: "OHW 5",
                       points: 20,
-                      gradedWith: "Computer Hardware",
+                      gradedWith: "I/O and Networking",
                     },
                   ],
                 },
                 {
                   standardID: "Final",
-                  // homework: [
-                  //   {
-                  //     id: "OHW 3",
-                  //     points: 20,
-                  //     gradedWith: "Operating Systems",
-                  //   },
-                  // ],
                   exams: [
                     {
                       id: "OEX S1",
@@ -308,12 +333,17 @@ export default function CMSI3510Syllabus() {
                     {
                       id: "OEX S2",
                       points: 10,
-                      gradedWith: "Computer Hardware",
+                      gradedWith: "CPU",
                     },
                     {
                       id: "OEX S3",
                       points: 10,
-                      gradedWith: "Operating Systems",
+                      gradedWith: "Memory",
+                    },
+                    {
+                      id: "OEX S4",
+                      points: 10,
+                      gradedWith: "I/O and Networking",
                     },
                   ],
                 },
@@ -324,8 +354,9 @@ export default function CMSI3510Syllabus() {
           <div className="bg-muted/50 rounded-lg p-4">
             <p className="font-semibold mb-3">Course Structure</p>
             <p className="text-sm text-muted-foreground mb-3">
-              The course is divided into three standards (modules), each worth
-              80 points (total: 240). Assignments are organized as follows:
+              The course is divided into a few standards (modules), each worth
+              a varying number of points that add up to 200 total for the course.
+              Assignments are organized as follows:
             </p>
             <table className="w-full text-sm">
               <thead>
@@ -346,28 +377,42 @@ export default function CMSI3510Syllabus() {
                 <tr className="border-b border-border">
                   <td className="py-2">Concurrent Programming</td>
                   <td className="py-2">
-                    HW1 (30 pts), HW2 (30 pts), AC1 (30 pts)
+                    HW1 (30 pts), HW2 (30 pts), AC1 (30 pts), OHW1 (20 pts), OHW2 (20 pts)
                   </td>
                   <td className="py-2 text-right">80 needed</td>
                 </tr>
                 <tr className="border-b border-border">
-                  <td className="py-2">Computer Hardware</td>
+                  <td className="py-2">CPU</td>
                   <td className="py-2">
-                    HW3 (30 pts), HW4 (30 pts), AC2 (30 pts), OHW1 (20 pts)
+                    HW3 (30 pts), AC2 (30 pts), OHW3 (20 pts)
                   </td>
-                  <td className="py-2 text-right">80 needed</td>
+                  <td className="py-2 text-right">50 needed</td>
                 </tr>
                 <tr>
-                  <td className="py-2">Operating Systems</td>
+                  <td className="py-2">Memory</td>
                   <td className="py-2">
-                    HW5 (30 pts), HW6 (30 pts), AC3 (30 pts), OHW2 (20 pts)
+                    HW4 (30 pts), OHW4 (20 pts)
                   </td>
-                  <td className="py-2 text-right">80 needed</td>
+                  <td className="py-2 text-right">20 needed</td>
+                </tr>
+                <tr>
+                  <td className="py-2">I/O and Networking</td>
+                  <td className="py-2">
+                    HW5 (30 pts), AC3 (30 pts), OHW5 (20 pts)
+                  </td>
+                  <td className="py-2 text-right">50 needed</td>
+                </tr>
+                <tr>
+                  <td className="py-2">Final</td>
+                  <td className="py-2">
+                    OEX S1 (10 pts), OEX S2 (10 pts), OEX S3 (10 pts), OEX S4 (10 pts)
+                  </td>
+                  <td className="py-2 text-right">40 Available</td>
                 </tr>
               </tbody>
             </table>
             <p className="text-sm text-muted-foreground mt-3">
-              Optional exams (Final) and homework (OHW3) provide additional
+              Optional exams (OEXs) and homework (OHWs) provide additional
               opportunities to recover points in earlier standards. Activities
               (AC) are mandatory in-class participation days.
             </p>
@@ -428,7 +473,7 @@ export default function CMSI3510Syllabus() {
               <p className="text-muted-foreground">
                 The Final is optional. It provides focused opportunities to
                 boost scores in prior standards. If you have reached the point
-                total required to pass a standard (80pts), then it is optional.
+                total required to pass a standard, then it is optional.
               </p>
             </div>
 
@@ -438,6 +483,466 @@ export default function CMSI3510Syllabus() {
                 Assignments and exams are submitted through Brightspace. Grades
                 and private materials will be posted there as well.
               </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="course-schedule">
+          <h2 className="text-2xl font-semibold mb-3">Course Schedule</h2>
+          <p className="text-muted-foreground mb-4">
+            The following is a tentative schedule of topics, assignments, and
+            important dates for the semester. This information is also available
+            using this sites Course Planner sidebar avaliable on any page using the
+            chevron icon button to the upper left of the page.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b-2 border-border bg-muted/50">
+                  <th className="py-3 px-4 text-left font-semibold">Date</th>
+                  <th className="py-3 px-4 text-left font-semibold">Type</th>
+                  <th className="py-3 px-4 text-left font-semibold">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Week 1 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 12 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN0) Reading Course Material</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 14 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN1) Shaking on the Rust</td>
+                </tr>
+                {/* Week 2 */}
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">Jan 18 (Sun)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Syllabus Exam Release</td>
+                </tr>
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">Jan 19 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    Martin Luther King Jr. Day - No Class
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 21 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN2) Variable Variables</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Jan 23 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW0 Due</td>
+                </tr>
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">Jan 24 (Sat)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Syllabus Exam Due</td>
+                </tr>
+                {/* Week 3 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 26 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN3) What&apos;s in Your Memory?</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 28 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN4) Functionally Perfect</td>
+                </tr>
+                {/* Week 4 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 2 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN5) Optimal Struct Structure</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 4 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN6) Hanging by a Thread</td>
+                </tr>
+                {/* Week 5 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 9 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN7) Out of Order</td>
+                </tr>
+                <tr className="border-b border-border bg-orange-500/10">
+                  <td className="py-2 px-4">Feb 11 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-medium">
+                      Activity
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(AC1) Getting Folded</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Feb 13 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW1 Due</td>
+                </tr>
+                {/* Week 6 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 16 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN8) ICUP, I See You Process</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 18 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN9) ...Processing Title...</td>
+                </tr>
+                {/* Week 7 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 23 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN10) Out of Context</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 25 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN11) Scheduling Calls</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Feb 27 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW2 Due</td>
+                </tr>
+                {/* Spring Break Week */}
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">Mar 2–6 (Mon–Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Spring Break – No Class</td>
+                </tr>
+                {/* Week 8 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 9 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN12) Don&apos;t Starve</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 11 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN13) How I Met Your Memory</td>
+                </tr>
+                {/* Week 9 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 16 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN14) Continuous Fragmentation</td>
+                </tr>
+                <tr className="border-b border-border bg-orange-500/10">
+                  <td className="py-2 px-4">Mar 18 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-medium">
+                      Activity
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(AC2) Saved by The Schedule</td>
+                </tr>
+                {/* Week 10 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 23 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    (LN15) Infinite Memory... Sort of
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 25 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN16) Paging Dr. Seg</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Mar 27 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW3 Due</td>
+                </tr>
+                {/* Easter Break Week */}
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">Mar 30–Apr 3 (Mon–Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Easter Break – No Class</td>
+                </tr>
+                {/* Week 11 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 6 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    (LN17) Hindsight&apos;s on Port 2020
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 8 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN18) IO and U</td>
+                </tr>
+                {/* Week 12 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 13 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN19) Intro to Networking</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 15 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN20) Routing Traffic</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Apr 17 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW4 Due</td>
+                </tr>
+                {/* Week 13 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 20 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    (LN21) Hard Software and Soft Hardware
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 22 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN22) The Kernel of Truth</td>
+                </tr>
+                {/* Week 14 */}
+                <tr className="border-b border-border bg-orange-500/10">
+                  <td className="py-2 px-4">Apr 27 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-medium">
+                      Activity
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(AC3) Ring Around the I/Osie</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 29 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN23) Linus Tech Tips</td>
+                </tr>
+                {/* Week 15 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">May 4 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN24) The WAN Show</td>
+                </tr>
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">May 6 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Reading Day – No Class</td>
+                </tr>
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">May 7 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Final Exam Release</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">May 8 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW5 Due</td>
+                </tr>
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">May 13 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Final Exam Due</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium">
+                Lecture
+              </span>
+              <span className="text-muted-foreground">In-class sessions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 font-medium">
+                Homework
+              </span>
+              <span className="text-muted-foreground">Assignment due dates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-orange-500/20 text-orange-600 dark:text-orange-400 font-medium">
+                Activity
+              </span>
+              <span className="text-muted-foreground">
+                Mandatory participation
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 font-medium">
+                Exam
+              </span>
+              <span className="text-muted-foreground">Assessment dates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 font-medium">
+                Holiday
+              </span>
+              <span className="text-muted-foreground">No class</span>
             </div>
           </div>
         </section>

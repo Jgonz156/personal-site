@@ -22,15 +22,27 @@ const STANDARDS = [
   },
   {
     id: 2,
-    name: "Computer Hardware",
+    name: "CPU",
     description:
-      "Memory Hierarchies, Processor Modes, I/O Systems, and Architecture Fundamentals",
+      "Processor Modes, I/O Systems, and Architecture Fundamentals",
   },
   {
     id: 3,
-    name: "Operating Systems",
+    name: "Memory",
     description:
-      "Scheduling Algorithms, Memory Management, Kernel Systems, and OS Design Principles",
+      "Memory Management, Virtual Memory, and Fragmentation",
+  },
+  {
+    id: 4,
+    name: "I/O and Networking",
+    description:
+      "I/O Systems, Networking, and Interrupts",
+  },
+  {
+    id: 5,
+    name: "Final",
+    description:
+      "Final Exam and Review",
   },
 ]
 

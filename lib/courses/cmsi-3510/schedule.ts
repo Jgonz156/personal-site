@@ -7,38 +7,35 @@ import type { ScheduleConfig } from "../schedule-generator"
  */
 export const cmsi3510Fall2025Schedule: ScheduleConfig = {
   // Semester starts Tuesday, August 26, 2025
-  startDate: DateTime.fromObject({ year: 2025, month: 8, day: 26 }),
+  startDate: DateTime.fromObject({ year: 2026, month: 1, day: 12 }),
 
-  // Classes meet on Tuesdays (2) and Thursdays (4)
-  lectureDays: [2, 4],
+  // Classes meet on Mondays (1) and Wednesdays (3)
+  lectureDays: [1, 3],
 
   // Holidays and breaks (no classes on these days)
   skipDates: [
-    DateTime.fromObject({ year: 2025, month: 9, day: 1 }), // Labor Day
-    DateTime.fromObject({ year: 2025, month: 10, day: 10 }), // Autumn Day
-    DateTime.fromObject({ year: 2025, month: 11, day: 6 }).minus({ days: 7 }), // Sick
-    DateTime.fromObject({ year: 2025, month: 11, day: 18 }).minus({ days: 7 }), // Done
+    DateTime.fromObject({ year: 2026, month: 1, day: 19 }), // Martin Luther King Jr. Day
+    DateTime.fromObject({ year: 2026, month: 3, day: 31 }), // Ceasar Chavez Day
   ],
 
   // Full weeks to skip entirely (not just individual days)
   skipWeeks: [
     {
-      startDate: DateTime.fromObject({ year: 2025, month: 11, day: 24 }),
-      endDate: DateTime.fromObject({ year: 2025, month: 11, day: 30 }),
-      description: "Thanksgiving Break - skip entire week",
+      startDate: DateTime.fromObject({ year: 2026, month: 3, day: 2 }),
+      endDate: DateTime.fromObject({ year: 2026, month: 3, day: 6 }),
+      description: "Spring Break - skip entire week",
     },
+    {
+      startDate: DateTime.fromObject({ year: 2026, month: 3, day: 30 }),
+      endDate: DateTime.fromObject({ year: 2026, month: 4, day: 3 }),
+      description: "Easter Break - skip entire week",
+    }
   ],
 
   // Active schedule shifts
   shifts: [
-    {
-      afterEventId: "3510-ln14",
-      shiftDays: 7,
-      description:
-        "One week shift starting after LN 14 (ln15 and beyond shifted)",
-    },
   ],
 
   // Last day of instruction (before finals week)
-  cutoffDate: DateTime.fromObject({ year: 2025, month: 12, day: 5 }),
+  cutoffDate: DateTime.fromObject({ year: 2026, month: 5, day: 5 }),
 }
