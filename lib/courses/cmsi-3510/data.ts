@@ -125,7 +125,12 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-3510",
     standard: "Syllabus",
     contentUrl: "/cmsi-3510/ln0",
-    recordings: [],
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/kKkc6mBYnD4Vn5GH7-5y84KaMYhAbk-U9recOzgVPkTI1VD9Mb_KtrFZJvt31x_8.oQP3BqR8DvOX0dA3",
+      }
+    ],
   },
   {
     id: "3510-ln1",
