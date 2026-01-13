@@ -513,7 +513,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN0) Reading Course Material</td>
+                  <td className="py-2 px-4">(LN0) Syllabus Day</td>
                 </tr>
                 <tr className="border-b border-border">
                   <td className="py-2 px-4">Jan 14 (Wed)</td>
@@ -522,7 +522,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN1) Shaking on the Rust</td>
+                  <td className="py-2 px-4">(LN1) Introduction to The Rust Programming Language</td>
                 </tr>
                 {/* Week 2 */}
                 <tr className="border-b border-border bg-red-500/10">
@@ -552,7 +552,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN2) Variable Variables</td>
+                  <td className="py-2 px-4">(LN2) Variables and Data Types</td>
                 </tr>
                 <tr className="border-b border-border bg-green-500/10">
                   <td className="py-2 px-4">Jan 23 (Fri)</td>
@@ -580,7 +580,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN3) What&apos;s in Your Memory?</td>
+                  <td className="py-2 px-4">(LN3) Functions and The Owner/Borrow System</td>
                 </tr>
                 <tr className="border-b border-border">
                   <td className="py-2 px-4">Jan 28 (Wed)</td>
@@ -589,7 +589,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN4) Functionally Perfect</td>
+                  <td className="py-2 px-4">(LN4) Higher Order Functions and Memory Management</td>
                 </tr>
                 {/* Week 4 */}
                 <tr className="border-b border-border">
@@ -599,7 +599,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN5) Optimal Struct Structure</td>
+                  <td className="py-2 px-4">(LN5) OOP, Structs, Traits, and Enums</td>
                 </tr>
                 <tr className="border-b border-border">
                   <td className="py-2 px-4">Feb 4 (Wed)</td>
@@ -608,7 +608,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN6) Hanging by a Thread</td>
+                  <td className="py-2 px-4">(LN6) Threads and The History of Operating Systems</td>
                 </tr>
                 {/* Week 5 */}
                 <tr className="border-b border-border">
@@ -618,7 +618,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN7) Out of Order</td>
+                  <td className="py-2 px-4">(LN7) Introduction to Parallel Programming Theory</td>
                 </tr>
                 <tr className="border-b border-border bg-orange-500/10">
                   <td className="py-2 px-4">Feb 11 (Wed)</td>
@@ -646,7 +646,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN8) ICUP, I See You Process</td>
+                  <td className="py-2 px-4">(LN8) Introduction to CPU Architectures</td>
                 </tr>
                 <tr className="border-b border-border">
                   <td className="py-2 px-4">Feb 18 (Wed)</td>
@@ -655,7 +655,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN9) ...Processing Title...</td>
+                  <td className="py-2 px-4">(LN9) The Process</td>
                 </tr>
                 {/* Week 7 */}
                 <tr className="border-b border-border">
@@ -665,7 +665,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN10) Out of Context</td>
+                  <td className="py-2 px-4">(LN10) The Scheduling Problem</td>
                 </tr>
                 <tr className="border-b border-border">
                   <td className="py-2 px-4">Feb 25 (Wed)</td>
@@ -674,7 +674,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN11) Scheduling Calls</td>
+                  <td className="py-2 px-4">(LN11) The Scheduling Problem Continued</td>
                 </tr>
                 <tr className="border-b border-border bg-green-500/10">
                   <td className="py-2 px-4">Feb 27 (Fri)</td>
@@ -703,7 +703,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN12) Don&apos;t Starve</td>
+                  <td className="py-2 px-4">(LN12) Deadlocks and Resource Contention</td>
                 </tr>
                 <tr className="border-b border-border">
                   <td className="py-2 px-4">Mar 11 (Wed)</td>
@@ -712,7 +712,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN13) How I Met Your Memory</td>
+                  <td className="py-2 px-4">(LN13) Introduction to Memory Architecture</td>
                 </tr>
                 {/* Week 9 */}
                 <tr className="border-b border-border">
@@ -722,7 +722,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN14) Continuous Fragmentation</td>
+                  <td className="py-2 px-4">(LN14) Memory Allocation and Fragmentation</td>
                 </tr>
                 <tr className="border-b border-border bg-orange-500/10">
                   <td className="py-2 px-4">Mar 18 (Wed)</td>
@@ -742,7 +742,7 @@ export default function CMSI3510Syllabus() {
                     </span>
                   </td>
                   <td className="py-2 px-4">
-                    (LN15) Infinite Memory... Sort of
+                    (LN15) Logical vs Physical Addressing and Virtual Memory
                   </td>
                 </tr>
                 <tr className="border-b border-border">
@@ -752,7 +752,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN16) Paging Dr. Seg</td>
+                  <td className="py-2 px-4">(LN16) Paging and Segmentation</td>
                 </tr>
                 <tr className="border-b border-border bg-green-500/10">
                   <td className="py-2 px-4">Mar 27 (Fri)</td>
@@ -782,7 +782,7 @@ export default function CMSI3510Syllabus() {
                     </span>
                   </td>
                   <td className="py-2 px-4">
-                    (LN17) Hindsight&apos;s on Port 2020
+                    (LN17) Introduction to I/O Architecture
                   </td>
                 </tr>
                 <tr className="border-b border-border">
@@ -792,7 +792,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN18) IO and U</td>
+                  <td className="py-2 px-4">(LN18) Direct Memory Access and Drivers</td>
                 </tr>
                 {/* Week 12 */}
                 <tr className="border-b border-border">
@@ -802,7 +802,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN19) Intro to Networking</td>
+                  <td className="py-2 px-4">(LN19) Introduction to Networking</td>
                 </tr>
                 <tr className="border-b border-border">
                   <td className="py-2 px-4">Apr 15 (Wed)</td>
@@ -811,7 +811,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN20) Routing Traffic</td>
+                  <td className="py-2 px-4">(LN20) Network Traffic and Routing</td>
                 </tr>
                 <tr className="border-b border-border bg-green-500/10">
                   <td className="py-2 px-4">Apr 17 (Fri)</td>
@@ -831,7 +831,7 @@ export default function CMSI3510Syllabus() {
                     </span>
                   </td>
                   <td className="py-2 px-4">
-                    (LN21) Hard Software and Soft Hardware
+                    (LN21) Introduction to Virtualization
                   </td>
                 </tr>
                 <tr className="border-b border-border">
@@ -841,7 +841,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN22) The Kernel of Truth</td>
+                  <td className="py-2 px-4">(LN22) Virtualization Continued</td>
                 </tr>
                 {/* Week 14 */}
                 <tr className="border-b border-border bg-orange-500/10">
@@ -860,7 +860,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN23) Linus Tech Tips</td>
+                  <td className="py-2 px-4">(LN23) Linux Architecturally</td>
                 </tr>
                 {/* Week 15 */}
                 <tr className="border-b border-border">
@@ -870,7 +870,7 @@ export default function CMSI3510Syllabus() {
                       Lecture
                     </span>
                   </td>
-                  <td className="py-2 px-4">(LN24) The WAN Show</td>
+                  <td className="py-2 px-4">(LN24) Linux Architecturally Continued</td>
                 </tr>
                 <tr className="border-b border-border bg-amber-500/10">
                   <td className="py-2 px-4">May 6 (Wed)</td>
