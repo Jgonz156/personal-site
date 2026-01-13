@@ -3,7 +3,7 @@ import type { ScheduleConfig } from "../schedule-generator"
 
 /**
  * CMSI-3510 Operating Systems
- * Fall 2025 Schedule Configuration
+ * Spring 2026 Schedule Configuration
  */
 export const cmsi3510Fall2025Schedule: ScheduleConfig = {
   // Semester starts Tuesday, August 26, 2025

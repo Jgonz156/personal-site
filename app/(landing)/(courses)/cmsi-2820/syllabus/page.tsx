@@ -3,6 +3,9 @@
 import { useEffect } from "react"
 import { useNavbar } from "@/components/navbar-context"
 import StandardsDiagram from "@/components/standards-diagram"
+import { Button } from "@/components/ui/button"
+import { Download } from "lucide-react"
+import { downloadSyllabus2820Pdf } from "@/components/syllabus-2820-pdf"
 
 export default function Syllabus() {
   const { setPageSections } = useNavbar()
@@ -39,12 +42,24 @@ export default function Syllabus() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">
-        CMSI 2820: Discrete Mathematics for Computer Science
-      </h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        Loyola Marymount University | Fall 2025
-      </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">
+            CMSI 2820: Discrete Mathematics for Computer Science
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Loyola Marymount University | Spring 2026
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          className="gap-2 shrink-0"
+          onClick={downloadSyllabus2820Pdf}
+        >
+          <Download className="h-4 w-4" />
+          Download PDF
+        </Button>
+      </div>
 
       <div className="space-y-6">
         <section id="course-information">
@@ -60,8 +75,7 @@ export default function Syllabus() {
               <strong>Email:</strong> Julian.Gonzalez@lmu.edu
             </p>
             <p>
-              <strong>Office Hours:</strong> Monday & Wednesday, 2:00 PM - 5:00
-              PM
+              <strong>Office Hours:</strong> Monday - Wednesday 4:30PM - 6:30PM and Thursday 4:30PM - 6:00PM
             </p>
             <p>
               <strong>Prerequisites:</strong> CMSI 1010 or ENGR 160 or ENGR 1200
@@ -70,10 +84,7 @@ export default function Syllabus() {
               <p className="font-semibold mb-2">Sections:</p>
               <div className="pl-4 space-y-1">
                 <p>
-                  <strong>Section 1:</strong> Pereira 207, 9:55 AM – 11:35 AM
-                </p>
-                <p>
-                  <strong>Section 2:</strong> Pereira 207, 6:00 PM – 7:40 PM
+                  <strong>Section 1:</strong> Seaver Hall 111, 1:45 PM - 3:25 PM
                 </p>
               </div>
             </div>
@@ -401,6 +412,502 @@ export default function Syllabus() {
                 Assignments and exams are submitted through Brightspace. Grades
                 and private materials will be posted there as well.
               </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="course-schedule">
+          <h2 className="text-2xl font-semibold mb-3">Course Schedule</h2>
+          <p className="text-muted-foreground mb-4">
+            The following is a tentative schedule of topics, assignments, and
+            important dates for the semester. This information is also available
+            using this sites Course Planner sidebar avaliable on any page using the
+            chevron icon button to the upper left of the page.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b-2 border-border bg-muted/50">
+                  <th className="py-3 px-4 text-left font-semibold">Date</th>
+                  <th className="py-3 px-4 text-left font-semibold">Type</th>
+                  <th className="py-3 px-4 text-left font-semibold">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Week 1 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 13 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN0) Syllabus Day</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 15 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN1) Introduction to Intuitionistic Logic</td>
+                </tr>
+                {/* Week 2 */}
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">Jan 18 (Sun)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Syllabus Exam Release</td>
+                </tr>
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">Jan 19 (Mon)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    Martin Luther King Jr. Day - No Class
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 20 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN2) Propositional Logic and Logical Connectives</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 22 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN3) Logical Connectives and Natural Deduction</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Jan 23 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW0 Due</td>
+                </tr>
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">Jan 24 (Sat)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Syllabus Exam Due</td>
+                </tr>
+                {/* Week 3 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 27 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN4) Introduction to Type Theory</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Jan 29 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN5) Boolean Algebra and Logic</td>
+                </tr>
+                {/* Week 4 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 3 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN6) Abstract Algebra and Integers</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 5 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN7) Number Theory and Modular Arithmetic</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Feb 6 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW1 Due</td>
+                </tr>
+                {/* Week 5 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 10 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN8) Tuples</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 12 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN9) Sets</td>
+                </tr>
+                {/* Week 6 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 17 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN10) Sets Continued</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 19 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN11) First Order Logic and Relations</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Feb 20 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW2 Due</td>
+                </tr>
+                {/* Week 7 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 24 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN12) Introduction to The Lambda Calculus</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Feb 26 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN13) Reductions, Free and Bound Variables</td>
+                </tr>
+                {/* Spring Break Week */}
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">Mar 2-6 (Mon-Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Spring Break - No Class</td>
+                </tr>
+                {/* Week 8 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 10 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN14) Formal Reductions and Function Types</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 12 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN15) Domain, Codomain, and Function Properties</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Mar 13 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW3 Due</td>
+                </tr>
+                {/* Week 9 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 17 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN16) Introduction to Enumerative Combinatorics</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 19 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN17) Factorials, Permutations, and Combinations</td>
+                </tr>
+                {/* Week 10 */}
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">Mar 22 (Sun)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Midterm Exam Release</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 24 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    (LN18) Pascal's Triangle and Double Counting
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Mar 26 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN19) Bijections and The Pigeonhole Principle</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Mar 27 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW4 Due</td>
+                </tr>
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">Mar 28 (Sat)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Midterm Exam Due</td>
+                </tr>
+                {/* Easter Break Week */}
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">Mar 31 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Ceaser Chavez Day - No Class</td>
+                </tr>
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">Apr 1 - Apr 3 (Wed-Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Easter Break - No Class</td>
+                </tr>
+                {/* Week 11 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 7 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    (LN20) Introduction to Graph Theory
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 9 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN21) Connectedness and Common Graph Operations</td>
+                </tr>
+                {/* Week 12 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 14 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN22) Special Graphs and The Traveling Salesman</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 16 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN23) Forests and Minimum Spanning Trees</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">Apr 17 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW5 Due</td>
+                </tr>
+                {/* Week 13 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 21 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    (LN24) Classical Set Theory and Axioms
+                  </td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 23 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN25) Contradiction and Induction</td>
+                </tr>
+                {/* Week 14 */}
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 28 (Tue)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN26) Applications in AI and Pure Math</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="py-2 px-4">Apr 30 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      Lecture
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">(LN27) Applications in Games and Systems Architecture</td>
+                </tr>
+                <tr className="border-b border-border bg-green-500/10">
+                  <td className="py-2 px-4">May 1 (Fri)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-medium">
+                      Homework
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">HW6 Due</td>
+                </tr>
+                {/* Week 15 */}
+                <tr className="border-b border-border bg-amber-500/10">
+                  <td className="py-2 px-4">May 6 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                      Holiday
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Reading Day - No Class</td>
+                </tr>
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">May 7 (Thu)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Final Exam Release</td>
+                </tr>
+                <tr className="border-b border-border bg-red-500/10">
+                  <td className="py-2 px-4">May 13 (Wed)</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium">
+                      Exam
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">Final Exam Due</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 font-medium">
+                Lecture
+              </span>
+              <span className="text-muted-foreground">In-class sessions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-600 dark:text-green-400 font-medium">
+                Homework
+              </span>
+              <span className="text-muted-foreground">Assignment due dates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-orange-500/20 text-orange-600 dark:text-orange-400 font-medium">
+                Activity
+              </span>
+              <span className="text-muted-foreground">
+                Mandatory participation
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-600 dark:text-red-400 font-medium">
+                Exam
+              </span>
+              <span className="text-muted-foreground">Assessment dates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 font-medium">
+                Holiday
+              </span>
+              <span className="text-muted-foreground">No class</span>
             </div>
           </div>
         </section>
