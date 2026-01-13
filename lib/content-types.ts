@@ -25,7 +25,7 @@ export const CONTENT_TYPE_CONFIG: Record<string, ContentTypeConfig> = {
     label: "Lecture Note",
     shortLabel: "LN",
     gridColumns: "grid-cols-7 sm:grid-cols-10",
-    minNumber: 1,
+    minNumber: 0,
   },
   homework: {
     prefix: "hw",

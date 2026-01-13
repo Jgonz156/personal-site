@@ -3,6 +3,9 @@
 import { useEffect } from "react"
 import { useNavbar } from "@/components/navbar-context"
 import StandardsDiagram from "@/components/standards-diagram"
+import { Button } from "@/components/ui/button"
+import { Download } from "lucide-react"
+import { downloadSyllabusPdf } from "@/components/syllabus-pdf"
 
 export default function CMSI3510Syllabus() {
   const { setPageSections } = useNavbar()
@@ -40,10 +43,22 @@ export default function CMSI3510Syllabus() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">CMSI 3510: Operating Systems</h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        Loyola Marymount University | Spring 2026
-      </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">CMSI 3510: Operating Systems</h1>
+          <p className="text-sm text-muted-foreground">
+            Loyola Marymount University | Spring 2026
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          className="gap-2 shrink-0"
+          onClick={downloadSyllabusPdf}
+        >
+          <Download className="h-4 w-4" />
+          Download PDF
+        </Button>
+      </div>
 
       <div className="space-y-6">
         <section id="course-information">
