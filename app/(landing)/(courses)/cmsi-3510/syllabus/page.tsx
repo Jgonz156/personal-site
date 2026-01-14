@@ -74,7 +74,7 @@ export default function CMSI3510Syllabus() {
               <strong>Email:</strong> Julian.Gonzalez@lmu.edu
             </p>
             <p>
-              <strong>Office Hours:</strong> M - W 4:30PM - 6:30PM and Th 4:30PM - 6:00PM
+              <strong>Office Hours:</strong> M - Th 3:30 PM - 5:00 PM
             </p>
             <p>
               <strong>Prerequisites:</strong> CMSI 2210 and/or CMSI 284 or EECE

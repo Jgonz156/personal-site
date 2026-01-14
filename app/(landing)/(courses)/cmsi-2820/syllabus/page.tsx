@@ -75,7 +75,7 @@ export default function Syllabus() {
               <strong>Email:</strong> Julian.Gonzalez@lmu.edu
             </p>
             <p>
-              <strong>Office Hours:</strong> Monday - Wednesday 4:30PM - 6:30PM and Thursday 4:30PM - 6:00PM
+              <strong>Office Hours:</strong> M - Th 3:30 PM - 5:00 PM
             </p>
             <p>
               <strong>Prerequisites:</strong> CMSI 1010 or ENGR 160 or ENGR 1200
