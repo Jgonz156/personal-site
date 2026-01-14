@@ -1,0 +1,294 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Today's Agenda
+
+- **Syntax** — How programming languages *look*
+- **Semantics** — What programming languages *mean*
+- **Case Study** — Python vs. Rust: Making Change
+
+---
+
+## Syntax
+
+> **"The study of how words and morphemes combine to form larger units like phrases or sentences."**
+
+Syntax is all about **structure**—the rules that govern how symbols can be arranged. Think of it like the grammar of a language, but stripped of all meaning.
+
+### A Natural Language Example
+
+Consider this English sentence:
+
+```
+"The cat likes to eat fish."
+```
+
+We can break this down into grammatical components:
+
+| Fragment | Classification |
+| :------- | :------------- |
+| The cat | Noun phrase |
+| likes | Verb |
+| to eat | Infinitive |
+| fish | Noun |
+
+This reveals the **grammatical structure** of the sentence.
+
+> ⚠️ **WAIT!** Before we continue, it's important to note that we are NOT talking about the *meaning* of the sentence. We are only talking about the *structure*. Do your best to **ignore the meaning of the words!**
+
+We can abstract away the meaning entirely:
+
+```
+"The cat likes to eat fish."  →  "Noun-Phrase Verb Infinitive Noun"
+```
+
+### When Syntax Breaks Down
+
+Consider this malformed sentence:
+
+```
+"Bob fan a Lakers is of the"
+```
+
+Is this problematic because of *what the words mean*? Or because of *how they're arranged*?
+
+The **malformed grammar** creates ambiguity when we try to parse it:
+- Was it trying to say *"Bob is a fan of the Lakers"*?
+- Or perhaps *"The Lakers are a fan of Bob"*?
+- Maybe even *"fan is a bob of the lakers"*? 🤷
+
+We simply can't tell! And **that's the point**—syntax is about *structure*, not meaning.
+
+---
+
+## Syntax in Programming Languages
+
+Good news: you're already familiar with programming language syntax! Let's look at Python:
+
+```python
+total = previous + current
+```
+
+Thanks to syntax highlighting (your linter!), we can identify the tokens:
+
+| Token | Classification |
+| :---- | :------------- |
+| `total` | Variable |
+| `=` | Assignment operator |
+| `previous` | Variable |
+| `+` | Arithmetic operator |
+| `current` | Variable |
+
+But we can be more precise! At a higher level:
+
+| Fragment | Classification |
+| :------- | :------------- |
+| `previous + current` | **Expression** |
+| `total = previous + current` | **Statement** |
+
+---
+
+## Expressions vs. Statements
+
+<DefinitionBox term="Expression">
+
+An **expression** is a combination of values, variables, operators, and function calls that **evaluates to a single value**. Think of it like a math problem—there's a clear order of operations that reduces complexity step by step.
+
+</DefinitionBox>
+
+<DefinitionBox term="Statement">
+
+A **statement** is a complete instruction that **commands** the computer to perform an action. Statements do NOT evaluate to a value; instead, they control the *flow* of execution.
+
+</DefinitionBox>
+
+### Key Distinction
+
+| Type | Behavior | Analogy |
+| :--- | :------- | :------ |
+| **Expression** | *Evaluates* to a value | Like solving a math equation |
+| **Statement** | *Commands* an action | Like giving an instruction |
+
+### Examples of Expressions
+
+Expressions always reduce to a single value:
+
+```python
+1 + 1                     # → 2
+print("Hello, World!")    # → None
+len([1, 2, 3]) == 3       # → True
+```
+
+### Examples of Statements
+
+Statements control program flow—they don't "simplify" to anything:
+
+```python
+# Conditional: skip code block if condition is false
+if x > 10:
+    print("x is greater than 10")
+
+# Loop: repeat code block while condition holds
+while x < 10:
+    x += 1
+
+# Function definition: bind a name to executable code
+def add(a, b):
+    return a + b
+```
+
+---
+
+## Why This Matters
+
+Understanding syntax helps us answer questions like:
+
+- [x] What part of this line gets evaluated first?
+- [x] Does this line have a side effect?
+- [x] Is this code structurally valid?
+
+We don't need to know *what's stored* in the variables to understand *what's about to happen*!
+
+> **📌 Key Insight:** Syntax gives us rules for how to validly organize **tokens** in a programming language. A *token* is the smallest unit of meaningful information—a single "piece" of the language.
+
+### Malformed Syntax Example
+
+```python
+this is a variable = 23
+```
+
+If your linter's coloring looks wrong, you've probably made a syntax error!
+
+---
+
+## Semantics
+
+> **"The meaning transported through symbols."**
+
+While syntax is about *structure*, semantics is about *meaning*—the actual *stuff* we store in our language's symbols.
+
+### The Symbol-Meaning Relationship
+
+We would never say that the characters `r`, `e`, `d`, `c`, `a`, `r` *are themselves* a red car. Instead, we recognize:
+
+- `red` → stores information about the color red
+- `car` → stores information about vehicles with four wheels and a motor
+
+We create **syntax rules** to define how tokens can be arranged. We then **assign meaning** to those arrangements, so that when someone else reads our code, they can extract that meaning.
+
+---
+
+## A Semantic Analysis Example
+
+Consider this Python code:
+
+```python
+print("Hello, World!")
+```
+
+### Syntactic Breakdown
+
+| Token | Classification |
+| :---- | :------------- |
+| `print` | Variable (identifier) |
+| `(...)` | Call operator |
+| `"Hello, World!"` | String literal |
+
+### Semantic Execution
+
+Here's what actually *happens* when this code runs:
+
+1. **Lookup**: Find the object stored at the variable named `print`
+2. **Identify**: It's a function (callable object)
+3. **Call**: Open a new stack frame, pass `"Hello, World!"` as an argument
+4. **Execute**: Run the function body...
+5. **Return**: Close the stack frame, return `None`
+6. **Continue**: Move to the next line of code
+7. **EOF**: End of file reached → terminate program
+
+---
+
+## Case Study: Making Change
+
+Let's see how **Python** and **Rust** express the *same algorithm* with different syntax. This classic problem counts coins needed for a given amount.
+
+### Python Implementation
+
+```python
+def make_change(amount):
+    denominations = [25, 10, 5, 1]
+    change = []
+    for denomination in denominations:
+        count = 0
+        while amount >= denomination:
+            amount -= denomination
+            count += 1
+        change.append(count)
+    return change
+
+if __name__ == "__main__":
+    amount = 410
+    change = make_change(amount)
+    print(f"Change for {amount} is: {change}")
+```
+
+### Rust Implementation
+
+```rust
+fn main() {
+    let amount: i16 = 410;
+    let change = make_change(amount);
+    println!("Change for {} is: {:?}", amount, change);
+}
+
+fn make_change(mut amount: i16) -> Vec<i16> {
+    let denominations = vec![25, 10, 5, 1];
+    let mut change = Vec::new();
+    for denomination in denominations {
+        let mut count = 0;
+        while amount >= denomination {
+            amount -= denomination;
+            count += 1;
+        }
+        change.push(count);
+    }
+    change
+}
+```
+
+### Comparing the Two
+
+Notice how Rust's syntax carries **more information**:
+
+| Feature | Python | Rust |
+| :------ | :----- | :--- |
+| Type annotations | Implicit | Explicit and Implicit (`i16`, `Vec<i16>`) |
+| Mutability | Implicit | Explicit (`mut`) |
+| Return type | Implicit | Explicit (`-> Vec<i16>`) |
+| Memory management | Garbage collected | Ownership system |
+
+> **💡 Observation:** Rust's larger syntax vocabulary allows it to store more *specific* semantic information directly in the code structure!
+
+---
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+- **Syntax** = Structure and grammar of code (how it *looks*)
+- **Semantics** = Meaning and behavior of code (what it *does*)
+- **Expressions** evaluate to values; **Statements** command actions
+- **Tokens** are the smallest meaningful units in a language
+- Different languages can express the *same semantics* with different syntax
+- More verbose syntax often carries more semantic information
+
+</LectureNotes>
+
+<LectureResources>
+- [Rust by Example](https://doc.rust-lang.org/rust-by-example/) — Learn Rust through annotated examples
+- [Python AST Documentation](https://docs.python.org/3/library/ast.html) — Explore Python's abstract syntax tree
+- [Programming Language Pragmatics](https://www.cs.rochester.edu/~scott/pragmatics/) — Deep dive into language design
+</LectureResources>
