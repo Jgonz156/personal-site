@@ -18,7 +18,7 @@ const courseInfo = {
   instructor: "Professor Julian Gonzalez",
   office: "Foley Annex 139",
   email: "Julian.Gonzalez@lmu.edu",
-  officeHours: "Monday - Wednesday 4:30PM - 6:30PM and Thursday 4:30PM - 6:00PM",
+  officeHours: "M - Th 3:30 PM - 5:00 PM",
   prerequisites: "CMSI 1010 or ENGR 160 or ENGR 1200",
   section: "Section 1: Seaver Hall 111, 1:45 PM - 3:25 PM",
 }
