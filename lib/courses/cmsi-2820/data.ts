@@ -116,7 +116,12 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Syllabus",
     contentUrl: "/cmsi-2820/ln0",
-    recordings: []
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/kjBAIt-2Nptu6f79rCOC3wMgdrdq9mT-5Go0bOPh7McI0zgNhTzMjTH4X89e2Jch.bsOw3dB8Vjmfuthx",
+      }
+    ]
   },
   {
     id: "2820-hw0",
