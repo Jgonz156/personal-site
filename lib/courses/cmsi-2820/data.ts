@@ -141,7 +141,7 @@ const allEvents: CourseEvent[] = [
       "Python and PyTest setup",
     ],
     hwPoints: { written: 1, programming: 1, optional: 1 },
-    hwGithubClassroomUrl: "",
+    hwGithubClassroomUrl: "https://classroom.github.com/a/NFLIc0ul",
     hwBrightspaceUrl: "",
   },
   {
