@@ -1,0 +1,288 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { GraphVisualization } from "@/components/graph-visualization"
+
+## Today's Agenda
+
+- **Information** — What is it, really?
+- **Limited Reality** — Embracing what we *don't* know
+- **Logic** — A map of reasoning systems
+
+---
+
+## An Exercise in Awareness
+
+Let's begin with a brief exercise. Pause where you are and relax. Just *exist* in your space for a moment.
+
+Focus on your surroundings and the sensations you're experiencing:
+
+- What are you **seeing**?
+- What are you **hearing**?
+- What are you **feeling**?
+
+Think about what your senses are telling you about your environment *right now*.
+
+### Organizing by Sense
+
+Let's organize those observations into a table. Below is my own experience from my office where I'm writing these notes:
+
+| 👁️ See | ✋ Feel | 👂 Hear | 👅 Taste | 👃 Smell |
+| :--- | :--- | :--- | :--- | :--- |
+| The VSCode window | The keyboard | The keys clack | A chocolate milk | Old carpet |
+| Colorful fruit erasers | Soreness from rock climbing | My office fridge hum | — | — |
+
+Our senses gather information about the world *for free*—we can't help but see, feel, hear, taste, and smell. They act as the very first step in understanding our environment.
+
+> **🤔 But wait...** Is there any other way we can organize this information? It would be limiting if the only way we could understand the world was through our senses. By now, we've all recognized it's possible to *trick* our senses. We need a more objective method.
+
+### Organizing by Structure
+
+Instead of organizing by sense, let's try organizing by **Things**, **Properties**, and **Interactions**:
+
+| 📦 Things | 🏷️ Properties | 🔄 Interactions |
+| :--- | :--- | :--- |
+| The VSCode window | Colorful | The keys clack when I type |
+| The keyboard | Plastic | I drank the chocolate milk |
+| My office fridge | Old | Fridge hums |
+| Erasers | Fruit-shaped | — |
+
+This organization is **thing-centric** rather than **sense-centric**—a more objective way to structure information!
+
+> **💡 Side Note:** Does this pattern look familiar? It's **Object-Oriented Programming**!
+>
+> | Our Terms | OOP Terms |
+> | :--- | :--- |
+> | Things | Objects / Instances |
+> | Properties | Attributes / Fields |
+> | Interactions | Methods |
+
+---
+
+## Information
+
+> **"Stuff that is accurate of the world."**
+
+More formally, information is any **Discrete Atomic Truth-functional Statement**.
+
+<DefinitionBox term="Information (Formal Definition)">
+
+A piece of **information** is a statement that satisfies four criteria:
+
+| Property | Meaning |
+| :--- | :--- |
+| **Discrete** | Has "hard edges"—a well-understood boundary separating it from other information |
+| **Atomic** | Cannot be decomposed further into smaller discrete units |
+| **Truth-functional** | Can be evaluated to a single **True** or **False** value |
+| **Statement** | A declarative sentence (not a question, command, or exclamation) |
+
+</DefinitionBox>
+
+### Examples of Information
+
+Let's evaluate some statements:
+
+| Statement | Truth Value |
+| :--- | :--- |
+| "The sky is blue" | ✓ True |
+| "The sky is not blue" | ✗ False |
+| "The grass is green" | ✓ True |
+| "Cars are loud" | ✓ True |
+| "My office has no A/C" | ✓ True |
+
+> ⚠️ **Pause and consider**: Do you agree with all my evaluations above? The world is objective, right? So if you disagree, one of us must be wrong...
+>
+> But here's the real question: How many of you read *"My office has no A/C"* and thought **"I don't know"**?
+
+You understand there *should* be a truth to that statement, but you don't have **proof** of it.
+
+---
+
+## The Third Value: "I Don't Know"
+
+In this class, we'll study a form of logic that allows us to say **"I don't know."**
+
+There's a common notion that everything expressible must be either true or false. But what about recognizing when we *aren't there yet*?
+
+> **📌 Key Insight:** Recognizing when we don't have enough information to decide is incredibly powerful! We have *limited knowledge* of the world—we're "trapped" by our own experiences. In much the same way, our computers are "trapped" by their limited memory. We can't know everything, and neither can our machines. So why not investigate a system that acknowledges this?
+
+---
+
+## Limited Reality
+
+Consider the image below. Pretend for a moment that this is the **only information you have about the world**.
+
+![Limited Reality](/cmsi-2820/notes/LN1-Reality-Diagram.png)
+
+Using only this picture, evaluate the following statements:
+
+| Statement | Your Evaluation |
+| :--- | :--- |
+| "The sky is blue" | ? |
+| "The trees are green" | ? |
+| "The buildings are white" | ? |
+| "The sky is green" | ? |
+| "The people are happy" | ? |
+
+### The Problem with "Happy"
+
+What's wrong with that last statement? Unsure?
+
+What if I asked you to evaluate: **"The glorp is blue"**?
+
+The problem is: *What is a glorp?* I don't know what that is! Is it in the picture? Is it not? **We don't know!**
+
+Rather than forcing ourselves to say True or False, we can say **"I don't know"**—or more formally, that it is **Absurd**.
+
+### Reality vs. Absurdity
+
+The diagram is constructed with a border around the image and infinite whiteness beyond it *on purpose*:
+
+| Region | Name | Contains |
+| :--- | :--- | :--- |
+| Inside the border | **Reality** | Everything we know to be True or False |
+| Outside the border | **Absurd** | Everything we cannot comprehend |
+
+> ⚠️ **Important:** We don't know *anything* about what's outside the border! Not understanding what a "glorp" is **is not the same** as dividing by zero. We're unsure in both cases, but the nature of the uncertainty could be completely different!
+
+---
+
+## Truth, Falsity, and Absurdity
+
+When do we say something is True, False, or Absurd?
+
+<DefinitionBox term="The Three Truth Values">
+
+| Value | Symbol | Meaning |
+| :--- | :--- | :--- |
+| **True** | \(T\) | Information we can *prove* to be accurate of our reality (\top) (within the border) |
+| **False** | \(F\) | Information we can *prove* to be inaccurate of our reality (\top) (within the border) |
+| **Absurd** | \(\bot\) | Information we cannot comprehend or understand (outside the border) |
+
+</DefinitionBox>
+
+### Practice: Evaluating in Limited Reality
+
+Use the room you're currently in as your limited reality. If you're not in a room... pretend you are!
+
+---
+
+**Statement:** *"Tables are made of wood"*
+
+| Evaluation | Requirements |
+| :--- | :--- |
+| **True** | You have a table in the room AND it's made of wood |
+| **False** | You have a table in the room AND it's not made of wood, BUT you have wood in the room (so you understand both concepts) |
+| **Absurd** | You have no table in the room (unknown concept) OR there's no wood (unknown concept) |
+
+---
+
+**Statement:** *"The sky is blue"*
+
+| Evaluation | Requirements |
+| :--- | :--- |
+| **True** | You can see the sky AND it's blue |
+| **False** | You can see the sky AND it's not blue, BUT you have something blue visible (so you understand both concepts) |
+| **Absurd** | You can't see the sky (unknown concept) OR nothing blue is visible (unknown concept) |
+
+---
+
+> **📌 Clarification:** This is NOT a subjective reality based on what you *think* is true. It's based on what you *know* via the **evidence of your own experiences**. Subtle but important difference!
+
+### The Evaluation Process
+
+1. **Identify** all the components within the statement
+2. **Verify** you understand each component in the context of your limited reality
+3. **Decide**: If everything makes sense → it's True or False. If not → it's **Absurd**
+
+We don't yet have a mechanical way to evaluate large compound statements with mixed truth values, but we'll learn that in coming lectures!
+
+---
+
+## What is Logic?
+
+<DefinitionBox term="Logic">
+
+**Logic** is the study of how to reason about information. It's a branch of mathematics dealing with:
+- Valid arguments
+- Rules of inference
+- The structure of information
+
+</DefinitionBox>
+
+We've spent today building up **Intuitionistic Logic** as our first reasoning system—one based on the idea that we can only reason about information we can **directly observe and prove**.
+
+But it's not the only system! In fact, it's not even the most *common* system. Let's explore the landscape of logic:
+
+<GraphVisualization
+  nodes={[
+    { id: "Systems of Logic", label: "Systems of Logic" },
+    { id: "Informal Logic", label: "Informal Logic (Subjective)" },
+    { id: "Formal Logic", label: "Formal Logic (Mechanistic)" },
+    { id: "Aristotelian Logic", label: "Aristotelian Logic (Syllogistic)" },
+    { id: "Classical Logic", label: "Classical Logic (Truth-Functional)" },
+    { id : "Propositional Logic", label: "Propositional Logic (Statements)" },
+    { id : "First Order Logic", label: "First Order Logic (Objects)" },
+    { id: "Extended Logics", label: "Extended Logics" },
+    { id: "Higher Order Logic", label: "Higher Order Logic (Multi-Layered)" },
+    { id: "Modal Logic", label: "Modal Logic (Multi-Modal)" },
+    { id: "Alethic Logic", label: "Alethic Logic (Truth)" },
+    { id: "Deontic Logic", label: "Deontic Logic (Ethics)" },
+    { id: "Epistemic Logic", label: "Epistemic Logic (Knowledge)" },
+    { id : "Doxastic Logic", label: "Doxastic Logic (Belief)" },
+    { id: "Temporal Logic", label: "Temporal Logic (Time)" },
+    { id: "Deviant Logics", label: "Deviant Logics (Abnormal)" },
+    { id: "Intuitionistic Logic", label: "Intuitionistic Logic (Intuition)" },
+    { id: "Paraconsistent Logic", label: "Paraconsistent Logic (Inconsistent)" },
+    { id: "Multi-Valued Logic", label: "Multi-Valued Logic (Multiple Values)" },
+    { id: "Fuzzy Logic", label: "Fuzzy Logic (Uncertain)" },
+  ]}
+  edges={[
+    { from: "Systems of Logic", to: "Informal Logic" },
+    { from: "Systems of Logic", to: "Formal Logic" },
+    { from: "Formal Logic", to: "Aristotelian Logic" },
+    { from: "Formal Logic", to: "Classical Logic" },
+    { from: "Classical Logic", to: "Propositional Logic" },
+    { from: "Classical Logic", to: "First Order Logic" },
+    { from: "Classical Logic", to: "Extended Logics" },
+    { from: "Extended Logics", to: "Higher Order Logic" },
+    { from: "Extended Logics", to: "Modal Logic" },
+    { from: "Modal Logic", to: "Alethic Logic" },
+    { from: "Modal Logic", to: "Deontic Logic" },
+    { from: "Modal Logic", to: "Epistemic Logic" },
+    { from: "Modal Logic", to: "Doxastic Logic" },
+    { from: "Modal Logic", to: "Temporal Logic" },
+    { from: "Extended Logics", to: "Deviant Logics" },
+    { from: "Deviant Logics", to: "Paraconsistent Logic" },
+    { from: "Deviant Logics", to: "Multi-Valued Logic" },
+    { from: "Deviant Logics", to: "Fuzzy Logic" },
+    { from: "Deviant Logics", to: "Intuitionistic Logic" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="450px"
+/>
+
+---
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+- **Information** = Discrete, atomic, truth-functional statements about the world
+- Our senses gather information, but we can organize it more objectively by **Things**, **Properties**, and **Interactions**
+- **Three truth values**: True (\(T\)), False (\(F\)), and Absurd (\(\bot\))
+- **Limited Reality** constrains what we can evaluate—we must understand all components of a statement
+- **Intuitionistic Logic** acknowledges the limits of our knowledge
+- Logic is a vast field with many systems—we'll focus on a Higher-Order Intuitionistic approach
+
+</LectureNotes>
+
+<LectureResources>
+
+- [Stanford Encyclopedia of Philosophy: Intuitionistic Logic](https://plato.stanford.edu/entries/logic-intuitionistic/) — Deep dive into the foundations
+- [Logical Snippets](https://www.logicmatters.net/students/logical-snippets/) — Many logic questions and answers to help you practice
+
+</LectureResources>

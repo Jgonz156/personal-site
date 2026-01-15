@@ -186,17 +186,12 @@ const allEvents: CourseEvent[] = [
       "This lecture will cover the basics of many different systems of logic, where they came from, how they were used, and what it even means to craft a valid line of reasoning.",
     courseId: "cmsi-2820",
     standard: "Logic",
-    contentUrl: "/cmsi-2820/ln1",
-    recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/la1mVbpnFfHVRdVJe_vdt_WHC-LDcuIF4ivMezQHrBq6W-MSLYHbMlDHwSn1fIlr.VSrqNa_WtWEt1VI8",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/Us5GGUeYdLSG5WDWjtft6SEZNtD5MkjHSUQpDXcDddv838vIgFSxT7kv0SF4efva.-AdnoFRwX86rah5s",
-      },
+    lnTopics: [
+      "Logic",
+      "Intuitionism",
     ],
+    contentUrl: "/cmsi-2820/ln1",
+    recordings: [],
   },
   {
     id: "2820-ln2",
@@ -209,14 +204,6 @@ const allEvents: CourseEvent[] = [
     standard: "Logic",
     contentUrl: "/cmsi-2820/ln2",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/5ACLmSUYpzWpazd-ZQ4RqJfYuqh0_sf8DPfsLQMeUD_UfwRIFyEQ14Xt0K1v2tH3.xROcwPRCEZ8r4pMy",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/creQEn57bmIyHHDjGKuddsuQCcLlWZ8iGfx6x8yjXZcwhB55_fSBtCiPQ7HDi2b2.fdx39azQk01i5Mke",
-      },
     ],
   },
   {
@@ -595,9 +582,9 @@ const allEvents: CourseEvent[] = [
     type: "exam",
     date: schedule.getSpecificDate(2026, 3, 28, "2820-ex1", true),
     availableDate: schedule.getSpecificDate(
-      2025,
-      10,
-      12,
+      2026,
+      3,
+      22,
       "2820-ex1-available",
       true
     ),
@@ -626,9 +613,9 @@ const allEvents: CourseEvent[] = [
     type: "exam",
     date: schedule.getSpecificDate(2026, 3, 28, "2820-ex2", true),
     availableDate: schedule.getSpecificDate(
-      2025,
-      10,
-      13,
+      2026,
+      3,
+      22,
       "2820-ex2-available",
       true
     ),
@@ -658,9 +645,9 @@ const allEvents: CourseEvent[] = [
     type: "exam",
     date: schedule.getSpecificDate(2026, 3, 28, "2820-ex3", true),
     availableDate: schedule.getSpecificDate(
-      2025,
-      10,
-      13,
+      2026,
+      3,
+      22,
       "2820-ex3-available",
       true
     ),
@@ -966,6 +953,13 @@ const allEvents: CourseEvent[] = [
     title: "EX 4: FINAL Exam",
     type: "exam",
     date: schedule.getSpecificDate(2026, 5, 13, "2820-ex4", true),
+    availableDate: schedule.getSpecificDate(
+      2026,
+      5,
+      7,
+      "2820-ex4-available",
+      true
+    ),
     dueTime: "11:59 PM",
     description:
       "This is the optional final exam that covers the last three standards: Functions, Combinatorics, and Graph Theory.",
