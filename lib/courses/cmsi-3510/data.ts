@@ -141,6 +141,12 @@ const allEvents: CourseEvent[] = [
       "In this lecture, we begin by getting a context for what Syntax and Semantics are in programming languages to appropriately set ourselves up for learning Rust. We then take a 'sneak peak' at the Rust language as is solves the Change Making Problem.",
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
+    lnTopics: [
+      "Syntax",
+      "Semantics",
+      "Python vs Rust",
+      "Change Making Problem",
+    ],
     contentUrl: "/cmsi-3510/ln1",
     recordings: [
       {
