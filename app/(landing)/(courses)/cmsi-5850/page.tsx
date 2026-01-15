@@ -17,33 +17,18 @@ const STANDARDS = [
   },
   {
     id: 1,
-    name: "Syntax & Semantics",
-    description: "Formal Syntax, Grammars, and Operational Semantics",
+    name: "Mathematical Foundations",
+    description: "Classical Logic, Set Theory, and Lambda Calculus",
   },
   {
     id: 2,
-    name: "Type Systems",
-    description: "Type Theory, Type Checking, and Type Inference",
+    name: "Syntax",
+    description: "Language Theory, Abstract Syntax, and Parsing",
   },
   {
     id: 3,
-    name: "Functional Programming",
-    description: "Lambda Calculus, Higher-Order Functions, and Closures",
-  },
-  {
-    id: 4,
-    name: "Object-Oriented",
-    description: "Objects, Classes, Inheritance, and Polymorphism",
-  },
-  {
-    id: 5,
-    name: "Concurrency",
-    description: "Concurrent Programming Models and Actors",
-  },
-  {
-    id: 6,
-    name: "Advanced Topics",
-    description: "Program Analysis, Verification, and Language Design",
+    name: "Semantics",
+    description: "Operational, Denotational Semantics, and Modern Applications",
   },
 ]
 
