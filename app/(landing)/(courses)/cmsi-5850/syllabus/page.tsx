@@ -592,7 +592,7 @@ export default function CMSI5850Syllabus() {
                 </tr>
                 {/* Week 8 */}
                 <tr className="border-b border-border">
-                  <td className="py-2 px-4">Mar 13 (Thu)</td>
+                  <td className="py-2 px-4">Mar 12 (Thu)</td>
                   <td className="py-2 px-4">
                     <span className="px-2 py-1 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
                       Lecture
