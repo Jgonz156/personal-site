@@ -191,7 +191,12 @@ const allEvents: CourseEvent[] = [
       "Intuitionism",
     ],
     contentUrl: "/cmsi-2820/ln1",
-    recordings: [],
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/cXDitOecSPt644d3ncSYnn0sHZBTlekVIgJY_ifQ5HdX19LjexSjNP6LWlid6woW.CAARUfAvWAoCYGqS"
+      }
+    ],
   },
   {
     id: "2820-ln2",
