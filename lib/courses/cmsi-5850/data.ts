@@ -117,6 +117,10 @@ const allEvents: CourseEvent[] = [
     standard: "Syllabus",
     contentUrl: "/cmsi-5850/ln0",
     recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/akkA1PiPJ6ZyQoy1EAVUG01gbVZuQ6Pog-_hSnRYnNJ79_-zClBXn8wbwmlM4mH5.FgAgK2axx8tXFYmd"
+      }
     ],
     pinned: true,
   },
@@ -136,6 +140,10 @@ const allEvents: CourseEvent[] = [
     ],
     contentUrl: "/cmsi-5850/ln1",
     recordings: [
+      {
+        name: "Class Recording (Same as LN 0)",
+        url: "https://lmula.zoom.us/rec/share/akkA1PiPJ6ZyQoy1EAVUG01gbVZuQ6Pog-_hSnRYnNJ79_-zClBXn8wbwmlM4mH5.FgAgK2axx8tXFYmd"
+      }
     ],
   },
   {
