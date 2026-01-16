@@ -1,0 +1,680 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Today's Agenda
+
+- **What is a Programming Language?** — Defining our field of study
+- **The Many Ways to Say One Thing** — Why language diversity matters
+- **A Journey Through History** — How languages evolved alongside theory
+- **Why Study This?** — Professional, social, and academic benefits
+
+---
+
+## Introduction: What Are We Actually Studying?
+
+Before we dive into syntax, semantics, type systems, and formal methods, let's step back and ask a fundamental question:
+
+> **What is a programming language?**
+
+<DefinitionBox term="Programming Language">
+
+A **programming language** is a structured system of communication for expressing **computation**.
+
+</DefinitionBox>
+
+But what is computation? It's not just "what computers do"—the concept predates electronic computers by decades.
+
+<DefinitionBox term="Computation">
+
+**Computation** is the determination of new information from existing information by formal, logical, mathematical, mechanical means, carried out by a sequence of steps, each taking a finite amount of time and resources.
+
+</DefinitionBox>
+
+This definition is crucial: computation is about **transforming information** according to **precise rules**. A programming language gives us the vocabulary and grammar to express those transformations.
+
+---
+
+## The Many Ways to Express One Idea
+
+Here's a simple computational task: **sum the squares of the even numbers in a list**.
+
+```
+Input:  [3, -2, 9, 51, 20, 8, 0, -31, 10]
+Step 1: Filter evens → [-2, 20, 8, 0, 10]
+Step 2: Square each  → [4, 400, 64, 0, 100]
+Step 3: Sum them     → 568
+```
+
+How many ways can we express this computation? Let's look at just four approaches from different eras:
+
+**Fortran (1957)** — Explicit iteration, close to the machine:
+
+```fortran
+function sum_of_even_squares(a, n) result(total)
+  integer, intent(in) :: a(n), n
+  integer :: total, i
+  total = 0
+  do i = 1, n
+    if (mod(a(i), 2) == 0) then
+      total = total + a(i) * a(i)
+    end if
+  end do
+end function
+```
+
+**Haskell (1990)** — Point-free functional composition:
+
+```haskell
+sumOfEvenSquares :: [Int] -> Int
+sumOfEvenSquares = sum . map (^ 2) . filter even
+```
+
+**Python (1991)** — Readable comprehension syntax:
+
+```python
+def sum_of_even_squares(a):
+    return sum(x**2 for x in a if x % 2 == 0)
+```
+
+**Rust (2010)** — Safe iterator chains with explicit types:
+
+```rust
+fn sum_of_even_squares(a: &[i32]) -> i32 {
+    a.iter()
+        .filter(|&&x| x % 2 == 0)
+        .map(|&x| x * x)
+        .sum()
+}
+```
+
+> **🤔 Pause and consider:** These four solutions express the *same* computation. Yet they look radically different. Why? Because each language was designed for a different era, with different priorities, solving different problems.
+
+This course is about understanding **why** these differences exist—not just *how* to write code, but *how languages themselves are designed, formalized, and evaluated*.
+
+---
+
+## The Foundations Before the Languages
+
+Before we trace the history of programming languages, we need to acknowledge that the **theoretical foundations came first**.
+
+| Decade | Theoretical Development | What It Gave Us |
+| :--- | :--- | :--- |
+| 1930s | **Lambda Calculus** (Alonzo Church) | A formal system for expressing computation via functions |
+| 1930s | **Turing Machines** (Alan Turing) | A formal model of mechanical computation |
+| 1930s | **Gödel's Incompleteness** | Limits of what can be computed/proven |
+
+These theoretical tools—developed before electronic computers existed—would eventually become the bedrock of programming language design. We'll study lambda calculus in depth in **LN 4-5**.
+
+> **📌 Course Preview:** Throughout this course, you'll see how these 1930s ideas directly influence modern language features. Lambda calculus isn't just history—it's the basis for every function you've ever written.
+
+---
+
+## The Dawn of High-Level Languages (1950s)
+
+The 1950s saw the birth of the first languages that abstracted away from machine code. Each emerged from a specific **problem domain**.
+
+### Fortran (1957) — Scientific Computation
+
+**The Problem:** Scientists needed to express mathematical formulas without writing machine code.
+
+**The Solution:** John Backus and IBM created Fortran ("Formula Translation"), the first widely-used compiled language.
+
+```fortran
+function sumofevensquares(a, n) result(total)
+  integer, intent(in) :: a(:)
+  integer :: total
+  total = sum((a**2) * merge(1, 0, mod(a, 2) == 0))
+end function
+```
+
+Notice the **array operations**—Fortran was designed for numerical computation, so operating on entire arrays is natural.
+
+### Lisp (1958) — Artificial Intelligence
+
+**The Problem:** AI researchers needed to manipulate symbols and lists, not just numbers.
+
+**The Solution:** John McCarthy created Lisp, built directly on lambda calculus.
+
+```lisp
+(defun sum-of-even-squares (a)
+  (reduce #'+ (mapcar (lambda (x) (* x x))
+                      (remove-if-not #'evenp a))))
+```
+
+This code reads almost like the mathematical definition: reduce a sum over mapped squares of filtered evens.
+
+### COBOL (1959) — Business Applications
+
+**The Problem:** Business needed to process records and generate reports in English-like syntax.
+
+**The Solution:** Grace Hopper and committee created COBOL, emphasizing readability for non-programmers.
+
+```cobol
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SUM-EVEN-SQUARES.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 NUMBER-ARRAY.
+          05 NUM-ELEMENT PIC S9(4) OCCURS 10 TIMES.
+       01 WS-INDEX      PIC 9(2).
+       01 WS-TOTAL      PIC 9(8) VALUE 0.
+       01 WS-SQUARE     PIC 9(8).
+       01 WS-REMAINDER  PIC 9(1).
+       
+       PROCEDURE DIVISION.
+           PERFORM VARYING WS-INDEX FROM 1 BY 1 
+                   UNTIL WS-INDEX > 10
+               DIVIDE NUM-ELEMENT(WS-INDEX) BY 2 
+                   GIVING WS-SQUARE REMAINDER WS-REMAINDER
+               IF WS-REMAINDER = 0
+                   MULTIPLY NUM-ELEMENT(WS-INDEX) 
+                       BY NUM-ELEMENT(WS-INDEX) 
+                       GIVING WS-SQUARE
+                   ADD WS-SQUARE TO WS-TOTAL
+               END-IF
+           END-PERFORM.
+           DISPLAY WS-TOTAL.
+           STOP RUN.
+```
+
+Notice how *verbose* this is compared to Fortran or Lisp. COBOL requires:
+- Explicit **division declarations** (IDENTIFICATION, DATA, PROCEDURE)
+- Pre-declared **fixed-size arrays** with picture clauses (`PIC S9(4)`)
+- English-like keywords (`PERFORM VARYING`, `GIVING`, `REMAINDER`)
+
+> **🤔 Why so awkward?** COBOL wasn't designed for numerical algorithms—it was designed for **reading records from files, processing transactions, and generating reports**. Asking COBOL to sum squares is like asking a spreadsheet to render 3D graphics. It *can* do it, but that's not what it's *for*.
+
+> **💡 Key Insight:** Each of these languages succeeded because they **matched their syntax to their domain**. Scientific formulas look like Fortran. Symbolic manipulation looks like Lisp. Business logic reads like COBOL—and our algorithm looks awkward in COBOL precisely *because* it's not a business problem.
+
+### 🔬 Foundations Spotlight: BNF Notation
+
+In 1959, John Backus introduced **Backus-Naur Form (BNF)** to formally describe Algol's syntax. This was revolutionary—for the first time, we had a precise, mathematical way to define what constitutes a valid program.
+
+```bnf
+<expression> ::= <term> | <expression> "+" <term>
+<term>       ::= <factor> | <term> "*" <factor>
+<factor>     ::= <number> | "(" <expression> ")"
+```
+
+We'll study formal grammars in depth in **LN 7-8: Language Theory and Syntax**.
+
+---
+
+## The Search for Abstraction (1960s)
+
+The 1960s pushed programming toward greater abstraction and accessibility.
+
+### BASIC (1964) — Democratizing Programming
+
+**The Problem:** Programming was only for specialists. How could we make it accessible to students?
+
+**The Solution:** Dartmouth's BASIC—simple, interactive, forgiving.
+
+```basic
+10 LET T = 0
+20 FOR I = 1 TO N
+30   IF A(I) MOD 2 = 0 THEN T = T + A(I) * A(I)
+40 NEXT I
+50 PRINT T
+```
+
+### Simula (1967) — The Seeds of Object-Orientation
+
+**The Problem:** How do we model real-world entities in code?
+
+**The Solution:** Ole-Johan Dahl and Kristen Nygaard created Simula, introducing **classes** and **objects**—concepts that would dominate the next 50 years.
+
+```simula
+Begin
+   Integer Array numbers(1:9);
+   Integer i, total;
+   
+   ! Initialize array with values;
+   numbers(1) := 3; numbers(2) := -2; numbers(3) := 9;
+   numbers(4) := 51; numbers(5) := 20; numbers(6) := 8;
+   numbers(7) := 0; numbers(8) := -31; numbers(9) := 10;
+   
+   total := 0;
+   For i := 1 Step 1 Until 9 Do
+      If Mod(numbers(i), 2) = 0 Then
+         total := total + numbers(i) * numbers(i);
+   
+   OutInt(total, 6);
+End;
+```
+
+This looks similar to other procedural languages—so where's the object-orientation? Simula's innovation wasn't about *this* kind of problem. Its power shines when modeling **simulations**:
+
+```simula
+Class Customer;
+Begin
+   Integer arrivalTime, serviceTime;
+   
+   Procedure arrive(time); Integer time;
+      arrivalTime := time;
+   
+   Procedure serve(duration); Integer duration;
+      serviceTime := duration;
+End;
+```
+
+> **🤔 Why show both?** The sum-of-squares algorithm doesn't *need* objects—it's a numerical computation. But modeling a bank queue with customers, tellers, and waiting lines? That's where Simula's classes shine. The language was designed for **discrete event simulation**, and its OO features emerged from that need.
+
+Simula's `Class` concept would inspire Smalltalk, C++, Java, and virtually every OO language that followed.
+
+### APL (1966) — Radical Expressiveness
+
+**The Problem:** Mathematicians wanted to express array operations concisely.
+
+**The Solution:** Kenneth Iverson's APL, using special symbols for extreme brevity:
+
+```apl
+sumOfEvenSquares ← {+/((2|⍵)=0)×⍵*2}
+```
+
+This single line does everything: filter evens, square, sum. APL traded readability for expressiveness—a tradeoff that sparked decades of debate.
+
+### 🔬 Foundations Spotlight: Denotational Semantics Begins
+
+In the 1960s, Christopher Strachey and Dana Scott began developing **denotational semantics**—a way to define program meaning by mapping syntax to mathematical objects. Rather than describing *how* a program executes step-by-step, denotational semantics describes *what* a program means.
+
+The core idea is a **semantic function** \(\mathcal\{E\}\) that maps expressions to their mathematical meanings:
+
+\[
+\mathcal\{E\} : \text\{Expression\} \to (\text\{Environment\} \to \text\{Value\})
+\]
+
+For example, the meaning of addition is defined compositionally:
+
+\[
+\mathcal\{E\}\llbracket e_1 + e_2 \rrbracket \rho = \mathcal\{E\}\llbracket e_1 \rrbracket \rho + \mathcal\{E\}\llbracket e_2 \rrbracket \rho
+\]
+
+This says: "the meaning of \(e_1 + e_2\) in environment \(\rho\) is the sum of the meanings of \(e_1\) and \(e_2\) in that environment."
+
+> **📌 Why does this matter?** Denotational semantics lets us *prove* things about programs mathematically. If two programs have the same denotation, they're equivalent—regardless of how they execute.
+
+We'll explore this in depth in **LN 12: Denotational Semantics**.
+
+---
+
+## The Structured Programming Revolution (1970s)
+
+The 1970s brought a paradigm shift: **structured programming**. The `GOTO` statement was declared harmful, and new control structures emerged.
+
+### Pascal (1970) and C (1972) — Structured Control Flow
+
+**The Problem:** Spaghetti code with `GOTO` statements was unmaintainable.
+
+**The Solution:** Structured control flow with `if/else`, `while`, `for`, and functions.
+
+**C's approach:**
+
+```c
+int sum_of_even_squares(int* a, size_t length) {
+    int total = 0;
+    for (int *p = a; p < a + length; p++) {
+        if (*p % 2 == 0) {
+            total += (*p) * (*p);
+        }
+    }
+    return total;
+}
+```
+
+Notice the pointer arithmetic—C sits close to the hardware while still providing structured abstractions.
+
+### Smalltalk (1972) — Pure Object-Orientation
+
+**The Problem:** How do we build systems entirely from objects?
+
+**The Solution:** Alan Kay's Smalltalk, where *everything* is an object and all computation happens via message passing.
+
+```smalltalk
+sumOfEvenSquares := method(a,
+  a select(isEven) map(x, x**2) reduce(x, y, x + y) ifNil(return 0))
+```
+
+### Prolog (1972) — Logic Programming
+
+**The Problem:** Can we express computation as logical inference rather than step-by-step instructions?
+
+**The Solution:** Prolog, where you declare *what* you want, not *how* to get it.
+
+```prolog
+% Define what it means for a number to be even
+even(X) :- 0 is X mod 2.
+
+% Base case: empty list has sum 0
+sum_of_even_squares([], 0).
+
+% Recursive case: if head is even, add its square
+sum_of_even_squares([H|T], Sum) :-
+    even(H),
+    sum_of_even_squares(T, RestSum),
+    Sum is RestSum + H * H.
+
+% Recursive case: if head is odd, skip it
+sum_of_even_squares([H|T], Sum) :-
+    \+ even(H),
+    sum_of_even_squares(T, Sum).
+```
+
+Notice the radical difference: we don't say *how* to iterate—we declare *what* the answer means:
+- The sum of even squares of an empty list **is** 0
+- The sum of even squares of a list with an even head **is** the head squared plus the rest
+- The sum of even squares of a list with an odd head **is** the sum of the rest
+
+Prolog's engine figures out *how* to compute this via unification and backtracking.
+
+### ML (1973) — Type Inference and Functional Purity
+
+**The Problem:** How do we get the safety of static types without verbose type annotations?
+
+**The Solution:** Robin Milner's ML introduced **type inference**—the compiler figures out types for you.
+
+```ocaml
+let sum_of_even_squares a =
+    a
+    |> List.filter (fun x -> x % 2 = 0)
+    |> List.sumBy (fun x -> x * x)
+```
+
+> **💡 Key Insight:** The 1970s gave us four major paradigms: **imperative**, **object-oriented**, **logic**, and **functional**. Most modern languages are hybrids of these approaches.
+
+### 🔬 Foundations Spotlight: Operational Semantics and Type Theory
+
+The 1970s were transformative for formal methods:
+
+| Development | Pioneer | Significance |
+| :--- | :--- | :--- |
+| **Structural Operational Semantics** | Gordon Plotkin | Precise rules for how programs execute step-by-step |
+| **Hindley-Milner Type System** | Hindley, Milner | Type inference algorithms that guarantee type safety |
+| **Hoare Logic** | Tony Hoare | Formal verification of program correctness |
+
+We'll cover operational semantics in **LN 10-11** and logic/proofs in **LN 2-3**.
+
+---
+
+## Objects Take Over the World (1980s)
+
+The 1980s saw object-oriented programming move from research to industry.
+
+### C++ (1985) and Objective-C (1984) — Hybrid Approaches
+
+**The Problem:** Industry wanted OOP but couldn't abandon existing C codebases.
+
+**The Solution:** Add objects to C. Two approaches emerged:
+
+- **C++**: Compile-time polymorphism, templates, "you don't pay for what you don't use"
+- **Objective-C**: Runtime message passing, dynamic dispatch, Smalltalk-inspired
+
+### Erlang (1986) — Fault-Tolerant Distributed Systems
+
+**The Problem:** Telephone switches need 99.999% uptime. How do you build software that never crashes?
+
+**The Solution:** Ericsson's Erlang, with lightweight processes, message passing, and "let it crash" philosophy.
+
+> **💡 Key Insight:** Languages are increasingly designed for **specific industrial needs**. Erlang wasn't trying to be a general-purpose language—it was solving telecom's reliability problem.
+
+### 🔬 Foundations Spotlight: Process Calculi
+
+To reason about concurrent systems, researchers developed formal models:
+
+- **CCS** (Calculus of Communicating Systems) — Robin Milner, 1980
+- **CSP** (Communicating Sequential Processes) — Tony Hoare, 1978
+
+These calculi let us formally prove properties about concurrent programs—essential for systems like Erlang.
+
+---
+
+## The Web Era (1990s)
+
+The World Wide Web changed everything. Languages needed to run in browsers, on servers, and everywhere in between.
+
+### Java (1995) — Write Once, Run Anywhere
+
+**The Problem:** Software needed to run on any device.
+
+**The Solution:** Compile to bytecode, run on a virtual machine.
+
+```java
+int sumOfEvenSquares(int[] a) {
+    return IntStream.of(a).filter(x -> x % 2 == 0).map(x -> x * x).sum();
+}
+```
+
+Java brought lambdas late (2014), but notice how the functional style eventually arrived.
+
+### JavaScript (1995) — The Browser's Language
+
+**The Problem:** Web pages needed interactivity.
+
+**The Solution:** Brendan Eich created JavaScript in 10 days. It became ubiquitous.
+
+```javascript
+function sumOfEvenSquares(a) {
+  return a.filter(x => x % 2 === 0).map(x => x**2).reduce((x, y) => x + y, 0)
+}
+```
+
+### Python (1991) and Ruby (1995) — Scripting and Expressiveness
+
+**The Problem:** Developers wanted languages optimized for programmer happiness, not machine efficiency.
+
+**The Solution:** Dynamic typing, clean syntax, "batteries included."
+
+```python
+def sum_of_even_squares(a):
+    return sum(x**2 for x in a if x % 2 == 0)
+```
+
+```ruby
+def sum_of_even_squares(a)
+  a.select{|x| x % 2 == 0}.map{|x| x * x}.reduce(0, :+)
+end
+```
+
+### Haskell (1990) — Pure Functional Programming Matures
+
+**The Problem:** How do we build a language around mathematical purity?
+
+**The Solution:** Lazy evaluation, monads, pure functions—a laboratory for PL research.
+
+```haskell
+sumOfEvenSquares :: [Int] -> Int
+sumOfEvenSquares = sum . map (^ 2) . filter even
+```
+
+This point-free style composes functions without naming intermediate values.
+
+### 🔬 Foundations Spotlight: The Danger of No Formal Spec
+
+> ⚠️ **Cautionary Tale:** JavaScript and PHP were created rapidly without formal specifications. The result? Years of browser incompatibilities, undefined behavior, and security vulnerabilities.
+
+JavaScript's formal specification (ECMAScript) came later and took years to standardize. PHP's behavior varied between versions with no formal model to guide it.
+
+**Lesson:** Formal foundations aren't academic luxuries—they prevent real-world chaos.
+
+---
+
+## Multicore, Big Data, and Functional Resurgence (2000s-2010s)
+
+Two forces brought functional programming back to the mainstream:
+
+1. **Multicore processors** — Shared mutable state is the enemy of parallelism
+2. **Big Data** — Map/reduce is inherently functional
+
+### Scala (2004), Clojure (2007), F# (2005) — Functional Meets Mainstream
+
+These languages brought functional programming to existing ecosystems (JVM, .NET) without abandoning industry investment.
+
+```clojure
+(defn sum-of-even-squares [a]
+  (->> a (filter even?) (map #(* % %)) (reduce +)))
+```
+
+### Rust (2010) — Memory Safety Without Garbage Collection
+
+**The Problem:** C and C++ are fast but plagued by memory bugs. Garbage collection solves this but hurts performance.
+
+**The Solution:** Rust's **ownership system**—compile-time enforcement of memory safety.
+
+```rust
+fn sum_of_even_squares(a: &[i32]) -> i32 {
+    a.iter()
+        .filter(|&&x| x % 2 == 0)
+        .map(|&x| x * x)
+        .sum()
+}
+```
+
+### Swift (2014) and Kotlin (2011) — Modern Successors
+
+Swift replaced Objective-C. Kotlin replaced Java (for Android). Both incorporated decades of PL research: optionals, type inference, functional features.
+
+```swift
+func sumOfEvenSquares(_ a: [Int]) -> Int {
+    return a.filter{$0 % 2 == 0}.map{$0 * $0}.reduce(0, +)
+}
+```
+
+```kotlin
+fun sumOfEvenSquares(a: Array<Int>): Int {
+    return a.filter { it % 2 == 0 }.map { it * it }.sum()
+}
+```
+
+### 🔬 Foundations Spotlight: Types as Proofs
+
+Modern languages increasingly use type systems as **proof systems**. Rust's ownership types *prove* memory safety. Haskell's `IO` monad *proves* effect isolation.
+
+| Approach | Example Languages | What Types Prove |
+| :--- | :--- | :--- |
+| **Ownership types** | Rust | Memory safety without GC |
+| **Effect systems** | Koka, Unison | What side effects a function can have |
+| **Dependent types** | Idris, Agda | Arbitrary logical properties |
+
+We'll see how types connect to logic in **LN 2-3** and modern applications in **LN 14**.
+
+---
+
+## The Modern Landscape (2020s)
+
+Languages are now designed for increasingly specific domains:
+
+| Language | Year | Domain | Key Innovation |
+| :--- | :--- | :--- | :--- |
+| **Verse** | 2023 | Metaverse/Games | Functional logic programming for Unreal Engine |
+| **Mojo** | 2023 | AI/ML | Python syntax with systems-level performance |
+| **Roc** | 2023 | Fast-friendly functional | No runtime exceptions, refined effect system |
+
+> **🤔 The cycle continues:** Just as Fortran emerged for scientific computation and COBOL for business, new domains spawn new languages. What problems do *we* face today that might require entirely new languages?
+
+### The Formalization Spectrum
+
+Modern languages fall on a spectrum of formal foundations:
+
+| Category | Examples | Implication |
+| :--- | :--- | :--- |
+| **Formalized from birth** | ML, Haskell, Rust | Theory-first design, predictable behavior |
+| **Formalized after the fact** | C (K&R → ANSI), JavaScript (ES5+) | Specification chases implementation |
+| **Still being formalized** | Python (type hints), TypeScript | Gradual typing as formalization |
+
+---
+
+## Why Study Programming Languages?
+
+Having traced this history, we can now appreciate why studying programming languages—not just *using* them—provides profound benefits.
+
+### Professional Benefits
+
+| Benefit | How History Shows It |
+| :--- | :--- |
+| **Express yourself better** | Haskell's point-free style vs. Java's verbosity—knowing both expands your vocabulary |
+| **Make better technical decisions** | Understanding GC tradeoffs (Java vs. Rust) informs architecture choices |
+| **Learn new languages faster** | Once you understand paradigms, new languages are variations on themes |
+| **Create new languages** | DSLs (Domain-Specific Languages) are everywhere—SQL, regex, CSS |
+
+### Academic Benefits
+
+| Benefit | What You'll Gain |
+| :--- | :--- |
+| **Understand computation deeply** | Lambda calculus shows that computation is simpler than you think |
+| **Read research papers** | PL papers use formal notation we'll learn |
+| **Appreciate design tradeoffs** | Why did Rust choose ownership? Why did Haskell choose laziness? |
+
+### Social Benefits
+
+| Benefit | How It Manifests |
+| :--- | :--- |
+| **Cross-language collaboration** | Understanding paradigms helps you work with developers from different backgrounds |
+| **Historical appreciation** | Today's "new" features often have 50-year-old roots |
+
+---
+
+## Summary
+
+We've traced programming languages from theoretical foundations through seven decades of evolution:
+
+- **1930s:** Lambda calculus and Turing machines establish computation theory
+- **1950s:** Fortran, Lisp, COBOL emerge from scientific, AI, and business domains
+- **1960s:** BASIC democratizes; Simula plants OOP seeds; denotational semantics begins
+- **1970s:** Structured programming revolution; four paradigms crystallize; type theory matures
+- **1980s:** OOP goes industrial; Erlang solves reliability; process calculi formalize concurrency
+- **1990s:** Web explosion; some languages formalized (Haskell), others chaotic (JavaScript)
+- **2000s-2010s:** Functional resurgence; Rust proves safety with types; Swift/Kotlin modernize
+- **2020s:** Domain-specific languages for AI, games, and beyond
+
+> **📌 The Takeaway:** Every language is a response to the problems of its era. Understanding *why* languages exist—not just *how* to use them—makes you a better programmer, architect, and computer scientist.
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Programming Language** — A structured system of communication for expressing computation
+- **Computation** — Determination of new information from existing information by formal, mechanical means
+- **Paradigm** — A fundamental style of programming (imperative, functional, object-oriented, logic)
+
+**Formal Foundations Preview:**
+
+| Topic | Where We'll Study It |
+| :--- | :--- |
+| Lambda Calculus | LN 4-5 |
+| Logic and Proofs | LN 2-3 |
+| Formal Grammars (BNF) | LN 7-8 |
+| Operational Semantics | LN 10-11 |
+| Denotational Semantics | LN 12 |
+
+**The Formalization Spectrum:**
+- **Formalized from birth:** ML, Haskell, Rust
+- **Formalized after the fact:** C, JavaScript
+- **Still being formalized:** Python, TypeScript
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Bret Victor: "The Future of Programming" (2013)](https://www.youtube.com/watch?v=8pTEmbeENF4) — A 1973-styled talk about ideas we still haven't fully embraced
+- [Alan Kay: "Programming and Scaling" (2013)](https://www.youtube.com/watch?v=YyIQKBzIuBY) — The inventor of OOP reflects on what we got wrong
+
+### Further Reading
+
+- [Ray Toal: "The Study of Programming Languages"](https://cs.lmu.edu/~ray/notes/plstudy/) — The comprehensive reference this lecture draws from
+- [Stanford Encyclopedia: History of Programming Languages](https://plato.stanford.edu/entries/computing-history/)
+
+### Historical Papers
+
+- Church, A. (1936) — "An Unsolvable Problem of Elementary Number Theory" (Lambda Calculus)
+- Backus, J. (1959) — "The Syntax and Semantics of the Proposed International Algebraic Language" (BNF)
+- Dijkstra, E. (1968) — "Go To Statement Considered Harmful"
+
+</LectureResources>
+
