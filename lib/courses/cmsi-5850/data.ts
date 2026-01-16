@@ -110,7 +110,7 @@ const allEvents: CourseEvent[] = [
     id: "5850-ln0",
     title: "LN 0: Reading Course Material!",
     type: "lecture",
-    date: schedule.getNextRecurringDate("5850-ln0"),
+    date: schedule.getSpecificDate(2026, 1, 15, "5850-ln0", true),
     description:
       "Here is a sample of what the lecture notes will look like! This one just explains the color coding I use for information and displays the small interactive modules I might have throughout the notes.",
     courseId: "cmsi-5850",
@@ -118,6 +118,7 @@ const allEvents: CourseEvent[] = [
     contentUrl: "/cmsi-5850/ln0",
     recordings: [
     ],
+    pinned: true,
   },
   {
     id: "5850-ln1",
