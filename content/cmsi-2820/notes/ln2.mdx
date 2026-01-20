@@ -1,0 +1,392 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap
+
+In LN1 we explored and reasoned about information and logic. After a few exercises in awareness—and leveraging our understanding of object-oriented programming to organize information—we built our first formal system of logic: **Intuitionistic Logic**. It contained the following key components:
+
+| Component | Meaning |
+| :--- | :--- |
+| **Reality** | The world as we know it |
+| **True** (\(T\)) | Information we can *prove* to be accurate of our reality |
+| **False** (\(F\)) | Information we can *prove* to be inaccurate of our reality |
+| **Absurd** (\(\bot\)) | Information we cannot comprehend or understand |
+
+We used these components to evaluate the accuracy of information in our limited reality. However, we quickly found that even the *simplest* statements were difficult to evaluate. Today we help rectify this issue by studying **propositional logic**!
+
+---
+
+## Today's Agenda
+
+- **Propositional Logic** — Variables and the logic of propositions
+- **Logical Connectives** — The glue that holds information together
+
+---
+
+## Breaking Down Information
+
+To start, the system we have up until this point is to consider a **limited reality** made up of things, properties, and interactions. Whatever lies beyond the edge we understand to be beyond our understanding!
+
+However, even basic statements like *"The birds are flying"* are difficult to evaluate. Imagine our reality is simply a bird on a branch:
+
+![Bird on a Branch](/cmsi-2820/notes/LN2-Reality-Diagram.png)
+
+Statements like *"The bird is sitting on a branch"* are easy enough to evaluate as **True**—because they're purposefully built from things we understand in the image!
+
+But even very basic statements like *"The scene is happy"* immediately bring to light an issue:
+
+> **🤔 But wait...** How do we know if the bird is happy? If it's just our subjective evaluation of the image, then do we need to assume our own existence? Can we project our happiness onto the image?
+
+This doesn't work very well because the information we're considering is significantly more complex and dense than we have tools for at the moment.
+
+Remember how we defined information?
+
+> **Information** is a *discrete atomic truth-functional statement*.
+
+We've been conveniently ignoring the **atomic** part of the definition! Ask yourself: the information we've been evaluating—could it not be broken down further?
+
+---
+
+## Down the Rabbit Hole
+
+Let's take a journey with just two simple statements and see if we can break them down to count how many fundamental ideas we're working with.
+
+### Statement 1: "Birds are cool"
+
+These sentences are ones we might consider in grade school, but they are surprisingly dense! *"Birds are cool"* contains an understanding of the following ideas:
+
+| Implicit Idea | Type |
+| :--- | :--- |
+| A bird is a thing | Existence |
+| Coolness is a thing | Existence |
+| Coolness is a property of a bird | Attribution |
+| There are multiple birds | Quantity |
+| Birds, when together, can be cool | Collective property |
+
+Additionally, your brain is probably also adding:
+
+- Birds are an animal
+- Birds have feathers
+- Birds can fly
+- Birds can sing
+- Birds can build nests
+- Birds can lay eggs
+- *...and so on*
+
+### Statement 2: "Trees eat sunlight"
+
+| Implicit Idea | Type |
+| :--- | :--- |
+| A tree is a thing | Existence |
+| Eating is an interaction | Interaction |
+| The Sun is a thing | Existence |
+| Light is a thing | Existence |
+| Trees can consume sunlight | Capability |
+
+Additionally, your brain is probably also adding:
+
+- Trees are a type of plant
+- Sunlight is a type of energy
+- The Sun produces light
+- Trees need to eat to survive
+- *...and so on*
+
+> **💡 Key Insight:** This is a lot to process! Many of those ideas themselves are made up of *other* ideas! So let's break these down until we get to the "bottom." If we find all the atomic pieces, all we have to do is build them back up with rules from there!
+
+### Breaking Down to Atoms
+
+Let's trace *"Birds are cool"* down to its core:
+
+```
+"Birds are cool"
+    ↓
+"Birds are"
+    ↓
+"a Bird is"
+    ↓
+"a Bird"
+    ↓
+"Bird"
+    ↓
+???
+```
+
+Beyond this point, we can no longer use English and letters to communicate how much further this can be broken down! At this point, we need to strip away all the letters and just be left with **the idea of a bird in our minds**.
+
+The same happens with *"Trees eat sunlight"*:
+
+```
+"Trees eat sunlight"
+    ↓
+"a Tree eats"
+    ↓
+"a Tree"
+    ↓
+"Tree"
+    ↓
+???
+```
+
+At this point, we've reduced both statements to just their fundamental ideas. One more push and we arrive at: **ideas actually existing in and of themselves**.
+
+> **🤔 So where are we?** We have only the fundamental existence of existence! We could consider this to be what is ultimately accurate of our reality—what is **True**. Whatever else is described must either be beyond us (**Absurd**), or when we gain the ability to self-describe inaccurately, what is **False**.
+
+---
+
+## Atomic Information
+
+<DefinitionBox term="Atomic Information">
+
+Information that **conveys only one idea**—it cannot be broken down into smaller meaningful units.
+
+</DefinitionBox>
+
+While there isn't much happening down here at the atomic level, we *do* get True, False, and Absurd! More importantly, we get our very first way to argue that something is **True**:
+
+> **📌 Key Point:** Existence itself is atomic and is the only justification needed to prove something exists as an accurate statement of our reality!
+
+In a nice personal reflection: *you never need to justify yourself—you exist, and that is enough!*
+
+Now let's see how to put these pieces together to head back up to the "surface" of our reality!
+
+---
+
+## Propositional Logic
+
+First things first—as mathematicians, we'll need some **variables** to hold even our atomic information more compactly!
+
+<DefinitionBox term="Propositional Variable">
+
+A **propositional variable** is an "information placeholder." It acts as a stand-in for information and can be bound to any idea we have.
+
+</DefinitionBox>
+
+### Examples
+
+| Variable | Bound Information |
+| :--- | :--- |
+| \(A\) | "The birds are cool" |
+| \(B\) | "The trees eat sunlight" |
+| \(C\) | "True" |
+
+We'll also use the following symbols to represent our fundamental truth values:
+
+| Symbol | Meaning |
+| :--- | :--- |
+| \(\top\) | Reality (the domain of what we can reason about) |
+| \(\bot\) | Absurd (beyond our understanding) |
+| \(T\) | True |
+| \(F\) | False |
+
+So what now? How do we build back up to where we were before?
+
+> **💡 Key Insight:** Borrowing from English, we have a few fundamental connectors that act like **glue** for putting information together!
+
+Take for instance the statement: *"Dogs are cool **and** smart"*
+
+Of all the ideas in the statement, one stands out as a simple sentence "glue" that is not made up of other ideas—it's **"and"**!
+
+There are many of these in English, and we'll build up the most fundamental ones!
+
+---
+
+## Logical Connectives
+
+<DefinitionBox term="Logical Connective">
+
+**Logical connectives** are the fundamental operators that act like glue for combining information. They are the building blocks of propositional logic, allowing us to create **compound propositions** from atomic ones.
+
+</DefinitionBox>
+
+**Example:** \(C \equiv A \land B\) reads as "C is logically equivalent to A and B"
+
+Here's a table of all the connectives we'll cover:
+
+| Informal Name | Symbol | Formal Name | Example |
+| :--- | :--- | :--- | :--- |
+| "Equals" | \(\equiv\) | Logical Equivalence | \(A \equiv B\) |
+| "And" | \(\land\) | Conjunction | \(A \land B\) |
+| "And/Or" | \(\lor\) | Disjunction | \(A \lor B\) |
+| "If...Then" | \(\to\) | Implication | \(A \to B\) |
+| "Not" | \(\neg\) | Negation | \(\neg A\) |
+
+Let's explore each of these in turn!
+
+---
+
+### 0. Logical Equivalence — \(\equiv\)
+
+> *"These are the same in meaning"*
+
+<DefinitionBox term="Logical Equivalence">
+
+Two pieces of information are **logically equivalent** if they have the same truth value within every model of our reality.
+
+</DefinitionBox>
+
+Think of it as: two pieces of information have the *same meaning* but potentially *different forms*.
+
+**Examples:**
+
+| Statement 1 | Statement 2 | Why Equivalent? |
+| :--- | :--- | :--- |
+| "Dogs are cool" | "Dogs are cool" | Identical |
+| "Dogs" | "Man's Best Friend" | Same referent |
+| "Dogs are cool" | "Hunde sind cool" | Same meaning, different language |
+| "12" | "1100" | Same value (decimal vs. binary!) |
+
+Within some shared reality, these communicate exactly the same information!
+
+> ⚠️ **Important Distinction:** We're comparing *logical ideas* and their truth values, not whether two propositions are **materially** identical! It's like in Python when we use a single equals sign vs. two:
+
+```python
+a = 2      # Definitional equality (assignment)
+a == 2     # Object equality (comparison)
+```
+
+The first says *"these two are the same thing"*; the second checks *"do these have the same value?"*
+
+### Practice: Evaluating Equivalences
+
+Specifying a reality to operate in is key! Let's practice:
+
+| Context | Statement | Evaluation |
+| :--- | :--- | :--- |
+| Having an animal friend | "Dogs" \(\equiv\) "Cats" | \(T\) |
+| Names for beavers | "Beavers" \(\equiv\) "Nature's Dam Builders" | \(T\) |
+| Dance moves | "Glorbs" \(\equiv\) "The Tuna" | \(\bot\) |
+| The weather | "The sky is blue" \(\equiv\) "The sky is green" | \(F\) |
+
+### Truth Table for \(\equiv\)
+
+Since propositional variables can hold any information, let's break down all atomic combinations:
+
+| \(A\) | \(B\) | \(A \equiv B\) |
+| :---: | :---: | :---: |
+| T | T | T |
+| T | F | F |
+| F | T | F |
+| F | F | T |
+
+> **📌 Pattern:** When both propositions have the *same* truth value, the equivalence is **True**. When they differ, it's **False**.
+
+> ⚠️ **Note on Absurdity:** Absurdity isn't in the table because we cannot evaluate something we don't understand! If you ever encounter a statement containing an absurdity, refuse to evaluate it as anything other than **Absurd**.
+
+---
+
+### 1. Conjunction (AND) — \(\land\)
+
+> *"Both must be true"*
+
+<DefinitionBox term="Conjunction">
+
+A **conjunction** is true if and only if *both* of its component propositions are true.
+
+</DefinitionBox>
+
+| \(A\) | \(B\) | \(A \land B\) |
+| :---: | :---: | :---: |
+| T | T | T |
+| T | F | F |
+| F | T | F |
+| F | F | F |
+
+**Example:**
+
+- \(A \equiv\) "The sky is blue"
+- \(B \equiv\) "It is cold"
+- \(A \land B \equiv\) "The sky is blue **and** it is cold"
+
+> **🤔 Question:** Consider \(B \land A\). Does it mean the same as \(A \land B\)?
+
+**Yes!** Since they're always equal, we have:
+
+\[
+B \land A \equiv A \land B
+\]
+
+What's really awesome about this is that it's **information agnostic**—it's true in any reality, always! We can see this in a truth table:
+
+| \(A\) | \(B\) | \(B \land A\) | \(A \land B\) |
+| :---: | :---: | :---: | :---: |
+| T | T | T | T |
+| T | F | F | F |
+| F | T | F | F |
+| F | F | F | F |
+
+> **💡 Key Insight:** The two statements are equal in *every* row! We call this the property of **commutativity**, which we'll explore more in Standard 2!
+
+---
+
+### 2. Disjunction (OR) — \(\lor\)
+
+> *"At least one must be true"*
+
+Before diving into the truth table, consider these English statements:
+
+- "Soup **or** salad" — Typically means *one or the other, but not both*
+- "Soup **and/or** salad" — Means *one, the other, or both*
+
+> ⚠️ **Important:** The second interpretation is the logic of **Disjunction**—that's where we want to be! The first (exclusive "or") is called **Exclusive Disjunction** and is similar but unnecessary for our purposes.
+
+<DefinitionBox term="Disjunction">
+
+A **disjunction** is true when *at least one* of its component propositions is true.
+
+</DefinitionBox>
+
+| \(A\) | \(B\) | \(A \lor B\) |
+| :---: | :---: | :---: |
+| T | T | T |
+| T | F | T |
+| F | T | T |
+| F | F | F |
+
+Just like Conjunction, Disjunction is also **commutative**:
+
+| \(A\) | \(B\) | \(B \lor A\) | \(A \lor B\) |
+| :---: | :---: | :---: | :---: |
+| T | T | T | T |
+| T | F | T | T |
+| F | T | T | T |
+| F | F | F | F |
+
+The two statements are equal in every row!
+
+---
+
+## Coming Up Next
+
+We'll leave **Implication** (\(\to\)) and **Negation** (\(\neg\)) for next lecture!
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Atomic Information** — Information conveying only one idea; cannot be broken down further
+- **Propositional Variable** — A placeholder that can be bound to any piece of information
+- **Logical Connective** — An operator that combines propositions into compound statements
+
+**The Connectives So Far:**
+
+| Connective | Symbol | True When... |
+| :--- | :--- | :--- |
+| Equivalence | \(\equiv\) | Both sides have the same truth value |
+| Conjunction | \(\land\) | Both sides are true |
+| Disjunction | \(\lor\) | At least one side is true |
+
+**Key Property:** Both \(\land\) and \(\lor\) are **commutative**: \(A \land B \equiv B \land A\) and \(A \lor B \equiv B \lor A\)
+
+</LectureNotes>
+
+<LectureResources>
+
+- [Stanford Encyclopedia: Propositional Logic](https://plato.stanford.edu/entries/logic-propositional/) — Comprehensive philosophical overview
+- [Truth Table Generator](https://web.stanford.edu/class/cs103/tools/truth-table-tool/) — Practice building truth tables
+
+</LectureResources>
