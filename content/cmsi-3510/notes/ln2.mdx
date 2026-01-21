@@ -1,0 +1,497 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap
+
+In LN1, we equipped ourselves with some programming language theory tools to help us learn a brand new programming language: **Rust**! We covered:
+
+- **Syntax** — The vocabulary to analyze the *structure* of Rust code
+- **Semantics** — The tools to reason about the *meaning* of Rust code
+- **Case Study** — Python vs. Rust implementations of making change
+
+---
+
+## Today's Agenda
+
+- **Rust Variables** — Memory allocation and mutability
+- **Rust Types** — Scalar, compound, and reference types
+
+---
+
+## Variables
+
+To understand why variables are architected the way they are in Rust, we should first develop our understanding of why variables are important in programming.
+
+<DefinitionBox term="Variable">
+
+A **variable** is a named location in memory that stores a value.
+
+</DefinitionBox>
+
+### Tools Are Domain-Specific
+
+Tools are created to solve problems—but not in a general manner. Instead, tools are designed to perform specific tasks in a way best suited to the problem at hand. We say they are **"domain-specific"**.
+
+Some tools complete a single complex task by themselves; others are a collection of smaller machines that work together to complete a string of smaller tasks.
+
+> **🤔 But wait...** Ideally, you'd want the biggest and "baddest" tool available, right?
+
+Well, not exactly:
+- If your tool is **too big**, it may not fit in the space you need it to work in
+- If your tool is **too small**, it may not be robust enough to handle the task at hand
+
+Variables are the tool we use to store information in a way that's easy to use later. However, they are also domain-specific—just like any other tool, variables should be designed to support your specific tasks.
+
+### Systems-Level Programming
+
+In Rust, we're working at the **Systems-level**. That means we're in an environment without luxuries:
+
+| Challenge | What It Means |
+| :--- | :--- |
+| Memory management | We handle it ourselves |
+| CPU time | We must pay attention to usage and requirements |
+| Hardware features | We call upon specific hardware to perform routine tasks |
+
+In this environment, variables should be designed to support solving computations in a manner that **works with** our environment, not against it.
+
+> **📌 Key Point:** Rust variables will be harder to wrap your head around than in other languages since they're designed to force us, as programmers, to keep important memory management in mind.
+
+---
+
+## Variable Declarations
+
+> *"The allocation of new memory for a variable"*
+
+In Rust, we have many different ways to declare new variables. Let's compare with Python first:
+
+### Python's Approach
+
+```python
+pattern = expression
+(x, y, z) = (1, 2, 3)
+[a, b] = ["Hello", "World"]
+```
+
+Clean, right? Python uses **pattern matching/destructuring** to assign values to variables. This allows you to use a tuple, list, or dict and assign values in a single statement.
+
+### Rust's Approach
+
+```rust
+let a = expression;           // Immutable, implicit type
+let mut b = expression;       // Mutable, implicit type
+let mut c: i32 = expression;  // Mutable, explicit type
+let d: i32;                   // Immutable, explicit type, uninitialized
+const E: i32 = expression;    // Constant, explicit type
+static F: i32 = expression;   // Static, explicit type
+```
+
+> **😮 Woah!** That's a lot of different ways to declare a variable!
+
+Notice what these declarations force us to acknowledge:
+
+| Question | Why It Matters |
+| :--- | :--- |
+| Are we allocating new memory? | `let` keyword signals allocation |
+| Is it mutable or immutable? | Affects optimization strategies |
+| What is the type? | Determines memory size |
+| Is it a constant or static? | Affects storage location |
+| Is it uninitialized? | Enables deferred initialization |
+
+### Why So Verbose?
+
+Being forced to answer these questions might feel "extra" compared to Python, but **each answer holds valuable optimization opportunities for the compiler**.
+
+> **🤔 Consider this:** At allocation time, if we only knew we needed to gather up space to store *something*—how much space do we need?
+
+**In Python:** You wait until runtime to know. This means:
+- You can't limit memory usage unless you set a default size
+- You might take up more space than needed
+- You might not have enough space
+- You can't know until it's too late
+
+**In Rust:** We provide more information at compile time! This enables:
+
+| Information | Optimization |
+| :--- | :--- |
+| **Type** | Pre-allocate exact space needed (i32 = 4 bytes, f64 = 8 bytes) |
+| **Mutability** | Alter values in-place if mutable; gain concurrency safety if immutable |
+| **Constant** | Inline the value directly into code—avoid memory access overhead |
+| **Static** | Pre-allocate in a compact, optimized section of memory |
+| **Uninitialized** | Pre-allocate based on type information alone |
+
+> **💡 Key Insight:** We can optimize the space we take up *before we even run the program!*
+
+### Rust's Declaration Grammar
+
+Rust still supports pattern matching/destructuring like Python, but with greater control. We can characterize Rust's variable declarations as:
+
+```rust
+(let | const | static) pattern (: type)? (= expression)?;
+```
+
+The pipes (`|`) indicate a choice; the question marks (`?`) indicate optional parts.
+
+---
+
+## Variable Mutability
+
+In Rust, we have two types of mutability: **mutable** and **immutable**.
+
+```rust
+let mut x = 1;
+x = 2;  // ✓ Works! x is mutable
+```
+
+```rust
+let x = 1;
+x = 2;  // ✗ Error: cannot assign to immutable variable
+```
+
+> ⚠️ **Important Distinction:** The *variable* is mutable or immutable—not the value itself!
+
+The **value** is the data stored in the memory location the variable points to. The value can still be altered via other means (like interior mutability). **Variable mutability** refers to the *binding* of the variable to its value.
+
+| Type | Meaning |
+| :--- | :--- |
+| **Mutable variable** | A name for *any* memory location valid under the type |
+| **Immutable variable** | Bound to a *specific instance* of the type; cannot be rebound |
+
+> **📌 Coming Later:** Value mutability will make more sense when we discuss ownership, borrowing, and concurrency.
+
+---
+
+## Variable Scope
+
+Variables aren't meant to stick around forever—otherwise we'd "hog" a lot more memory than needed. Languages need a way to identify when a variable is no longer needed and can be freed.
+
+### The Garbage Collection Problem
+
+In many languages like Python, the tedious task of identifying when a variable can be cleaned up is left to a **garbage collector**—a secondary process running alongside your main program.
+
+> ⚠️ **This is bad for Systems-level programming!**
+
+Allowing a completely uncontrolled secondary process to manage our memory means:
+- It sometimes takes over and **pauses our work**
+- We can't be sure **when** our program will pause or resume
+- This adds **nondeterminism** to our workflow
+- It makes it harder to **reason about** and **make promises** about program behavior
+
+### The Security Problem
+
+However, poor memory management by programmers leads to the **majority of software insecurities**, as discovered by Microsoft. So we need *someone* other than just ourselves to manage it.
+
+### Rust's Solution
+
+In Rust, the **compiler** helps us out. It must ensure all memory is managed well *ahead of time*, which requires strict rules for how to use variables.
+
+### Basic Scope Rules
+
+For the majority of variables you'll declare in Rust, the rule is simple:
+
+> **You are accessible from the line of declaration until the end of the block you're declared in.**
+
+```rust
+{
+    let x = 1;
+    x = 2;  // ✓ x is in scope
+}
+x = 3;  // ✗ Error: x is not declared in this scope
+```
+
+This includes function parameters, local variables, and more.
+
+### Shadowing
+
+We can **shadow** variables based on scope. Shadowing occurs when a variable is declared with the same name as a variable in an outer scope—the inner variable "shadows" the outer one:
+
+```rust
+let x = 1;
+{
+    let x = 2;
+    x == 2;  // ✓ True (inner x)
+}
+x == 1;  // ✓ True (outer x)
+```
+
+> **💡 Key Insight:** This would normally seem like an error due to double declaration. However, Rust's shadowing—a benefit of having *declaration syntax separate from assignment syntax*—allows us to disambiguate between the two variables.
+
+### Scope vs. Lifetime
+
+> **📌 Note:** Variables become inaccessible at the end of their **lifetime**, not their scope. Most variables have lifetimes that end with their scope, but it's possible to *extend* a lifetime beyond its scope—we'll investigate this later.
+
+---
+
+## Where Do Values Live?
+
+In Rust, our verbose syntax allows us to more precisely reason about memory optimizations. It pays to understand **where values live** in memory and how they're accessed.
+
+### Memory Locations
+
+Recall that memory is made up of different regions:
+
+| Region | Characteristics |
+| :--- | :--- |
+| **Stack** | Linearly growing LIFO structure; stores call frames |
+| **Heap** | Dynamic location for data that can't make linear promises |
+| **Static** | Special section for data needed for the program's entire lifetime; compact, never grows/shrinks at runtime |
+
+The compiler places your values among these based on how you declare and initialize them:
+
+```rust
+let x = 1;              // Stack
+let y = Box::new(2);    // Heap
+let z: i32 = 3;         // Stack
+const W: i32 = 4;       // Static (inlined)
+```
+
+### Why This Matters
+
+Values on the **stack** mean less memory-accessing overhead—we ensure all values a function needs are already with it in memory before the function is called.
+
+However, we can't always know the exact size of an object at compile time. That's why we still have the **heap**—but it's much slower, so Rust's syntax makes it obvious when you're using it:
+
+```rust
+let y = Box::new(2);  // Heap allocation is explicit!
+```
+
+> **📌 Rule of Thumb:** Whenever you see `Box::new`, you're using the heap. Many other types have similar constructors—you'll identify them through documentation or use.
+
+### Memory Location Reference Table
+
+| Type | Memory Location |
+| :--- | :--- |
+| Primitive types (`i32`, `f64`, `bool`, `char`) | Stack |
+| Fixed-size arrays (`[i32; 3]`) | Stack |
+| Vectors (`Vec<i32>`) | Stack (metadata) + Heap (data) |
+| Strings (`String`) | Stack (reference) + Heap (data) |
+| Structs | Stack (metadata) + Heap (data if needed) |
+| Enums | Stack (metadata) + Heap (data if needed) |
+| Constants/Statics | Static |
+| References (`&i32`, `&mut i32`) | Stack |
+
+---
+
+## Rust Variable Examples
+
+Let's explore many different aspects of Rust's syntax and variables in action.
+
+### Unused Variables Are Errors
+
+```rust
+fn main() {
+    let x = 1;
+    let y = 2;      // ✗ Error! y must be used!
+    let _z = 3;     // ✓ Underscore reduces to a warning
+    println!("x: {}", x);
+}
+```
+
+> **📌 Note:** Not using a declared variable is an **error**, not just a warning! This forces us to be more intentional with our use of memory.
+
+### Powerful Shadowing
+
+```rust
+fn main() {
+    let x = 1;
+    let x = 2;        // Shadow with new immutable
+    let mut x = 3;    // Shadow with mutable
+    x += 1;           // x is now 4!
+}
+```
+
+Rust's shadowing is so powerful we can shadow variables within the *same scope*—even with different mutabilities!
+
+### Scoped Blocks
+
+```rust
+fn main() {
+    let mut x = 1;
+    {
+        let x = 2;    // Shadows outer x
+        x = 3;        // ✗ Error! Inner x is not mutable
+    }
+    x += 4;           // x is now 5 (outer x)
+}
+```
+
+You can create blocks explicitly for scoping:
+
+```rust
+fn main() {
+    let result = {
+        let x = 1;
+        let x = x + 1;
+        x  // Block returns this value (no semicolon!)
+    };
+    println!("result: {}", result);  // Prints 2
+}
+```
+
+> **💡 Key Insight:** Blocks can return values! The last expression without a semicolon becomes the block's value.
+
+### Deferred Initialization
+
+```rust
+fn main() {
+    let x;          // Uninitialized—no type constraint yet!
+    x = 1;          // Now x is constrained to i32
+    println!("x: {}", x);
+}
+```
+
+Variables declared without initializers don't have a type constraint until assignment.
+
+### Type Showcase
+
+```rust
+fn main() {
+    let x: i32 = 1;
+    let y: f64 = 2.0;
+    let z: bool = true;
+    let w: char = 'w';
+    let v: String = String::from("Hello, world!");
+    let u: Vec<i32> = Vec::new();
+    let t: HashMap<String, i32> = HashMap::new();
+    let s: &str = "Hello, world!";
+}
+```
+
+---
+
+## Data Types
+
+Just as mentioned with memory optimizations, Rust's types are designed to be as **specific as possible** to the data we're working with.
+
+Every type has its own unique quirks to remember, but each relates to the data and how it's stored in memory.
+
+---
+
+### Scalar/Numeric Types
+
+These are the most primitive types—they represent values with arithmetic operations defined on them.
+
+| Category | Types | Range |
+| :--- | :--- | :--- |
+| **Unsigned integers** | `u8`, `u16`, `u32`, `u64`, `u128`, `usize` | 0 to 2ⁿ - 1 |
+| **Signed integers** | `i8`, `i16`, `i32`, `i64`, `i128`, `isize` | -2ⁿ⁻¹ to 2ⁿ⁻¹ - 1 |
+| **Floating point** | `f32`, `f64` | IEEE 754 single/double precision |
+| **Boolean** | `bool` | `true` or `false` |
+| **Character** | `char` | Unicode scalar (U+0000–U+D7FF, U+E000–U+10FFFF) |
+
+> **📌 Defaults:** `i32` is the default integer type; `f64` is the default floating point type. Rust will implicitly constrain to these if no type is provided (assuming the value fits).
+
+```rust
+fn main() {
+    let x: u8 = 255;           // Maximum value for u8
+    let y: i8 = -128;          // Minimum value for i8
+    let z: f32 = 1.0;
+    let w: bool = true;
+    let v: char = '\u{00e9}';  // é (Latin small letter e with acute)
+}
+```
+
+---
+
+### Compound/Collection Types
+
+These types represent collections of other types.
+
+| Type | Characteristics |
+| :--- | :--- |
+| **Tuples** `(i32, f64)` | Fixed size, ordered, heterogeneous |
+| **Arrays** `[i32; 3]` | Fixed size, ordered, homogeneous |
+| **Vectors** `Vec<i32>` | Dynamic size, ordered, homogeneous |
+| **Strings** `String` | Dynamic size, ordered, homogeneous (UTF-8) |
+| **Structs** | Fixed size, named fields, heterogeneous |
+| **Enums** | Fixed variants, can hold data |
+
+```rust
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+enum Color {
+    Red,
+    Blue,
+    Green,
+}
+
+fn main() {
+    let tuple: (i32, f64, bool, char) = (1, 2.0, true, 'w');
+    let array: [i32; 3] = [1, 2, 3];
+    let vector: Vec<i32> = Vec::new();
+    let string: String = String::from("Hello, world!");
+    let point: Point = Point { x: 2, y: 0 };
+    let color: Color = Color::Green;
+}
+```
+
+---
+
+### Reference Types
+
+These types reference other values in memory.
+
+| Type | Description |
+| :--- | :--- |
+| **References** `&i32`, `&mut i32` | Immutable/mutable borrow of a value |
+| **Slices** `&[i32]` | View into a contiguous sequence |
+| **Smart Pointers** `Box<T>`, `Rc<T>`, `Arc<T>` | Heap allocation, reference counting |
+| **Raw Pointers** `*const T`, `*mut T` | Unsafe, direct memory access |
+
+```rust
+fn main() {
+    let x: &i32 = &1;
+    let y: &mut i32 = &mut 2;
+    let z: &[i32] = &[1, 2, 3];
+    let boxed: Box<i32> = Box::new(4);
+    let rc: Rc<i32> = Rc::new(5);
+    let arc: Arc<i32> = Arc::new(6);
+    let weak: Weak<i32> = Weak::new();
+    let raw_const: *const i32 = &1 as *const i32;
+    let raw_mut: *mut i32 = &mut 2 as *mut i32;
+}
+```
+
+> ⚠️ **Warning:** Raw pointers are **very unsafe** and should only be used when absolutely necessary (e.g., FFI, low-level optimizations).
+
+---
+
+## Coming Up Next
+
+Next time we'll explore **Functions** and **The Ownership System**!
+
+---
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+- **Variables** in Rust carry more semantic information than in Python (mutability, type, lifetime)
+- **Declaration syntax** enables compile-time optimizations for memory allocation
+- **Mutability** refers to the variable binding, not the value itself
+- **Scope** determines accessibility; **lifetime** determines when memory is freed
+- Values live on the **stack**, **heap**, or **static** section depending on declaration
+- Rust's **type system** is precise: scalar, compound, and reference types each serve specific purposes
+
+**Memory Locations Quick Reference:**
+
+| Declaration | Location |
+| :--- | :--- |
+| `let x = 1;` | Stack |
+| `let x = Box::new(1);` | Heap |
+| `const X: i32 = 1;` | Static/Inlined |
+
+</LectureNotes>
+
+<LectureResources>
+
+- [The Rust Book: Variables and Mutability](https://doc.rust-lang.org/book/ch03-01-variables-and-mutability.html) — Official guide to Rust variables
+- [The Rust Book: Data Types](https://doc.rust-lang.org/book/ch03-02-data-types.html) — Comprehensive type reference
+- [Rust by Example: Primitives](https://doc.rust-lang.org/rust-by-example/primitives.html) — Interactive examples of Rust types
+
+</LectureResources>
