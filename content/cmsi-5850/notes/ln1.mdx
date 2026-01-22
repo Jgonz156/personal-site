@@ -281,19 +281,19 @@ This single line does everything: filter evens, square, sum. APL traded readabil
 
 In the 1960s, Christopher Strachey and Dana Scott began developing **denotational semantics**—a way to define program meaning by mapping syntax to mathematical objects. Rather than describing *how* a program executes step-by-step, denotational semantics describes *what* a program means.
 
-The core idea is a **semantic function** \(\mathcal\{E\}\) that maps expressions to their mathematical meanings:
+The core idea is a **semantic function** $\mathcal{E}$ that maps expressions to their mathematical meanings:
 
-\[
-\mathcal\{E\} : \text\{Expression\} \to (\text\{Environment\} \to \text\{Value\})
-\]
+$$
+\mathcal{E} : \text{Expression} \to (\text{Environment} \to \text{Value})
+$$
 
 For example, the meaning of addition is defined compositionally:
 
-\[
-\mathcal\{E\}\llbracket e_1 + e_2 \rrbracket \rho = \mathcal\{E\}\llbracket e_1 \rrbracket \rho + \mathcal\{E\}\llbracket e_2 \rrbracket \rho
-\]
+$$
+\mathcal{E}\llbracket e_1 + e_2 \rrbracket \rho = \mathcal{E}\llbracket e_1 \rrbracket \rho + \mathcal{E}\llbracket e_2 \rrbracket \rho
+$$
 
-This says: "the meaning of \(e_1 + e_2\) in environment \(\rho\) is the sum of the meanings of \(e_1\) and \(e_2\) in that environment."
+This says: "the meaning of $e_1 + e_2$ in environment $\rho$ is the sum of the meanings of $e_1$ and $e_2$ in that environment."
 
 > **📌 Why does this matter?** Denotational semantics lets us *prove* things about programs mathematically. If two programs have the same denotation, they're equivalent—regardless of how they execute.
 

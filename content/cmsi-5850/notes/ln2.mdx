@@ -1,0 +1,955 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath } from "@/components/math"
+
+## Today's Agenda
+
+- **What is Logic?** — The study of reasoning and inference
+- **Building Blocks** — Terms, predicates, operators, formulas, and truth values
+- **The Landscape of Logic** — Classical logic and its alternatives
+- **Inference and Proof** — Natural deduction as mechanical reasoning
+- **Formal Systems** — Soundness, completeness, and the Curry-Howard correspondence
+
+---
+
+## Introduction: What is Logic?
+
+> "But in fact, they don't even know what thinking is. Because thinking is not actually logic. That was the mistake that the Greeks made." —Alan Kay
+
+This provocative quote reminds us that logic is a *tool* for reasoning, not reasoning itself. But what exactly is this tool?
+
+<DefinitionBox term="Logic">
+
+**Logic** is the study of **reasoning**. It deals primarily with **inference**—determining whether conclusions follow from premises—but also encompasses truth, validity, proof, and argumentation.
+
+</DefinitionBox>
+
+The central question of logic is deceptively simple:
+
+> **Does the conclusion follow from the premises?**
+
+But "follow from" can mean different things:
+
+| Type | Description | Certainty |
+| :--- | :--- | :--- |
+| **Deduction** | Apply a general rule to a specific case | Certain (if premises are true) |
+| **Induction** | Infer a general rule from specific cases | Probable (never certain) |
+| **Abduction** | Infer the best explanation for evidence | Plausible (could be wrong) |
+
+> **💡 Key Insight:** Logic gives us the machinery to make these distinctions precise. By the end of this lecture, you'll understand how to *mechanically verify* whether an argument is valid.
+
+---
+
+## Building Blocks of Logic
+
+Let's build logic from first principles. Every logical statement is composed of four fundamental components: **terms**, **predicates**, **operators**, and **formulas**—which together evaluate to **truth values**.
+
+---
+
+### Terms — The Objects of Discourse
+
+<DefinitionBox term="Term">
+
+A **term** is the "noun" of logic—it refers to an object in our domain of discourse. Terms can be **constants** (specific objects) or **variables** (placeholders for any object).
+
+</DefinitionBox>
+
+| Type | Examples | Meaning |
+| :--- | :--- | :--- |
+| **Constants** | $romeo$, $juliet$, $5$, $\pi$ | Specific, named objects |
+| **Variables** | $x$, $y$, $z$ | Placeholders for any object |
+| **Functions** | $father(romeo)$, $square(5)$ | Objects derived from other objects |
+
+Terms by themselves don't have truth values—they're just *things*. To make claims about things, we need predicates.
+
+---
+
+### Predicates — Testing Properties and Relations
+
+<DefinitionBox term="Predicate">
+
+A **predicate** is a function that takes terms as arguments and returns a **truth value**. Predicates test whether objects have certain properties or stand in certain relations.
+
+</DefinitionBox>
+
+**Unary predicates** test properties of a single object:
+
+| Predicate | Meaning |
+| :--- | :--- |
+| $Italian(juliet)$ | "Juliet is Italian" |
+| $Mortal(socrates)$ | "Socrates is mortal" |
+| $Even(4)$ | "4 is even" |
+
+**Binary predicates** test relations between two objects:
+
+| Predicate | Meaning |
+| :--- | :--- |
+| $Likes(romeo, juliet)$ | "Romeo likes Juliet" |
+| $GreaterThan(5, 3)$ | "5 is greater than 3" |
+| $Parent(elizabeth, charles)$ | "Elizabeth is a parent of Charles" |
+
+**N-ary predicates** generalize to any number of arguments:
+
+| Predicate | Meaning |
+| :--- | :--- |
+| $Between(3, 2, 5)$ | "3 is between 2 and 5" |
+| $Gave(romeo, juliet, ring)$ | "Romeo gave Juliet a ring" |
+
+> **📌 Key Point:** Predicates are where logic meets the world. They encode our knowledge about objects and their relationships.
+
+---
+
+### Operators (Connectives) — Combining Truth Values
+
+<DefinitionBox term="Logical Operator">
+
+A **logical operator** (or connective) combines formulas to produce new truth values. Operators define how the truth of compound statements depends on the truth of their parts.
+
+</DefinitionBox>
+
+Here are the **core propositional operators**:
+
+| Name | Symbol | Meaning | True When... |
+| :--- | :--- | :--- | :--- |
+| **Negation** | $\neg A$ | "not A" | A is false |
+| **Conjunction** | $A \land B$ | "A and B" | Both are true |
+| **Disjunction** | $A \lor B$ | "A or B (or both)" | At least one is true |
+| **Implication** | $A \supset B$ | "if A then B" | Not (A true and B false) |
+| **Equivalence** | $A \equiv B$ | "A if and only if B" | Both have same truth value |
+
+### Truth Tables
+
+The behavior of each operator is completely defined by its **truth table**:
+
+**Negation:**
+
+| $A$ | $\neg A$ |
+| :---: | :---: |
+| T | F |
+| F | T |
+
+**Conjunction and Disjunction:**
+
+| $A$ | $B$ | $A \land B$ | $A \lor B$ |
+| :---: | :---: | :---: | :---: |
+| T | T | T | T |
+| T | F | F | T |
+| F | T | F | T |
+| F | F | F | F |
+
+**Implication and Equivalence:**
+
+| $A$ | $B$ | $A \supset B$ | $A \equiv B$ |
+| :---: | :---: | :---: | :---: |
+| T | T | T | T |
+| T | F | F | F |
+| F | T | T | F |
+| F | F | T | T |
+
+> **🤔 Why is $F \supset T$ true?** This often confuses newcomers. Material implication $A \supset B$ only claims "whenever A is true, B is also true." If A is false, the implication makes no claim—it's *vacuously* true.
+
+> **💡 Preview:** These five operators form the core of propositional logic, but many more exist! Modal logics add operators for necessity, possibility, obligation, knowledge, time, and more. We'll explore these in Section 4.
+
+### Expressibility Overlap
+
+Interestingly, predicate logic can sometimes express ideas similar to modal operators:
+
+| Modal Expression | Predicate Logic Equivalent |
+| :--- | :--- |
+| $\Box P$ (necessarily P) | $\forall w. World(w) \supset P(w)$ |
+| $\Diamond P$ (possibly P) | $\exists w. World(w) \land P(w)$ |
+
+> **📌 Key Insight:** There isn't only one way to express logical ideas. Different formalisms have different strengths. The "best" choice depends on your purpose—clarity, efficiency, or proof automation.
+
+---
+
+### Formulas — Putting It All Together
+
+<DefinitionBox term="Formula">
+
+A **formula** (or well-formed formula) is a syntactically correct expression built from terms, predicates, operators, and quantifiers. Formulas are what we evaluate for truth.
+
+</DefinitionBox>
+
+**Atomic formulas** are single predicate applications:
+- $Italian(juliet)$
+- $Likes(romeo, juliet)$
+
+**Compound formulas** combine atomics with operators:
+- $Italian(juliet) \land Likes(romeo, juliet)$
+- $\neg Mortal(zeus) \lor Mortal(socrates)$
+
+**Quantified formulas** use $\forall$ (universal) and $\exists$ (existential):
+
+| Quantifier | Symbol | Meaning |
+| :--- | :--- | :--- |
+| **Universal** | $\forall x. P(x)$ | "For all x, P(x)" |
+| **Existential** | $\exists x. P(x)$ | "There exists an x such that P(x)" |
+| **Description** | $\iota x. P(x)$ | "The unique x such that P(x)" |
+
+The **description operator** $\iota x. P(x)$ (read "the x such that P(x)") picks out a unique individual satisfying a predicate. It presupposes both *existence* (there is such an x) and *uniqueness* (there is only one).
+
+**Example:** Poseidon is the individual described as the God of the Sea:
+- $\iota x. GodOfTheSea(x)$ — "The god of the sea" (i.e., Poseidon)
+- $\iota x. King(england, x)$ — "The king of England"
+
+> **⚠️ Caution:** The description operator can fail if no object satisfies the predicate (existence failure) or if multiple objects do (uniqueness failure). "The present king of France" is a famous example of existence failure.
+
+**Building complex formulas step-by-step:**
+
+Let's encode: *"All humans are mortal, and Socrates is human, therefore Socrates is mortal."*
+
+1. $Human(socrates)$ — "Socrates is human"
+2. $\forall x. Human(x) \supset Mortal(x)$ — "All humans are mortal"
+3. $Mortal(socrates)$ — "Socrates is mortal"
+
+The full argument:
+$$
+(Human(socrates) \land \forall x. Human(x) \supset Mortal(x)) \supset Mortal(socrates)
+$$
+
+---
+
+### Truth Values — The Result
+
+<DefinitionBox term="Interpretation">
+
+An **interpretation** assigns meaning to the symbols in a formula:
+- Constants map to specific objects
+- Variables are assigned objects from a domain
+- Predicates map to actual relations over that domain
+
+</DefinitionBox>
+
+<DefinitionBox term="Satisfaction">
+
+A formula is **satisfied** by an interpretation if the interpretation makes the formula true. A formula is:
+- **Valid** (tautology) if true under *all* interpretations
+- **Satisfiable** if true under *at least one* interpretation
+- **Unsatisfiable** (contradiction) if true under *no* interpretation
+
+</DefinitionBox>
+
+| Category | Example | Explanation |
+| :--- | :--- | :--- |
+| **Valid** | $A \lor \neg A$ | True regardless of what A means |
+| **Satisfiable** | $A \land B$ | True when both A and B are true |
+| **Unsatisfiable** | $A \land \neg A$ | Never true (contradiction) |
+
+---
+
+## Examples Showcase
+
+Let's break down examples from natural language into their logical components, showing how terms, predicates, and operators each contribute.
+
+### Terms in Action
+
+| English | Logic | Term Analysis |
+| :--- | :--- | :--- |
+| "Romeo" | $romeo$ | Constant |
+| "Juliet" | $juliet$ | Constant |
+| "The king's daughter" | $\iota x. Daughter(king, x)$ | Description operator (defined in Quantifiers) |
+| "Someone" | $\exists x$ | Variable (bound) |
+
+### Predicates in Action
+
+**Properties (unary):**
+
+| English | Logic |
+| :--- | :--- |
+| "Juliet is Italian" | $Italian(juliet)$ |
+| "Socrates is mortal" | $Mortal(socrates)$ |
+| "The number is even" | $Even(n)$ |
+
+**Relations (binary and beyond):**
+
+| English | Logic |
+| :--- | :--- |
+| "Romeo likes Juliet" | $Likes(romeo, juliet)$ |
+| "Romeo likes himself" | $Likes(romeo, romeo)$ |
+| "5 is greater than 3" | $Greater(5, 3)$ |
+| "Romeo gave Juliet a ring" | $Gave(romeo, juliet, ring)$ |
+
+### Operators in Action
+
+| English | Logic | Operator Used |
+| :--- | :--- | :--- |
+| "Romeo does not like Tybalt" | $\neg Likes(romeo, tybalt)$ | Negation |
+| "The sidewalk is wet and it is raining" | $Wet(sidewalk) \land Raining$ | Conjunction |
+| "Either it rains or the sprinklers are on" | $Raining \lor Sprinklers$ | Disjunction |
+| "If it rains, the sidewalk is wet" | $Raining \supset Wet(sidewalk)$ | Implication |
+| "It rains if and only if there are clouds" | $Raining \equiv Cloudy$ | Equivalence |
+
+### Formulas in Action
+
+**Simple quantified statements:**
+
+| English | Logic |
+| :--- | :--- |
+| "All humans are mortal" | $\forall x. Human(x) \supset Mortal(x)$ |
+| "Some birds can fly" | $\exists x. Bird(x) \land CanFly(x)$ |
+| "No reptile is warm-blooded" | $\neg \exists x. Reptile(x) \land WarmBlooded(x)$ |
+
+**Complex nested formulas:**
+
+| English | Logic |
+| :--- | :--- |
+| "Everyone loves someone" | $\forall x. \exists y. Loves(x, y)$ |
+| "Someone is loved by everyone" | $\exists y. \forall x. Loves(x, y)$ |
+| "If anyone is guilty, someone saw them" | $\forall x. Guilty(x) \supset \exists y. Saw(y, x)$ |
+
+> **🤔 Notice:** "Everyone loves someone" and "Someone is loved by everyone" have *different* logical forms! The order of quantifiers matters enormously.
+
+---
+
+## The Landscape of Logic Systems
+
+### How We Built Classical Logic
+
+We've assembled the components of what's called **classical logic**—but it's important to understand that this is just *one* logical system among many.
+
+> ⚠️ **Important:** Axioms are not universally agreed upon. Different logical traditions have different foundational assumptions. What we call "classical logic" reflects one historically dominant choice—not the only possible one.
+
+Classical logic is characterized by six key features:
+
+| Feature | Meaning |
+| :--- | :--- |
+| **Bivalence** | Every statement is either true or false (exactly two truth values) |
+| **Excluded Middle** | $A \lor \neg A$ is always true |
+| **Non-contradiction** | $\neg(A \land \neg A)$ is always true |
+| **Monotonicity** | Adding premises never invalidates conclusions |
+| **Commutativity** | $A \land B \equiv B \land A$ and $A \lor B \equiv B \lor A$ |
+| **Dualities** | $\neg(A \land B) \equiv \neg A \lor \neg B$ (De Morgan's laws) |
+
+> **📌 Key Point:** Each of these features can be questioned, leading to alternative logics. Rejecting bivalence gives us multi-valued logics; rejecting excluded middle gives us intuitionistic logic; relaxing non-contradiction gives us paraconsistent logic.
+
+---
+
+### Beyond Classical Logic — Alternative Systems and Their Operators
+
+Different domains require different logical tools. Here's a tour of major alternative logics, each with its own specialized operators.
+
+#### Intuitionistic Logic
+
+**Philosophy:** Truth requires *proof*, not just non-falsity. (Associated with L.E.J. Brouwer)
+
+**Key difference:** Rejects the law of excluded middle ($A \lor \neg A$)
+
+**Why?** We can't claim "either P or not-P" unless we can actually *prove* one of them. In intuitionistic logic, double negation elimination ($\neg\neg A \supset A$) also fails.
+
+**Operators:** Same symbols, but different inference rules.
+
+---
+
+#### Paraconsistent Logic
+
+**Philosophy:** Contradictions shouldn't cause logical "explosion."
+
+In classical logic, from $A \land \neg A$, you can derive *anything* (ex falso quodlibet). Paraconsistent logics allow local contradictions without global collapse—useful for reasoning about inconsistent databases or paradoxes.
+
+---
+
+#### Fuzzy Logic
+
+**Philosophy:** Truth comes in degrees, not just T/F.
+
+**Operator:** $\lvert A \rvert$ — the truth value of A, ranging from 0.0 to 1.0
+
+**Classical vs. Fuzzy:**
+
+- **Classical:** $A$ is true or false
+- **Fuzzy:** $\lvert A \rvert = 0.7$ means "A is 70% true"
+
+**Fuzzy Operators:**
+
+- **Negation:** $\lvert \neg A \rvert = 1 - \lvert A \rvert$
+- **Conjunction:** $\lvert A \land B \rvert = \min(\lvert A \rvert, \lvert B \rvert)$
+- **Disjunction:** $\lvert A \lor B \rvert = \max(\lvert A \rvert, \lvert B \rvert)$
+
+---
+
+#### Alethic Modal Logic (Necessity and Possibility)
+
+**Domain:** What *must* be true vs. what *could* be true.
+
+| Operator | Symbol | Meaning |
+| :--- | :--- | :--- |
+| **Necessity** | $\Box A$ | A is true in *all* possible worlds |
+| **Possibility** | $\Diamond A$ | A is true in *some* possible world |
+
+**Key relationships:**
+- $\Box A \equiv \neg \Diamond \neg A$ — "Necessarily A" = "Not possibly not-A"
+- $\Diamond A \equiv \neg \Box \neg A$ — "Possibly A" = "Not necessarily not-A"
+
+**Example:** "It's necessary that 2+2=4" → $\Box(2+2=4)$
+
+---
+
+#### Deontic Logic (Obligation and Permission)
+
+**Domain:** What *ought* to be done (ethics, law, norms).
+
+| Operator | Symbol | Meaning |
+| :--- | :--- | :--- |
+| **Obligation** | $\mathscr{O} A$ | A ought to be done (morally required) |
+| **Permission** | $\mathscr{P} A$ | A may be done (morally permitted) |
+
+**Key relationships:**
+- $\mathscr{O} A \equiv \neg \mathscr{P} \neg A$ — "A is obligatory" = "Not-A is not permitted"
+- $\mathscr{P} A \equiv \neg \mathscr{O} \neg A$ — "A is permitted" = "Not-A is not obligatory"
+
+**Example:** "You must not steal" → $\mathscr{O} \neg Steal$
+
+---
+
+#### Epistemic Logic (Knowledge)
+
+**Domain:** What agents *know*.
+
+| Operator | Symbol | Meaning |
+| :--- | :--- | :--- |
+| **Knowledge** | $\mathscr{K}_x A$ | Agent x knows A |
+
+**Properties of knowledge:**
+- $\mathscr{K}_x A \supset A$ — If x knows A, then A is true (knowledge is factive)
+- $\mathscr{K}_x A \supset \mathscr{K}_x \mathscr{K}_x A$ — If x knows A, x knows that x knows A
+
+**Example:** "Alice knows that Bob is home" → $\mathscr{K}_{alice} Home(bob)$
+
+---
+
+#### Doxastic Logic (Belief)
+
+**Domain:** What agents *believe* (possibly falsely).
+
+| Operator | Symbol | Meaning |
+| :--- | :--- | :--- |
+| **Belief** | $\mathscr{B}_x A$ | Agent x believes A |
+
+**Key difference from knowledge:** Beliefs can be false! $\mathscr{B}_x A$ does *not* imply A.
+
+**Example:** "Romeo believes Juliet is dead" → $\mathscr{B}_{romeo} Dead(juliet)$
+
+---
+
+#### Temporal Logic (Time)
+
+**Domain:** How truth changes over time.
+
+| Operator | Symbol | Meaning |
+| :--- | :--- | :--- |
+| **Past** | $\mathbf{P} A$ | It was (at some point) the case that A |
+| **Future** | $\mathbf{F} A$ | It will (at some point) be the case that A |
+| **Always past** | $\mathbf{H} A$ | It has always been the case that A |
+| **Always future** | $\mathbf{G} A$ | It will always be the case that A |
+
+**Example:** "Juliet once believed Romeo might someday live forever in Canada"
+$$
+\mathbf{P}(\mathscr{B}_{juliet} \Diamond \mathbf{F} \mathbf{G} LivesIn(romeo, canada))
+$$
+
+---
+
+#### Higher-Order Logic
+
+**Philosophy:** Quantify not just over objects, but over predicates and functions themselves.
+
+| Order | Quantifies Over | Example |
+| :--- | :--- | :--- |
+| **First-order** | Objects | $\forall x. Mortal(x)$ |
+| **Second-order** | Predicates | $\forall P. \forall x. P(x) \lor \neg P(x)$ |
+| **Higher-order** | Functions on predicates | $\forall F. \forall P. F(P) \supset ...$ |
+
+**Example:** Mathematical induction is a second-order statement:
+$$
+\forall P. (P(0) \land \forall n. P(n) \supset P(n+1)) \supset \forall n. P(n)
+$$
+
+---
+
+### Comprehensive Operator Reference Table
+
+Here's a consolidated reference of all logical operators:
+
+**Propositional Operators:**
+
+| Symbol | Name | Meaning | Example |
+| :--- | :--- | :--- | :--- |
+| $\neg A$ | Negation | Not A | "It is not raining" |
+| $A \land B$ | Conjunction | A and B | "It is raining and cold" |
+| $A \lor B$ | Disjunction | A or B (or both) | "It rains or snows" |
+| $A \supset B$ | Implication | If A then B | "If it rains, ground is wet" |
+| $A \equiv B$ | Equivalence | A if and only if B | "It rains iff there are clouds" |
+
+**Quantifiers:**
+
+| Symbol | Name | Meaning | Example |
+| :--- | :--- | :--- | :--- |
+| $\forall x. A$ | Universal | For all x, A | "All humans are mortal" |
+| $\exists x. A$ | Existential | There exists x such that A | "Someone is happy" |
+| $\iota x. A$ | Description | The x such that A | "The king of France" |
+
+**Modal Operators:**
+
+| Symbol | Name | Domain | Example |
+| :--- | :--- | :--- | :--- |
+| $\Box A$ | Necessity | Alethic | "Necessarily, 2+2=4" |
+| $\Diamond A$ | Possibility | Alethic | "Possibly, it will rain" |
+| $\mathscr{O} A$ | Obligation | Deontic | "You ought to help" |
+| $\mathscr{P} A$ | Permission | Deontic | "You may leave" |
+| $\mathscr{K}_x A$ | Knowledge | Epistemic | "Alice knows P" |
+| $\mathscr{B}_x A$ | Belief | Doxastic | "Bob believes P" |
+| $\mathbf{P} A$ | Past | Temporal | "It was raining" |
+| $\mathbf{F} A$ | Future | Temporal | "It will rain" |
+| $\mathbf{H} A$ | Always-past | Temporal | "It has always rained" |
+| $\mathbf{G} A$ | Always-future | Temporal | "It will always rain" |
+
+**Other:**
+
+| Symbol | Name | Meaning | Example |
+| :--- | :--- | :--- | :--- |
+| $x = y$ | Equality | x and y are the same object | $romeo = romeo$ |
+| $\lvert A \rvert$ | Fuzzy truth | Truth degree of A (0.0-1.0) | $\lvert Tall(bob) \rvert = 0.8$ |
+
+---
+
+## Inference and Argumentation
+
+### What is Inference?
+
+<DefinitionBox term="Inference">
+
+**Inference** is the process of deriving new information from existing information according to formal rules. We write inferences as:
+
+<DisplayMath formula="\frac{A_1 \quad A_2 \quad ... \quad A_n}{C}" />
+
+meaning "from premises $A_1, A_2, ..., A_n$, we derive conclusion $C$."
+
+</DefinitionBox>
+
+### Deductive Reasoning
+
+Deduction applies general rules to specific cases, yielding *certain* conclusions (given true premises).
+
+**Example (Modus Ponens):**
+
+<DisplayMath formula="\frac{A \supset B \quad A}{B}" />
+
+From "If it rains, the ground is wet" and "It is raining," we conclude "The ground is wet."
+
+> **🤔 Philosophical Tangent: Is deduction "learning" anything new?**
+>
+> This question has puzzled philosophers for centuries. In one sense, deductive conclusions are already "contained" in the premises—we're just making explicit what was implicit.
+>
+> Yet we clearly *didn't know* the conclusion until we derived it! Before proving a theorem, mathematicians don't know it's true, even though it was "always" a consequence of the axioms.
+>
+> This connects to Kant's distinction between **analytic** statements (true by definition) and **synthetic** statements (true by fact). Is $7 + 5 = 12$ analytic or synthetic? The answer isn't obvious!
+
+---
+
+### Natural Deduction
+
+<DefinitionBox term="Natural Deduction">
+
+**Natural deduction** is a proof system that mirrors how humans naturally reason. Each logical operator has **introduction rules** (how to prove a formula with that operator) and **elimination rules** (how to use such a formula).
+
+</DefinitionBox>
+
+Proofs in natural deduction are trees of inferences, where each step applies a rule.
+
+---
+
+## Natural Deduction Rules and Examples
+
+### Conjunction ($\land$)
+
+**Introduction (∧I):** If you have A and you have B, you can conclude A ∧ B.
+
+<DisplayMath formula="\frac{A \quad B}{A \land B} \text{ (∧I)}" />
+
+**Elimination (∧E):** From A ∧ B, you can conclude A (or B).
+
+<DisplayMath formula="\frac{A \land B}{A} \text{ (∧E₁)} \quad \frac{A \land B}{B} \text{ (∧E₂)}" />
+
+**Example:** Prove that from $P \land Q$, we can derive $Q \land P$.
+
+```
+1. P ∧ Q         (premise)
+2. P             (∧E₁ from 1)
+3. Q             (∧E₂ from 1)
+4. Q ∧ P         (∧I from 3, 2)
+```
+
+---
+
+### Disjunction ($\lor$)
+
+**Introduction (∨I):** From A, you can conclude A ∨ B (for any B).
+
+<DisplayMath formula="\frac{A}{A \lor B} \text{ (∨I₁)} \quad \frac{B}{A \lor B} \text{ (∨I₂)}" />
+
+**Elimination (∨E):** From A ∨ B, if you can derive C from A and C from B, you can conclude C.
+
+<DisplayMath formula="\frac{A \lor B \quad [A] \vdots C \quad [B] \vdots C}{C} \text{ (∨E)}" />
+
+**Example:** Prove that from $P \lor Q$, we can derive $Q \lor P$.
+
+```
+1. P ∨ Q              (premise)
+2.   [P]              (assumption for case 1)
+3.   Q ∨ P            (∨I₂ from 2)
+4.   [Q]              (assumption for case 2)
+5.   Q ∨ P            (∨I₁ from 4)
+6. Q ∨ P              (∨E from 1, 2-3, 4-5)
+```
+
+---
+
+### Implication ($\supset$)
+
+**Introduction (⊃I):** Assume A, derive B, then conclude A ⊃ B (discharging the assumption).
+
+<DisplayMath formula="\frac{[A] \vdots B}{A \supset B} \text{ (⊃I)}" />
+
+**Elimination (⊃E) — Modus Ponens:** From A ⊃ B and A, conclude B.
+
+<DisplayMath formula="\frac{A \supset B \quad A}{B} \text{ (⊃E)}" />
+
+**Example:** Prove that $(P \supset Q) \supset ((Q \supset R) \supset (P \supset R))$ (transitivity of implication).
+
+```
+1.   [P ⊃ Q]                    (assumption)
+2.     [Q ⊃ R]                  (assumption)
+3.       [P]                    (assumption)
+4.       Q                      (⊃E from 1, 3)
+5.       R                      (⊃E from 2, 4)
+6.     P ⊃ R                    (⊃I from 3-5)
+7.   (Q ⊃ R) ⊃ (P ⊃ R)          (⊃I from 2-6)
+8. (P ⊃ Q) ⊃ ((Q ⊃ R) ⊃ (P ⊃ R)) (⊃I from 1-7)
+```
+
+---
+
+### Negation ($\neg$)
+
+**Introduction (¬I):** Assume A, derive a contradiction (⊥), then conclude ¬A.
+
+<DisplayMath formula="\frac{[A] \vdots \bot}{\neg A} \text{ (¬I)}" />
+
+**Elimination (¬E):** From A and ¬A, derive contradiction (⊥).
+
+<DisplayMath formula="\frac{A \quad \neg A}{\bot} \text{ (¬E)}" />
+
+**Double Negation Elimination (DNE):** From ¬¬A, conclude A. *(Classical logic only!)*
+
+<DisplayMath formula="\frac{\neg \neg A}{A} \text{ (DNE)}" />
+
+**Example:** Prove that from $\neg \neg P$, we can derive $P$.
+
+```
+1. ¬¬P         (premise)
+2. P           (DNE from 1)
+```
+
+> **📌 Note:** This rule is *rejected* in intuitionistic logic! There, $\neg \neg P$ does not imply $P$.
+
+---
+
+### A Complete Worked Example
+
+**Prove:** $(A \land B) \supset (B \land A)$
+
+**Linear proof format:**
+
+```
+1.   [A ∧ B]        (assumption)
+2.   A              (∧E₁ from 1)
+3.   B              (∧E₂ from 1)
+4.   B ∧ A          (∧I from 3, 2)
+5. (A ∧ B) ⊃ (B ∧ A) (⊃I from 1-4)
+```
+
+**Derivation tree format:**
+
+The same proof as a tree shows how inference rules "stack" like fractions building towers. Each horizontal line represents an inference rule application, with premises above and conclusion below:
+
+<DisplayMath formula="\frac{\frac{[A \land B]^1}{B} \text{ (∧E₂)} \quad \frac{[A \land B]^1}{A} \text{ (∧E₁)}}{B \land A} \text{ (∧I)}" />
+
+Then we discharge assumption 1 to complete the proof:
+
+<DisplayMath formula="\frac{\frac{\frac{[A \land B]^1}{B} \text{ (∧E₂)} \quad \frac{[A \land B]^1}{A} \text{ (∧E₁)}}{B \land A} \text{ (∧I)}}{(A \land B) \supset (B \land A)} \text{ (⊃I)}^1" />
+
+> **💡 Reading the tree:** Start at the leaves (top)—these are assumptions. Each horizontal bar applies a rule, combining what's above into what's below. The superscript $^1$ shows which assumption gets "discharged" when we apply ⊃I.
+
+This proves that conjunction is commutative!
+
+---
+
+## Common Logical Fallacies
+
+Now that we've seen how valid inference works, we can better appreciate why certain reasoning patterns fail. Human reasoning is prone to systematic errors that *look* like valid inference rules but aren't.
+
+### Affirming the Consequent
+
+**Invalid form:** From $A \supset B$ and $B$, conclude $A$.
+
+**Example:**
+- "If it rains, the ground is wet" ($R \supset W$)
+- "The ground is wet" ($W$)
+- **Invalid conclusion:** "Therefore, it rained" ($R$)
+
+**Why wrong:** The sprinklers could have caused the wetness!
+
+**Comparison to valid rules:** This superficially resembles **Modus Ponens** (⊃E), but Modus Ponens requires the *antecedent* ($A$), not the *consequent* ($B$). There is no valid rule that lets you "work backwards" from $B$ to $A$.
+
+### Denying the Antecedent
+
+**Invalid form:** From $A \supset B$ and $\neg A$, conclude $\neg B$.
+
+**Example:**
+- "If you study, you'll pass" ($S \supset P$)
+- "You didn't study" ($\neg S$)
+- **Invalid conclusion:** "Therefore, you won't pass" ($\neg P$)
+
+**Why wrong:** You might pass anyway through luck or prior knowledge!
+
+**Comparison to valid rules:** No elimination rule for implication allows us to derive anything about $B$ from $\neg A$. The implication $A \supset B$ only tells us what happens *when A is true*—it says nothing about what happens when A is false.
+
+### Undistributed Middle
+
+**Invalid form:** "All A are B. All C are B. Therefore, all A are C."
+
+**Example:**
+- "All dogs are animals"
+- "All cats are animals"
+- **Invalid conclusion:** "All dogs are cats"
+
+**Comparison to valid rules:** This misuses universal quantification. From $\forall x. Dog(x) \supset Animal(x)$ and $\forall x. Cat(x) \supset Animal(x)$, we cannot derive any relationship between dogs and cats. The middle term "animals" is never *distributed* (never covers all animals).
+
+### Appeal to Ignorance
+
+**Invalid form:** "We don't know that A is false, therefore A is true."
+
+**Example:** "No one has proven aliens don't exist, so they must exist."
+
+**Comparison to valid rules:** This violates the fundamental nature of proof. In natural deduction, to conclude $A$, we must either assume it or derive it from other facts—not merely note the absence of a proof of $\neg A$. This fallacy would make *every unproven statement* true!
+
+> **💡 Key Insight:** Each fallacy corresponds to a *missing* inference rule. If you can't construct a valid derivation tree for a conclusion, the argument is suspect. The mechanical nature of natural deduction protects us from these errors.
+
+---
+
+## Formal Logic Systems
+
+### Components of a Logistic System
+
+A complete formal logic has three components:
+
+| Component | What It Defines |
+| :--- | :--- |
+| **Syntax** | What counts as a well-formed formula |
+| **Semantics** | What formulas mean (truth conditions) |
+| **Inference Rules** | How to derive new theorems from old |
+
+---
+
+### Metalogical Properties
+
+We can study properties of logic systems themselves. This is called **metalogic**.
+
+Before defining the key metalogical properties, we need to distinguish two important concepts:
+
+<DefinitionBox term="Theorem">
+
+A **theorem** is a formula that can be derived from the axioms and inference rules of a formal system *without any additional premises*. We write $\vdash A$ to mean "A is a theorem" or "A is provable."
+
+This is a *syntactic* notion—it depends only on the rules of the system, not on meaning.
+
+</DefinitionBox>
+
+<DefinitionBox term="Validity (Semantic Truth)">
+
+A formula is **valid** (or a semantic truth) if it is true under *every* possible interpretation. We write $\vDash A$ to mean "A is valid" or "A is true."
+
+This is a *semantic* notion—it depends on meaning and truth, not on derivation rules.
+
+</DefinitionBox>
+
+The central question of metalogic is: **Do these two notions align?** Can we prove everything that's true? Is everything we prove actually true?
+
+<DefinitionBox term="Soundness">
+
+A logic is **sound** if every provable formula is true:
+$$
+\vdash A \implies \vDash A
+$$
+"If we can prove it, it's actually true."
+
+</DefinitionBox>
+
+<DefinitionBox term="Completeness">
+
+A logic is **complete** if every true formula is provable:
+$$
+\vDash A \implies \vdash A
+$$
+"If it's true, we can prove it."
+
+</DefinitionBox>
+
+<DefinitionBox term="Consistency">
+
+A logic is **consistent** if no formula and its negation are both provable. Equivalently, there exists at least one formula that is not a theorem.
+
+</DefinitionBox>
+
+<DefinitionBox term="Decidability">
+
+A logic is **decidable** if there exists an algorithm that, given any formula, always terminates and correctly determines whether the formula is a theorem.
+
+</DefinitionBox>
+
+| Property | Propositional Logic | First-Order Logic | Second-Order Logic |
+| :--- | :--- | :--- | :--- |
+| Sound | ✓ Yes | ✓ Yes | ✓ Yes |
+| Complete | ✓ Yes | ✓ Yes (Gödel 1930) | ✗ No (Gödel 1931) |
+| Decidable | ✓ Yes | ✗ No (Church-Turing 1936) | ✗ No |
+
+### The Church-Turing Thesis and Undecidability
+
+Why is first-order logic undecidable? In 1936, Alonzo Church and Alan Turing independently proved that there is no algorithm that can determine, for *all* formulas, whether they are theorems.
+
+The proof connects logic to computation through the **halting problem**: if we could decide theoremhood, we could decide whether arbitrary programs terminate—but Turing proved this is impossible.
+
+> **⚠️ Important distinction:** Undecidability doesn't mean we can't prove *any* theorems. It means there's no *universal decision procedure*. For any specific formula, we might find a proof—but no algorithm can guarantee to find one (or determine none exists) for every formula.
+
+**Practical implication:** This is why type-checkers for sufficiently powerful languages can "hang"—they're trying to solve an undecidable problem!
+
+### Gödel's Incompleteness Theorems
+
+In 1931, Kurt Gödel shattered the dream of a complete mathematical foundation with two devastating theorems:
+
+**First Incompleteness Theorem:** Any consistent formal system capable of expressing basic arithmetic contains true statements that *cannot be proven within that system*.
+
+- There exist mathematical truths that are "out of reach" of any fixed set of axioms
+- No matter how many axioms you add, there will always be more unprovable truths
+
+**Second Incompleteness Theorem:** Such a system cannot prove its own consistency.
+
+- You can't prove "this system has no contradictions" using only the system itself
+- Any proof of consistency must come from a *stronger* system
+
+**The Consistency-Completeness Trade-off:**
+
+For systems powerful enough to express arithmetic (like Peano arithmetic, ZFC set theory, or any type system with recursion), you must choose:
+
+| If the system is... | Then it must be... |
+| :--- | :--- |
+| **Consistent** (no contradictions) | **Incomplete** (some truths unprovable) |
+| **Complete** (all truths provable) | **Inconsistent** (contains contradictions) |
+
+You cannot have both consistency and completeness—this is a fundamental limit of formal reasoning.
+
+> **📌 Why this matters:** These results don't mean mathematics or logic is "broken." They reveal deep truths about the nature of formal systems. In programming languages, they explain why some type systems are intentionally limited (to remain decidable) while others embrace undecidability for greater expressiveness.
+
+---
+
+### Why This Matters for Programming Languages
+
+Logic isn't just abstract mathematics—it's the foundation of programming language theory.
+
+#### The Curry-Howard Correspondence
+
+One of the most profound discoveries in computer science is that **proofs are programs** and **propositions are types**.
+
+| Logic | Programming |
+| :--- | :--- |
+| Proposition | Type |
+| Proof | Program |
+| Implication $A \supset B$ | Function type $A \to B$ |
+| Conjunction $A \land B$ | Product type $(A, B)$ |
+| Disjunction $A \lor B$ | Sum type $A \mid B$ |
+| True ($\top$) | Unit type |
+| False ($\bot$) | Empty type (no values) |
+| Proving a theorem | Type-checking a program |
+
+**Example:** A function of type `A → B` is a "proof" that if you have an A, you can produce a B.
+
+```haskell
+-- The function is a proof of: A ⊃ (B ⊃ A)
+const :: a -> b -> a
+const x y = x
+```
+
+This correspondence means:
+- **Type systems are logics** — A well-typed program is a valid proof
+- **Proof assistants are programming languages** — Coq, Agda, Lean
+- **Verified software** — Prove properties, get correct programs
+
+> **💡 Course Connection:** This is why we study logic in a programming languages course! The tools for reasoning about programs come directly from formal logic.
+
+---
+
+## Summary
+
+We've built logic from first principles and seen how it connects to programming:
+
+- **Terms** name objects; **predicates** test properties; **operators** combine truth values; **formulas** express complete claims
+- **Classical logic** is one choice among many—modal, temporal, deontic, and other logics extend it with specialized operators
+- **Natural deduction** provides mechanical proof through introduction and elimination rules
+- **Formal systems** have metalogical properties: soundness, completeness, consistency, decidability
+- **The Curry-Howard correspondence** reveals that proofs are programs—the foundation of type theory
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Logic** — The study of reasoning and inference
+- **Term** — An object in the domain of discourse
+- **Predicate** — A function from terms to truth values
+- **Operator** — A connective that combines formulas
+- **Formula** — A well-formed expression that can be evaluated for truth
+- **Valid** — True under all interpretations (tautology)
+- **Sound** — Every theorem is true
+- **Complete** — Every true formula is a theorem
+
+**The Core Inference Rules:**
+
+| Operator | Introduction | Elimination |
+| :--- | :--- | :--- |
+| $\land$ | From A and B, derive A ∧ B | From A ∧ B, derive A (or B) |
+| $\lor$ | From A, derive A ∨ B | Proof by cases |
+| $\supset$ | Assume A, derive B, conclude A ⊃ B | Modus Ponens |
+| $\neg$ | Assume A, derive ⊥, conclude ¬A | From A and ¬A, derive ⊥ |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Primary Reference
+
+- [Ray Toal: Logic Notes](https://cs.lmu.edu/~ray/notes/logic/) — The comprehensive reference this lecture draws from
+
+### Further Reading
+
+- [Stanford Encyclopedia: Classical Logic](https://plato.stanford.edu/entries/logic-classical/) — Philosophical foundations
+- [Stanford Encyclopedia: Intuitionistic Logic](https://plato.stanford.edu/entries/logic-intuitionistic/) — Alternative to classical
+- [Stanford Encyclopedia: Modal Logic](https://plato.stanford.edu/entries/logic-modal/) — Necessity and possibility
+
+### The Curry-Howard Connection
+
+- [Propositions as Types (Philip Wadler)](https://homepages.inf.ed.ac.uk/wadler/papers/propositions-as-types/propositions-as-types.pdf) — Accessible introduction
+- [Proofs and Types (Girard, Lafont, Taylor)](http://www.paultaylor.eu/stable/prot.pdf) — Classic text
+
+### Tools
+
+- [Natural Deduction Proof Editor](https://proofs.openlogicproject.org/) — Practice building proofs
+- [The Coq Proof Assistant](https://coq.inria.fr/) — Write verified programs
+
+</LectureResources>
+$$
+$$
