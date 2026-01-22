@@ -165,7 +165,12 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln2",
-    recordings: []
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/qYdrnDSMZMgqhFYhl2LMhg6A7AWY0yKZfWGlRxMJRhWtXZJCAW9KsJJWEu3BLO59.2pUacM1DnZO-wRmL"
+      }
+    ]
   },
   {
     id: "3510-ln3",
@@ -178,10 +183,7 @@ const allEvents: CourseEvent[] = [
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln3",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/vIHJBrCLXM8ebcnX31HA740Zb4qvQVLnKvDBmsBWG3grlpuCrE1VB-1JKpSnorix.LZcOx0vuDeDf4pIA",
-      },
+      
     ],
   },
   {
@@ -238,10 +240,7 @@ const allEvents: CourseEvent[] = [
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln4",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/A3hNYuklxD_Ta0IXrOACt82YzZKSP_v_DUH7_GQ93mqcVNNCujlsffNezt-kj24K.uSrxcSad1PmCMNCE",
-      },
+      
     ],
   },
   {
@@ -255,10 +254,7 @@ const allEvents: CourseEvent[] = [
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln5",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/OQI117FLojWHMdFLc3XEUH69yrz7lO9EgftO9ZJv7LAEfzHR3DmkXlOblkh-DcY.VfsxXO-aDToMQNUY",
-      },
+      
     ],
   },
   {
@@ -272,10 +268,7 @@ const allEvents: CourseEvent[] = [
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln6",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/JBQr6zj69IcYmYWp_NpT29EQhx88tfJ73vfXLDoaXFnxuYi3fWR-4HsA_wpdn_nz.6LPnDIhOBgc-1tec",
-      },
+      
     ],
   },
   {
