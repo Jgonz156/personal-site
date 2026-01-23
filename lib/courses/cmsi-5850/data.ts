@@ -150,7 +150,7 @@ const allEvents: CourseEvent[] = [
     id: "5850-hw0",
     title: "HW 0: Practicing Homework",
     type: "homework",
-    date: schedule.getSpecificDate(2026, 1, 23, "5850-hw0"),
+    date: schedule.getSpecificDate(2026, 1, 30, "5850-hw0"),
     availableDate: schedule.getSpecificDate(2026, 1, 11, "5850-hw0-available"),
     dueTime: "11:59 PM",
     description:
@@ -171,7 +171,7 @@ const allEvents: CourseEvent[] = [
     id: "5850-ex0-release",
     title: "EX 0 Release",
     type: "exam",
-    date: schedule.getSpecificDate(2026, 1, 18, "5850-ex0-release", true),
+    date: schedule.getSpecificDate(2026, 1, 25, "5850-ex0-release", true),
     description: "Syllabus exam released and available for completion.",
     courseId: "cmsi-5850",
     standard: "Syllabus",
@@ -195,7 +195,7 @@ const allEvents: CourseEvent[] = [
     id: "5850-ex0",
     title: "EX 0: Syllabus",
     type: "exam",
-    date: schedule.getSpecificDate(2026, 1, 24, "5850-ex0"),
+    date: schedule.getSpecificDate(2026, 1, 31, "5850-ex0"),
     dueTime: "11:59 PM",
     description:
       "Exams are an important part of how you communicate your understanding of the material! Here you will take one on the most vital parts of the course syllabus! I promise its not hard.",

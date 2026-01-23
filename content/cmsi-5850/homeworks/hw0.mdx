@@ -1,0 +1,121 @@
+import {
+  WrittenSection,
+  ProgrammingSection,
+  OptionalSection,
+} from "@/components/homework-sections"
+import { QuestionBox } from "@/components/question-box"
+
+## What do Homeworks Look Like?
+
+Homeworks, as stated in the syllabus, come in two varieties: **Written** and **Programming**. Unlike some courses that combine both in a single assignment, each homework in this course will be exclusively one or the other. This allows you to focus your effort appropriately for each type of work.
+
+**Written Homeworks** are called "written" not because they will always require prose (such as short responses, essays, or papers) but because they are most easily done with some type of writing utensil. For instance, I might ask you to perform any number of tasks such as (but not limited to): Drawing syntax trees, filling in semantic derivations, showing all steps pertaining to a proof, working through lambda calculus reductions, or constructing BNF grammars. Written homeworks will be personalized to the standard we are working on, as different topics may require different forms of practice or engagement to become proficient in them. So unfortunately I cannot promise all Written Homeworks will look the same, only that they will all probably need you to pick up something to write with.
+
+**Programming Homeworks**, since they can't exist purely here on my site, will be in GitHub Repositories given through GitHub Classroom. I will give a description of the assignment on this page and provide extra information when necessary. As a graduate course, I expect you to be capable of design-level work. This means I may ask you to architect solutions, make design decisions, implement interpreters or compilers from specifications, or build parsers and type checkers with significant autonomy. Throughout this course, we will be implementing various components of programming languages in multiple languages to demonstrate the universality of the concepts we study.
+
+At the bottom of most homeworks you will find the optional homework for the previous standard. These are creative endeavors/real-world applications and they are always open ended and available for modification to fit a passion of yours! That portion of the site will almost always be smaller and will give guidance on what you are trying to do with your creative endeavor to ensure you gain points. Most of it will be made up of "ideation" or "brainstorming" for what you could do to get your "creative juices flowing".
+
+Now that we've described what homeworks look like at a high level, let's meet your practice homework, which features all 3 sections described above (a unique occurrence for HW0 only)!
+
+---
+
+This homework assignment is about letting me learn a little about you! The questions I ask here are important to me as they give me a "feel" for who I'm talking to in class. As I said in class, I am very conversational and you can't have a proper conversation with someone you know nothing about! I mean you can, they just aren't as fun!
+
+<WrittenSection
+  points={1}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=295659&db=384820"
+>
+
+This will be the only time you have to answer more questions than you'll be able to receive points. These questions are not graded for "accuracy" however, so as long as you submit a response to all of them (and it doesn't need to be extensive) you will get your special point for this section.
+
+**NOTE!!!**: This section asks for personal information! I will never use anything you put in this section to identify you on official documents, during lectures, or other official material. I may however use this information to enrich the course experience by mentioning information you put here **ANONYMOUSLY**. As an example, in lecture I might say, "For those of you that may have an interest in (potential information you shared), there is an amazing application of this topic! Here's how it connects..." If you are NOT comfortable with this happening, refrain from putting such information in the answers to these questions.
+
+<QuestionBox qid="Q1" title="Programming Language Experience">
+  What programming languages are you most comfortable with? Have you ever
+  explored the formal underpinnings of any language (type systems, formal
+  grammars, semantics)? If so, give me a brief insight into what you've
+  encountered. If not, what aspects of programming language design are you
+  most curious about?
+</QuestionBox>
+
+<QuestionBox qid="Q2" title="Mathematical Foundations Experience">
+  What is your previous experience with formal mathematics such as logic,
+  set theory, or proof techniques? Have you taken courses in discrete
+  mathematics, computability theory, or abstract algebra? Even if your
+  experience is limited, take a guess as to how you think mathematics
+  relates to programming language design!
+</QuestionBox>
+
+<QuestionBox qid="Q3" title="Graduate Study Goals">
+  As a graduate student, what are your academic or professional goals? Are
+  you pursuing research, industry work, or something else entirely? How do
+  you hope this course on programming language foundations might contribute
+  to those goals?
+</QuestionBox>
+
+<QuestionBox qid="Q4" title="Non-Tech Interest">
+  What is a non-tech related interest or hobby of yours? (I will use this
+  information during lecture to see if I can mention how course material
+  may tie into these interests or to help with brainstorming for the
+  creative experience optional homeworks!)
+</QuestionBox>
+
+<QuestionBox qid="Q5" title="Website Feedback">
+  Is there anything on the course site that you noticed is hard to engage
+  with or prevented you from easily accessing material? Is there anything
+  you'd like to see changed, added, or altered? (Think web design. I will
+  use any information you put here as an "Idea" jar for adding features to
+  the website)
+</QuestionBox>
+
+<QuestionBox qid="Q6" title="Additional Questions">
+  Do you have any additional questions about me or this course that you
+  came up with after class? (If you don't have any put something along the
+  lines of "N/A" or "Nope", don't leave it blank)
+</QuestionBox>
+
+Once you have completed all these questions, submit the answers to me on BrightSpace using the submission button at the top of this section!
+
+</WrittenSection>
+
+<ProgrammingSection
+  points={1}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=295659&db=384823"
+  githubClassroomUrl="https://classroom.github.com/a/icEd4iId"
+>
+
+For the programming section of this homework we will be getting used to the flow of receiving our code skeleton as a template repository from GitHub Classroom.
+
+The content of this homework will be to make a simple test pass. It is a very straightforward problem, since we are only trying to get familiar with the process of receiving, completing, and turning in HW.
+
+**NOTE!!!** Past this point make sure you are signed into the GitHub account you wish to use for schoolwork. If you have multiple, make sure you do not have the wrong one signed in as your account will be attached to my class from then on!
+
+### Instructions
+
+Since, via GitHub Classroom's rules, you are joining the class for the first time you will be prompted to identify yourself. It should be pre-populated with everyone's names and all you need to do is find yours and select it, then you can accept the HW assignment and it will automatically make a repository for you on GitHub. If you manage to select the wrong name it will bind you to that name, meaning you become that individual. If this happens on accident, email me so that I can unbind you from that name and you can try again. (Don't get this wrong otherwise you are violating LMU policy on classroom behavior! Remember? Nothing illegal, and this is Identity Fraud! Luckily I can bail you out, but I won't always be able to...)
+
+Once you've accepted the assignment, clone the repository locally to your device and use the IDE of your choice to complete the assignment. **Each homework's README will contain specific instructions on how to run, test, and interact with that particular assignment.** Since we will be using multiple programming languages throughout this course, the tooling and commands will vary—always consult the README first.
+
+Once you have completed the assignment, make sure to use your git commands to add your changes, commit them, and push them to the cloud repository so I can grade it! This is "turning in the code" to me so I can grade. However, as an extra step, go to Brightspace and find the "Programming" HW0 assignment and just turn in a small message as an indicator to me you are done! (I need you to do this so I can track what time YOU say you finished your HW! Otherwise, I might accidentally take points away thinking you turned it in on Sunday! Save those points!)
+
+You can find the GitHub Classroom assignment link and the Brightspace turn in link using the buttons at the top of this section.
+
+</ProgrammingSection>
+
+<OptionalSection
+  points={1}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=295659&db=384825"
+>
+
+The creative endeavor I'd like you to embark on for this homework is simple. Since this Homework has all been about you, I'd like you to submit to me something that represents your relationship with programming languages or formal systems.
+
+This could be anything: a screenshot of your favorite programming language's syntax that you find elegant, a diagram of a type system concept that fascinates you, a meme about language wars, a photo of a whiteboard covered in lambda calculus, a snippet of code that you're particularly proud of, or even just an image that captures how you feel about diving into the mathematical foundations of computation.
+
+Whatever it happens to be, give me a snapshot of it with no explanation. Just send a picture, a PDF, or whatever format Brightspace will let you turn in. Do this, and you get your special point!
+
+As a graduate course, I expect we'll have some fascinating discussions about programming language design throughout the semester. This optional homework is a small way to start building that community and understanding each other's perspectives.
+
+Submit your creative share using the submission button at the top of this section!
+
+</OptionalSection>
+
