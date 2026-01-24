@@ -189,6 +189,10 @@ const allEvents: CourseEvent[] = [
     lnTopics: ["Classical Logic", "Proofs"],
     contentUrl: "/cmsi-5850/ln2",
     recordings: [
+      {
+        name: "Class Recording",
+        url:"https://lmula.zoom.us/rec/share/NNKNOAikosL01lgb3KNjxoOKbD2wOsKLgmsvxntyoVag1SxnW7F0_PBhx65aFiYv.t_Kr2i8VXJLbUI-C"
+      }
     ],
   },
   {

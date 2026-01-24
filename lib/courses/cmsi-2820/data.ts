@@ -227,13 +227,9 @@ const allEvents: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ln3",
     recordings: [
       {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/oxiLgZxaAisLZyMTGM6xTv4-94B3EFDjMq5EVFZmyw1vJrcdS673xSf-uyKKZBFJ.rXdaBSVWCIl1rPsT",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/LV_VKhAAQjlzb6bFjxJXz2Vz6ttU-2kNJRdrIvsysGYleweYPu4fo5MmFqNpXxJq.mxszqiD1yaT8KECa",
-      },
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/CDuENn0Neh5GK3uy3znwAtKwLdVpXYWFRJMpwtXM1wxHUPN5sdH6rl-dhhIf7qPA.vst94jhbcrVepfai"
+      }
     ],
   },
   {
