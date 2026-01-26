@@ -1,0 +1,517 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap
+
+In LN2, we explored Rust's **Variables** and **Types**:
+
+- **Declaration Syntax** — How verbose syntax enables memory optimization
+- **Compiler Tools** — Built-in assistance for GC-less memory management
+- **Types and Memory** — How types determine where data is stored
+
+Today we'll see why strict rules alone aren't enough for real-world programming.
+
+---
+
+## Today's Agenda
+
+- **Memory Management** — Why Rust's approach is unique
+- **The Ownership System** — Single ownership and deallocation
+- **Borrowing** — Sharing without transferring ownership
+- **Functions** — How ownership interacts with function calls
+
+---
+
+## Memory Management
+
+Rust has no Garbage Collector—we handle memory management at compile time.
+
+In C, you manually allocate and free memory with `malloc` and `free`. Every allocation forces you to answer a new set of questions:
+
+- Is this the best time to allocate?
+- How much memory do I need?
+- How long do I need to keep this memory?
+- What happens if I don't free the memory before event X?
+- Will my dynamic object ever request additional memory in a way not captured by my hand-built allocation scheme?
+
+Beyond memory concerns, there's readability. Clean code is easier to debug—but how do you write *consistent* allocation patterns that don't sacrifice performance?
+
+> **🤔 The Dilemma:** The battle between optimization and readability is a constant one in C.
+
+### The Garbage Collection Alternative
+
+This is why the popular alternative is to use a **Garbage Collector** to manage memory for you.
+
+A GC handles memory events at runtime so you don't have to anticipate problems that may never occur—or that behave differently across hardware.
+
+### Rust's Approach
+
+Rust leverages mature formal reasoning: type systems that prove memory safety at compile time. If your code compiles, the compiler guarantees certain properties hold.
+
+> **📌 Key Point:** Take this to its extreme and you'll get a language that fights you at every corner on every line, but you'll be solving all these problems before anything is deployed so that when it is, you'll be confident everything works.
+
+---
+
+## The Ownership/Borrowing System
+
+Rust's solution recognizes a simple reality: **In stateful programming, all values are accessed through variables.**
+
+Since variables are the only way to refer to values, we can draw some very simple conclusions about the lifetime of values in memory:
+
+| Principle | Implication |
+| :--- | :--- |
+| Variable declarations create references to memory | This is when we should allocate |
+| Values must be accessible while the variable is referenceable | Memory must persist |
+| Once a variable is no longer referenceable | We can free the memory |
+
+This is simplified—variables can exist uninitialized—but the core principles hold. Since variables are the only way to reference anything, they should manage allocation and deallocation.
+
+### Why Not Just Use C's Approach?
+
+C and Python understand this principle—they just lack language-level enforcement. You *could* `malloc` after every declaration and `free` before each variable leaves scope, but knowing *when* a variable is truly done is hard.
+
+It's not always end-of-scope! What if multiple functions share a value? You'd need to track when *all* of them finish. What if objects share access? What if the context is dynamic? You simply can't know ahead of time.
+
+> **💡 Key Insight:** Rust's solution of tying allocation and deallocation of memory to where variables can be referenced turns memory management into a language problem. If we restrict our programs to only communicate in a manner that is safe for referencing variables, then we can ensure that memory is managed correctly.
+
+So all we have to do to manage memory in Rust is to set up our variables and reference them when we need them! That's it! The compiler will do the rest for us!
+
+---
+
+## Ownership
+
+<DefinitionBox term="Ownership">
+
+**Ownership** is the exclusive right to a value in memory. The owner is responsible for the value's lifetime—when the owner goes out of scope, the value is deallocated.
+
+</DefinitionBox>
+
+Variables made at declaration are always the initial owners of their values.
+
+```rust
+let x = 1;
+```
+
+In this case, `x` is the owner of the `i32` value `1`. When our `x` is no longer referenceable, the value `1` is no longer needed and can be freed.
+
+### The Single Owner Rule
+
+Every value in memory can have **exactly one owner** in Rust. The reason for this is so that we can always tie our deallocation to a specific variable.
+
+| Scenario | Problem |
+| :--- | :--- |
+| Multiple owners, free when first goes away | Memory freed too early! |
+| Multiple owners, don't free early | Back to tracking when *all* variables are done |
+
+So if we can only have one owner, then how do we share values between variables?
+
+If you're coming from Python—where everything is a reference—this matters. Rust can't let variables secretly share values; the deallocation scheme depends on explicit ownership.
+
+But sharing is *necessary* for efficient mutation!
+
+> **📌 Key Point:** We need a syntactic way to distinguish owners from borrowers.
+
+---
+
+## Borrowing
+
+<DefinitionBox term="Borrowing">
+
+**Borrowing** is temporary access to a value without taking ownership. A borrow is created using the `&` operator and must not outlive the owner.
+
+</DefinitionBox>
+
+Borrowing is a way to reference a value without owning it:
+
+```rust
+let x = 1;
+let y = &x;  // y borrows the value owned by x
+```
+
+In this case, `x` is the owner of the `i32` value `1` and `y` is a borrower of the value. We still need to tie our allocation and deallocation to the owner, however, now we can identify when sharing is happening. If we ever borrow a value beyond its lifetime, the compiler can alert us that the borrow is not safe and reject our code!
+
+> **💡 Key Insight:** Since it's at the language level, the compiler can even explicitly tell you when `y` can be used safely and when it cannot!
+
+### The Borrow Checker in Action
+
+```rust
+fn main() {
+    let x = String::from("hello");
+    let y = &x;
+    println!("y: {}", y);
+    drop(x);  // ✗ ERROR: The value is still being used below!
+    println!("y: {}", y);
+}
+```
+
+Here we can see that the compiler is smart enough to know that the value of `x` is still needed by `y` and so it errors out.
+
+### Mutable Borrowing
+
+So great! We can share values without worrying about memory management so much! But what about if we want to mutate the value? We can borrow mutably with the `&mut` operator:
+
+```rust
+fn main() {
+    let x = 1;
+    let y = &mut x;  // ✗ ERROR: cannot borrow immutable variable `x` as mutable!
+    *y = 2;
+    println!("y: {}", y);
+}
+```
+
+But as seen above, we are still safe from mutably borrowing something that someone else needs as immutable due to the verbose syntax of our variable declarations!
+
+### The Fix: Make the Owner Mutable
+
+The fix is simple—you just need to make the owner mutable! This way, everyone is on the same page about mutability, meaning that we can enforce that certain care needs to be taken when mutably borrowing a value so that other parts of our program are never relying on bad promises!
+
+```rust
+fn main() {
+    let mut x = 1;
+    let y = &mut x;
+    *y = 2;
+    println!("x: {}", x);  // Prints: 2
+}
+```
+
+> **💡 Key Insight:** We now have safe mutability and sharing by being explicit in the syntax. This significantly reduces the cognitive load by allowing the programmer to rely on the syntax to guide and remind them of the rules instead of keeping it all in mind!
+
+### Multiple Borrows
+
+Rust allows multiple immutable borrows, but only one mutable borrow at a time:
+
+```rust
+fn main() {
+    let s = String::from("hello");
+    let r1 = &s;
+    let r2 = &s;
+    println!("{} and {}", r1, r2);  // ✓ Both valid—multiple immutable borrows OK
+}
+```
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+    let r1 = &s;
+    let r2 = &mut s;  // ✗ ERROR: cannot borrow as mutable while also borrowed as immutable
+    println!("{}", r1);
+}
+```
+
+| Borrow Type | Allowed Simultaneously? |
+| :--- | :--- |
+| Multiple `&` (immutable) | ✓ Yes |
+| Single `&mut` (mutable) | ✓ Yes (alone) |
+| `&` and `&mut` together | ✗ No |
+| Multiple `&mut` | ✗ No |
+
+---
+
+## Moves
+
+<DefinitionBox term="Move">
+
+A **move** transfers ownership of a value from one variable to another. After a move, the original variable is invalidated and cannot be used.
+
+</DefinitionBox>
+
+With these rules in place, what can we say about the following program?
+
+```rust
+fn main() {
+    let x = String::from("hello");
+    let y = x;
+    println!("y: {}", y);
+}
+```
+
+This is not a borrow! But this program works without erroring. Why?
+
+Well, only having your owner tied statically to a single variable would mean that all your owners would need to be global—otherwise how would you access those values in other functions or objects? This is a valid but sad outcome for our memory management scheme as it would always make your memory allocations last for the entire program lifetime.
+
+> **🤔 The Problem:** We want our program to reduce its memory usage! Not increase it! We want our computations to stay within the memory footprint of our stack use as much as possible.
+
+### The Solution: Ownership Transfer
+
+The solution is to recognize that we can only have one owner of a value, but **no one ever said we couldn't have the value transferred from one owner to another!**
+
+In the program above, we had `x` as the owner of the String value "hello" but then we said via our declaration syntax a new "allocation" has to happen for `y`!
+
+We could simply copy all the memory from `x` to `y` but this would be a waste of time and memory (looking at you, C++!).
+
+Instead, we can transfer the ownership of the value to `y`! The memory/value is "moved" from `x` to `y` and `x` is no longer the owner of the value.
+
+```rust
+fn main() {
+    let x = String::from("hello");
+    let y = x;
+    println!("x: {}", x);  // ✗ ERROR: x is no longer the owner of the value!
+}
+```
+
+> ⚠️ **Warning:** Using `x` after the transfer is an error as it is no longer the owner of the value and is "empty." It's actually filled with "garbage"—memory that is no longer valid to use but still contains bits. You should never attempt to use garbage as it leads to undefined behavior and is a surefire way to introduce bugs and security vulnerabilities (C and C++ are notorious for this since they can't prevent you from accessing garbage at the language level)!
+
+### Copy vs. Move: A Side Tangent
+
+This is actually a very interesting problem to discuss: when is the right time to copy? C++ has Copy and Move semantics just like Rust does, but C++ has Copy prioritized first over memory Moves whilst Rust is the other way around!
+
+| Language | Default Behavior | Philosophy |
+| :--- | :--- | :--- |
+| **C++** | Copy first, move if explicit | "Preserve the original by default" |
+| **Rust** | Move first, copy if `Copy` trait | "Transfer ownership by default" |
+
+Each has their own strengths and weaknesses. However, neither will hold you back from writing the best code—you just have to be aware of when copies occur and when moves do!
+
+### The Copy Trait
+
+Primitive types in Rust implement the `Copy` trait, which means they are duplicated instead of moved:
+
+```rust
+fn main() {
+    let x = 5;
+    let y = x;
+    println!("x: {}, y: {}", x, y);  // ✓ Both valid! i32 is Copy
+}
+```
+
+| Type | Behavior on Assignment |
+| :--- | :--- |
+| Primitives (`i32`, `f64`, `bool`, `char`) | Copy |
+| Fixed-size arrays of Copy types | Copy |
+| `String`, `Vec<T>`, `Box<T>` | Move |
+| References (`&T`) | Copy (copies the reference, not the value) |
+
+---
+
+## Summary So Far
+
+Before we add any more complexity, let's recap what we've seen:
+
+| Concept | What It Does | Syntax |
+| :--- | :--- | :--- |
+| **Ownership** | Exclusive control of a value | `let x = value;` |
+| **Borrowing** | Temporary shared access | `let y = &x;` |
+| **Mutable Borrow** | Temporary exclusive access | `let y = &mut x;` |
+| **Move** | Transfer ownership | `let y = x;` |
+
+This means moving forward we need to track when the following occurs:
+
+- **Owners:** when a variable is the owner of a value
+- **Borrowers:** when a variable is borrowing a value
+- **Moves:** when a value is transferred from one variable to another
+
+---
+
+## Functions
+
+Functions are a way to group together a set of instructions that can be called later. Here in Rust, they act as explicit times to consider moves and shares of our values.
+
+### Function Syntax Review
+
+```rust
+fn function_name(param: Type) -> ReturnType {
+    // body
+}
+```
+
+| Part | Description |
+| :--- | :--- |
+| `fn` | Keyword to declare a function |
+| `function_name` | The identifier for the function |
+| `param: Type` | Parameters with explicit types |
+| `-> ReturnType` | Return type (omit for unit `()`) |
+
+### Ownership and Function Calls
+
+When you pass a value to a function, **ownership transfers** to the function parameter:
+
+```rust
+fn main() {
+    let s = String::from("hello");
+    takes_ownership(s);
+    // println!("{}", s);  // ✗ ERROR: s was moved into the function
+}
+
+fn takes_ownership(s: String) {
+    println!("{}", s);
+}  // s is dropped here—memory freed
+```
+
+> **📌 Key Point:** After calling `takes_ownership(s)`, the variable `s` in `main` is invalidated. The function now owns the String, and when the function ends, the String is deallocated.
+
+### Primitives Are Copied
+
+Remember that primitive types implement `Copy`, so they are duplicated when passed to functions:
+
+```rust
+fn main() {
+    let x = 5;
+    makes_copy(x);
+    println!("{}", x);  // ✓ Still valid! i32 is Copy
+}
+
+fn makes_copy(x: i32) {
+    println!("{}", x);
+}
+```
+
+### Returning Ownership
+
+Functions can return ownership to the caller:
+
+```rust
+fn main() {
+    let s1 = gives_ownership();         // s1 receives ownership
+    let s2 = String::from("hello");
+    let s3 = takes_and_gives_back(s2);  // s2 moved in, s3 receives it back
+    // s2 is invalid here, but s1 and s3 are valid
+}
+
+fn gives_ownership() -> String {
+    String::from("yours")  // Ownership returned to caller
+}
+
+fn takes_and_gives_back(s: String) -> String {
+    s  // Ownership returned to caller
+}
+```
+
+| Function Pattern | Ownership Flow |
+| :--- | :--- |
+| `fn f(x: T)` | Caller → Function (moved) |
+| `fn f() -> T` | Function → Caller (returned) |
+| `fn f(x: T) -> T` | Caller → Function → Caller |
+
+### Borrowing in Function Parameters
+
+What if we want to use a value in a function but keep ownership? **Pass a reference!**
+
+```rust
+fn main() {
+    let s = String::from("hello");
+    let len = calculate_length(&s);  // Pass a reference
+    println!("Length of '{}' is {}", s, len);  // ✓ s is still valid!
+}
+
+fn calculate_length(s: &String) -> usize {
+    s.len()
+}  // s goes out of scope, but doesn't drop—it doesn't own the value
+```
+
+> **💡 Key Insight:** By passing `&s` instead of `s`, we let the function borrow the value temporarily. When the function returns, we still have ownership!
+
+### Mutable References in Functions
+
+If a function needs to modify the value, pass a mutable reference:
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+    change(&mut s);
+    println!("{}", s);  // Prints: "hello, world"
+}
+
+fn change(s: &mut String) {
+    s.push_str(", world");
+}
+```
+
+> ⚠️ **Remember:** You can only have one mutable reference at a time, even across function boundaries!
+
+### Function Parameter Summary
+
+| Parameter Type | Syntax | Ownership | Can Modify? |
+| :--- | :--- | :--- | :--- |
+| By value | `fn f(x: T)` | Transferred to function | Yes (if `mut`) |
+| By reference | `fn f(x: &T)` | Borrowed | No |
+| By mutable reference | `fn f(x: &mut T)` | Borrowed | Yes |
+
+### A Complete Example
+
+Let's see all these concepts working together:
+
+```rust
+fn main() {
+    // Ownership starts here
+    let mut message = String::from("Hello");
+    
+    // Borrow immutably to read
+    print_message(&message);
+    
+    // Borrow mutably to modify
+    append_world(&mut message);
+    
+    // Still own it—can use it
+    println!("Final: {}", message);
+    
+    // Transfer ownership
+    consume_message(message);
+    
+    // message is now invalid
+    // println!("{}", message);  // ✗ ERROR: value moved
+}
+
+fn print_message(s: &String) {
+    println!("Message: {}", s);
+}
+
+fn append_world(s: &mut String) {
+    s.push_str(", World!");
+}
+
+fn consume_message(s: String) {
+    println!("Consuming: {}", s);
+}  // s is dropped here
+```
+
+---
+
+## The Three Rules of Ownership
+
+To summarize everything we've learned:
+
+| Rule | Description |
+| :--- | :--- |
+| **1. Single Owner** | Each value has exactly one owner at a time |
+| **2. Scope = Lifetime** | When the owner goes out of scope, the value is dropped |
+| **3. Transfer or Borrow** | Ownership can be moved or temporarily borrowed |
+
+These three simple rules, enforced at compile time, give Rust its memory safety guarantees without a garbage collector!
+
+---
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+- **Ownership** ensures every value has exactly one owner—simplifying deallocation
+- **Borrowing** allows temporary access without taking ownership (`&` for immutable, `&mut` for mutable)
+- **Moves** transfer ownership; the original variable becomes invalid
+- **Copy types** (primitives) are duplicated instead of moved
+- **Functions** participate in ownership: parameters can take or borrow values
+- **References** let functions read/modify data without claiming ownership
+
+**Quick Reference:**
+
+| Operation | Syntax | Effect |
+| :--- | :--- | :--- |
+| Own | `let x = value;` | x owns value |
+| Move | `let y = x;` | y owns, x invalid |
+| Borrow | `let y = &x;` | y borrows, x still owns |
+| Mutable Borrow | `let y = &mut x;` | y can modify, x still owns |
+| Function (take) | `fn f(x: T)` | Ownership transferred |
+| Function (borrow) | `fn f(x: &T)` | Borrowed, returned after |
+
+</LectureNotes>
+
+<LectureResources>
+
+- [The Rust Book: Ownership](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) — Official guide to ownership
+- [The Rust Book: References and Borrowing](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html) — Deep dive into borrowing
+- [Rust by Example: Ownership](https://doc.rust-lang.org/rust-by-example/scope/move.html) — Interactive ownership examples
+- [Visualizing Memory Layout](https://cheats.rs/#memory-layout) — Rust memory cheat sheet
+
+</LectureResources>
