@@ -1,0 +1,445 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Today's Agenda
+
+We begin a new standard for the course! For the next two weeks, we'll be going back to grade school to explore numbers.
+
+- **Mathematical Foundations** — The quest to unify all of mathematics
+- **Set, Type, and Category Theory** — Three approaches to the same goal
+
+---
+
+## A Lesson from History
+
+Before we dive into the mathematics of numbers, we need to understand the history of *founding* mathematics itself.
+
+While the practical history of mathematics stretches back thousands of years, its theoretical foundations are much more recent.
+
+Mathematicians understood that their field was a collection of disparate areas—Geometry, Algebra, Calculus, Number Theory—each with its own rules and principles. But a troubling question emerged: **How could we know these fields were consistent with each other?**
+
+Was Geometry consistent with Algebra? Were the links between graphical representations of equations and algebraic substitution rules discussing the same underlying concepts?
+
+> **💡 Key Insight:** If all mathematics *were* consistent, then every separate field could be a reflection of some deeper underlying structure! The elegant connections between geometry and algebra might just be glimpses of something we hadn't yet discovered.
+
+This possibility had enormous implications:
+- Could you use calculus to solve a logic problem?
+- Could group theory illuminate problems in physics?
+- If all fields were connected and we *still* couldn't link some together, that would prove a fundamental difference between them!
+
+At the time, mathematicians didn't know if such a unifying link existed—but if it did, it would be revolutionary.
+
+So in the 1800s, mathematicians began asking: **Can all of mathematics be unified into a single, comprehensive system?**
+
+Many techniques were attempted. We'll focus on three major systems that emerged and are still used today: **Set Theory**, **Type Theory**, and **Category Theory**.
+
+### Set Theory
+
+<DefinitionBox term="Set Theory">
+
+A foundational system for mathematics based on the idea that **everything can be built from sets**—unordered collections of objects with no duplicate elements.
+
+</DefinitionBox>
+
+The formal beginnings of Set Theory trace back to **Georg Cantor** in the 1870s. Before Cantor, sets were used informally to describe collections of objects. He was one of the first to make sets rigorous, using them to define and describe the *size* of infinite sets.
+
+Much of Set Theory's modern development was catalyzed by **Bertrand Russell** and **Alfred North Whitehead** in their monumental work, the *Principia Mathematica*.
+
+> **⚠️ Important:** By this point, mathematicians had discovered paradoxes that threatened the system's consistency. Russell and Whitehead introduced *types* as a way to avoid these paradoxes—giving rise to Type Theory (more on this shortly).
+
+But first, what was Set Theory's core idea?
+
+The premise was both enticing and radical: **Could we encode all of mathematics using only one primitive structure?**
+
+That structure was the **set**. (We'll explore sets in detail during the Collections standard.)
+
+If this worked, you'd only ever need to understand a single structure and its operations to understand *all* of mathematics!
+
+> **🤔 Consider this:** To appreciate how radical this idea is, note that we don't accept numbers as basic primitives here. No decimals, no fractions, no integers, no negatives—*nothing*. We would have to *build* numbers from sets if we wanted to use them.
+
+The goal: if we could construct all foundational primitives using only sets, we'd have unified mathematics! Everything else would follow from existing mathematical research.
+
+So how did Russell and Whitehead fare? The *Principia Mathematica* was a monumental achievement, but also a work in progress. It went through many revisions as the mathematical community provided feedback.
+
+Set Theory continued to evolve and spread, eventually becoming the **most widely accepted foundation for mathematics today**.
+
+However, Set Theory would not be the *only* foundation for mathematics.
+
+---
+
+### Type Theory
+
+<DefinitionBox term="Type Theory">
+
+A foundational system based on **classifying mathematical primitives into categories called Types**. Types are understood through the instances that inhabit them.
+
+</DefinitionBox>
+
+Russell and Whitehead developed a *hierarchy of types* to organize sets and prevent the paradoxes plaguing Set Theory. In the final release of the *Principia Mathematica*, they formalized the first system of Type Theory.
+
+Interestingly, other mathematicians later simplified this system—Russell and Whitehead had overcomplicated it! This simpler type system became the foundation for modern computer science type systems as we know them.
+
+> **📌 Key Point:** Type Theory became the bedrock of computer science through its use by **Alonzo Church** and **Alan Turing** in their work on the **Lambda Calculus**.
+
+Type Theory classifies mathematical primitives into categories called **Types**. These types are *constructed by the instances they contain*. For example, the Natural Numbers form a type inhabited by 1, 2, 3, 4, 5, and so on.
+
+| Aspect | Set Theory | Type Theory |
+| :--- | :--- | :--- |
+| Core primitive | Everything is a set | Types can be introduced as needed |
+| Flexibility | Build from one structure | Add new primitives if well-formed |
+| Paradox avoidance | External patches | Built into the hierarchy |
+
+Church used types to avoid paradoxes in his work on the Pure Lambda Calculus, creating the **Simply Typed Lambda Calculus**. This system became the basis for how modern machines model computation through functional programming.
+
+> **💡 Key Insight:** This is why modern machines can check our programs for errors *before we even run them*!
+
+Type Theory continued to evolve. Thanks to the work of **Curry and Howard**, a major link was discovered between Logic and Functional Type Theory. Modern Type Theory can perform logic on its own—without needing a separate logical system—while directly modeling how we perform computation.
+
+This led to the development of **automated proving systems** that can verify program correctness without human intervention.
+
+While Set Theory and Type Theory have an intertwined history, they weren't the only systems worth investigating for founding mathematics.
+
+---
+
+### Category Theory
+
+<DefinitionBox term="Category Theory">
+
+A foundational system based on **categories** (collections of objects and morphisms between them) and **functors** (structure-preserving mappings between categories).
+
+</DefinitionBox>
+
+Category Theory is the youngest of the three systems. It was initially developed to describe relationships and solve problems in algebraic topology—not as a mathematical foundation at all!
+
+It wasn't until the 1960s that Category Theory received a link to Logic, catalyzing its development as a foundation for mathematics.
+
+| Concept | Definition |
+| :--- | :--- |
+| **Category** | A collection of objects and morphisms (arrows) between them |
+| **Morphism** | A transformation from one object to another |
+| **Functor** | A mapping between categories that preserves structure |
+
+This system elegantly models how functional and stateless programming systems work: describing how an item can be transformed into another item by a function.
+
+> **💡 Key Insight:** Chaining functions together creates a well-formed "conveyor belt" of operations. Category Theory can describe and prove properties of large parallel systems organized as pipelines.
+
+---
+
+### Summary: Which Foundation Do We Use?
+
+The work we do in this course is about **operationalizing these theoretical foundations**—creating a system we can hand over to a computer so it can handle any math problems we throw at it!
+
+So which foundation do we use? Here's the trade-off:
+
+| Foundation | Strengths | Limitations |
+| :--- | :--- | :--- |
+| **Set Theory** | Oldest, most widely accepted | Doesn't map well to modern machines |
+| **Category Theory** | Excellent for parallel systems, pipelines | Youngest, less accessible, steep learning curve |
+| **Type Theory** | Maps directly to computation, enables error-checking | Less traditional in pure mathematics |
+
+> **📌 Our Choice:** Type Theory is the foundation for modern computer science type systems, maps well to our machines, and has just enough work for us to use it in a simplified manner for this course!
+
+Moving forward, we'll organize what would normally be done in Set Theory into Type Theory (where appropriate). You'll still get a strong foundation in Set Theory, but organized around Type Theory to make it more accessible to your Python homework!
+
+With that context, let's begin with a formal introduction to Type Theory!
+
+---
+
+## A Formal Introduction to Type Theory
+
+Since we built our foundation on Intuitionistic Logic (rather than Classical Logic), we'll use a **Constructive perspective** to define our Type Theory.
+
+This means our focus is on **instances proving the existence of a type**, rather than types proving the existence of instances.
+
+> **🤔 Philosophical Connection:** This mirrors the distinction we discussed in logic! Classical Logic has an "omnipotent" perspective—it always knows whether something is true or false. Intuitionistic Logic has a limited perspective—we only know something is true or false if we can *prove* it.
+
+Consider what it would mean for a Type to come *before* its instances. You'd have to be a god of sorts, constructing a blueprint for something that doesn't exist yet!
+
+But if instances come *before* their Type, then we can only *discover* Types by finding patterns among already-existing things and proving the blueprint is real.
+
+See the connection to our logic?
+
+### The Fundamental Statement
+
+<DefinitionBox term="Type Judgment">
+
+The notation **\(a : A\)** means "a is an instance of the Type A."
+
+Connecting to our logic (thanks, Curry and Howard!): **\(a\) is a proof of the proposition/type \(A\)**.
+
+</DefinitionBox>
+
+Let's see this pattern with some examples:
+
+| Instance | Type |
+| :--- | :--- |
+| `1` | Number |
+| `2` | Number |
+| `3` | Number |
+| `"dog"` | String |
+| `"cat"` | String |
+| `True` | Boolean |
+| `False` | Boolean |
+| `0.3` | Rational |
+
+### Multiple Type Membership
+
+In formal Type Theory, instances belong to *exactly one* type—that's how it avoids Set Theory's paradoxes. However, in our simplified course (and in modern programming), we'll allow instances to belong to **multiple types**, reflecting flexible type systems like those in Object-Oriented Programming.
+
+So while \(1\) proves that Numbers exist, it could also prove the existence of Naturals, Integers, or Rationals:
+
+| Instance | Possible Types |
+| :--- | :--- |
+| `1` | Natural, Integer, Rational, Number |
+| `"dog"` | String, Animal, Pet |
+| `"cat"` | String, Animal, Menace |
+
+### The Power of Type Distinctions
+
+The core idea of Type Theory is to draw **well-formed distinctions** between types. When we encounter an instance "in the wild," we can know:
+- Exactly **what it is**
+- Its **valid operations**
+- How it **relates to other types**
+
+> **💡 Key Insight:** This gives us a contextual way to reason about the valid ordering of operations and anticipate their results!
+
+---
+
+### Type-Driven Reasoning: An Example
+
+Let's see this in action with a problem:
+
+**Find \(x\) such that the proposition is True:**
+
+$$10 > x > 3$$
+
+What should \(x\) be? 12? 4? 72?
+
+Here's what probably happened in your mind:
+1. You guessed **numbers** initially
+2. You started thinking about **magnitudes**
+3. You filtered down to a **single number** that works
+
+That process *is* Type Theory reasoning! Let's deconstruct it:
+
+| Step | Your Reasoning | Type Theory Explanation |
+| :--- | :--- | :--- |
+| 1. Numbers only | You knew \(>\) only compares numbers | The operator's **domain** is Number |
+| 2. Magnitudes | You considered ordering | The \(>\) operator uses Number's **ordering property** |
+| 3. Find a solution | You picked one valid instance | One instance suffices to prove the proposition |
+
+You also implicitly recognized that the \(>\) operator takes two numeric arguments and returns a Boolean!
+
+> **📌 Key Point:** All of that is reasoning based on *type distinctions*. That's Type Theory in action!
+
+What's beautiful is that this mirrors how humans naturally think—we *want* to categorize and label things to reason about them more easily. Now we can do it formally!
+
+### Reverse Engineering with Types
+
+Let's flip this around. What if I gave you *different* type information?
+
+**What if the \(>\) operator could also accept a String argument?**
+
+**Find \(x\) such that the proposition is True:**
+
+$$10 > x > 3$$
+
+Now your reasoning changes! If \(x\) could be a String, maybe the operator compares *lengths*. In that case, `"Hotdog"` (length 6) would work!
+
+| Scenario | Type of \(x\) | Type Notation |
+| :--- | :--- | :--- |
+| Original | Number | `x : Number` |
+| Extended | Number or String | `x : Number \| String` |
+
+> **💡 Key Insight:** Type Theory lets us filter reasoning *before we even start solving*! A computer using this as its foundation can immediately narrow down to only the valid tools for the instances at hand.
+
+### Why Type Errors Exist
+
+This is exactly why modern systems throw **type errors**—they're complaints that we're trying to manipulate an instance that doesn't support the operation we're attempting!
+
+> **📌 Takeaway:** As we move through this course, ask yourself about the type information of a problem and how it can help you reason *before* you start solving. This parallels how Natural Deduction used our Logical Connectives—operators hold valuable information about the context of the problem!
+
+---
+
+## Type Theory in Python
+
+Now let's connect these ideas directly to Python! You've been using types all along—Python just hasn't always been explicit about it.
+
+### Python's Type System
+
+Python is **dynamically typed**, meaning type checking happens at *runtime* rather than *compile time*. But types absolutely exist!
+
+```python
+# Python knows the types of these values
+x = 42          # x : int
+y = 3.14        # y : float
+name = "Alice"  # name : str
+flag = True     # flag : bool
+
+# You can check types at runtime
+print(type(x))      # <class 'int'>
+print(type(name))   # <class 'str'>
+```
+
+### Type Annotations: Making Types Explicit
+
+Modern Python (3.5+) lets us add **type annotations**—making our Type Theory reasoning visible in code:
+
+```python
+# Without annotations (types are implicit)
+def add(a, b):
+    return a + b
+
+# With annotations (types are explicit)
+def add(a: int, b: int) -> int:
+    return a + b
+```
+
+The annotated version reads as a **type judgment**: "add takes two ints and returns an int."
+
+| Type Theory | Python Annotation |
+| :--- | :--- |
+| `a : int` | `a: int` |
+| `f : int → int` | `def f(x: int) -> int` |
+| `x : int \| str` | `x: int \| str` (Python 3.10+) |
+
+### Type Errors in Action
+
+Remember why type errors exist? Let's see Python catch one:
+
+```python
+def greet(name: str) -> str:
+    return "Hello, " + name
+
+# This works - str + str is valid
+greet("Alice")  # Returns "Hello, Alice"
+
+# This fails at runtime - int doesn't support string concatenation
+greet(42)  # TypeError: can only concatenate str (not "int") to str
+```
+
+Python's error message is *exactly* what Type Theory predicts: the `+` operator for strings doesn't have `int` in its domain!
+
+### Multiple Types: Union Types
+
+Remember our `x : Number | String` example? Python expresses this with **Union types**:
+
+```python
+from typing import Union
+
+# x can be either an int or a str
+def process(x: Union[int, str]) -> str:
+    if isinstance(x, int):
+        return f"Number: {x}"
+    else:
+        return f"String: {x}"
+
+# Both calls are valid
+process(42)       # "Number: 42"
+process("hello")  # "String: hello"
+
+# Python 3.10+ simplified syntax
+def process(x: int | str) -> str:
+    ...
+```
+
+### Type Hierarchies: Inheritance as Subtyping
+
+Our table showing \(1\) belonging to Natural, Integer, and Rational maps directly to Python's class hierarchy:
+
+```python
+# A Dog is an Animal (subtyping relationship)
+class Animal:
+    def speak(self) -> str:
+        return "..."
+
+class Dog(Animal):
+    def speak(self) -> str:
+        return "Woof!"
+
+class Cat(Animal):
+    def speak(self) -> str:
+        return "Meow!"
+
+# Functions accepting Animal can receive Dog or Cat
+def make_speak(animal: Animal) -> str:
+    return animal.speak()
+
+make_speak(Dog())  # "Woof!" - Dog : Animal ✓
+make_speak(Cat())  # "Meow!" - Cat : Animal ✓
+```
+
+> **💡 Key Insight:** In Type Theory terms, `Dog` is a **subtype** of `Animal`. Any instance of `Dog` can be used wherever an `Animal` is expected!
+
+### Practical Type Checking with mypy
+
+Python has a tool called **mypy** that performs static type checking—catching errors *before* you run the code:
+
+```python
+# save as example.py
+def double(x: int) -> int:
+    return x * 2
+
+result = double("oops")  # This is a type error!
+```
+
+Running `mypy example.py` catches the error:
+
+```
+example.py:5: error: Argument 1 to "double" has incompatible type "str"; expected "int"
+```
+
+This is Type Theory's promise realized: **automated reasoning about program correctness**!
+
+### Summary: From Theory to Practice
+
+| Type Theory Concept | Python Implementation |
+| :--- | :--- |
+| Type judgment \(a : A\) | `a: A` annotation |
+| Union type \(A \mid B\) | `A \| B` or `Union[A, B]` |
+| Function type \(A \to B\) | `Callable[[A], B]` or `def f(x: A) -> B` |
+| Subtyping | Class inheritance |
+| Type checking | `mypy`, `pyright`, IDE support |
+| Instance check | `isinstance(x, Type)` |
+
+> **📌 Final Thought:** Every time you write a type annotation in Python, you're writing a **proposition**. Every time Python (or mypy) accepts your program, it's verifying your **proof**. That's the Curry-Howard correspondence at work in your everyday coding!
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Set Theory** — A foundational system where everything is built from sets
+- **Type Theory** — A foundational system based on classifying primitives into types
+- **Category Theory** — A foundational system based on objects and structure-preserving morphisms
+- **Type Judgment** — The notation \(a : A\) meaning "a is an instance of type A"
+
+**The Three Foundations Compared:**
+
+| Foundation | Core Idea | Strength |
+| :--- | :--- | :--- |
+| Set Theory | Everything is a set | Most widely accepted |
+| Type Theory | Types classify instances | Maps to computation |
+| Category Theory | Objects and morphisms | Parallel systems |
+
+**Type Theory in Python:**
+
+- Python is dynamically typed but supports type annotations
+- Union types express "or" relationships: `int | str`
+- Inheritance creates subtype relationships
+- Tools like `mypy` perform static type checking
+
+</LectureNotes>
+
+<LectureResources>
+
+- [Stanford Encyclopedia: Type Theory](https://plato.stanford.edu/entries/type-theory/) — Philosophical overview of type theory
+- [Python Type Hints Cheat Sheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html) — Quick reference for Python typing
+- [mypy Documentation](https://mypy.readthedocs.io/) — Static type checker for Python
+- [Principia Mathematica (Wikipedia)](https://en.wikipedia.org/wiki/Principia_Mathematica) — Historical context on Russell and Whitehead's work
+
+</LectureResources>

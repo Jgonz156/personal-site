@@ -266,14 +266,6 @@ const allEvents: CourseEvent[] = [
     standard: "Numbers",
     contentUrl: "/cmsi-2820/ln4",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/Lb_LZ6WOZs0MeuUwCf3A2e5KF_wWmbRbroBfHzOGlq24qXRW20mUK1cHQhOAF9fR.eq0ZcPNFLnjraHsI",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/QVGQu1SAebQejVLFWSnpIx6O3QQhlw19knqVimXvHLh81fICquV7ZYTooKdf341J.s0AYbvthUbK33CB-",
-      },
     ],
   },
   {
@@ -287,14 +279,6 @@ const allEvents: CourseEvent[] = [
     standard: "Numbers",
     contentUrl: "/cmsi-2820/ln5",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/rtu2cddWBUsCvvN5ql0XY9wlIgwWckxumi3wvjv1bETt9I-AEeTt_v-tHavCq_Jj.GJpvl1qwfq7kdk1W",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/e9EbKJF21fd8PfnyR4uJolVh4MSga_zbFwcIk6atPhAb3fIalkw5Ey25G9V0MbJl.np-_-OvGtieC8mhs",
-      },
     ],
   },
   {
@@ -308,14 +292,6 @@ const allEvents: CourseEvent[] = [
     standard: "Numbers",
     contentUrl: "/cmsi-2820/ln6",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/EOGh2fRn4DqTeVaDBjf_a5gDckGumvDOUDNnw-dCSq4io_la_2zH_Ht-k4rHClQ8.Uf5ihc5X5EKLwa1P",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/h9nvLsxLLjsimH3GVHydgT7P2ogHm4rasBnTMLUbo0RhH-qSZ5-64JpGJlX6i8Bw.741pQDhxkpElX9lO",
-      },
     ],
   },
   {
@@ -330,14 +306,7 @@ const allEvents: CourseEvent[] = [
     standard: "Numbers",
     contentUrl: "/cmsi-2820/ln7",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/WuP8OV8CPZ6rl0sWZGfj7Cld1pv9m32sbwb0H_g6L1XCqDOaenAyvvDgkCB8iJV-.H6jC25aM85O4F9Z0",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/ElRucWr1E9XN-gKUKj3HIf0ZCMyk5CGt1ax8mfEapf1XS198HeNUxoy5dQlIqWt9.ddUMoiyR49zSo3Rl",
-      },
+      
     ],
   },
   {
