@@ -183,7 +183,10 @@ const allEvents: CourseEvent[] = [
     standard: "Concurrent Programming",
     contentUrl: "/cmsi-3510/ln3",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/Z8bkJ-O_FUOA502wnvOiO8Z6S6bYp1VPgqSupvmYCkKLftFmScg9BmoHvc80yDwx.PyCum_G79_cLg9B3"
+      }
     ],
   },
   {
