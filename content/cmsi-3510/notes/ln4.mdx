@@ -1,0 +1,1256 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap
+
+In LN3, we explored the **Ownership System** in Rust and how it manages memory.
+
+- **Single Owner** — Each value has exactly one owner at a time
+- **Scope = Lifetime** — When the owner goes out of scope, the value is dropped
+- **Transfer or Borrow** — Ownership can be moved or temporarily borrowed
+
+Today we'll explore how these concepts extend into one of the most valuable parts of Rust: its functions!
+
+---
+
+## Today's Agenda
+
+- **Pass-by-Value vs Pass-by-Reference** — How ownership interacts with function calls
+- **Function Declaration Syntax** — Anatomy of a Rust function
+- **Closures** — Anonymous functions and environment capture
+- **Associated Functions and Methods** — Organizing functions with structs
+- **Diverging Functions** — Functions that never return
+- **Higher-Order Functions** — Functions as first-class values
+- **Dynamic Dispatch** — Runtime polymorphism with `dyn`
+
+---
+
+## Pass-by-Value vs Pass-by-Reference
+
+Before diving into functions, let's connect ownership to the traditional "pass-by" terminology.
+
+### Pass by Value
+
+A function **passes by value** when it receives its own copy of the data, stored in its stack frame.
+
+In Rust, this happens two ways:
+
+| Mode | What Happens | Original Variable | Memory |
+| :--- | :--- | :--- | :--- |
+| **Move** | Ownership transfers to the function | Invalid after call | Same allocation |
+| **Copy** | Value is duplicated into the function | Still valid | Doubles temporarily |
+
+- **Move**: The parameter becomes the new owner. When the function returns, the value is dropped.
+- **Copy**: Types implementing `Copy` (primitives, small structs) are duplicated automatically. The caller keeps their copy.
+
+Pass-by-value is Rust's default.
+
+> **🤔 When does pass-by-value help memory footprint?**
+>
+> For **small values** (like integers, floats, or small structs), pass-by-value can actually use *less* memory and be faster than pass-by-reference because:
+> - References are 8 bytes on 64-bit systems—larger than many primitive values!
+> - Values can live directly in CPU registers, avoiding memory access entirely
+> - No pointer dereferencing means better cache performance
+
+#### Example: When Pass-by-Value Wins
+
+Consider a `Color` struct representing an RGBA color:
+
+```rust
+#[derive(Clone, Copy)]  // Small enough to copy cheaply
+struct Color {
+    r: u8,  // 1 byte
+    g: u8,  // 1 byte
+    b: u8,  // 1 byte
+    a: u8,  // 1 byte
+}           // Total: 4 bytes
+
+// Pass by VALUE: The 4-byte Color is copied directly
+fn brighten(mut color: Color, amount: u8) -> Color {
+    color.r = color.r.saturating_add(amount);
+    color.g = color.g.saturating_add(amount);
+    color.b = color.b.saturating_add(amount);
+    color  // Return the modified copy
+}
+
+// Pass by REFERENCE: Requires an 8-byte pointer + indirection
+fn brighten_ref(color: &Color, amount: u8) -> Color {
+    Color {
+        r: color.r.saturating_add(amount),  // Dereference needed
+        g: color.g.saturating_add(amount),
+        b: color.b.saturating_add(amount),
+        a: color.a,
+    }
+}
+```
+
+| Approach | Data Passed | Memory on Stack | Indirection? |
+| :--- | :--- | :--- | :--- |
+| Pass by Value | 4 bytes (the Color) | 4 bytes | No—direct register access |
+| Pass by Reference | 8 bytes (the pointer) | 8 bytes + original 4 bytes elsewhere | Yes—must dereference |
+
+For a single call, the difference is negligible. But imagine processing **millions of pixels** in an image:
+
+```rust
+fn process_image(pixels: Vec<Color>) -> Vec<Color> {
+    pixels.into_iter()
+        .map(|pixel| brighten(pixel, 10))  // Each pixel: 4 bytes copied
+        .collect()
+}
+```
+
+With pass-by-value, the compiler can often keep `pixel` entirely in CPU registers—never touching main memory. With references, every access requires a memory read.
+
+> **📌 Rule of Thumb:** If your type is **≤ 16 bytes** and implements `Copy`, pass by value. For larger types, use references.
+
+---
+
+### Pass by Reference
+
+A function is said to "pass by reference" when it receives a **pointer** to data owned elsewhere, rather than taking ownership of the data itself.
+
+In Rust, references come in two flavors:
+
+- **Immutable Reference (`&T`)**: Read-only access to the data. Multiple immutable references can coexist.
+- **Mutable Reference (`&mut T`)**: Read-write access to the data. Only one mutable reference can exist at a time (no other references allowed).
+
+> **🤔 When does pass-by-reference help memory footprint?**
+>
+> For **large values** (like vectors, strings, or structs with many fields), pass-by-reference is dramatically better because:
+> - Only an 8-byte pointer is passed, regardless of data size
+> - No copying—the original data stays in place
+> - No additional allocation or deallocation overhead
+> - The caller retains ownership (no need to return the value back)
+
+#### Example: When Pass-by-Reference Wins
+
+Consider a `Document` struct representing a text file in memory:
+
+```rust
+struct Document {
+    title: String,           // 24 bytes (String is ptr + len + capacity)
+    author: String,          // 24 bytes
+    content: Vec<String>,    // 24 bytes + heap data (could be megabytes!)
+    metadata: [u8; 256],     // 256 bytes
+}                            // Total: 328+ bytes (plus heap allocations)
+
+// Pass by VALUE: Copies 328+ bytes AND clones all heap data!
+fn word_count_value(doc: Document) -> usize {
+    doc.content.iter()
+        .map(|line| line.split_whitespace().count())
+        .sum()
+}
+
+// Pass by REFERENCE: Only passes an 8-byte pointer
+fn word_count_ref(doc: &Document) -> usize {
+    doc.content.iter()
+        .map(|line| line.split_whitespace().count())
+        .sum()
+}
+```
+
+| Approach | Data Passed | Memory Cost | Ownership |
+| :--- | :--- | :--- | :--- |
+| Pass by Value | 328+ bytes + heap clones | Potentially megabytes | Transferred to function |
+| Pass by Reference | 8 bytes (pointer) | 8 bytes total | Retained by caller |
+
+The difference becomes critical when working with real documents:
+
+```rust
+fn analyze_library(books: &Vec<Document>) -> LibraryStats {
+    // Without the &, this would CLONE the entire vector of documents!
+    // With a library of 10,000 books, that could be gigabytes of copying.
+    
+    LibraryStats {
+        total_books: books.len(),
+        total_words: books.iter().map(|b| word_count_ref(b)).sum(),
+        avg_length: calculate_avg_length(books),  // Also borrows
+    }
+}
+```
+
+> **💡 Key Insight:** Pass-by-reference lets you "look at" data without owning it. This is essential for:
+> - Functions that only need to read data
+> - Avoiding expensive copies of large structures
+> - Allowing the caller to continue using the data after the call
+
+#### Mutable References: Editing in Place
+
+When you need to modify data without taking ownership, use `&mut`:
+
+```rust
+struct Counter {
+    value: u64,
+    max_seen: u64,
+}
+
+// Takes mutable reference—can modify the original
+fn increment(counter: &mut Counter) {
+    counter.value += 1;
+    if counter.value > counter.max_seen {
+        counter.max_seen = counter.value;
+    }
+}
+
+fn main() {
+    let mut c = Counter { value: 0, max_seen: 0 };
+    
+    increment(&mut c);  // Modifies c in place
+    increment(&mut c);  // Still valid—we never gave up ownership
+    increment(&mut c);
+    
+    println!("Count: {}, Max: {}", c.value, c.max_seen);  // "Count: 3, Max: 3"
+}
+```
+
+| Reference Type | Syntax | Can Read? | Can Write? | How Many? |
+| :--- | :--- | :--- | :--- | :--- |
+| Immutable | `&T` | Yes | No | Many |
+| Mutable | `&mut T` | Yes | Yes | Exactly one |
+
+> **📌 Rule of Thumb:** If your type is **> 16 bytes** or doesn't implement `Copy`, pass by reference. Use `&T` for read-only access, `&mut T` when modification is needed.
+
+---
+
+### Choosing Between Value and Reference
+
+Here's a quick decision guide:
+
+| Situation | Recommendation | Why |
+| :--- | :--- | :--- |
+| Small `Copy` types (integers, floats, small structs ≤16 bytes) | Pass by value | Avoids pointer overhead, enables register optimization |
+| Large structs or collections | Pass by reference (`&T`) | Avoids expensive copying |
+| Need to modify caller's data | Pass by mutable reference (`&mut T`) | Allows in-place modification |
+| Function needs to own the data permanently | Pass by value (move) | Transfers ownership cleanly |
+| Need to read data in multiple places simultaneously | Pass by immutable reference (`&T`) | Multiple borrows allowed |
+
+---
+
+## Function Declaration Syntax
+
+Now that we understand how values move through functions, let's examine the anatomy of a Rust function.
+
+<DefinitionBox term="Function">
+
+A **function** in Rust is a named, reusable block of code with explicitly typed parameters and an optional return type. Functions are compiled to static machine code—their types are fully resolved at compile time.
+
+</DefinitionBox>
+
+### Basic Syntax
+
+```rust
+fn function_name(param1: Type1, param2: Type2) -> ReturnType {
+    // function body
+    expression  // Last expression is implicitly returned
+}
+```
+
+Every part of this signature serves a purpose:
+
+| Component | Purpose | Memory/Optimization Benefit |
+| :--- | :--- | :--- |
+| `fn` | Declares a function | Compiler knows to generate static code |
+| Parameter types | Explicit type annotations | Enables compile-time type checking and optimization |
+| `-> ReturnType` | Declares what the function produces | Caller knows exact size to allocate |
+| Expression return | Last expression is the return value | No `return` keyword overhead |
+
+### Why Explicit Parameter Types?
+
+Unlike `let` bindings where types can be inferred, function parameters **require** explicit type annotations:
+
+```rust
+let x = 42;           // Type inferred as i32
+fn add(a: i32, b: i32) -> i32 {  // Types MUST be specified
+    a + b
+}
+```
+
+> **🤔 Why the difference?** Function signatures form the **API boundary** of your code. Explicit types serve as documentation and enable the compiler to check callers independently—without looking inside the function body. This enables faster compilation and clearer error messages.
+
+### Expression-Based Returns
+
+Rust functions are expression-based. The last expression (without a semicolon) is the return value:
+
+```rust
+fn square(x: i32) -> i32 {
+    x * x  // No semicolon = this is the return value
+}
+
+fn square_explicit(x: i32) -> i32 {
+    return x * x;  // Explicit return works too
+}
+
+fn square_wrong(x: i32) -> i32 {
+    x * x;  // Semicolon makes this a statement returning ()
+    // ERROR: expected i32, found ()
+}
+```
+
+> **📌 Key Point:** Omitting the semicolon on the last line is idiomatic Rust. Use `return` only for early exits.
+
+### The Unit Type `()`
+
+Functions without a `-> ReturnType` implicitly return `()`, the unit type:
+
+```rust
+fn print_hello() {  // Implicitly -> ()
+    println!("Hello!");
+}
+
+fn print_hello_explicit() -> () {  // Same thing, explicit
+    println!("Hello!");
+}
+```
+
+The unit type `()` is a zero-sized type—it takes up no memory at runtime. It's Rust's way of saying "this function produces no meaningful value."
+
+### Generic Functions and Monomorphization
+
+Generic functions work with multiple types using type parameters:
+
+```rust
+fn largest<T: PartialOrd>(a: T, b: T) -> T {
+    if a > b { a } else { b }
+}
+
+// Can be called with any type implementing PartialOrd
+let bigger_int = largest(10, 20);        // T = i32
+let bigger_float = largest(3.14, 2.71);  // T = f64
+let bigger_char = largest('a', 'z');     // T = char
+```
+
+> **💡 Key Insight: Monomorphization**
+>
+> When you use a generic function, the compiler generates **specialized versions** for each concrete type used. This is called **monomorphization**.
+>
+> ```rust
+> // You write:
+> fn double<T: Copy + std::ops::Mul<Output = T>>(x: T) -> T {
+>     x * x
+> }
+>
+> // Compiler generates (conceptually):
+> fn double_i32(x: i32) -> i32 { x * x }
+> fn double_f64(x: f64) -> f64 { x * x }
+> // ...one for each type you actually use
+> ```
+>
+> **Result:** Generic functions have **zero runtime overhead**—they're as fast as if you wrote specialized functions by hand.
+
+### Trait Bounds: Constraining Generic Types
+
+The `T: PartialOrd` syntax is a **trait bound**—it says "T must implement the `PartialOrd` trait":
+
+```rust
+// T must be comparable AND copyable
+fn min<T: PartialOrd + Copy>(a: T, b: T) -> T {
+    if a < b { a } else { b }
+}
+
+// Alternative syntax with `where` clause (cleaner for complex bounds)
+fn complex_function<T, U>(a: T, b: U) -> T
+where
+    T: Clone + PartialOrd,
+    U: Into<T>,
+{
+    let b_converted: T = b.into();
+    if a > b_converted { a } else { b_converted.clone() }
+}
+```
+
+| Syntax | Use Case |
+| :--- | :--- |
+| `T: Trait` | Simple, single bound |
+| `T: Trait1 + Trait2` | Multiple bounds |
+| `where T: Trait` | Complex bounds, better readability |
+
+---
+
+## Closures (Anonymous Functions)
+
+<DefinitionBox term="Closure">
+
+A **closure** is an anonymous function that can capture variables from its surrounding environment. Unlike regular functions, closures can "close over" their environment—accessing and even owning variables from the scope where they're defined.
+
+</DefinitionBox>
+
+### Basic Syntax
+
+```rust
+// Regular function
+fn add_one(x: i32) -> i32 {
+    x + 1
+}
+
+// Equivalent closure
+let add_one = |x: i32| -> i32 { x + 1 };
+
+// Closure with type inference (more common)
+let add_one = |x| x + 1;
+
+// Multi-line closure
+let complex = |x, y| {
+    let sum = x + y;
+    sum * 2
+};
+```
+
+| Syntax | Description |
+| :--- | :--- |
+| `\|params\|` | Parameter list (types often inferred) |
+| `\|x\| expr` | Single expression body |
+| `\|x\| { ... }` | Block body for multiple statements |
+
+### Environment Capture
+
+The key difference between closures and functions is that closures can **capture** variables from their environment:
+
+```rust
+fn main() {
+    let multiplier = 10;
+    
+    // This closure captures `multiplier` from the environment
+    let multiply = |x| x * multiplier;
+    
+    println!("{}", multiply(5));  // 50
+}
+```
+
+> **🤔 How does this work?** The closure "remembers" the value of `multiplier` even though it's defined outside the closure. But how does it store this captured value?
+
+### Closures Are Structs
+
+Under the hood, the compiler transforms closures into anonymous structs. Each captured variable becomes a field:
+
+```rust
+let multiplier = 10;
+let closure = |x| x * multiplier;
+
+// Conceptually, the compiler generates something like:
+struct AnonymousClosure<'a> {
+    multiplier: &'a i32,  // Captured by reference
+}
+
+impl AnonymousClosure<'_> {
+    fn call(&self, x: i32) -> i32 {
+        x * self.multiplier
+    }
+}
+```
+
+> **💡 Key Insight:** This is why closures have unique, unnameable types—each closure is its own struct! Even two identical-looking closures have different types.
+
+### The Three Closure Traits
+
+Rust categorizes closures by **how** they capture their environment:
+
+#### `Fn` — Borrow Immutably
+
+```rust
+let data = vec![1, 2, 3];
+
+// Captures &data (immutable borrow)
+let print_data = || println!("{:?}", data);
+
+print_data();  // Can call multiple times
+print_data();
+println!("{:?}", data);  // data is still usable!
+```
+
+#### `FnMut` — Borrow Mutably
+
+```rust
+let mut count = 0;
+
+// Captures &mut count (mutable borrow)
+let mut increment = || {
+    count += 1;
+    println!("Count: {}", count);
+};
+
+increment();  // Count: 1
+increment();  // Count: 2
+// Can't use `count` here while `increment` exists
+```
+
+#### `FnOnce` — Take Ownership
+
+```rust
+let data = vec![1, 2, 3];
+
+// Takes ownership of data
+let consume = || {
+    drop(data);  // data is moved into the closure
+    println!("Data dropped!");
+};
+
+consume();     // Works
+// consume();  // ERROR: closure already consumed `data`
+```
+
+### Closure Trait Hierarchy
+
+| Trait | Captures | Can Call Multiple Times? | Memory Model |
+| :--- | :--- | :--- | :--- |
+| `Fn` | `&T` (immutable borrow) | Yes | Struct with reference fields |
+| `FnMut` | `&mut T` (mutable borrow) | Yes | Struct with mutable reference fields |
+| `FnOnce` | `T` (ownership) | No (consumes captured values) | Struct with owned fields |
+
+> **📌 Key Point:** The compiler automatically chooses the **least restrictive** trait that works. If the closure only reads captured values, it implements `Fn`. If it modifies them, `FnMut`. If it moves them, `FnOnce`.
+
+### The `move` Keyword
+
+Sometimes you need to force ownership transfer, even when borrowing would work:
+
+```rust
+fn create_counter() -> impl FnMut() -> i32 {
+    let mut count = 0;
+    
+    // Without `move`, this would try to borrow `count`
+    // But `count` is local to this function—it would be dropped!
+    move || {
+        count += 1;
+        count
+    }
+}
+
+let mut counter = create_counter();
+println!("{}", counter());  // 1
+println!("{}", counter());  // 2
+```
+
+> **🤔 Why `move`?** When returning a closure or passing it to another thread, the closure must **own** its captured values—references to local variables would be invalid after the function returns.
+
+### Memory Efficiency of Closures
+
+Because closures are structs, their size depends on what they capture:
+
+```rust
+let small = 42i32;
+let big = [0u8; 1000];
+
+let closure_small = || small;      // ~4 bytes (captures i32)
+let closure_big = move || big;     // ~1000 bytes (captures array)
+let closure_ref = || &big;         // ~8 bytes (captures reference)
+```
+
+| Capture Strategy | Closure Size | Performance |
+| :--- | :--- | :--- |
+| Borrow (`&T`) | 8 bytes per reference | Best for large data |
+| Move small types | Size of the type | Best for small data |
+| Move large types | Size of the type | Consider borrowing instead |
+
+---
+
+## Associated Functions and Methods
+
+In Rust, functions can be **associated** with a type using `impl` blocks. This organizes related functionality and enables object-oriented-style programming.
+
+<DefinitionBox term="Associated Function">
+
+An **associated function** is a function defined within an `impl` block that does **not** take `self` as a parameter. It's called on the type itself, not on an instance.
+
+</DefinitionBox>
+
+<DefinitionBox term="Method">
+
+A **method** is a function defined within an `impl` block that takes `self` (or a reference to it) as its first parameter. It's called on an instance of the type.
+
+</DefinitionBox>
+
+### Associated Functions: Type-Level Operations
+
+Associated functions are called using `Type::function()` syntax:
+
+```rust
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    // Associated function — no `self` parameter
+    fn new(width: u32, height: u32) -> Self {
+        Rectangle { width, height }
+    }
+    
+    // Another associated function — creates a square
+    fn square(size: u32) -> Self {
+        Rectangle { width: size, height: size }
+    }
+}
+
+// Called on the TYPE, not an instance
+let rect = Rectangle::new(10, 20);
+let square = Rectangle::square(15);
+```
+
+> **📌 Key Point:** Associated functions are often used as **constructors**. The `new` function is a convention (not a keyword) for creating instances.
+
+### Methods: Instance-Level Operations
+
+Methods take `self` in some form as their first parameter:
+
+```rust
+impl Rectangle {
+    // Method with &self — borrows immutably (read-only)
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+    
+    // Method with &mut self — borrows mutably (can modify)
+    fn scale(&mut self, factor: u32) {
+        self.width *= factor;
+        self.height *= factor;
+    }
+    
+    // Method with self — takes ownership (consumes instance)
+    fn into_square(self) -> Rectangle {
+        let side = (self.width + self.height) / 2;
+        Rectangle { width: side, height: side }
+    }
+}
+
+fn main() {
+    let mut rect = Rectangle::new(10, 20);
+    
+    println!("Area: {}", rect.area());  // Borrows &rect
+    
+    rect.scale(2);  // Borrows &mut rect
+    println!("Scaled area: {}", rect.area());
+    
+    let square = rect.into_square();  // Consumes rect
+    // println!("{}", rect.area());   // ERROR: rect was moved!
+    println!("Square area: {}", square.area());
+}
+```
+
+### The Three `self` Variants
+
+| Receiver | Syntax | Ownership | Use Case | Memory Impact |
+| :--- | :--- | :--- | :--- | :--- |
+| `&self` | `fn method(&self)` | Borrows immutably | Read-only operations | No copy, 8-byte pointer |
+| `&mut self` | `fn method(&mut self)` | Borrows mutably | In-place modification | No copy, 8-byte pointer |
+| `self` | `fn method(self)` | Takes ownership | Transformation/consumption | May move or copy |
+
+> **🤔 Which should I use?**
+> - Use `&self` by default—it's the most flexible
+> - Use `&mut self` when you need to modify the instance
+> - Use `self` when transforming into something else or when the method logically "uses up" the instance
+
+### Method Call Syntax Sugar
+
+Rust provides automatic referencing and dereferencing for method calls:
+
+```rust
+let rect = Rectangle::new(10, 20);
+
+// These are all equivalent:
+rect.area();          // Rust automatically borrows &rect
+(&rect).area();       // Explicit borrow
+Rectangle::area(&rect);  // Fully qualified syntax
+```
+
+> **💡 Key Insight:** This automatic referencing is why `rect.scale(2)` works even though `scale` takes `&mut self`. Rust inserts `(&mut rect).scale(2)` automatically.
+
+### Multiple `impl` Blocks
+
+You can split implementations across multiple `impl` blocks:
+
+```rust
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+// Basic operations
+impl Point {
+    fn new(x: f64, y: f64) -> Self {
+        Point { x, y }
+    }
+    
+    fn origin() -> Self {
+        Point { x: 0.0, y: 0.0 }
+    }
+}
+
+// Geometric operations (could be in a separate file)
+impl Point {
+    fn distance_from_origin(&self) -> f64 {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+    
+    fn distance_to(&self, other: &Point) -> f64 {
+        let dx = self.x - other.x;
+        let dy = self.y - other.y;
+        (dx.powi(2) + dy.powi(2)).sqrt()
+    }
+}
+```
+
+### Memory Layout: Methods Don't Add Overhead
+
+Methods are **just functions with a special first parameter**. They don't add any memory overhead to the struct:
+
+```rust
+struct TinyStruct {
+    value: u8,  // 1 byte
+}
+
+impl TinyStruct {
+    fn get(&self) -> u8 { self.value }
+    fn set(&mut self, v: u8) { self.value = v; }
+    fn consume(self) -> u8 { self.value }
+    fn create(v: u8) -> Self { TinyStruct { value: v } }
+}
+
+// TinyStruct is still just 1 byte!
+// Methods are compiled to regular functions
+assert_eq!(std::mem::size_of::<TinyStruct>(), 1);
+```
+
+---
+
+## Diverging Functions (The Never Type)
+
+Some functions never return to their caller. Rust has a special type for this: the **never type**, written as `!`.
+
+<DefinitionBox term="Diverging Function">
+
+A **diverging function** is a function that never returns normally. It either loops forever, terminates the program, or panics. Its return type is `!` (the never type).
+
+</DefinitionBox>
+
+### Examples of Diverging Functions
+
+```rust
+// Loops forever — never returns
+fn infinite_loop() -> ! {
+    loop {
+        // Process events, run a server, etc.
+    }
+}
+
+// Terminates the program — never returns
+fn exit_program(code: i32) -> ! {
+    std::process::exit(code)
+}
+
+// Always panics — never returns normally
+fn always_panic(msg: &str) -> ! {
+    panic!("{}", msg)
+}
+
+// Calls another diverging function
+fn fatal_error() -> ! {
+    eprintln!("Fatal error occurred!");
+    std::process::exit(1)
+}
+```
+
+### The Type System Power of `!`
+
+The never type has a unique property: **it can coerce to any other type**. This makes it incredibly useful in expressions:
+
+```rust
+fn get_value(opt: Option<i32>) -> i32 {
+    match opt {
+        Some(x) => x,           // Returns i32
+        None => panic!("No value!"),  // Returns !, which coerces to i32
+    }
+}
+```
+
+> **🤔 Why does this work?** The compiler knows that `panic!` never actually produces a value—execution will never reach the point where a value is needed. So it's safe to pretend it returns any type.
+
+### Practical Uses
+
+#### Early Exit from Complex Logic
+
+```rust
+fn process_data(data: &[u8]) -> Result<String, Error> {
+    let header = match parse_header(data) {
+        Ok(h) => h,
+        Err(e) => return Err(e),  // Early return
+    };
+    
+    // Continue processing...
+    Ok(format!("Processed: {:?}", header))
+}
+```
+
+#### The `todo!()` and `unimplemented!()` Macros
+
+```rust
+fn complex_algorithm(input: &str) -> Vec<i32> {
+    todo!()  // Returns !, so this type-checks even though we haven't implemented it
+}
+
+fn legacy_feature() -> String {
+    unimplemented!("This feature is no longer supported")
+}
+```
+
+#### Infinite Event Loops (Common in OS/Embedded)
+
+```rust
+fn kernel_main() -> ! {
+    // Initialize hardware
+    init_hardware();
+    
+    // Main event loop — never exits
+    loop {
+        let event = wait_for_interrupt();
+        handle_event(event);
+    }
+}
+```
+
+### Compiler Optimizations
+
+When the compiler sees a diverging function, it knows:
+
+1. **No return value needs to be stored** — no stack space for the result
+2. **Code after the call is dead** — it can be eliminated
+3. **Control flow doesn't continue** — simplifies analysis
+
+```rust
+fn example() -> i32 {
+    let x = 5;
+    
+    if some_condition() {
+        return x;
+    }
+    
+    panic!("Condition failed!");
+    
+    // The compiler knows this code is unreachable
+    // It won't generate any instructions for it
+    let y = 10;  // Dead code — compiler may warn or eliminate
+    y
+}
+```
+
+> **📌 Key Point:** The `!` type is part of what makes Rust's type system so expressive. It allows functions to participate in expressions even when they never produce a value.
+
+---
+
+## Higher-Order Functions
+
+<DefinitionBox term="Higher-Order Function">
+
+A **higher-order function** (HOF) is a function that either takes one or more functions as parameters, returns a function, or both. This treats functions as **first-class values**.
+
+</DefinitionBox>
+
+### Functions as Parameters
+
+```rust
+// apply_twice takes a function `f` and applies it twice to `x`
+fn apply_twice<F>(f: F, x: i32) -> i32
+where
+    F: Fn(i32) -> i32,
+{
+    f(f(x))
+}
+
+fn main() {
+    let double = |x| x * 2;
+    let add_ten = |x| x + 10;
+    
+    println!("{}", apply_twice(double, 5));   // double(double(5)) = 20
+    println!("{}", apply_twice(add_ten, 5));  // add_ten(add_ten(5)) = 25
+}
+```
+
+### Functions as Return Values
+
+```rust
+// Returns a closure that adds `n` to its argument
+fn make_adder(n: i32) -> impl Fn(i32) -> i32 {
+    move |x| x + n  // `move` because `n` must be owned by the closure
+}
+
+fn main() {
+    let add_five = make_adder(5);
+    let add_hundred = make_adder(100);
+    
+    println!("{}", add_five(10));     // 15
+    println!("{}", add_hundred(10));  // 110
+}
+```
+
+> **🤔 Why `impl Fn(i32) -> i32`?** Each closure has a unique, unnameable type. The `impl Trait` syntax lets us return "something that implements `Fn`" without naming the exact type.
+
+### Iterator Methods: HOFs in Action
+
+You've already used higher-order functions! Iterator methods like `map`, `filter`, and `fold` are all HOFs:
+
+```rust
+let numbers = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+// map: transform each element
+let doubled: Vec<i32> = numbers.iter()
+    .map(|x| x * 2)
+    .collect();
+// [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
+// filter: keep elements matching a predicate
+let evens: Vec<&i32> = numbers.iter()
+    .filter(|x| *x % 2 == 0)
+    .collect();
+// [2, 4, 6, 8, 10]
+
+// fold: reduce to a single value
+let sum: i32 = numbers.iter()
+    .fold(0, |acc, x| acc + x);
+// 55
+
+// Chain them together!
+let result: i32 = numbers.iter()
+    .filter(|x| *x % 2 == 0)  // Keep evens: [2, 4, 6, 8, 10]
+    .map(|x| x * x)            // Square them: [4, 16, 36, 64, 100]
+    .sum();                    // Sum: 220
+```
+
+### Zero-Cost Abstractions
+
+> **💡 Key Insight: Monomorphization Makes HOFs Free**
+>
+> When you use a closure with a HOF, the compiler generates specialized code for that exact closure. There's no function pointer indirection, no dynamic dispatch.
+
+```rust
+// This idiomatic Rust...
+let sum: i32 = (1..=100)
+    .filter(|x| x % 2 == 0)
+    .map(|x| x * x)
+    .sum();
+
+// ...compiles to code equivalent to this hand-written loop:
+let mut sum = 0;
+for x in 1..=100 {
+    if x % 2 == 0 {
+        sum += x * x;
+    }
+}
+```
+
+The iterator chain is fully inlined—no heap allocations, no function call overhead. This is what "zero-cost abstractions" means.
+
+### Common HOF Patterns
+
+| Function | Takes | Returns | Use Case |
+| :--- | :--- | :--- | :--- |
+| `map` | `Fn(T) -> U` | Iterator of `U` | Transform elements |
+| `filter` | `Fn(&T) -> bool` | Iterator of `T` | Select elements |
+| `fold` | `Fn(Acc, T) -> Acc` | `Acc` | Reduce to single value |
+| `for_each` | `Fn(T) -> ()` | `()` | Side effects |
+| `find` | `Fn(&T) -> bool` | `Option<T>` | First matching element |
+| `any` | `Fn(&T) -> bool` | `bool` | Does any element match? |
+| `all` | `Fn(&T) -> bool` | `bool` | Do all elements match? |
+
+### Building Your Own HOFs
+
+```rust
+// A HOF that retries an operation up to `n` times
+fn retry<F, T, E>(mut operation: F, max_attempts: u32) -> Result<T, E>
+where
+    F: FnMut() -> Result<T, E>,
+{
+    let mut attempts = 0;
+    loop {
+        match operation() {
+            Ok(value) => return Ok(value),
+            Err(e) if attempts < max_attempts => {
+                attempts += 1;
+                continue;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+// Usage
+let result = retry(|| fetch_data_from_network(), 3);
+```
+
+### Memory Considerations
+
+| Approach | Memory | Performance | Flexibility |
+| :--- | :--- | :--- | :--- |
+| Concrete closure (`impl Fn()`) | Size of captured values | Inlined, zero overhead | One specific closure type |
+| Closure reference (`&dyn Fn()`) | 16 bytes (fat pointer) | Virtual call overhead | Any `Fn` closure |
+| Boxed closure (`Box<dyn Fn()>`) | Heap allocation + 16 bytes | Virtual call + allocation | Stored, returned from functions |
+
+---
+
+## Dynamic Dispatch with `dyn`
+
+So far, all our functions have used **static dispatch**—the compiler knows exactly which function to call at compile time. But sometimes we need **dynamic dispatch**, where the function to call is determined at runtime.
+
+<DefinitionBox term="Dynamic Dispatch">
+
+**Dynamic dispatch** is a mechanism where the actual function to call is determined at runtime based on the concrete type of the value. In Rust, this is achieved using **trait objects** with the `dyn` keyword.
+
+</DefinitionBox>
+
+### Function Pointers: The Simple Case
+
+For simple cases where you just need to swap between known functions, use function pointers:
+
+```rust
+fn add(a: i32, b: i32) -> i32 { a + b }
+fn multiply(a: i32, b: i32) -> i32 { a * b }
+fn subtract(a: i32, b: i32) -> i32 { a - b }
+
+fn main() {
+    // `fn(i32, i32) -> i32` is a function pointer type
+    let operation: fn(i32, i32) -> i32 = add;
+    println!("{}", operation(5, 3));  // 8
+    
+    let operation = multiply;
+    println!("{}", operation(5, 3));  // 15
+    
+    // Store in a collection
+    let operations: Vec<fn(i32, i32) -> i32> = vec![add, multiply, subtract];
+    for op in &operations {
+        println!("{}", op(10, 3));  // 13, 30, 7
+    }
+}
+```
+
+> **📌 Key Point:** Function pointers are 8 bytes (a memory address) and can only point to actual `fn` items—not closures that capture environment.
+
+### Trait Objects: The Flexible Case
+
+When you need to work with different types that share behavior, use trait objects:
+
+```rust
+trait Drawable {
+    fn draw(&self);
+    fn bounding_box(&self) -> (u32, u32);
+}
+
+struct Circle {
+    radius: f64,
+}
+
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Drawable for Circle {
+    fn draw(&self) {
+        println!("Drawing circle with radius {}", self.radius);
+    }
+    fn bounding_box(&self) -> (u32, u32) {
+        let size = (self.radius * 2.0) as u32;
+        (size, size)
+    }
+}
+
+impl Drawable for Rectangle {
+    fn draw(&self) {
+        println!("Drawing {}x{} rectangle", self.width, self.height);
+    }
+    fn bounding_box(&self) -> (u32, u32) {
+        (self.width, self.height)
+    }
+}
+```
+
+### Static vs Dynamic Dispatch
+
+```rust
+// STATIC dispatch — type known at compile time
+fn draw_static<T: Drawable>(item: &T) {
+    item.draw();  // Compiler knows exactly which `draw` to call
+}
+
+// DYNAMIC dispatch — type determined at runtime
+fn draw_dynamic(item: &dyn Drawable) {
+    item.draw();  // Must look up `draw` in vtable at runtime
+}
+```
+
+### Heterogeneous Collections
+
+The real power of `dyn` is storing different types in the same collection:
+
+```rust
+fn main() {
+    // This WON'T work — Vec needs a single, known type:
+    // let shapes = vec![Circle { radius: 5.0 }, Rectangle { width: 10, height: 20 }];
+    
+    // This WORKS — all items are `Box<dyn Drawable>`
+    let shapes: Vec<Box<dyn Drawable>> = vec![
+        Box::new(Circle { radius: 5.0 }),
+        Box::new(Rectangle { width: 10, height: 20 }),
+        Box::new(Circle { radius: 2.5 }),
+    ];
+    
+    // Draw all shapes — dispatch happens at runtime
+    for shape in &shapes {
+        shape.draw();
+    }
+}
+```
+
+### Memory Layout: Fat Pointers and Vtables
+
+A `&dyn Trait` is a **fat pointer**—16 bytes containing:
+1. A pointer to the data (8 bytes)
+2. A pointer to the **vtable** (8 bytes)
+
+The vtable contains pointers to the trait's methods for that specific type:
+
+```
+&dyn Drawable (for a Circle)
+┌─────────────────────────────────────┐
+│ data_ptr ──────────► Circle { radius: 5.0 }
+│ vtable_ptr ────────► ┌─────────────────────┐
+│                      │ draw: circle_draw   │
+│                      │ bounding_box: ...   │
+│                      │ drop: circle_drop   │
+│                      │ size: 8             │
+│                      └─────────────────────┘
+└─────────────────────────────────────┘
+```
+
+### Static vs Dynamic: The Trade-offs
+
+| Aspect | Static (`impl Trait` / generics) | Dynamic (`dyn Trait`) |
+| :--- | :--- | :--- |
+| **Memory** | Size of concrete type | 16-byte fat pointer |
+| **Performance** | Inlined, zero overhead | Vtable lookup each call |
+| **Binary size** | Larger (monomorphized copies) | Smaller (one version) |
+| **Flexibility** | One concrete type | Any implementing type |
+| **Heterogeneous collections** | No | Yes |
+
+### When to Use Each
+
+```rust
+// Use STATIC dispatch when:
+// - Performance is critical
+// - Working with a single concrete type
+// - The type is known at compile time
+fn process_fast<T: Processor>(item: T) { ... }
+
+// Use DYNAMIC dispatch when:
+// - You need heterogeneous collections
+// - Binary size matters more than speed
+// - The type isn't known until runtime
+fn process_any(item: &dyn Processor) { ... }
+```
+
+### Object Safety
+
+Not all traits can be made into trait objects. A trait is **object-safe** if:
+
+1. It doesn't return `Self`
+2. It has no generic type parameters
+3. All methods have a `self` receiver
+
+```rust
+// Object-safe ✓
+trait Drawable {
+    fn draw(&self);
+}
+
+// NOT object-safe ✗ — returns Self
+trait Clonable {
+    fn clone(&self) -> Self;
+}
+
+// NOT object-safe ✗ — generic method
+trait Serializer {
+    fn serialize<T>(&self, value: T);
+}
+```
+
+> **💡 Key Insight:** Object safety ensures the compiler can create a vtable. If a method depends on the concrete type (via `Self` or generics), the vtable can't represent it.
+
+---
+
+## Summary: The Function Landscape
+
+Here's a comprehensive reference for all function types in Rust:
+
+| Function Type | Syntax | Memory Model | Use Case |
+| :--- | :--- | :--- | :--- |
+| Regular function | `fn name() { }` | Static, compiled | General purpose |
+| Generic function | `fn name<T>() { }` | Monomorphized per type | Type-flexible operations |
+| Closure (`Fn`) | `\|x\| expr` | Struct with `&T` fields | Read-only callbacks |
+| Closure (`FnMut`) | `\|x\| expr` | Struct with `&mut T` fields | Stateful callbacks |
+| Closure (`FnOnce`) | `move \|x\| expr` | Struct with owned fields | One-shot operations |
+| Associated function | `Type::func()` | Static | Constructors, utilities |
+| Method (`&self`) | `self.method()` | Borrows instance | Read-only operations |
+| Method (`&mut self`) | `self.method()` | Mutably borrows | In-place modification |
+| Method (`self`) | `self.method()` | Takes ownership | Transformations |
+| Diverging | `fn f() -> !` | Never returns | Panic, exit, infinite loops |
+| Higher-order | `fn f(g: impl Fn())` | Monomorphized | Abstraction over behavior |
+| Function pointer | `fn(T) -> U` | 8 bytes | Simple function switching |
+| Trait object | `&dyn Trait` | 16-byte fat pointer | Heterogeneous collections |
+
+### Key Optimization Principles
+
+1. **Monomorphization** — Generics and `impl Trait` generate specialized code at compile time
+2. **Zero-cost closures** — Closures compile to structs; no heap allocation unless boxed
+3. **Static dispatch by default** — Only pay for dynamic dispatch when you explicitly use `dyn`
+4. **Pass small types by value** — Avoids indirection for types ≤16 bytes
+5. **Pass large types by reference** — Avoids copying for larger structures
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Function** — A named, reusable block of code with typed parameters
+- **Closure** — An anonymous function that captures its environment
+- **Method** — A function associated with a type instance via `self`
+- **Associated Function** — A function associated with a type (no `self`)
+- **Diverging Function** — A function that never returns (`-> !`)
+- **Higher-Order Function** — A function that takes or returns functions
+- **Trait Object** — A type-erased reference enabling dynamic dispatch
+
+**Closure Traits:**
+
+| Trait | Captures | Callable | Memory |
+| :--- | :--- | :--- | :--- |
+| `Fn` | `&T` | Multiple times | References |
+| `FnMut` | `&mut T` | Multiple times | Mutable refs |
+| `FnOnce` | `T` | Once | Owned values |
+
+**Self Receivers:**
+
+| Receiver | Ownership | Use Case |
+| :--- | :--- | :--- |
+| `&self` | Borrows | Read-only |
+| `&mut self` | Mutably borrows | Modification |
+| `self` | Takes ownership | Transformation |
+
+**Dispatch Comparison:**
+
+| Static (`impl Trait`) | Dynamic (`dyn Trait`) |
+| :--- | :--- |
+| Zero overhead | Vtable lookup |
+| One type | Any implementing type |
+| Larger binary | Smaller binary |
+
+</LectureNotes>
+
+<LectureResources>
+
+- [The Rust Book: Functions](https://doc.rust-lang.org/book/ch03-03-how-functions-work.html) — Official introduction to functions
+- [The Rust Book: Closures](https://doc.rust-lang.org/book/ch13-01-closures.html) — Comprehensive closure guide
+- [The Rust Book: Traits](https://doc.rust-lang.org/book/ch10-02-traits.html) — Understanding trait bounds
+- [The Rust Reference: Never Type](https://doc.rust-lang.org/reference/types/never.html) — The `!` type specification
+- [Rust By Example: Functions](https://doc.rust-lang.org/rust-by-example/fn.html) — Practical function examples
+- [The Rustonomicon: Higher-Rank Trait Bounds](https://doc.rust-lang.org/nomicon/hrtb.html) — Advanced function signatures
+
+</LectureResources>
