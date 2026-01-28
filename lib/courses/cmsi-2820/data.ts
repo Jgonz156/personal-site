@@ -266,6 +266,10 @@ const allEvents: CourseEvent[] = [
     standard: "Numbers",
     contentUrl: "/cmsi-2820/ln4",
     recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/jNs7D16Hxy2J4vmiKFfaML5HwJ6Q3p5SNo1FRZviKkWHk_Q8lEgcoKvlWK3-rNwn.UPEXDg4mkjHkgwm7",
+      }
     ],
   },
   {
