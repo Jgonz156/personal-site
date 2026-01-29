@@ -1,0 +1,667 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { VennDiagram } from "@/components/venn-diagram"
+
+## Recap
+
+Last time we discussed and explored Type Theory, and how its contextual tools allow us to reason about our programs.
+
+`a : A`
+
+Was the fundamental statement that we work off of to build our types and our understanding of their inhabitants (instances) and their valid operations.
+
+---
+
+## Today's Agenda
+
+Today we build up our very first type, **The Boolean Type**.
+
+It has two inhabitants: **True** and **False**.
+
+- **Boolean Algebra** — Discovering logic through arithmetic
+- **The Boolean-Logic Bridge** — Connecting 0/1 to True/False
+- **Venn Diagrams** — A visual system for logical reasoning
+- **Reducibility** — Proving equivalent explanatory power across systems
+
+---
+
+## Discovering The Booleans
+
+We can define a type judgment for the Boolean type as follows:
+
+```
+True : Boolean
+False : Boolean
+```
+
+But we've already seen True and False through logic, so what are we investigating today?
+
+Today we'll learn about the Booleans in the manner that **George Boole** himself would have, considering it not as the way to perform logic, but instead as **the arithmetic of just 0 and 1**.
+
+<DefinitionBox term="Boolean Algebra">
+
+A branch of algebra where variables can only take the values **0** or **1** (or equivalently, **False** or **True**). Operations in this system correspond to logical operations.
+
+</DefinitionBox>
+
+We'll start by defining the type Boolean as follows:
+
+```
+0 : Boolean
+1 : Boolean
+```
+
+We'll need to investigate the old arithmetic operations of addition, multiplication, subtraction, and division to see how they behave with only two possible answers.
+
+However, how could we possibly understand the full definitional ramifications this will have on our operators?
+
+Well, types with a **finite number of inhabitants** will have a **finite number of possible operations**.
+
+> **💡 Key Insight:** We don't need to define operations in general. Instead, we can simply list out all possible combinations our inhabitants might lead to for our operators. So we'll use a table and move one step at a time.
+
+---
+
+### Addition
+
+Let's start with addition:
+
+```
+0 + 0 = 0
+0 + 1 = 1
+1 + 0 = 1
+1 + 1 = ?
+```
+
+We were off to a good start, but we can't use 2 here. We only have two possible answers, so let's reason about both cases.
+
+**If 1 + 1 = 1**, then what is that saying about addition? Well, that it can "max out". Addition fundamentally moves us in the positive direction, right? So answering 0 seems antithetical to the idea of addition.
+
+**If 1 + 1 = 0**, then what is that saying about addition? Well, that it can "wrap around". The *movement* of addition seems to be more important than the destination.
+
+<DefinitionBox term="Saturated vs Modular Arithmetic">
+
+- **Saturated Arithmetic**: Values "max out" at boundaries. `1 + 1 = 1` (can't exceed the maximum)
+- **Modular Arithmetic**: Values "wrap around" at boundaries. `1 + 1 = 0` (overflow wraps to start)
+
+Both are valid in Computer Science and define different number system behaviors.
+
+</DefinitionBox>
+
+For today we'll use **Saturated Arithmetic** and define `1 + 1 = 1` (as unusual as that seems).
+
+---
+
+### Multiplication
+
+Let's try multiplication:
+
+```
+0 * 0 = 0
+0 * 1 = 0
+1 * 0 = 0
+1 * 1 = 1
+```
+
+Nice! That one worked without any issues.
+
+---
+
+### Subtraction
+
+Let's try subtraction:
+
+```
+0 - 0 = 0
+0 - 1 = ?
+1 - 0 = 1
+1 - 1 = 0
+```
+
+Well, good things can't last forever it seems. We can't use -1 here. We only have two possible answers.
+
+Luckily it follows the same issue of modular (wrap-around) or saturated (maxing out).
+
+Since we chose to use Saturated Arithmetic, we'll define `0 - 1 = 0`.
+
+---
+
+### Division
+
+Let's try division:
+
+```
+0 / 0 = ?
+0 / 1 = 0
+1 / 0 = ?
+1 / 1 = 1
+```
+
+This one doesn't seem to work at all since we can't divide by 0. So rather than reasoning about it, let's see what we've got so far.
+
+---
+
+### The Complete Table
+
+| a | b | a + b | a * b | a - b |
+| :---: | :---: | :---: | :---: | :---: |
+| 0 | 0 | 0 | 0 | 0 |
+| 0 | 1 | 1 | 0 | 0 |
+| 1 | 0 | 1 | 0 | 1 |
+| 1 | 1 | 1 | 1 | 0 |
+
+Hey wait a minute, something rather interesting seems to be happening here. Using our modern powers of hindsight, look at what happens to the table if we swap the 1s for True and the 0s for False:
+
+| a | b | a + b | a * b | a - b |
+| :---: | :---: | :---: | :---: | :---: |
+| False | False | False | False | False |
+| False | True | True | False | False |
+| True | False | True | False | True |
+| True | True | True | True | False |
+
+**These look identical to the truth tables for our logical operators!**
+
+| A | B | A ∨ B | A ∧ B | A ? B |
+| :---: | :---: | :---: | :---: | :---: |
+| False | False | False | False | False |
+| False | True | True | False | False |
+| True | False | True | False | True |
+| True | True | True | True | False |
+
+Not sure what subtraction's logical equivalent is yet, but amazingly:
+
+- **Addition (+)** maps exactly onto **Disjunction (∨)**
+- **Multiplication (*)** maps exactly onto **Conjunction (∧)**
+
+---
+
+### Discovering Negation
+
+Investigating the column for subtraction, it sorta looks like a logical implication, but it's not quite that. The values seem to be flipped from normal.
+
+Oh wait! That's right! Flipping—we need to find what arithmetic operator maps to negation!
+
+Well, there's only one unary arithmetic operator that flips things around, and that is **arithmetic negation**.
+
+```
+-1 = ?
+-0 = ?
+```
+
+Well, normally `-0 = 0`, and `-1` doesn't actually exist here, so we'll have to get creative. Negation's purpose is to define the inverse of a number, so when you only have two possible answers, to not want 1 must mean to want 0 instead!
+
+So we'll define:
+
+```
+-1 = 0
+-0 = 1
+```
+
+Now arithmetic negation operates exactly the same as logical negation!
+
+---
+
+### Deriving the Mystery Operator
+
+With this, let's use algebra to derive the column for subtraction.
+
+Given: `a - b`
+
+We saw that the current column for subtraction looks like a flipped version of logical implication.
+
+So let's "flip" it back algebraically and simplify:
+
+```
+-(a - b) = -a + b
+```
+
+Since we know addition maps to disjunction and negation maps to logical negation, we can rewrite the equation as:
+
+```
+-a + b = ¬a ∨ b
+```
+
+> **🎉 Discovery:** That looks exactly like the substitution rule we found earlier in the logic unit for implication!
+>
+> `A → B ≡ ¬A ∨ B`
+
+So subtraction's "flipped" form is implication!
+
+---
+
+## The Boolean-Logic Bridge
+
+Hopefully that was a fun look at what it may have felt like to discover that having just 0 and 1 within arithmetic seems to encode the same logical operators we've been working with all along.
+
+But why is this link important anyway?
+
+> **💡 Key Insight:** When building modern machines, we don't need separate hardware for logic and separate hardware for arithmetic—we can use the **same hardware** to perform both!
+
+Remember from last lecture that the whole point of making a foundational theory for mathematics was to discover a single set of tools that could take on all of mathematics!
+
+If we could turn that one set of tools into hardware, we could make a computer that could perform all of mathematics!
+
+Here we see the first step in that journey, with the critical discovery that the **arithmetic of 0 and 1 encompasses all of logic**.
+
+---
+
+## Introducing Venn Diagrams
+
+However, if logic can just be arithmetic and arithmetic can just be logic, are these tools only reflections of one another with no other way to explore this space?
+
+Well, luckily someone else figured this one out before us, and I'm sure you already know his name.
+
+**John Venn** designed a visual system to help represent logic using overlapping circles to represent the truth values of our propositions.
+
+The system was named after him and is called **The Venn Diagram**!
+
+> **🤔 Wait a minute:** Aren't those diagrams for representing a bunch of different things being sorted into categories?
+
+Well yes, but originally they were designed for logic! It just turns out that, as we'll see later, sets on their own can represent logic as well, leading to a similar but enhanced way of reasoning using Venn Diagrams.
+
+<DefinitionBox term="Venn Diagram">
+
+A visual representation of logical relationships using overlapping shapes (typically circles) within a bounding rectangle (the "universe"). Shaded regions indicate truth, while unshaded regions indicate falsehood.
+
+</DefinitionBox>
+
+---
+
+## The Constants: 0 and 1 as Venn Diagrams
+
+Before we introduce variables, let's see how the constants **0 (False)** and **1 (True)** appear as Venn diagrams.
+
+The bounding rectangle represents the **universe of discourse**—all possible states of truth.
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={1} 
+    formula="0" 
+    showLabels={false}
+    caption="False (0): Nothing is shaded—a contradiction"
+    height="200px"
+  />
+  <VennDiagram 
+    variables={1} 
+    formula="1" 
+    showLabels={false}
+    caption="True (1): Everything is shaded—a tautology"
+    height="200px"
+  />
+</div>
+
+| Diagram | Meaning | Logic Term |
+| :--- | :--- | :--- |
+| Unshaded rectangle | Always False | **Contradiction** |
+| Fully shaded rectangle | Always True | **Tautology** |
+
+> **💡 Key Insight:** A **tautology** is a statement that is always true regardless of variable assignments. A **contradiction** is always false. The visual makes this intuitive: everything vs nothing!
+
+---
+
+## Three-Variable Venn Diagrams
+
+Now let's explore how propositions translate to shading. We'll use three variables: **X**, **Y**, and **Z**.
+
+### Simple Propositions
+
+First, let's see what a single variable looks like:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={3} 
+    formula="X"
+    caption="X: The region where X is true"
+    height="250px"
+  />
+  <VennDiagram 
+    variables={3} 
+    formula="!X"
+    caption="¬X: Everything EXCEPT X"
+    height="250px"
+  />
+</div>
+
+Notice how negation (¬X) shades exactly the opposite region—everything *outside* the X circle!
+
+---
+
+### Compound Propositions
+
+Now let's see disjunction (OR):
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={3} 
+    formula="Y | Z"
+    caption="Y ∨ Z: Either Y or Z (or both)"
+    height="250px"
+  />
+  <VennDiagram 
+    variables={3} 
+    formula="!(Y | Z)"
+    caption="¬(Y ∨ Z): Neither Y nor Z"
+    height="250px"
+  />
+</div>
+
+---
+
+### De Morgan's Laws—Visually!
+
+Here's where it gets exciting. Let's compare two expressions that *look* different but should be equivalent according to **De Morgan's Laws**:
+
+<DefinitionBox term="De Morgan's Laws">
+
+Two fundamental equivalences in logic:
+- `¬(A ∨ B) ≡ ¬A ∧ ¬B` — "Not (A or B)" equals "(Not A) and (Not B)"
+- `¬(A ∧ B) ≡ ¬A ∨ ¬B` — "Not (A and B)" equals "(Not A) or (Not B)"
+
+</DefinitionBox>
+
+Let's verify the first law visually:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={3} 
+    formula="!(Y | Z)"
+    caption="¬(Y ∨ Z)"
+    height="250px"
+  />
+  <VennDiagram 
+    variables={3} 
+    formula="!Y & !Z"
+    caption="¬Y ∧ ¬Z"
+    height="250px"
+  />
+</div>
+
+**They shade the exact same region!**
+
+This is the power of visual reasoning—De Morgan's Laws aren't just algebraic rules to memorize, they're geometric facts you can *see*.
+
+> **🔄 Try it in reverse:** Start with "I want the region where Y is false AND Z is false" (¬Y ∧ ¬Z). You naturally get "the region outside both Y and Z"—which is exactly ¬(Y ∨ Z)!
+
+---
+
+## Truth Tables Meet Venn Diagrams
+
+Now let's make the connection between truth tables and Venn diagrams explicit.
+
+For two variables X and Y, here's a Venn diagram with labeled regions:
+
+<VennDiagram 
+  variables={2} 
+  showRegionLabels={true}
+  caption="Two-variable Venn diagram with region labels"
+  height="280px"
+/>
+
+Each region corresponds to a row in the truth table:
+
+| Region | X | Y | Description |
+| :---: | :---: | :---: | :--- |
+| 0 | F | F | Outside both circles |
+| 1 | T | F | Inside X only |
+| 2 | F | T | Inside Y only |
+| 3 | T | T | The intersection (both) |
+
+> **💡 Key Insight:** Every row in a truth table maps to exactly one region in the Venn diagram. Every region maps to exactly one row. They encode the **same information** in different forms!
+
+For any logical formula, the truth table tells you which rows evaluate to True. The Venn diagram shades exactly those regions!
+
+---
+
+## Reducibility Arguments
+
+We've now seen three systems that all seem to solve the same problems:
+1. **Boolean Algebra** (arithmetic with 0 and 1)
+2. **Truth Tables** (rows of True/False)
+3. **Venn Diagrams** (shaded regions)
+
+This is an example of a powerful concept in mathematics and computer science.
+
+<DefinitionBox term="Reducibility">
+
+A **reducibility argument** proves that two problems, formalized in different systems with separate tools, are actually solving the **exact same underlying problem**. If you can solve one, you can solve the other—they are equivalent in power.
+
+</DefinitionBox>
+
+Here's a beautiful reducibility:
+
+> **Question 1:** How many distinct regions can be made with an n-variable Venn diagram?
+> 
+> **Question 2:** How many distinct values can be encoded with n binary digits?
+
+Let's work it out:
+
+| Variables | Regions | Binary Encoding | Bits |
+| :---: | :---: | :---: | :---: |
+| 1 | 2 | 2¹ | 1 bit |
+| 2 | 4 | 2² | 2 bits |
+| 3 | 8 | 2³ | 3 bits |
+| n | 2ⁿ | 2ⁿ | n bits |
+
+**They're the same!**
+
+This is why computers—built on binary circuits—can perform logic. Each truth table row is a binary encoding. Each Venn region is a binary state. The **hardware that does arithmetic automatically does logic**.
+
+> **🎯 The Deep Connection:** Boolean algebra, truth tables, Venn diagrams, and binary numbers are all different *perspectives* on the same underlying mathematical structure. They have **equal explanatory power**.
+
+---
+
+## A Note on Being Different
+
+We've just seen something profound: systems that look completely different—algebraic equations, tables of truth values, overlapping circles—can all solve the same problems equally well.
+
+> **🌟 If you're struggling to learn something, you might just need a different perspective.**
+>
+> Just as Boolean algebra, truth tables, and Venn diagrams seem to have nothing in common yet solve the same problems, **people who think and express themselves differently can still meaningfully contribute and work with others**.
+>
+> No matter how far you seem from those around you, as long as you are diligent and hard-working, you'll always be making progress.
+>
+> Never say "I can't do it." What you need to find is **the way that fits YOU**, and it will be possible.
+>
+> **Be yourself. Math supports that you should!**
+
+---
+
+## Proving Boolean Laws Visually
+
+Now let's put our tools to work! We'll prove some fundamental Boolean laws using **both** truth tables and Venn diagrams—showing you can choose whichever approach clicks best for you.
+
+### First Absorption Law: X ∨ (X ∧ Y) = X
+
+**Truth Table Proof:**
+
+| X | Y | X ∧ Y | X ∨ (X ∧ Y) | Equal to X? |
+| :---: | :---: | :---: | :---: | :---: |
+| F | F | F | F | ✓ |
+| F | T | F | F | ✓ |
+| T | F | F | T | ✓ |
+| T | T | T | T | ✓ |
+
+The columns for X and X ∨ (X ∧ Y) are identical! ✓
+
+**Venn Diagram Proof:**
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={2} 
+    formula="X | (X & Y)"
+    caption="X ∨ (X ∧ Y)"
+    height="250px"
+  />
+  <VennDiagram 
+    variables={2} 
+    formula="X"
+    caption="X"
+    height="250px"
+  />
+</div>
+
+The shaded regions are identical! The intersection (X ∧ Y) is already contained within X, so OR-ing them together just gives you X.
+
+---
+
+### First Complement Law: X ∨ ¬X = 1 (True)
+
+**Venn Diagram Proof:**
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={2} 
+    formula="X"
+    caption="X: Inside the X circle"
+    height="250px"
+  />
+  <VennDiagram 
+    variables={2} 
+    formula="!X"
+    caption="¬X: Outside the X circle"
+    height="250px"
+  />
+</div>
+
+<VennDiagram 
+  variables={2} 
+  formula="X | !X"
+  caption="X ∨ ¬X: The entire universe is shaded!"
+  height="250px"
+/>
+
+Together, X and ¬X cover **everything**—the entire universe is shaded, which is True (1)!
+
+**Truth Table Proof:**
+
+| X | ¬X | X ∨ ¬X |
+| :---: | :---: | :---: |
+| F | T | T |
+| T | F | T |
+
+Every row evaluates to True! This is a **tautology**.
+
+> **💡 Remember:** If algebraic manipulation is challenging, these visual proofs are equally valid! Choose the method that makes the most sense to you.
+
+---
+
+## Annulment Laws
+
+Let's prove two more laws that show how 0 and 1 interact with variables.
+
+### X ∧ 0 = 0 (Annulment by Zero)
+
+**Venn Diagram Proof:**
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={2} 
+    formula="X & 0"
+    caption="X ∧ 0: Nothing shaded"
+    height="250px"
+  />
+  <VennDiagram 
+    variables={2} 
+    formula="0"
+    caption="0: Nothing shaded"
+    height="250px"
+  />
+</div>
+
+AND-ing anything with 0 (nothing) gives you nothing!
+
+**Truth Table Proof:**
+
+| X | 0 | X ∧ 0 |
+| :---: | :---: | :---: |
+| F | F | F |
+| T | F | F |
+
+Always False, regardless of X. ✓
+
+---
+
+### X ∨ 1 = 1 (Annulment by One)
+
+**Truth Table Proof:**
+
+| X | 1 | X ∨ 1 |
+| :---: | :---: | :---: |
+| F | T | T |
+| T | T | T |
+
+Always True, regardless of X. ✓
+
+**Venn Diagram Proof:**
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram 
+    variables={2} 
+    formula="X | 1"
+    caption="X ∨ 1: Everything shaded"
+    height="250px"
+  />
+  <VennDiagram 
+    variables={2} 
+    formula="1"
+    caption="1: Everything shaded"
+    height="250px"
+  />
+</div>
+
+OR-ing anything with 1 (everything) gives you everything!
+
+---
+
+<LectureNotes>
+
+### Key Terms
+
+| Term | Definition |
+| :--- | :--- |
+| **Boolean Algebra** | Algebra where variables are only 0 or 1; operations correspond to logic |
+| **Saturated Arithmetic** | Values max out at boundaries (1 + 1 = 1) |
+| **Modular Arithmetic** | Values wrap around at boundaries (1 + 1 = 0) |
+| **Venn Diagram** | Visual representation using overlapping circles in a universe |
+| **Tautology** | A statement that is always true |
+| **Contradiction** | A statement that is always false |
+| **Reducibility** | Proving two different systems solve the same problem |
+
+### Boolean-Logic Correspondence
+
+| Arithmetic | Logic | Venn Diagram |
+| :---: | :---: | :--- |
+| 0 | False | Unshaded region |
+| 1 | True | Shaded region |
+| + | ∨ (OR) | Union of regions |
+| × | ∧ (AND) | Intersection of regions |
+| - (unary) | ¬ (NOT) | Complement (outside) |
+
+### Laws Proven Today
+
+- **De Morgan's Laws**: `¬(A ∨ B) ≡ ¬A ∧ ¬B` and `¬(A ∧ B) ≡ ¬A ∨ ¬B`
+- **Absorption Law**: `X ∨ (X ∧ Y) = X`
+- **Complement Law**: `X ∨ ¬X = 1`
+- **Annulment Laws**: `X ∧ 0 = 0` and `X ∨ 1 = 1`
+
+</LectureNotes>
+
+<LectureResources>
+
+### Suggested Reading
+
+- [Boolean Algebra - Wikipedia](https://en.wikipedia.org/wiki/Boolean_algebra)
+- [Venn Diagram - Wikipedia](https://en.wikipedia.org/wiki/Venn_diagram)
+- [De Morgan's Laws - Brilliant](https://brilliant.org/wiki/de-morgans-laws/)
+
+### George Boole
+
+George Boole (1815-1864) was an English mathematician who developed the algebraic system of logic that now bears his name. His 1854 work *"An Investigation of the Laws of Thought"* laid the foundation for digital circuit design and modern computing.
+
+### John Venn
+
+John Venn (1834-1923) was an English mathematician and philosopher who introduced the Venn diagram in his 1880 paper *"On the Diagrammatic and Mechanical Representation of Propositions and Reasonings."*
+
+</LectureResources>
