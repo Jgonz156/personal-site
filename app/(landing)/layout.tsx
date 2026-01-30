@@ -47,6 +47,10 @@ export default function RootLayout({
                 tex: {
                   inlineMath: [['$', '$']],
                   displayMath: [['$$', '$$']],
+                  macros: {
+                    llbracket: '\\unicode{x27E6}',
+                    rrbracket: '\\unicode{x27E7}',
+                  },
                 },
                 options: {
                   skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],

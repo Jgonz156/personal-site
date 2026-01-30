@@ -1,0 +1,1148 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath } from "@/components/math"
+
+## Recap
+
+Last time we established **Classical Logic** as our first formal tool—a system for reasoning about truth, validity, and proof. We learned about propositions, operators, quantifiers, and natural deduction.
+
+But logic alone only tells us *how to reason*. It doesn't give us *things to reason about*.
+
+---
+
+## Today's Agenda
+
+Today we build our second foundational tool: **Set Theory**.
+
+- **Mathematical Primitives Review** — What we think we already know
+- **The Gap and Why Consistency Matters** — What Classical Logic gives us, and the dream of unifying all mathematics
+- **Building Set Theory** — ZFC axioms that bootstrap mathematical objects
+- **Relations: The Bridge to Everything** — The key structure that enables all constructions
+- **Constructing Primitives** — Numbers, tuples, functions from sets
+- **Applications to Programming Language Theory** — Why this matters for us
+
+---
+
+## A Review of Mathematical Primitives
+
+Before we get formal, let's review the mathematical objects we use every day. We'll pretend we already know what these are—then reveal the uncomfortable truth.
+
+---
+
+### Numbers
+
+<DefinitionBox term="Number Systems">
+
+Numbers quantify and measure. We use several number systems, each extending the previous:
+
+| Symbol | Name | Examples | Closed Under |
+| :---: | :--- | :--- | :--- |
+| $\mathbb{N}$ | Natural numbers | $0, 1, 2, 3, \ldots$ | $+$, $\times$ |
+| $\mathbb{Z}$ | Integers | $\ldots, -2, -1, 0, 1, 2, \ldots$ | $+$, $-$, $\times$ |
+| $\mathbb{Q}$ | Rationals | $\frac{1}{2}, -\frac{3}{4}, 0.75$ | $+$, $-$, $\times$, $\div$ (except by 0) |
+| $\mathbb{R}$ | Reals | $\pi, \sqrt{2}, e$ | All standard operations |
+| $\mathbb{C}$ | Complex | $3 + 2i, i^2 = -1$ | All operations including roots |
+
+</DefinitionBox>
+
+**Key operations** we take for granted:
+
+| Operation | Notation | Example |
+| :--- | :--- | :--- |
+| Addition | $a + b$ | $3 + 5 = 8$ |
+| Subtraction | $a - b$ | $8 - 3 = 5$ |
+| Multiplication | $a \times b$ or $ab$ | $3 \times 5 = 15$ |
+| Division | $a \div b$ or $\frac{a}{b}$ | $15 \div 3 = 5$ |
+| Exponentiation | $a^b$ | $2^3 = 8$ |
+| Modulo | $a \mod b$ | $17 \mod 5 = 2$ |
+| Absolute value | $\|a\|$ | $\|-7\| = 7$ |
+| Floor/Ceiling | $\lfloor x \rfloor$, $\lceil x \rceil$ | $\lfloor 3.7 \rfloor = 3$ |
+| Logarithm | $\log_b(a)$ | $\log_2(8) = 3$ |
+
+**Hyperoperations:** These operations form a hierarchy. Addition is repeated counting. Multiplication is repeated addition. Exponentiation is repeated multiplication. This pattern continues:
+
+| Level | Name | Notation | Example |
+| :---: | :--- | :--- | :--- |
+| 1 | Addition | $a + b$ | $3 + 3 = 6$ |
+| 2 | Multiplication | $a \times b$ | $3 \times 3 = 9$ |
+| 3 | Exponentiation | $a^b$ | $3^3 = 27$ |
+| 4 | Tetration | ${}^{b}a$ | ${}^{3}3 = 3^{3^3} = 7625597484987$ |
+
+> **💡 Note:** We use these symbols freely, but where do they come from? What *is* the number 3, really?
+
+---
+
+### Tuples (Sequences)
+
+<DefinitionBox term="Tuple">
+
+A **tuple** is an ordered, finite collection of elements where duplicates are allowed and position matters.
+
+</DefinitionBox>
+
+**Notation:**
+
+```
+()              — the empty tuple (0-tuple)
+(a)             — a 1-tuple (often identified with a itself)
+(a, b)          — an ordered pair (2-tuple)
+(a, b, c)       — a 3-tuple
+(a₁, a₂, ..., aₙ) — an n-tuple
+```
+
+**Indexing:** Given tuple $t = (8, F, (2,5))$:
+
+| Expression | Value |
+| :--- | :--- |
+| $t \downarrow 0$ | $8$ |
+| $t \downarrow 1$ | $F$ |
+| $t \downarrow 2$ | $(2, 5)$ |
+| $t \downarrow 3$ | undefined |
+
+**Concatenation:** $(a, b) \bullet (c, d, e) = (a, b, c, d, e)$
+
+> **🤔 Key observation:** Unlike sets, $(a, b) \neq (b, a)$ when $a \neq b$. Order matters!
+
+---
+
+### Sets
+
+<DefinitionBox term="Set">
+
+A **set** is an unordered collection of unique elements. Sets model the concept of a *property*—to be in a set is to have that property.
+
+</DefinitionBox>
+
+**Notation:**
+
+```
+∅ or {}         — the empty set
+{a, b, c}       — enumeration
+{x | P(x)}      — set comprehension (elements satisfying P)
+x ∈ S           — x is a member of S
+x ∉ S           — x is not a member of S
+Ā or A'         — complement of A (all elements not in A)
+```
+
+**Key operations:**
+
+| Operation | Notation | Definition |
+| :--- | :--- | :--- |
+| Union | $A \cup B$ | Elements in A or B (or both) |
+| Intersection | $A \cap B$ | Elements in both A and B |
+| Difference | $A \setminus B$ | Elements in A but not in B |
+| Symmetric Diff. | $A \triangle B$ | Elements in exactly one of A or B |
+| Complement | $\overline{A}$ | Elements not in A (relative to universe) |
+| Subset | $A \subseteq B$ | Every element of A is in B |
+| Proper Subset | $A \subset B$ | $A \subseteq B$ and $A \neq B$ |
+| Power set | $\mathcal{P}(A)$ | Set of all subsets of A |
+| Cross product | $A \times B$ | Set of all ordered pairs $(a, b)$ |
+
+**Example:** Let $A = \{a, b, c\}$ and $B = \{b, f\}$:
+
+| Expression | Result |
+| :--- | :--- |
+| $A \cup B$ | $\{a, b, c, f\}$ |
+| $A \cap B$ | $\{b\}$ |
+| $A \setminus B$ | $\{a, c\}$ |
+| $A \triangle B$ | $\{a, c, f\}$ |
+| $\mathcal{P}(B)$ | $\{\emptyset, \{b\}, \{f\}, \{b, f\}\}$ |
+
+---
+
+#### Set Algebra Laws
+
+Just as we have algebraic laws for numbers, sets obey their own algebra. These laws are remarkably similar to Boolean algebra (and that's not a coincidence!).
+
+| Law | Union Form | Intersection Form |
+| :--- | :--- | :--- |
+| **Idempotency** | $A \cup A = A$ | $A \cap A = A$ |
+| **Commutativity** | $A \cup B = B \cup A$ | $A \cap B = B \cap A$ |
+| **Associativity** | $(A \cup B) \cup C = A \cup (B \cup C)$ | $(A \cap B) \cap C = A \cap (B \cap C)$ |
+| **Distributivity** | $A \cup (B \cap C) = (A \cup B) \cap (A \cup C)$ | $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$ |
+| **Absorption** | $A \cup (A \cap B) = A$ | $A \cap (A \cup B) = A$ |
+| **Identity** | $A \cup \emptyset = A$ | $A \cap U = A$ |
+| **Annihilation** | $A \cup U = U$ | $A \cap \emptyset = \emptyset$ |
+| **Complement** | $A \cup \overline{A} = U$ | $A \cap \overline{A} = \emptyset$ |
+
+**De Morgan's Laws** (connecting complement with union/intersection):
+
+<DisplayMath formula="\overline{A \cup B} = \overline{A} \cap \overline{B}" />
+
+<DisplayMath formula="\overline{A \cap B} = \overline{A} \cup \overline{B}" />
+
+> **💡 Connection to Logic:** These laws mirror the logical equivalences we learned in Lecture 2! Union corresponds to disjunction, intersection to conjunction, and complement to negation. This is the first hint that logic and sets are deeply connected.
+
+---
+
+### Functions (Preview)
+
+<DefinitionBox term="Function (Informal)">
+
+A **function** $f: A \to B$ maps each element of $A$ to exactly one element of $B$. We write $f(a) = b$ to mean "f maps a to b."
+
+</DefinitionBox>
+
+**Lambda notation:** We can define functions anonymously:
+
+```
+λx. x + 1       — the successor function
+λx. x²          — the squaring function
+λx. λy. x + y   — a curried addition function
+```
+
+We'll formalize functions precisely after we've built up the necessary machinery.
+
+---
+
+## The Gap — What Do We Actually Have?
+
+Now for the uncomfortable truth.
+
+---
+
+### The Uncomfortable Realization
+
+In Lecture 2, we established **Classical Logic**. What did that give us?
+
+| We Have | We Don't Have |
+| :--- | :--- |
+| Propositions | Sets |
+| Logical operators ($\land$, $\lor$, $\neg$, $\to$) | Numbers |
+| Quantifiers ($\forall$, $\exists$) | Tuples |
+| Inference rules | Relations |
+| Proof techniques | Functions |
+
+> **⚠️ The Problem:** We just spent an entire section reviewing mathematical objects... but we never formally defined any of them!
+
+Logic tells us *how to reason*. It doesn't tell us *what exists*.
+
+Where do all these mathematical objects come from? We need a **foundation**.
+
+---
+
+### The Foundational Crisis
+
+In the late 19th century, mathematicians discovered that their intuitive understanding of sets led to contradictions.
+
+**Russell's Paradox (1901):** Consider the set $R = \{x \mid x \notin x\}$ — the set of all sets that don't contain themselves.
+
+Is $R \in R$?
+
+- If $R \in R$, then by definition of $R$, we have $R \notin R$. Contradiction!
+- If $R \notin R$, then by definition of $R$, we have $R \in R$. Contradiction!
+
+> **💥 Conclusion:** Naive set theory is inconsistent. We can't just define sets by any property we want.
+
+This sparked a foundational crisis. Mathematicians needed rigorous axioms.
+
+---
+
+### Why Consistency Matters
+
+But why did mathematicians care so much about finding a consistent foundation?
+
+Recall from Lecture 2 our discussion of **metalogic**—reasoning about logical systems themselves. We asked: Is our logic consistent? Is it complete?
+
+The dream of the late 19th century was audacious:
+
+> **The Grand Vision:** If all of mathematics could be shown to rest on a single, consistent foundation, then *every mathematical truth* would be derivable from that foundation.
+
+This isn't just philosophical—it has practical implications:
+
+1. **Unified Reasoning:** A proof in geometry could use results from number theory, and vice versa—all justified by the same underlying system.
+
+2. **Mechanical Verification:** If we had a complete foundation, we could *automate* mathematical proof. A machine could check (or even discover!) proofs.
+
+3. **Computation as Mathematics:** If logic and mathematics are unified, then computation (which is fundamentally logical) becomes a branch of mathematics.
+
+> **💡 Key Insight:** This vision directly led to the development of proof assistants like Coq, Lean, and Isabelle. Today, we *can* have computers verify mathematical proofs—all because we found (mostly) consistent foundations.
+
+Of course, Gödel later showed that the dream of *completeness* was impossible for sufficiently powerful systems. But the search for consistency gave us the tools we use today.
+
+---
+
+### Three Foundational Approaches
+
+Three major systems emerged to provide this foundation:
+
+| Approach | Core Idea | Characteristic Notation |
+| :--- | :--- | :--- |
+| **Set Theory** | Everything is a set | $x \in S$ |
+| **Type Theory** | Objects have types; types come first | $x : A$ |
+| **Category Theory** | Focus on structure and relationships | $X \xrightarrow{f} Y$ |
+
+---
+
+#### Set Theory
+
+- Developed by Cantor (1870s), formalized by Zermelo and Fraenkel (1900s-1920s)
+- Core idea: **Everything is a set**, including numbers, functions, and even sets themselves
+- Most widely used foundation in mathematics today
+- Builds directly on classical logic
+
+---
+
+#### Type Theory
+
+Type Theory arose directly from the foundational crisis:
+
+- **1903:** Russell discovers his paradox
+- **1908:** Russell proposes the "Theory of Types" to stratify objects and prevent self-reference
+- **1910-1913:** Russell and Whitehead publish *Principia Mathematica*, attempting to derive all of mathematics from logic with types
+- **1930s:** Alonzo Church develops the simply typed lambda calculus
+- **1970s:** Per Martin-Löf develops intuitionistic type theory, connecting types to constructive proofs
+
+**Key idea:** Objects are organized into *types*, and operations respect type boundaries. A set can't contain itself because "the type of sets" is different from "the type of elements."
+
+> **💡 For CS:** Type Theory is the theoretical foundation of typed programming languages. When you write `int x = 5;`, you're making a type judgment!
+
+---
+
+#### Category Theory
+
+Category Theory arose from a different direction:
+
+- **1942-1945:** Samuel Eilenberg and Saunders Mac Lane develop category theory while studying algebraic topology
+- They noticed that many proofs in different areas of mathematics had the same *structure*
+- Rather than focusing on what objects *are*, categories focus on how objects *relate* to each other
+
+**Key idea:** Mathematical structures are characterized by their relationships (morphisms/arrows) rather than their internal composition. Two things are "the same" if they relate to everything else in the same way.
+
+> **💡 For CS:** Category theory underlies functional programming concepts like functors, monads, and natural transformations.
+
+---
+
+Today we focus on **Set Theory** (specifically ZFC—Zermelo-Fraenkel with Choice):
+- Historically first and most widely adopted
+- Sufficient for all of classical mathematics
+- Builds directly on the classical logic we already know
+
+---
+
+## Building Set Theory from Classical Logic
+
+We need **axioms**—statements we accept as true without proof—to bootstrap mathematical objects into existence.
+
+---
+
+### The Axiomatic Approach
+
+<DefinitionBox term="Axiom">
+
+An **axiom** is a foundational statement accepted without proof. Axioms define what objects exist and what operations we can perform on them. Different choices of axioms yield different mathematical theories.
+
+</DefinitionBox>
+
+The ZFC axioms tell us:
+1. What counts as a set
+2. How to build new sets from existing ones
+3. What sets are guaranteed to exist
+
+---
+
+### The ZFC Axioms
+
+Here are the key axioms, presented with intuition and formal notation:
+
+#### Axiom of Extensionality
+
+**Intuition:** Two sets are equal if and only if they have exactly the same members.
+
+<DisplayMath formula="\forall A \, \forall B. \, (A = B) \Leftrightarrow (\forall x. \, x \in A \Leftrightarrow x \in B)" />
+
+**What it gives us:** A criterion for set equality. The set $\{1, 2, 3\} = \{3, 2, 1\} = \{1, 1, 2, 3\}$.
+
+---
+
+#### Axiom of Empty Set
+
+**Intuition:** There exists a set with no members.
+
+<DisplayMath formula="\exists E. \, \forall x. \, x \notin E" />
+
+**What it gives us:** The empty set $\emptyset = \{\}$.
+
+---
+
+#### Axiom of Pairing
+
+**Intuition:** Given any two objects, we can form a set containing exactly those two objects.
+
+<DisplayMath formula="\forall a \, \forall b. \, \exists P. \, \forall x. \, (x \in P \Leftrightarrow x = a \lor x = b)" />
+
+**What it gives us:** The ability to form $\{a, b\}$ for any $a$ and $b$. Combined with extensionality, $\{a, a\} = \{a\}$.
+
+---
+
+#### Axiom of Union
+
+**Intuition:** Given a set of sets, we can form their union.
+
+<DisplayMath formula="\forall S. \, \exists U. \, \forall x. \, (x \in U \Leftrightarrow \exists A. \, A \in S \land x \in A)" />
+
+**What it gives us:** The union operation. If $S = \{\{1, 2\}, \{2, 3\}\}$, then $\bigcup S = \{1, 2, 3\}$.
+
+---
+
+#### Axiom of Power Set
+
+**Intuition:** For any set, the collection of all its subsets exists.
+
+<DisplayMath formula="\forall A. \, \exists P. \, \forall S. \, (S \in P \Leftrightarrow S \subseteq A)" />
+
+**What it gives us:** The power set $\mathcal{P}(A)$. If $A = \{1, 2\}$, then $\mathcal{P}(A) = \{\emptyset, \{1\}, \{2\}, \{1, 2\}\}$.
+
+---
+
+#### Axiom Schema of Comprehension (Separation)
+
+**Intuition:** Given a set and a property, we can form the subset of elements satisfying that property.
+
+<DisplayMath formula="\forall A. \, \exists B. \, \forall x. \, (x \in B \Leftrightarrow x \in A \land \varphi(x))" />
+
+**What it gives us:** Set-builder notation $\{x \in A \mid \varphi(x)\}$.
+
+> **⚠️ Key restriction:** We can only form subsets of *existing* sets. This avoids Russell's Paradox—we can't form $\{x \mid x \notin x\}$ because that would require a "set of all sets" to start from, which doesn't exist.
+
+---
+
+#### Axiom of Infinity
+
+**Intuition:** An infinite set exists.
+
+<DisplayMath formula="\exists I. \, \emptyset \in I \land \forall x. \, (x \in I \Rightarrow x \cup \{x\} \in I)" />
+
+**What it gives us:** A set containing $\emptyset, \{\emptyset\}, \{\emptyset, \{\emptyset\}\}, \ldots$ — essentially the natural numbers!
+
+---
+
+#### Axiom Schema of Replacement
+
+**Intuition:** If we have a "function-like" formula and a set, we can form the set of all outputs.
+
+<DisplayMath formula="\forall A. \, (\forall x \in A. \, \exists! y. \, \varphi(x, y)) \Rightarrow \exists B. \, \forall y. \, (y \in B \Leftrightarrow \exists x \in A. \, \varphi(x, y))" />
+
+**Breaking this down:**
+- $\varphi(x, y)$ is a **predicate** (from Lecture 2!) with two free variables
+- The condition $\forall x \in A. \, \exists! y. \, \varphi(x, y)$ says: "for each input $x$, there's exactly one output $y$"
+- This makes $\varphi$ behave like a function!
+- The axiom says we can collect all the outputs into a new set $B$
+
+**Example:** Let $A = \{0, 1, 2, 3\}$ and $\varphi(x, y) = (y = x + 1)$. Then:
+- $\varphi$ is function-like: each natural number has exactly one successor
+- Replacement gives us $B = \{1, 2, 3, 4\}$
+
+> **💡 Connection to Lecture 2:** Remember predicates? A predicate $P(x, y)$ is just a proposition with free variables. Here we're using predicates to define function-like behavior before we've formally defined functions!
+
+---
+
+### Summary: The Axiom Toolkit
+
+| Axiom | Intuition | What It Gives Us |
+| :--- | :--- | :--- |
+| Extensionality | Same members = same set | Equality criterion |
+| Empty Set | A set with nothing in it exists | $\emptyset$ |
+| Pairing | Can group two things | $\{a, b\}$ |
+| Union | Can combine sets | $A \cup B$, $\bigcup S$ |
+| Power Set | All subsets exist | $\mathcal{P}(A)$ |
+| Comprehension | Can filter by property | $\{x \in A \mid \varphi(x)\}$ |
+| Infinity | Infinite sets exist | $\mathbb{N}$ |
+| Replacement | Can map sets to sets | Function images |
+
+---
+
+### Set-Builder Notation
+
+Now that we have the Axiom of Comprehension, we can use **set-builder notation** to describe sets concisely.
+
+<DefinitionBox term="Set-Builder Notation">
+
+**Set-builder notation** describes a set by specifying a property that its members must satisfy:
+
+<DisplayMath formula="\{x \in A \mid \varphi(x)\}" />
+
+Read as: "The set of all x in A such that phi of x is true."
+
+</DefinitionBox>
+
+**Components:**
+- $x$ — the variable representing elements
+- $A$ — the "source set" we're filtering from
+- $\varphi(x)$ — a predicate (from Lecture 2!) that must be true for $x$ to be included
+
+**Examples:**
+
+| Set-Builder | Description | Result |
+| :--- | :--- | :--- |
+| $\{n \in \mathbb{N} \mid n > 5\}$ | Natural numbers greater than 5 | $\{6, 7, 8, 9, \ldots\}$ |
+| $\{x \in \mathbb{Z} \mid x^2 = 4\}$ | Integers whose square is 4 | $\{-2, 2\}$ |
+| $\{x \in \mathbb{R} \mid 0 \leq x \leq 1\}$ | Real numbers between 0 and 1 | $[0, 1]$ |
+| $\{p \in \mathbb{N} \mid p$ is prime$\}$ | Prime natural numbers | $\{2, 3, 5, 7, 11, \ldots\}$ |
+
+> **⚠️ Important:** Note that we always specify a source set $A$. We write $\{x \in A \mid \ldots\}$, not just $\{x \mid \ldots\}$. This restriction is what saves us from Russell's Paradox!
+
+---
+
+## Relations — The Bridge to Everything
+
+Before we can construct numbers, tuples, and functions, we need one more concept: **relations**. Relations are the secret ingredient that makes everything else possible.
+
+---
+
+### What is a Relation?
+
+<DefinitionBox term="Relation">
+
+A **relation** $R$ from set $A$ to set $B$ is a subset of their cross product:
+
+<DisplayMath formula="R \subseteq A \times B" />
+
+We call $A$ the **domain** and $B$ the **codomain**. If $(a, b) \in R$, we write $aRb$ and say "a is related to b."
+
+</DefinitionBox>
+
+**Examples:**
+- The "less than" relation on $\mathbb{N}$: $\{(0,1), (0,2), (1,2), (0,3), (1,3), (2,3), \ldots\}$
+- The "is parent of" relation on people
+- The "divides" relation on integers: $a | b$ means $a$ divides $b$ evenly
+
+---
+
+### Parts of a Relation
+
+For a relation $R \subseteq A \times B$:
+
+| Term | Definition | Notation |
+| :--- | :--- | :--- |
+| **Domain** | The set of all first components | $\text{dom}(R) = \{a \mid \exists b. \, (a,b) \in R\}$ |
+| **Codomain** | The set $B$ (given in the definition) | — |
+| **Range** | The set of all second components | $\text{ran}(R) = \{b \mid \exists a. \, (a,b) \in R\}$ |
+| **Inverse** | Swap all pairs | $R^{-1} = \{(b,a) \mid (a,b) \in R\}$ |
+
+---
+
+### Properties of Relations
+
+For a relation $R \subseteq A \times A$ (a relation from a set to itself), we can ask:
+
+| Property | Definition | Example |
+| :--- | :--- | :--- |
+| **Reflexive** | $\forall a. \, aRa$ | $=$ (equality) |
+| **Irreflexive** | $\forall a. \, \neg(aRa)$ | $\lt$ (strict less than) |
+| **Symmetric** | $\forall a,b. \, aRb \Rightarrow bRa$ | "is sibling of" |
+| **Asymmetric** | $\forall a,b. \, aRb \Rightarrow \neg(bRa)$ | $\lt$ |
+| **Antisymmetric** | $\forall a,b. \, (aRb \land bRa) \Rightarrow a=b$ | $\leq$ |
+| **Transitive** | $\forall a,b,c. \, (aRb \land bRc) \Rightarrow aRc$ | $\lt$, $\leq$, $=$ |
+| **Total** | $\forall a,b. \, aRb \lor bRa$ | $\leq$ on $\mathbb{R}$ |
+
+---
+
+### Special Types of Relations
+
+<DefinitionBox term="Equivalence Relation">
+
+A relation $R$ is an **equivalence relation** if it is:
+- Reflexive ($\forall a. \, aRa$)
+- Symmetric ($\forall a,b. \, aRb \Rightarrow bRa$)
+- Transitive ($\forall a,b,c. \, (aRb \land bRc) \Rightarrow aRc$)
+
+</DefinitionBox>
+
+**Examples of equivalence relations:**
+- Equality ($=$)
+- "Has the same birthday as"
+- "Is congruent to modulo $n$"
+
+<DefinitionBox term="Partial Order">
+
+A relation $R$ is a **partial order** if it is:
+- Reflexive
+- Antisymmetric
+- Transitive
+
+</DefinitionBox>
+
+**Examples:** $\leq$ on numbers, $\subseteq$ on sets.
+
+<DefinitionBox term="Total Order">
+
+A partial order $R$ is a **total order** if it is also total: $\forall a,b. \, aRb \lor bRa$.
+
+</DefinitionBox>
+
+**Example:** $\leq$ on $\mathbb{R}$ is a total order. $\subseteq$ on sets is *not* (some sets are incomparable).
+
+---
+
+### Equivalence Classes
+
+Equivalence relations are special because they *partition* a set into disjoint groups.
+
+<DefinitionBox term="Equivalence Class">
+
+Given an equivalence relation $R$ on set $A$, the **equivalence class** of element $a$ is:
+
+<DisplayMath formula="[a]_R = \{x \in A \mid xRa\}" />
+
+This is the set of all elements equivalent to $a$.
+
+</DefinitionBox>
+
+**Example: Integers modulo 3**
+
+Define $a \equiv b \pmod{3}$ to mean $3 | (a - b)$ (3 divides their difference).
+
+The equivalence classes are:
+- $[0] = \{\ldots, -6, -3, 0, 3, 6, 9, \ldots\}$ — multiples of 3
+- $[1] = \{\ldots, -5, -2, 1, 4, 7, 10, \ldots\}$ — one more than a multiple of 3
+- $[2] = \{\ldots, -4, -1, 2, 5, 8, 11, \ldots\}$ — two more than a multiple of 3
+
+**Key properties:**
+1. Every element belongs to exactly one equivalence class
+2. Two equivalence classes are either identical or disjoint
+3. The equivalence classes partition the entire set
+
+> **💡 Why This Matters:** We'll use equivalence classes to construct integers from naturals, rationals from integers, and reals from rationals!
+
+---
+
+### Relation Composition
+
+<DefinitionBox term="Composition">
+
+For relations $R \subseteq A \times B$ and $S \subseteq B \times C$, their **composition** is:
+
+<DisplayMath formula="S \circ R = \{(a, c) \mid \exists b. \, (a,b) \in R \land (b,c) \in S\}" />
+
+Read "$S$ after $R$": first apply $R$, then apply $S$.
+
+</DefinitionBox>
+
+**Example:** Let $R = \{(1,2), (2,3), (3,4)\}$ and $S = \{(2,a), (3,b), (4,c)\}$.
+
+Then $S \circ R = \{(1,a), (2,b), (3,c)\}$.
+
+---
+
+### Relation Powers and Kleene Closure
+
+We can compose a relation with itself repeatedly:
+
+| Notation | Definition | Meaning |
+| :--- | :--- | :--- |
+| $R^0$ | $\{(a,a) \mid a \in A\}$ | Identity relation |
+| $R^1$ | $R$ | The relation itself |
+| $R^2$ | $R \circ R$ | Two steps |
+| $R^n$ | $R \circ R^{n-1}$ | n steps |
+
+<DefinitionBox term="Kleene Closure">
+
+The **Kleene closure** (or reflexive transitive closure) of relation $R$ is:
+
+<DisplayMath formula="R^* = R^0 \cup R^1 \cup R^2 \cup R^3 \cup \ldots = \bigcup_{i=0}^{\infty} R^i" />
+
+This represents "zero or more steps" through the relation.
+
+The **positive closure** is:
+
+<DisplayMath formula="R^+ = R^1 \cup R^2 \cup R^3 \cup \ldots = \bigcup_{i=1}^{\infty} R^i" />
+
+This represents "one or more steps."
+
+</DefinitionBox>
+
+**Concrete Example:**
+
+Let $R = \{(a, b), (b, c)\}$ on the set $\{a, b, c\}$.
+
+| Power | Pairs | Meaning |
+| :--- | :--- | :--- |
+| $R^0$ | $\{(a,a), (b,b), (c,c)\}$ | Zero steps (stay in place) |
+| $R^1$ | $\{(a,b), (b,c)\}$ | One step |
+| $R^2$ | $\{(a,c)\}$ | Two steps: $a \to b \to c$ |
+| $R^3$ | $\emptyset$ | No three-step paths |
+| $R^*$ | $\{(a,a), (b,b), (c,c), (a,b), (b,c), (a,c)\}$ | Any number of steps |
+
+---
+
+### Connection to Language Theory
+
+The Kleene closure is named after Stephen Kleene, who used it to define regular expressions.
+
+**For an alphabet $\Sigma$:**
+- $\Sigma^0 = \{\epsilon\}$ (just the empty string)
+- $\Sigma^1 = \Sigma$ (single characters)
+- $\Sigma^2 = $ all two-character strings
+- $\Sigma^* = $ all strings of any length (including empty)
+
+**Regular expression notation:**
+- $a^*$ means zero or more $a$'s: $\{\epsilon, a, aa, aaa, \ldots\}$
+- $a^+$ means one or more $a$'s: $\{a, aa, aaa, \ldots\}$
+- $(a|b)^*$ means any string over $\{a, b\}$
+
+> **💡 PL Preview:** When we study formal languages and grammars, $\Sigma^*$ will be the universe of all possible strings, and a *language* will be a subset $L \subseteq \Sigma^*$. The Kleene closure gives us the mathematical foundation for regular expressions!
+
+---
+
+## Constructing the Primitives
+
+Now comes the remarkable part: we can build *everything* from sets and relations.
+
+---
+
+### Natural Numbers (Von Neumann Construction)
+
+<DefinitionBox term="Natural Numbers (Von Neumann)">
+
+We define the natural numbers as:
+
+| Number | Definition | As a Set |
+| :---: | :--- | :--- |
+| $0$ | $\emptyset$ | $\{\}$ |
+| $1$ | $\{0\}$ | $\{\emptyset\}$ |
+| $2$ | $\{0, 1\}$ | $\{\emptyset, \{\emptyset\}\}$ |
+| $3$ | $\{0, 1, 2\}$ | $\{\emptyset, \{\emptyset\}, \{\emptyset, \{\emptyset\}\}\}$ |
+| $n+1$ | $n \cup \{n\}$ | All predecessors plus $n$ |
+
+</DefinitionBox>
+
+**Key observations:**
+- Every natural number $n$ is a set with exactly $n$ elements
+- Every natural number $n$ equals the set of all natural numbers less than $n$
+- $m < n$ if and only if $m \in n$
+
+> **🤔 The Weirdness:** This means $2 \in 3$ is literally true! The number 2 is a member of the number 3. Mathematically consistent, but philosophically strange.
+
+**Defining operations:**
+
+- **Successor:** $S(n) = n \cup \{n\}$
+- **Addition:** $m + 0 = m$, $m + S(n) = S(m + n)$
+- **Multiplication:** $m \times 0 = 0$, $m \times S(n) = (m \times n) + m$
+
+---
+
+### Ordered Pairs (Kuratowski Construction)
+
+Now that we have numbers, we can define ordered pairs. But interestingly, we don't actually *need* numbers—just sets!
+
+<DefinitionBox term="Ordered Pair (Kuratowski)">
+
+The ordered pair $(a, b)$ is defined as:
+
+<DisplayMath formula="(a, b) = \{\{a\}, \{a, b\}\}" />
+
+</DefinitionBox>
+
+**Why does this work?**
+
+Consider $(a, b)$ vs $(b, a)$ when $a \neq b$:
+- $(a, b) = \{\{a\}, \{a, b\}\}$
+- $(b, a) = \{\{b\}, \{a, b\}\}$
+
+These are different sets! The singleton element $\{a\}$ vs $\{b\}$ tells us which came first.
+
+**Verification:** $(a, b) = (c, d)$ if and only if $a = c$ and $b = d$. ✓
+
+> **🤔 The Weirdness:** With this encoding, we have $a \in \{a\} \in (a, b)$, so in a nested sense, $a$ is "inside" the pair. But $b$ is only in the pair if you go through $\{a, b\}$. The encoding works, but it's unnatural.
+
+**N-tuples:** We can extend this recursively:
+- $(a, b, c) = ((a, b), c)$
+- $(a, b, c, d) = (((a, b), c), d)$
+
+---
+
+### Functions as Special Relations
+
+<DefinitionBox term="Function (Set-Theoretic)">
+
+A **function** $f: A \to B$ is a relation $f \subseteq A \times B$ such that for every $a \in A$, there exists exactly one $b \in B$ with $(a, b) \in f$.
+
+<DisplayMath formula="\forall a \in A. \, \exists! b \in B. \, (a, b) \in f" />
+
+</DefinitionBox>
+
+When $(a, b) \in f$, we write $f(a) = b$.
+
+**Function space:** The set of all functions from $A$ to $B$:
+
+<DisplayMath formula="A \to B \; \subseteq \; \mathcal{P}(A \times B)" />
+
+**Key function types:**
+
+| Type | Definition | Example |
+| :--- | :--- | :--- |
+| **Injection** | Different inputs give different outputs | $f(x) = 2x$ |
+| **Surjection** | Every output is hit | $f(x) = x \mod 3$ on $\mathbb{Z} \to \{0,1,2\}$ |
+| **Bijection** | Both injective and surjective | $f(x) = x + 1$ on $\mathbb{Z}$ |
+| **Partial** | Not every input has an output | Division (undefined at 0) |
+
+---
+
+### Constructing the Integers
+
+Now we use equivalence classes to build $\mathbb{Z}$ from $\mathbb{N}$.
+
+**The idea:** An integer is a "difference" of two natural numbers. We write $(a, b)$ to represent $a - b$.
+
+**The problem:** Many pairs represent the same integer:
+- $(3, 0)$, $(4, 1)$, $(5, 2)$ all represent $3$
+- $(0, 2)$, $(1, 3)$, $(2, 4)$ all represent $-2$
+
+**The solution:** Use an equivalence relation!
+
+<DefinitionBox term="Integers as Equivalence Classes">
+
+Define relation $\sim$ on $\mathbb{N} \times \mathbb{N}$:
+
+<DisplayMath formula="(a, b) \sim (c, d) \iff a + d = b + c" />
+
+(This captures the idea that $a - b = c - d$.)
+
+An **integer** is an equivalence class of this relation:
+
+<DisplayMath formula="\mathbb{Z} = (\mathbb{N} \times \mathbb{N}) / \sim" />
+
+</DefinitionBox>
+
+**Representatives:**
+- Positive integers: $[(n, 0)]$ represents $+n$
+- Negative integers: $[(0, n)]$ represents $-n$
+- Zero: $[(0, 0)]$
+
+**Operations on equivalence classes:**
+- Addition: $[(a,b)] + [(c,d)] = [(a+c, b+d)]$
+- Multiplication: $[(a,b)] \times [(c,d)] = [(ac+bd, ad+bc)]$
+
+> **💡 Key insight:** We must verify these operations are *well-defined*—they give the same result regardless of which representative we choose.
+
+---
+
+### Constructing the Rationals
+
+We apply the same technique to build $\mathbb{Q}$ from $\mathbb{Z}$.
+
+**The idea:** A rational is a "ratio" of two integers. We write $(a, b)$ to represent $\frac{a}{b}$.
+
+<DefinitionBox term="Rationals as Equivalence Classes">
+
+Define relation $\sim$ on $\mathbb{Z} \times (\mathbb{Z} \setminus \{0\})$:
+
+<DisplayMath formula="(a, b) \sim (c, d) \iff ad = bc" />
+
+(Cross-multiplication captures when two fractions are equal.)
+
+A **rational number** is an equivalence class:
+
+<DisplayMath formula="\mathbb{Q} = (\mathbb{Z} \times (\mathbb{Z} \setminus \{0\})) / \sim" />
+
+</DefinitionBox>
+
+**Example:** $[(1, 2)] = [(2, 4)] = [(3, 6)] = \ldots$ — all represent $\frac{1}{2}$.
+
+**Operations:**
+- Addition: $[(a,b)] + [(c,d)] = [(ad + bc, bd)]$
+- Multiplication: $[(a,b)] \times [(c,d)] = [(ac, bd)]$
+
+---
+
+### Constructing the Reals
+
+The rationals have "gaps"—there's no rational whose square is 2.
+
+**Two constructions:**
+
+<DefinitionBox term="Dedekind Cuts">
+
+A **Dedekind cut** is a partition of $\mathbb{Q}$ into sets $(L, R)$ where:
+- $L$ is non-empty and has no maximum
+- $R$ is non-empty and has no minimum
+- Every element of $L$ is less than every element of $R$
+
+A real number is a Dedekind cut.
+
+</DefinitionBox>
+
+**Example:** $\sqrt{2}$ is the cut where:
+- $L = \{q \in \mathbb{Q} \mid q < 0 \text{ or } q^2 < 2\}$
+- $R = \{q \in \mathbb{Q} \mid q > 0 \text{ and } q^2 > 2\}$
+
+<DefinitionBox term="Cauchy Sequences">
+
+A **Cauchy sequence** is a sequence $(a_n)$ of rationals where terms get arbitrarily close:
+
+<DisplayMath formula="\forall \epsilon > 0. \, \exists N. \, \forall m,n > N. \, |a_m - a_n| < \epsilon" />
+
+A real number is an equivalence class of Cauchy sequences (where two sequences are equivalent if their difference converges to 0).
+
+</DefinitionBox>
+
+Both constructions give us a **complete** ordered field—no gaps!
+
+---
+
+### Constructing the Complex Numbers
+
+The reals still have a gap: no real number squares to $-1$.
+
+<DefinitionBox term="Complex Numbers">
+
+A **complex number** is an ordered pair $(a, b)$ of real numbers, written $a + bi$.
+
+Operations:
+- Addition: $(a, b) + (c, d) = (a+c, b+d)$
+- Multiplication: $(a, b) \cdot (c, d) = (ac - bd, ad + bc)$
+
+</DefinitionBox>
+
+**Why this works:** If we define $i = (0, 1)$, then:
+
+$i^2 = (0, 1) \cdot (0, 1) = (0 \cdot 0 - 1 \cdot 1, 0 \cdot 1 + 1 \cdot 0) = (-1, 0) = -1$ ✓
+
+---
+
+### Beyond Complex Numbers
+
+The pattern continues:
+
+| System | Components | Properties Lost |
+| :--- | :--- | :--- |
+| $\mathbb{R}$ (Reals) | 1 | — |
+| $\mathbb{C}$ (Complex) | 2 | Ordering |
+| $\mathbb{H}$ (Quaternions) | 4 | Commutativity of $\times$ |
+| $\mathbb{O}$ (Octonions) | 8 | Associativity of $\times$ |
+| $\mathbb{S}$ (Sedenions) | 16 | Alternativity |
+
+> **💡 Fun Fact:** Quaternions are used in computer graphics for representing 3D rotations! They avoid "gimbal lock" that plagues Euler angles.
+
+---
+
+### Cardinality and Infinity
+
+<DefinitionBox term="Cardinality">
+
+The **cardinality** of a set $A$, written $|A|$, measures "how many" elements it contains. Two sets have the same cardinality if there exists a bijection between them.
+
+</DefinitionBox>
+
+**The key insight: Matching is more fundamental than counting!**
+
+We can compare infinite sets without counting:
+
+| Set | Cardinality | Countable? |
+| :--- | :---: | :---: |
+| Finite set (e.g., 3 elements) | $3$ | Yes |
+| $\mathbb{N}$ | $\aleph_0$ | Yes |
+| $\mathbb{Z}$ | $\aleph_0$ | Yes |
+| $\mathbb{Q}$ | $\aleph_0$ | Yes |
+| $\mathbb{R}$ | Uncountable | **No** |
+| $\mathbb{N} \to \mathbb{N}$ | Uncountable | **No** |
+
+**Cantor's Theorem:** For any set $A$, $|A| < |\mathcal{P}(A)|$.
+
+There's no bijection between a set and its power set—you can always construct a subset not in the mapping!
+
+> **💡 PL Connection:** The set of all functions $\mathbb{N} \to \mathbb{N}$ is uncountable. But programs are finite strings over a finite alphabet—there are only countably many programs! **Therefore, most functions cannot be computed by any program.** This is the foundation of uncomputability theory.
+
+---
+
+## Why This Matters for Programming Languages
+
+Set Theory isn't just abstract mathematics—it's the language we use to define programming languages.
+
+---
+
+### Sets as Syntax
+
+**Alphabets** are finite sets of symbols:
+
+<DisplayMath formula="\Sigma = \{a, b, c, \ldots, z\}" />
+
+**Strings** are elements of $\Sigma^*$ (the Kleene closure!):
+
+<DisplayMath formula="\Sigma^* = \{\epsilon, a, b, aa, ab, ba, bb, aaa, \ldots\}" />
+
+**Languages** are sets of strings:
+
+<DisplayMath formula="L \subseteq \Sigma^*" />
+
+**Grammars** define languages by generating sets of valid strings.
+
+**Regular expressions** denote sets of strings using the operations we've defined:
+- $a^* = \{\epsilon, a, aa, aaa, \ldots\}$
+- $(a|b)^* = $ all strings over $\{a, b\}$
+
+---
+
+### Relations as Semantics
+
+**Operational semantics** uses step relations:
+
+<DisplayMath formula="e \to e'" />
+
+"Expression $e$ reduces to expression $e'$ in one step."
+
+The Kleene closure $\to^*$ gives us multi-step reduction!
+
+**Denotational semantics** uses functions:
+
+<DisplayMath formula="\llbracket e \rrbracket = v" />
+
+"The meaning of expression $e$ is value $v$."
+
+---
+
+### Functions Everywhere
+
+In programming language theory, functions appear constantly:
+
+| Function | Purpose |
+| :--- | :--- |
+| Parse: $\Sigma^* \to \text{AST}$ | Convert strings to syntax trees |
+| Eval: $\text{AST} \to \text{Value}$ | Execute programs |
+| TypeCheck: $\text{AST} \to \text{Type}$ | Assign types to expressions |
+| Compile: $\text{AST} \to \text{AST}$ | Transform programs |
+
+---
+
+### Preview: Type Theory Alternative
+
+Set Theory works, but it has drawbacks for computer science:
+
+| Set Theory | Type Theory |
+| :--- | :--- |
+| Functions are sets of pairs | Functions are primitive |
+| Static, extensional | Dynamic, intensional |
+| "What is the mapping?" | "How do we compute?" |
+| Logic is separate | Logic emerges (propositions = types) |
+
+In Type Theory:
+- Types come first; objects inhabit types
+- $x : A$ means "$x$ is of type $A$"
+- Proofs are programs (Curry-Howard correspondence)
+- More natural for computation
+
+We'll explore Type Theory in future lectures.
+
+---
+
+### Cliffhanger: A Better Way to Study Functions?
+
+We built functions as sets of ordered pairs. This tells us *what* a function maps, but not *how* it computes.
+
+Consider the successor function on natural numbers. In Set Theory, it's the infinite set:
+
+<DisplayMath formula="\{(0, 1), (1, 2), (2, 3), (3, 4), \ldots\}" />
+
+This is static. It's a table lookup, not a computation.
+
+But in programming, functions *do* things. They execute. They compute. The notation $\lambda x. x + 1$ doesn't just describe a mapping—it's a recipe for computing the result.
+
+> **🤔 What if there was a formal system where functions weren't just described—they were *executable*? Where the notation itself was a computation waiting to happen?**
+
+There is. It's called **The Lambda Calculus**.
+
+Developed by Alonzo Church in the 1930s, the lambda calculus is a minimal formal system with just three constructs:
+
+1. **Variables:** $x$
+2. **Abstraction:** $\lambda x. \, e$ (function definition)
+3. **Application:** $e_1 \, e_2$ (function call)
+
+That's it. Three constructs. And yet:
+
+- It's **Turing-complete**—it can compute anything a computer can compute
+- Functions are **first-class**—functions can take functions as arguments and return functions as results
+- It's the **theoretical foundation** of Lisp, ML, Haskell, and all functional programming languages
+
+> **Next time:** We'll discover that you only need three symbols to express all of computation.
+>
+> See you then.
+
+---
+
+<LectureNotes>
+
+### Key Definitions
+
+| Term | Definition |
+| :--- | :--- |
+| **Set** | Unordered collection of unique elements |
+| **Tuple** | Ordered collection where duplicates are allowed |
+| **Relation** | Subset of a cross product: $R \subseteq A \times B$ |
+| **Equivalence Relation** | Reflexive, symmetric, transitive relation |
+| **Equivalence Class** | $[a] = \{x \mid xRa\}$ for equivalence relation $R$ |
+| **Function** | Relation where each input maps to exactly one output |
+| **Cardinality** | Size of a set, measured by bijections |
+| **Kleene Closure** | $R^* = $ zero or more applications of $R$ |
+
+### ZFC Axioms Summary
+
+| Axiom | What It Gives Us |
+| :--- | :--- |
+| Extensionality | Set equality |
+| Empty Set | $\emptyset$ |
+| Pairing | $\{a, b\}$ |
+| Union | $A \cup B$ |
+| Power Set | $\mathcal{P}(A)$ |
+| Comprehension | $\{x \in A \mid \varphi(x)\}$ |
+| Infinity | $\mathbb{N}$ |
+| Replacement | Function images |
+
+### Set Algebra Laws
+
+| Law | Union | Intersection |
+| :--- | :--- | :--- |
+| Identity | $A \cup \emptyset = A$ | $A \cap U = A$ |
+| Annihilation | $A \cup U = U$ | $A \cap \emptyset = \emptyset$ |
+| Idempotency | $A \cup A = A$ | $A \cap A = A$ |
+| Complement | $A \cup \overline{A} = U$ | $A \cap \overline{A} = \emptyset$ |
+
+### Set-Theoretic Constructions
+
+| Object | Construction |
+| :--- | :--- |
+| Natural number $n$ | $\{0, 1, \ldots, n-1\}$ (Von Neumann) |
+| Ordered pair $(a, b)$ | $\{\{a\}, \{a, b\}\}$ (Kuratowski) |
+| Integers $\mathbb{Z}$ | Equivalence classes on $\mathbb{N} \times \mathbb{N}$ |
+| Rationals $\mathbb{Q}$ | Equivalence classes on $\mathbb{Z} \times (\mathbb{Z} \setminus \{0\})$ |
+| Reals $\mathbb{R}$ | Dedekind cuts or Cauchy sequences |
+| Complex $\mathbb{C}$ | Pairs of reals with special multiplication |
+
+### Kleene Closure
+
+| Notation | Meaning |
+| :--- | :--- |
+| $R^0$ | Identity (zero steps) |
+| $R^n$ | Exactly $n$ steps |
+| $R^*$ | Zero or more steps |
+| $R^+$ | One or more steps |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Veritasium: "How to Count Past Infinity" (2021)](https://www.youtube.com/watch?v=SrU9YDoXE88) — Cantor's diagonal argument and cardinality explained
+- [Numberphile: "Infinity is Bigger Than You Think" (2012)](https://www.youtube.com/watch?v=elvOZm0d4H0) — Accessible introduction to infinite sets
+
+### Further Reading
+
+- [Ray Toal: Math Review](https://cs.lmu.edu/~ray/notes/mathreview/) — The comprehensive reference this lecture draws from
+- [Stanford Encyclopedia: Russell's Paradox](https://plato.stanford.edu/entries/russell-paradox/) — The crisis that shaped foundations
+- [Stanford Encyclopedia: Set Theory](https://plato.stanford.edu/entries/set-theory/) — Philosophical overview
+- Halmos, P. — *Naive Set Theory* — A classic, accessible textbook
+- Mac Lane, S. — *Categories for the Working Mathematician* — The definitive category theory reference
+
+### Historical Papers
+
+- Cantor, G. (1874) — "On a Property of the Collection of All Real Algebraic Numbers" — Set theory born
+- Zermelo, E. (1908) — "Investigations in the Foundations of Set Theory" — First axiomatic set theory
+- Russell, B. & Whitehead, A. (1910-1913) — *Principia Mathematica* — Logic as foundation attempt
+- Fraenkel, A. (1922) — "The Notion of 'Definite' and the Independence of the Axiom of Choice" — Completing ZFC
+- Eilenberg, S. & Mac Lane, S. (1945) — "General Theory of Natural Equivalences" — Category theory introduced
+
+</LectureResources>
