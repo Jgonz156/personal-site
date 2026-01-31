@@ -206,6 +206,14 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-5850",
     standard: "Syllabus",
     contentUrl: "/cmsi-5850/ex0",
+    exAllowedAttempts: "Unlimited",
+    exTotalPoints: 2,
+    exTotalQuestions: 5,
+    exHasTimer: false,
+    exExamUrl: "https://brightspace.lmu.edu/d2l/lms/quizzing/user/quiz_summary.d2l?ou=295659&qi=127432&cfql=0",
+    exTopics: [
+      "Syllabus",
+    ]
   },
   {
     id: "5850-ln3",
