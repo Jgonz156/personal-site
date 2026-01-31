@@ -1,0 +1,396 @@
+import { WrittenSection } from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+
+This homework covers material from **Lecture 1: The Study of Programming Languages** and **Lecture 2: Classical Logic and Proofs**. You will demonstrate comprehension of programming language foundations, formal reasoning, and logical systems.
+
+All questions require written responses. Show your work where applicable, and provide clear justifications for your answers. Partial credit will be awarded based on the quality of your reasoning.
+
+---
+
+<WrittenSection points={100}>
+
+## Part 1: Programming Language Foundations (25 points)
+
+---
+
+<QuestionBox qid="Q1" title="Languages, Paradigms, and History" points={15}>
+
+<SubQuestion qid="Q1a" points={3}>
+
+In your own words, define **programming language** and **computation**. Your definitions should capture the essential characteristics discussed in lecture.
+
+</SubQuestion>
+
+<SubQuestion qid="Q1b" points={4}>
+
+The lecture introduced four major programming paradigms: **imperative**, **functional**, **object-oriented**, and **logic**.
+
+Choose **two** paradigms and for each:
+1. Describe the paradigm's core abstraction or philosophy
+2. Name one language that exemplifies this paradigm
+3. Identify what type of problem domain the paradigm is well-suited for
+
+</SubQuestion>
+
+<SubQuestion qid="Q1c" points={4}>
+
+The lecture showed the "sum of even squares" problem implemented in many languages across different decades. Consider this Haskell implementation:
+
+```haskell
+sumOfEvenSquares :: [Int] -> Int
+sumOfEvenSquares = sum . map (^ 2) . filter even
+```
+
+Compare this to an imperative approach (like C or Fortran with explicit loops). Identify:
+1. How each approach handles iteration
+2. How each approach manages intermediate results
+3. One advantage of each approach
+
+</SubQuestion>
+
+<SubQuestion qid="Q1d" points={4}>
+
+Explain what it means for a language to be:
+- **Formalized from birth** (e.g., ML, Haskell, Rust)
+- **Formalized after the fact** (e.g., C, JavaScript)
+- **Still being formalized** (e.g., Python, TypeScript)
+
+Give one practical consequence that arises from each category.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q2" title="Formal Foundations in Practice" points={10}>
+
+<SubQuestion qid="Q2a" points={4}>
+
+Rust's **ownership and borrowing system** is formalized in its type system to prevent data races at compile time.
+
+Explain:
+1. What formal guarantee does Rust's ownership system provide regarding concurrent access to data?
+2. How does the borrow checker enforce this guarantee?
+3. Why is this compile-time guarantee significant compared to runtime detection of data races?
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={3}>
+
+Compare a language with **formal foundations from birth** (choose one: ML, Haskell, or Rust) to one **formalized after the fact** (choose one: JavaScript or C).
+
+For each language, describe one practical consequence (positive or negative) that arose from its approach to formalization, with a specific example.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={3}>
+
+Python is described as "still being formalized" through its gradual typing system.
+
+Explain:
+1. What benefits do Python type hints provide?
+2. What limitations remain compared to a fully formalized type system?
+3. Why might a language community choose gradual typing over a fully static system?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 2: Logic and Formal Systems (75 points)
+
+---
+
+<QuestionBox qid="Q3" title="Building Blocks of Logic" points={15}>
+
+<SubQuestion qid="Q3a" points={3}>
+
+Classify each of the following as a **term**, **predicate**, or **formula**:
+
+1. $romeo$
+2. $Loves(romeo, juliet)$
+3. $father(romeo)$
+4. $\forall x. Human(x) \supset Mortal(x)$
+5. $Italian$
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={4}>
+
+Using the predicates provided below, translate each English sentence into first-order logic:
+
+**Available predicates:**
+- $Student(x)$ — "x is a student"
+- $Professor(x)$ — "x is a professor"
+- $Teaches(x, y)$ — "x teaches y"
+- $Takes(x, y)$ — "x takes course y"
+
+**Translate:**
+1. "All students take some course."
+2. "There is a professor who teaches every student."
+3. "No student teaches a professor."
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={4}>
+
+The **description operator** $\iota x. P(x)$ and the **existential quantifier** $\exists x. P(x)$ both relate to existence, but they differ in important ways.
+
+Explain:
+1. What claim does $\exists x. P(x)$ make?
+2. What additional claims does $\iota x. P(x)$ make beyond existence?
+3. Give an example where the existential quantifier is appropriate but the description operator would fail.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3d" points={4}>
+
+Construct a complete truth table for the following compound formula:
+
+$$(A \supset B) \equiv (\neg A \lor B)$$
+
+Based on your truth table, what can you conclude about the relationship between implication and disjunction?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q4" title="Logical Operators and Semantics" points={15}>
+
+<SubQuestion qid="Q4a" points={4}>
+
+Many students find it counterintuitive that $F \supset T$ evaluates to **True**.
+
+Explain:
+1. What does the material implication $A \supset B$ actually claim?
+2. Why is the implication "vacuously true" when the antecedent is false?
+3. Give a real-world example that illustrates why this interpretation makes sense.
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={5}>
+
+Consider the following formulas. For each, determine whether it is **valid** (tautology), **satisfiable** (but not valid), or **unsatisfiable** (contradiction). Justify each answer.
+
+1. $A \lor \neg A$
+2. $A \land \neg A$
+3. $(A \supset B) \land A \land \neg B$
+4. $A \supset (B \supset A)$
+5. $(A \land B) \supset A$
+
+</SubQuestion>
+
+<SubQuestion qid="Q4c" points={3}>
+
+**De Morgan's Laws** state:
+- $\neg(A \land B) \equiv \neg A \lor \neg B$
+- $\neg(A \lor B) \equiv \neg A \land \neg B$
+
+Demonstrate the **first law** using a truth table. Show all columns for $A$, $B$, $A \land B$, $\neg(A \land B)$, $\neg A$, $\neg B$, and $\neg A \lor \neg B$.
+
+</SubQuestion>
+
+<SubQuestion qid="Q4d" points={3}>
+
+The order of quantifiers matters. Explain the difference in meaning between:
+
+1. $\forall x. \exists y. Loves(x, y)$
+2. $\exists y. \forall x. Loves(x, y)$
+
+Give a scenario where statement 1 is true but statement 2 is false.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q5" title="Alternative Logics" points={15}>
+
+<SubQuestion qid="Q5a" points={4}>
+
+**Intuitionistic logic** rejects the **law of excluded middle** ($A \lor \neg A$) and **double negation elimination** ($\neg\neg A \supset A$).
+
+Explain:
+1. What philosophical principle underlies intuitionistic logic's rejection of these laws?
+2. Give an example of a mathematical statement where a classical logician and an intuitionist would disagree about its provability.
+
+</SubQuestion>
+
+<SubQuestion qid="Q5b" points={5}>
+
+Translate each of the following natural language statements into formal logic using the appropriate **modal operators**. Identify which modal logic (alethic, deontic, epistemic, doxastic, or temporal) you are using.
+
+1. "It is necessary that all triangles have three sides."
+2. "Alice knows that the door is locked."
+3. "You are permitted to leave the room."
+4. "It will always be the case that the sun rises."
+5. "Bob believes that it might rain tomorrow."
+
+</SubQuestion>
+
+<SubQuestion qid="Q5c" points={3}>
+
+In **fuzzy logic**, the statement "Bob is tall" might have a truth value of 0.7 (Bob is 70% tall).
+
+Given:
+- $|Tall(bob)| = 0.7$
+- $|Heavy(bob)| = 0.4$
+
+Calculate the fuzzy truth values for:
+1. $\neg Tall(bob)$
+2. $Tall(bob) \land Heavy(bob)$
+3. $Tall(bob) \lor Heavy(bob)$
+
+Show your work using the standard fuzzy operators.
+
+</SubQuestion>
+
+<SubQuestion qid="Q5d" points={3}>
+
+The lecture mentioned that **predicate logic can sometimes express ideas similar to modal operators**. For example:
+
+- $\Box P$ (necessarily P) can be expressed as $\forall w. World(w) \supset P(w)$
+
+Explain why this equivalence works. What does "possible worlds" semantics mean in this context?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q6" title="Reading Natural Deduction Proofs" points={15}>
+
+Natural deduction proofs use **introduction** and **elimination** rules to derive conclusions from premises. This question tests your ability to read and understand proofs.
+
+<SubQuestion qid="Q6a" points={5}>
+
+Consider the following natural deduction proof:
+
+```
+1. P ∧ Q           (premise)
+2. P               (∧E₁ from 1)
+3. Q               (∧E₂ from 1)
+4. Q ∧ P           (∧I from 3, 2)
+```
+
+Answer the following:
+1. What is being proven? (State the conclusion in words)
+2. What does line 2 accomplish? Explain the ∧E₁ rule in plain English.
+3. Why are lines 2 and 3 listed in that order before line 4?
+4. What does this proof tell us about conjunction?
+
+</SubQuestion>
+
+<SubQuestion qid="Q6b" points={5}>
+
+Consider this proof of implication transitivity:
+
+```
+1.   [P ⊃ Q]                    (assumption)
+2.     [Q ⊃ R]                  (assumption)
+3.       [P]                    (assumption)
+4.       Q                      (⊃E from 1, 3)
+5.       R                      (⊃E from 2, 4)
+6.     P ⊃ R                    (⊃I from 3-5)
+7.   (Q ⊃ R) ⊃ (P ⊃ R)          (⊃I from 2-6)
+8. (P ⊃ Q) ⊃ ((Q ⊃ R) ⊃ (P ⊃ R)) (⊃I from 1-7)
+```
+
+Answer the following:
+1. What is the final theorem being proven? Express it in plain English.
+2. What do the brackets [ ] indicate? What happens to assumptions as the proof progresses?
+3. Explain what happens at lines 4 and 5 (the two ⊃E applications).
+4. Why does the proof work "from the inside out" (lines 3-5 happen before the outer implications are established)?
+
+</SubQuestion>
+
+<SubQuestion qid="Q6c" points={5}>
+
+For each of the following logical fallacies, explain **what inference rule it superficially resembles** and **why the fallacy is invalid**:
+
+1. **Affirming the Consequent:** "If it rains, the ground is wet. The ground is wet. Therefore, it rained."
+
+2. **Denying the Antecedent:** "If you study, you'll pass. You didn't study. Therefore, you won't pass."
+
+3. **Appeal to Ignorance:** "No one has proven that aliens don't exist, so they must exist."
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q7" title="Metalogic and the Curry-Howard Correspondence" points={15}>
+
+<SubQuestion qid="Q7a" points={5}>
+
+Define **soundness** and **completeness** for a logical system.
+
+For each property:
+1. State what it guarantees (using the symbols $\vdash$ for provability and $\vDash$ for truth)
+2. Explain why it is desirable
+3. What would be problematic if a logic lacked this property?
+
+</SubQuestion>
+
+<SubQuestion qid="Q7b" points={5}>
+
+**Godel's Incompleteness Theorems** revealed fundamental limits of formal systems.
+
+1. State the **First Incompleteness Theorem** in your own words.
+2. Explain why we cannot simply "add more axioms" to make a system complete.
+3. What does this tell us about the relationship between **truth** and **provability**?
+
+</SubQuestion>
+
+<SubQuestion qid="Q7c" points={5}>
+
+The **Curry-Howard Correspondence** reveals that proofs are programs and propositions are types.
+
+| Logic | Programming |
+| :--- | :--- |
+| Proposition | Type |
+| Proof | Program |
+| Implication $A \supset B$ | Function type $A \to B$ |
+| Conjunction $A \land B$ | Product type $(A, B)$ |
+
+Choose **one** of these correspondences and explain it in detail:
+1. What does the logical connective mean?
+2. What does the corresponding type construct mean in programming?
+3. Why do they correspond? (What does a "proof" look like as a program?)
+
+</SubQuestion>
+
+</QuestionBox>
+
+</WrittenSection>
+
+---
+
+## Submission Guidelines
+
+- Submit your responses as a **single PDF** to Brightspace
+- Clearly label each question and subquestion (Q1a, Q1b, etc.)
+- For truth tables and proofs, ensure your work is legible (typed or neatly handwritten)
+- Show your reasoning—partial credit is awarded for correct methodology
+
+---
+
+## Point Summary
+
+| Section | Question | Points |
+| :--- | :--- | :---: |
+| **Part 1** | Q1: Languages, Paradigms, and History | 15 |
+| | Q2: Formal Foundations in Practice | 10 |
+| **Part 2** | Q3: Building Blocks of Logic | 15 |
+| | Q4: Logical Operators and Semantics | 15 |
+| | Q5: Alternative Logics | 15 |
+| | Q6: Reading Natural Deduction Proofs | 15 |
+| | Q7: Metalogic and Curry-Howard | 15 |
+| **Total** | | **100** |
