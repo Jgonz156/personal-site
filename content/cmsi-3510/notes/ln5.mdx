@@ -1,0 +1,1699 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap
+
+In LN4, we explored **Functions** in Rust and how they interact with ownership:
+
+- **Pass-by-Value vs Pass-by-Reference** — When to move vs borrow
+- **Closures** — Anonymous functions that capture their environment
+- **Methods and Associated Functions** — Organizing code with `impl` blocks
+- **Dynamic Dispatch** — Runtime polymorphism with `dyn Trait`
+
+Today we'll explore the **data structures** that make Rust powerful: structs, enums, and the trait system that ties everything together.
+
+---
+
+## Today's Agenda
+
+- **Structs** — Defining custom types with ownership semantics
+- **Enums** — Tagged unions that carry data
+- **Traits** — Rust's approach to polymorphism (no inheritance!)
+- **Standard Library Types** — Smart pointers and common patterns
+
+---
+
+## Structs
+
+<DefinitionBox term="Struct">
+
+A **struct** (structure) is a custom data type that groups related values under a single name. Each piece of data is called a **field**. Structs own their data—when a struct is dropped, all its fields are dropped too.
+
+</DefinitionBox>
+
+Rust provides three kinds of structs, each with different use cases:
+
+| Kind | Syntax | Use Case |
+| :--- | :--- | :--- |
+| **Named Struct** | `struct Name { field: Type }` | Grouped data with named fields |
+| **Tuple Struct** | `struct Name(Type, Type)` | Positional data, newtypes |
+| **Unit Struct** | `struct Name;` | Markers, zero-sized types |
+
+---
+
+### Named Structs
+
+The most common form. Fields are accessed by name:
+
+```rust
+struct User {
+    username: String,
+    email: String,
+    active: bool,
+    sign_in_count: u64,
+}
+
+fn main() {
+    // Creating an instance
+    let user1 = User {
+        username: String::from("alice"),
+        email: String::from("alice@example.com"),
+        active: true,
+        sign_in_count: 1,
+    };
+    
+    // Accessing fields
+    println!("Username: {}", user1.username);
+}
+```
+
+#### Field Init Shorthand
+
+When a variable has the same name as a field, you can use shorthand:
+
+```rust
+fn create_user(username: String, email: String) -> User {
+    User {
+        username,           // Same as `username: username`
+        email,              // Same as `email: email`
+        active: true,
+        sign_in_count: 1,
+    }
+}
+```
+
+#### Structs Own Their Data
+
+This is crucial: **structs own their fields**. When the struct is dropped, all owned fields are dropped too.
+
+```rust
+struct Document {
+    title: String,      // Document owns this String
+    content: String,    // Document owns this String
+}
+
+fn main() {
+    let doc = Document {
+        title: String::from("My Doc"),
+        content: String::from("Hello, world!"),
+    };
+    
+    // When `doc` goes out of scope here, both Strings are dropped
+}
+```
+
+> **💡 Connection to LN3:** This is the ownership system at work! The struct is the owner, and when the owner is dropped, all owned values are deallocated.
+
+---
+
+### Struct Update Syntax
+
+Create a new struct instance using values from an existing one:
+
+```rust
+let user2 = User {
+    email: String::from("bob@example.com"),
+    ..user1  // Use remaining fields from user1
+};
+```
+
+> **⚠️ Watch out for moves!** The `..` syntax **moves** non-Copy fields. After this, `user1.username` is invalid (it was moved to `user2`), but `user1.active` and `user1.sign_in_count` are still valid (they implement `Copy`).
+
+```rust
+let user1 = User {
+    username: String::from("alice"),
+    email: String::from("alice@example.com"),
+    active: true,
+    sign_in_count: 1,
+};
+
+let user2 = User {
+    email: String::from("bob@example.com"),
+    ..user1
+};
+
+// println!("{}", user1.username);  // ✗ ERROR: username was moved
+println!("{}", user1.active);       // ✓ OK: bool is Copy
+println!("{}", user1.sign_in_count); // ✓ OK: u64 is Copy
+```
+
+| Field Type | Behavior with `..` | Original Usable? |
+| :--- | :--- | :--- |
+| `Copy` types (`bool`, `i32`, etc.) | Copied | Yes |
+| Non-`Copy` types (`String`, `Vec`) | Moved | No |
+
+---
+
+### Tuple Structs
+
+Tuple structs have fields accessed by position, not name:
+
+```rust
+struct Color(u8, u8, u8);
+struct Point(f64, f64, f64);
+
+fn main() {
+    let red = Color(255, 0, 0);
+    let origin = Point(0.0, 0.0, 0.0);
+    
+    // Access by position
+    println!("Red channel: {}", red.0);
+    println!("X coordinate: {}", origin.0);
+}
+```
+
+#### The Newtype Pattern
+
+Tuple structs with a single field create **distinct types** with zero runtime cost:
+
+```rust
+struct Meters(f64);
+struct Feet(f64);
+
+fn calculate_runway_length(length: Meters) -> Meters {
+    // Only accepts Meters, not Feet!
+    Meters(length.0 * 1.5)
+}
+
+fn main() {
+    let runway = Meters(1000.0);
+    let extended = calculate_runway_length(runway);
+    
+    let altitude = Feet(30000.0);
+    // calculate_runway_length(altitude);  // ✗ ERROR: expected Meters, found Feet
+}
+```
+
+> **💡 Key Insight:** The newtype pattern gives you **type safety at compile time** with **zero runtime overhead**. `Meters(100.0)` and `100.0_f64` have identical memory representations.
+
+**Why use newtypes?**
+
+| Benefit | Example |
+| :--- | :--- |
+| **Type safety** | Can't accidentally mix `Meters` and `Feet` |
+| **Implement foreign traits** | Can implement `Display` for `Meters` even though `f64` already has one |
+| **Hide implementation** | Users see `Meters`, not `f64` |
+
+---
+
+### Unit Structs (Marker Structs)
+
+Structs with no fields—they're **zero-sized types (ZSTs)**:
+
+```rust
+struct AlwaysEqual;
+struct Authenticated;
+struct Guest;
+
+fn main() {
+    let _marker = AlwaysEqual;
+    
+    // Takes no memory at runtime!
+    println!("Size of AlwaysEqual: {}", std::mem::size_of::<AlwaysEqual>());  // 0
+}
+```
+
+#### Out-of-Band Information
+
+This is a remarkably powerful concept: **information that exists purely in the type system, not in memory**. Traditional programming stores all information as bits in RAM—but marker structs let you encode constraints, states, and properties that the compiler tracks without any runtime cost.
+
+Think about it: in most languages, to track whether a user is authenticated, you'd store a boolean somewhere:
+
+```rust
+// Traditional approach: runtime data
+struct Connection {
+    address: String,
+    is_authenticated: bool,  // Takes memory, can be wrong at runtime
+}
+```
+
+But with markers, that information moves "out of band"—into the type system itself:
+
+```rust
+// Marker approach: compile-time guarantee
+struct Connection<State> {
+    address: String,
+    _state: std::marker::PhantomData<State>,
+}
+struct Authenticated;
+struct Guest;
+
+// The STATE is encoded in the TYPE, not in memory!
+// Connection<Authenticated> and Connection<Guest> are different types
+```
+
+> **💡 Key Insight:** This is "zero-cost abstraction" taken to its logical extreme. The marker adds **zero bytes** to your struct, yet provides **compile-time guarantees** that would otherwise require runtime checks. Bugs that would be caught at runtime (or worse, in production) are now caught at compile time.
+
+**Use cases:**
+
+1. **Marker traits:** Indicate a type has a property without storing data
+2. **Type-level state:** Encode states in the type system (state machines)
+3. **Phantom types:** Combined with `PhantomData` for advanced patterns
+4. **Permission systems:** Encode access levels in the type system
+
+#### Example 1: Type-State Pattern (Connection)
+
+Ensure operations only happen in valid states:
+
+```rust
+// Type-state pattern: can only send if authenticated
+struct Connection<State> {
+    address: String,
+    _state: std::marker::PhantomData<State>,
+}
+
+struct Disconnected;
+struct Connected;
+
+impl Connection<Disconnected> {
+    fn connect(self) -> Connection<Connected> {
+        // ... establish connection ...
+        Connection {
+            address: self.address,
+            _state: std::marker::PhantomData,
+        }
+    }
+}
+
+impl Connection<Connected> {
+    fn send(&self, data: &[u8]) {
+        // Can only call send() on Connected connections!
+    }
+}
+```
+
+#### Example 2: Permission System
+
+Encode access control at compile time:
+
+```rust
+use std::marker::PhantomData;
+
+// Permission markers - zero-sized!
+struct ReadOnly;
+struct ReadWrite;
+struct Admin;
+
+struct FileHandle<Permission> {
+    path: String,
+    _permission: PhantomData<Permission>,
+}
+
+impl<P> FileHandle<P> {
+    // All permission levels can read
+    fn read(&self) -> Vec<u8> {
+        println!("Reading from {}", self.path);
+        vec![]
+    }
+}
+
+impl FileHandle<ReadWrite> {
+    // Only ReadWrite can write
+    fn write(&self, data: &[u8]) {
+        println!("Writing to {}", self.path);
+    }
+}
+
+impl FileHandle<Admin> {
+    // Admin can do everything
+    fn write(&self, data: &[u8]) {
+        println!("Admin writing to {}", self.path);
+    }
+    
+    fn delete(self) {
+        println!("Deleting {}", self.path);
+    }
+}
+
+fn main() {
+    let readonly_file: FileHandle<ReadOnly> = FileHandle {
+        path: String::from("/etc/passwd"),
+        _permission: PhantomData,
+    };
+    
+    let admin_file: FileHandle<Admin> = FileHandle {
+        path: String::from("/tmp/log.txt"),
+        _permission: PhantomData,
+    };
+    
+    readonly_file.read();        // ✓ OK
+    // readonly_file.write(&[]);  // ✗ ERROR: no method `write` for FileHandle<ReadOnly>
+    // readonly_file.delete();    // ✗ ERROR: no method `delete` for FileHandle<ReadOnly>
+    
+    admin_file.read();           // ✓ OK
+    admin_file.write(&[]);       // ✓ OK
+    admin_file.delete();         // ✓ OK
+}
+```
+
+> **📌 OS Relevance:** This pattern mirrors how operating systems handle file permissions—but instead of checking permissions at runtime (and potentially failing), Rust checks them at compile time. Invalid operations simply don't compile.
+
+---
+
+### Struct Memory Layout
+
+Understanding memory layout is essential for systems programming.
+
+#### Default Layout (`repr(Rust)`)
+
+Rust is free to reorder fields for optimal packing:
+
+```rust
+struct Unoptimized {
+    a: u8,   // 1 byte
+    b: u32,  // 4 bytes (needs 4-byte alignment)
+    c: u8,   // 1 byte
+}
+
+// Rust might internally reorder to:
+// b: u32  (offset 0, 4 bytes)
+// a: u8   (offset 4, 1 byte)
+// c: u8   (offset 5, 1 byte)
+// Total: 8 bytes (with 2 bytes padding at end for alignment)
+```
+
+#### Measuring Size and Alignment
+
+```rust
+use std::mem::{size_of, align_of};
+
+struct Example {
+    a: u8,
+    b: u32,
+    c: u8,
+}
+
+fn main() {
+    println!("Size: {} bytes", size_of::<Example>());   // Likely 8
+    println!("Alignment: {} bytes", align_of::<Example>()); // 4
+}
+```
+
+#### The `#[repr(C)]` Attribute
+
+For FFI (Foreign Function Interface) or when you need predictable layout:
+
+```rust
+#[repr(C)]
+struct CCompatible {
+    a: u8,   // offset 0
+    // 3 bytes padding
+    b: u32,  // offset 4
+    c: u8,   // offset 8
+    // 3 bytes padding
+}           // Total: 12 bytes
+```
+
+| Representation | Field Order | Padding | Use Case |
+| :--- | :--- | :--- | :--- |
+| `repr(Rust)` | Compiler chooses | Minimized | Default, most efficient |
+| `repr(C)` | Declaration order | C-compatible | FFI, OS interfaces |
+| `repr(packed)` | Declaration order | None | Careful! May cause unaligned access |
+
+#### Memory Layout Visualization
+
+```
+repr(Rust) - Optimized:          repr(C) - Predictable:
+┌────┬────┬────┬────┐            ┌────┬────┬────┬────┐
+│ b  │ b  │ b  │ b  │ (u32)      │ a  │pad │pad │pad │
+├────┼────┼────┼────┤            ├────┼────┼────┼────┤
+│ a  │ c  │pad │pad │            │ b  │ b  │ b  │ b  │ (u32)
+└────┴────┴────┴────┘            ├────┼────┼────┼────┤
+Total: 8 bytes                   │ c  │pad │pad │pad │
+                                 └────┴────┴────┴────┘
+                                 Total: 12 bytes
+```
+
+> **📌 OS Relevance:** When writing device drivers or syscall interfaces, `#[repr(C)]` ensures your struct layout matches what the OS expects.
+
+---
+
+### Lifetimes in Structs
+
+When a struct contains references, you must specify **lifetimes**:
+
+```rust
+struct Excerpt<'a> {
+    content: &'a str,
+}
+
+fn main() {
+    let text = String::from("Call me Ishmael. Some years ago...");
+    let excerpt = Excerpt {
+        content: &text[..15],  // Borrows from `text`
+    };
+    
+    println!("Excerpt: {}", excerpt.content);
+    
+    // `excerpt` cannot outlive `text`!
+}
+```
+
+> **🤔 Why lifetimes?** The compiler needs to ensure the reference inside the struct doesn't outlive the data it points to. The `'a` annotation says "this struct cannot outlive the reference it contains."
+
+```rust
+// This won't compile:
+fn create_excerpt() -> Excerpt<'static> {
+    let text = String::from("temporary");
+    Excerpt { content: &text }  // ✗ ERROR: `text` doesn't live long enough
+}
+```
+
+#### Multiple Lifetimes
+
+Structs can have multiple lifetime parameters:
+
+```rust
+struct Comparison<'a, 'b> {
+    first: &'a str,
+    second: &'b str,
+}
+```
+
+---
+
+### Generic Structs
+
+Structs can have type parameters, just like functions:
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+fn main() {
+    let integer_point = Point { x: 5, y: 10 };
+    let float_point = Point { x: 1.0, y: 4.0 };
+}
+```
+
+#### Multiple Type Parameters
+
+```rust
+struct Point<T, U> {
+    x: T,
+    y: U,
+}
+
+let mixed = Point { x: 5, y: 4.0 };  // Point<i32, f64>
+```
+
+#### Trait Bounds on Generics
+
+You can constrain what types are allowed:
+
+```rust
+use std::fmt::Display;
+
+struct Wrapper<T: Display> {
+    value: T,
+}
+
+// Or equivalently with `where`:
+struct Wrapper<T>
+where
+    T: Display,
+{
+    value: T,
+}
+```
+
+---
+
+### Methods on Structs
+
+Define methods in `impl` blocks (covered in detail in LN4):
+
+```rust
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    // Associated function (no self) - often used as constructor
+    fn new(width: u32, height: u32) -> Self {
+        Rectangle { width, height }
+    }
+    
+    fn square(size: u32) -> Self {
+        Rectangle { width: size, height: size }
+    }
+    
+    // Methods (take self)
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+    
+    fn scale(&mut self, factor: u32) {
+        self.width *= factor;
+        self.height *= factor;
+    }
+    
+    fn into_square(self) -> Rectangle {
+        let side = (self.width + self.height) / 2;
+        Rectangle { width: side, height: side }
+    }
+}
+```
+
+---
+
+## Enums
+
+<DefinitionBox term="Enum">
+
+An **enum** (enumeration) defines a type that can be one of several **variants**. Unlike C enums, Rust enums can carry data—each variant can have different types and amounts of associated data.
+
+</DefinitionBox>
+
+---
+
+### Basic Enum Syntax
+
+Simple enums work like C:
+
+```rust
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fn main() {
+    let heading = Direction::North;
+    
+    match heading {
+        Direction::North => println!("Going up!"),
+        Direction::South => println!("Going down!"),
+        Direction::East => println!("Going right!"),
+        Direction::West => println!("Going left!"),
+    }
+}
+```
+
+---
+
+### Enums with Data
+
+The key differentiator from C: **variants can hold data**:
+
+```rust
+enum Message {
+    Quit,                        // No data (unit variant)
+    Move { x: i32, y: i32 },    // Named fields (struct variant)
+    Write(String),               // Single value (tuple variant)
+    ChangeColor(u8, u8, u8),    // Multiple values (tuple variant)
+}
+
+fn process_message(msg: Message) {
+    match msg {
+        Message::Quit => println!("Quitting"),
+        Message::Move { x, y } => println!("Moving to ({}, {})", x, y),
+        Message::Write(text) => println!("Writing: {}", text),
+        Message::ChangeColor(r, g, b) => println!("Color: rgb({}, {}, {})", r, g, b),
+    }
+}
+```
+
+> **💡 Key Insight:** This is what makes Rust enums incredibly powerful. Each variant is like a mini-struct inside the enum. You can represent complex state machines, protocol messages, or AST nodes elegantly.
+
+---
+
+### Enum Memory Layout
+
+Enums have a **discriminant** (tag) plus space for the **largest variant**:
+
+```rust
+enum Example {
+    Small(u8),           // 1 byte of data
+    Medium(u32),         // 4 bytes of data
+    Large([u8; 100]),    // 100 bytes of data
+}
+
+// Size = discriminant + largest variant + padding
+// All variants occupy the same total size!
+```
+
+```
+┌──────────────┬─────────────────────────────────────┐
+│ Discriminant │            Variant Data             │
+│   (1-8 bytes)│      (size of largest variant)      │
+└──────────────┴─────────────────────────────────────┘
+```
+
+> **💡 Why only the largest?** This is fundamentally different from structs! A struct's fields all exist simultaneously—if you have `username`, `email`, and `active`, all three are stored in memory at once. But enum variants are **mutually exclusive**: a `Message` is *either* `Quit` *or* `Move` *or* `Write`—never more than one at a time. Since only one variant can exist at any moment, we only need enough space for the biggest possibility. The discriminant tells us which variant is currently "active."
+
+| Type | Memory Model | Why |
+| :--- | :--- | :--- |
+| **Struct** | Sum of all fields | All fields coexist |
+| **Enum** | Size of largest variant | Only one variant exists at a time |
+
+#### Niche Optimization
+
+Rust is smart about memory. For `Option<&T>`:
+
+```rust
+// You might expect:
+// Option<&T> = discriminant (1+ byte) + pointer (8 bytes) = 9+ bytes
+
+// But actually:
+// Option<&T> = 8 bytes!
+
+// How? The null pointer (0x0) is the "niche" - it represents None
+// Some(&value) stores the valid pointer
+// None is represented as null (which can never be a valid reference)
+```
+
+```rust
+use std::mem::size_of;
+
+println!("Size of &i32: {}", size_of::<&i32>());           // 8
+println!("Size of Option<&i32>: {}", size_of::<Option<&i32>>()); // 8 (same!)
+```
+
+> **📌 Key Point:** This is why `Option<Box<T>>` and `Option<&T>` have no overhead compared to nullable pointers in C—Rust uses the null representation for `None`.
+
+---
+
+### Pattern Matching with Enums
+
+The `match` expression is exhaustive—you must handle all variants:
+
+```rust
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter,
+}
+
+fn value_in_cents(coin: Coin) -> u32 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter => 25,
+    }
+}
+```
+
+#### Destructuring Data
+
+Extract data from variants:
+
+```rust
+enum Action {
+    Move { x: i32, y: i32 },
+    Attack(String),
+    Heal(u32),
+}
+
+fn execute(action: Action) {
+    match action {
+        Action::Move { x, y } => println!("Move to ({}, {})", x, y),
+        Action::Attack(target) => println!("Attack {}", target),
+        Action::Heal(amount) => println!("Heal for {} HP", amount),
+    }
+}
+```
+
+#### The `if let` Shorthand
+
+When you only care about one variant:
+
+```rust
+let msg = Message::Write(String::from("hello"));
+
+// Instead of:
+match msg {
+    Message::Write(text) => println!("Got text: {}", text),
+    _ => (), // Ignore other variants
+}
+
+// Use if let:
+if let Message::Write(text) = msg {
+    println!("Got text: {}", text);
+}
+```
+
+#### The `_` Wildcard
+
+Match any remaining patterns:
+
+```rust
+let value = 7;
+
+match value {
+    1 => println!("one"),
+    2 => println!("two"),
+    _ => println!("something else"),  // Catches everything else
+}
+```
+
+---
+
+### Option: Handling Absence
+
+The `Option<T>` enum represents a value that might or might not exist:
+
+```rust
+enum Option<T> {
+    Some(T),  // A value is present
+    None,     // No value
+}
+```
+
+#### Why Not Just Use Null?
+
+In languages like C, Java, or Python, any reference can be null/None. This leads to the infamous **null pointer exception**—Tony Hoare, who invented null references, called it his "billion-dollar mistake."
+
+```c
+// C: Null pointer dereference - undefined behavior (crash, security vulnerability)
+char* name = get_user_name(id);
+printf("%s", name);  // What if name is NULL? 💥
+
+// Java: NullPointerException at runtime
+String name = getUserName(id);
+System.out.println(name.length());  // What if name is null? 💥
+```
+
+Rust's approach: **make absence explicit in the type system**.
+
+```rust
+// Rust: The type TELLS you it might be absent
+fn get_user_name(id: u64) -> Option<String> { ... }
+
+let name = get_user_name(id);
+// println!("{}", name.len());  // ✗ ERROR: Option<String> has no method `len`
+
+// You MUST handle the None case
+match name {
+    Some(n) => println!("{}", n.len()),
+    None => println!("No user found"),
+}
+```
+
+> **💡 Key Insight:** With `Option`, you can't accidentally use a value that might not exist. The compiler forces you to handle the `None` case.
+
+#### Common Option Patterns
+
+**Pattern 1: Match**
+
+```rust
+fn describe_number(n: Option<i32>) -> String {
+    match n {
+        Some(x) if x > 0 => format!("{} is positive", x),
+        Some(x) if x < 0 => format!("{} is negative", x),
+        Some(0) => String::from("zero"),
+        None => String::from("no number provided"),
+    }
+}
+```
+
+**Pattern 2: if let (when you only care about Some)**
+
+```rust
+let config_max = Some(3u8);
+
+// Instead of match with a throwaway arm:
+if let Some(max) = config_max {
+    println!("Maximum configured as {}", max);
+}
+```
+
+**Pattern 3: Unwrap methods**
+
+```rust
+let x: Option<i32> = Some(5);
+let y: Option<i32> = None;
+
+// unwrap: Get value or panic (use sparingly!)
+let val = x.unwrap();  // 5
+
+// expect: Panic with custom message
+let val = x.expect("x should have a value");  // 5
+
+// unwrap_or: Provide default
+let val = y.unwrap_or(0);  // 0
+
+// unwrap_or_else: Compute default lazily
+let val = y.unwrap_or_else(|| expensive_computation());
+
+// unwrap_or_default: Use Default trait
+let val: i32 = y.unwrap_or_default();  // 0
+```
+
+**Pattern 4: Transforming with map and and_then**
+
+```rust
+let maybe_string: Option<String> = Some(String::from("hello"));
+
+// map: Transform the inner value
+let maybe_len: Option<usize> = maybe_string.map(|s| s.len());  // Some(5)
+
+// and_then: Chain operations that return Option
+fn parse_port(s: &str) -> Option<u16> {
+    s.parse().ok()
+}
+
+let port: Option<u16> = Some("8080")
+    .and_then(|s| parse_port(s));  // Some(8080)
+
+let invalid: Option<u16> = Some("not a number")
+    .and_then(|s| parse_port(s));  // None
+```
+
+**Pattern 5: The ? operator (in functions returning Option)**
+
+```rust
+fn get_first_word_length(text: Option<&str>) -> Option<usize> {
+    let text = text?;  // Return None early if text is None
+    let first_word = text.split_whitespace().next()?;  // Return None if no words
+    Some(first_word.len())
+}
+
+// Equivalent to:
+fn get_first_word_length_verbose(text: Option<&str>) -> Option<usize> {
+    match text {
+        None => None,
+        Some(text) => match text.split_whitespace().next() {
+            None => None,
+            Some(first_word) => Some(first_word.len()),
+        }
+    }
+}
+```
+
+---
+
+### Result: Handling Errors
+
+The `Result<T, E>` enum represents an operation that might fail:
+
+```rust
+enum Result<T, E> {
+    Ok(T),   // Success, with value of type T
+    Err(E),  // Failure, with error of type E
+}
+```
+
+#### Why Not Just Use Exceptions?
+
+Exceptions (try/catch) have problems:
+
+1. **Invisible control flow**: Any function might throw, but you can't tell from the signature
+2. **Easy to forget**: Uncaught exceptions crash your program
+3. **Performance overhead**: Exception machinery has runtime cost
+
+Rust's approach: **errors are values, returned explicitly**.
+
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+// The return type TELLS you this can fail
+fn read_file_contents(path: &str) -> Result<String, io::Error> {
+    let mut file = File::open(path)?;  // Returns Err early if file doesn't exist
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;  // Returns Err early if read fails
+    Ok(contents)
+}
+```
+
+> **💡 Key Insight:** You can't ignore a `Result`. If you try to use it without handling the error case, the compiler warns you. Errors are part of the API contract.
+
+#### Common Result Patterns
+
+**Pattern 1: Match**
+
+```rust
+use std::num::ParseIntError;
+
+fn double_string(s: &str) -> Result<i32, ParseIntError> {
+    let n: i32 = s.parse()?;
+    Ok(n * 2)
+}
+
+fn main() {
+    match double_string("5") {
+        Ok(n) => println!("Doubled: {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+```
+
+**Pattern 2: The ? operator (the idiomatic way)**
+
+The `?` operator:
+1. If `Ok(value)`: extracts the value and continues
+2. If `Err(e)`: returns `Err(e)` from the current function
+
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut file = File::open("username.txt")?;  // ? on Result
+    let mut username = String::new();
+    file.read_to_string(&mut username)?;         // ? on Result
+    Ok(username)
+}
+
+// Even more concise with chaining:
+fn read_username_short() -> Result<String, io::Error> {
+    let mut username = String::new();
+    File::open("username.txt")?.read_to_string(&mut username)?;
+    Ok(username)
+}
+```
+
+**Pattern 3: Unwrap methods**
+
+```rust
+let good: Result<i32, &str> = Ok(5);
+let bad: Result<i32, &str> = Err("something went wrong");
+
+// unwrap: Get value or panic
+let val = good.unwrap();  // 5
+// let val = bad.unwrap();  // 💥 panic!
+
+// expect: Panic with context
+let val = good.expect("failed to get value");  // 5
+
+// unwrap_or: Provide default
+let val = bad.unwrap_or(0);  // 0
+
+// unwrap_or_else: Compute default from error
+let val = bad.unwrap_or_else(|e| {
+    eprintln!("Error: {}, using default", e);
+    0
+});
+```
+
+**Pattern 4: Transforming with map, map_err, and and_then**
+
+```rust
+// map: Transform the Ok value
+let result: Result<i32, &str> = Ok(5);
+let doubled: Result<i32, &str> = result.map(|n| n * 2);  // Ok(10)
+
+// map_err: Transform the Err value
+let result: Result<i32, &str> = Err("parse error");
+let with_context: Result<i32, String> = result.map_err(|e| format!("Config: {}", e));
+
+// and_then: Chain fallible operations
+fn parse_and_double(s: &str) -> Result<i32, std::num::ParseIntError> {
+    s.parse::<i32>().and_then(|n| Ok(n * 2))
+}
+```
+
+**Pattern 5: Converting between Result and Option**
+
+```rust
+let result: Result<i32, &str> = Ok(5);
+let option: Option<i32> = result.ok();  // Some(5), discards error
+
+let result: Result<i32, &str> = Err("oops");
+let option: Option<i32> = result.ok();  // None
+
+let option: Option<i32> = Some(5);
+let result: Result<i32, &str> = option.ok_or("no value");  // Ok(5)
+
+let option: Option<i32> = None;
+let result: Result<i32, &str> = option.ok_or("no value");  // Err("no value")
+```
+
+---
+
+### Option and Result Method Reference
+
+| Method | `Option` | `Result` | Description |
+| :--- | :--- | :--- | :--- |
+| `unwrap()` | ✓ | ✓ | Get value or panic |
+| `expect(msg)` | ✓ | ✓ | Get value or panic with message |
+| `unwrap_or(default)` | ✓ | ✓ | Get value or use default |
+| `unwrap_or_else(f)` | ✓ | ✓ | Get value or compute default |
+| `unwrap_or_default()` | ✓ | ✓ | Get value or use `Default::default()` |
+| `map(f)` | ✓ | ✓ | Transform the success value |
+| `map_err(f)` | — | ✓ | Transform the error value |
+| `and_then(f)` | ✓ | ✓ | Chain operations that might fail |
+| `or_else(f)` | ✓ | ✓ | Try alternative if failed |
+| `is_some()` / `is_ok()` | ✓ | ✓ | Check for success |
+| `is_none()` / `is_err()` | ✓ | ✓ | Check for failure |
+| `ok()` | — | ✓ | Convert `Result` to `Option` |
+| `err()` | — | ✓ | Extract error as `Option` |
+| `ok_or(e)` | ✓ | — | Convert `Option` to `Result` |
+| `?` operator | ✓ | ✓ | Early return on failure |
+
+> **📌 OS Relevance:** System calls can fail for many reasons—file not found, permission denied, resource exhausted. Rust's `Result` type makes these failures explicit, forcing you to handle them rather than silently ignoring return codes (a common source of bugs in C programs).
+
+---
+
+### Methods on Enums
+
+Enums can have methods just like structs:
+
+```rust
+enum TrafficLight {
+    Red,
+    Yellow,
+    Green,
+}
+
+impl TrafficLight {
+    fn duration(&self) -> u32 {
+        match self {
+            TrafficLight::Red => 60,
+            TrafficLight::Yellow => 5,
+            TrafficLight::Green => 45,
+        }
+    }
+    
+    fn next(&self) -> TrafficLight {
+        match self {
+            TrafficLight::Red => TrafficLight::Green,
+            TrafficLight::Yellow => TrafficLight::Red,
+            TrafficLight::Green => TrafficLight::Yellow,
+        }
+    }
+}
+```
+
+---
+
+## Traits: Rust's Approach to Polymorphism
+
+<DefinitionBox term="Trait">
+
+A **trait** defines shared behavior—a collection of methods that types can implement. Traits are Rust's primary mechanism for polymorphism, replacing inheritance found in languages like Java or C++.
+
+</DefinitionBox>
+
+---
+
+### Defining and Implementing Traits
+
+```rust
+trait Summary {
+    fn summarize(&self) -> String;
+}
+
+struct Article {
+    title: String,
+    author: String,
+    content: String,
+}
+
+impl Summary for Article {
+    fn summarize(&self) -> String {
+        format!("{} by {}", self.title, self.author)
+    }
+}
+
+struct Tweet {
+    username: String,
+    content: String,
+}
+
+impl Summary for Tweet {
+    fn summarize(&self) -> String {
+        format!("@{}: {}", self.username, self.content)
+    }
+}
+```
+
+#### Default Implementations
+
+Traits can provide default method bodies:
+
+```rust
+trait Summary {
+    fn summarize(&self) -> String {
+        String::from("(Read more...)")
+    }
+    
+    fn summarize_author(&self) -> String;
+    
+    // Default that uses another method
+    fn full_summary(&self) -> String {
+        format!("{} - {}", self.summarize_author(), self.summarize())
+    }
+}
+```
+
+#### The Orphan Rule
+
+You can only implement a trait if:
+- You defined the trait, OR
+- You defined the type
+
+```rust
+// ✓ OK: We defined Summary
+impl Summary for String { ... }
+
+// ✓ OK: We defined Article  
+impl Display for Article { ... }
+
+// ✗ ERROR: Neither Display nor String is ours
+impl Display for String { ... }
+```
+
+> **💡 Key Insight:** This is why the newtype pattern exists! Wrap the foreign type in your own struct, then implement traits on that.
+
+---
+
+### Why No Inheritance?
+
+Rust deliberately avoids class inheritance. Here's why:
+
+#### Problems with Inheritance
+
+| Problem | Description |
+| :--- | :--- |
+| **Fragile base class** | Changes to parent break children |
+| **Diamond problem** | Ambiguity with multiple inheritance |
+| **Tight coupling** | Children depend on parent implementation |
+| **God objects** | Deep hierarchies become unwieldy |
+
+#### Rust's Alternative: Composition + Traits
+
+```rust
+// Instead of inheritance:
+// class Animal { ... }
+// class Dog extends Animal { ... }
+
+// Rust uses composition:
+trait Animal {
+    fn make_sound(&self) -> String;
+}
+
+trait Pet {
+    fn name(&self) -> &str;
+}
+
+struct Dog {
+    name: String,
+}
+
+// Implement multiple traits independently
+impl Animal for Dog {
+    fn make_sound(&self) -> String {
+        String::from("Woof!")
+    }
+}
+
+impl Pet for Dog {
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+```
+
+> **📌 Key Point:** Traits provide **horizontal** code sharing (any type can implement any trait) rather than **vertical** inheritance hierarchies.
+
+---
+
+### Trait Composition
+
+#### Multiple Trait Bounds
+
+Require a type to implement multiple traits:
+
+```rust
+fn notify<T: Summary + Clone>(item: &T) {
+    let copy = item.clone();
+    println!("Breaking news! {}", copy.summarize());
+}
+
+// Or with `where` clause:
+fn notify<T>(item: &T)
+where
+    T: Summary + Clone,
+{
+    // ...
+}
+```
+
+#### Supertraits
+
+A trait can require another trait:
+
+```rust
+trait PrettyPrint: std::fmt::Display {
+    fn pretty_print(&self) {
+        println!("╔══════════════════╗");
+        println!("║ {} ║", self);  // Uses Display
+        println!("╚══════════════════╝");
+    }
+}
+
+// Any type implementing PrettyPrint must also implement Display
+```
+
+---
+
+### Operator Overloading
+
+Operators in Rust are traits! Implement the trait to overload the operator:
+
+```rust
+use std::ops::Add;
+
+#[derive(Debug, Copy, Clone)]
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+impl Add for Point {
+    type Output = Point;  // Associated type
+    
+    fn add(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn main() {
+    let p1 = Point { x: 1.0, y: 2.0 };
+    let p2 = Point { x: 3.0, y: 4.0 };
+    let p3 = p1 + p2;  // Uses our Add implementation
+    
+    println!("{:?}", p3);  // Point { x: 4.0, y: 6.0 }
+}
+```
+
+#### Common Operator Traits
+
+| Operator | Trait | Method |
+| :--- | :--- | :--- |
+| `+` | `Add` | `add(self, rhs)` |
+| `-` | `Sub` | `sub(self, rhs)` |
+| `*` | `Mul` | `mul(self, rhs)` |
+| `/` | `Div` | `div(self, rhs)` |
+| `%` | `Rem` | `rem(self, rhs)` |
+| `-x` | `Neg` | `neg(self)` |
+| `[]` | `Index` | `index(&self, idx)` |
+| `[]=` | `IndexMut` | `index_mut(&mut self, idx)` |
+| `==` | `PartialEq` | `eq(&self, other)` |
+| `<`, `>`, etc. | `PartialOrd` | `partial_cmp(&self, other)` |
+
+---
+
+### Connection to Dynamic Dispatch
+
+From LN4, remember that traits enable **dynamic dispatch** via trait objects:
+
+```rust
+// Static dispatch (monomorphization) - type known at compile time
+fn notify_static(item: &impl Summary) {
+    println!("{}", item.summarize());
+}
+
+// Dynamic dispatch (vtable) - type determined at runtime
+fn notify_dynamic(item: &dyn Summary) {
+    println!("{}", item.summarize());
+}
+
+// Heterogeneous collection - only possible with dyn
+let items: Vec<Box<dyn Summary>> = vec![
+    Box::new(Article { /* ... */ }),
+    Box::new(Tweet { /* ... */ }),
+];
+```
+
+| Dispatch | Syntax | Performance | Flexibility |
+| :--- | :--- | :--- | :--- |
+| Static | `impl Trait` / generics | Fastest (inlined) | One concrete type |
+| Dynamic | `dyn Trait` | Vtable lookup | Any implementing type |
+
+---
+
+### The Derive Macro
+
+Automatically implement common traits:
+
+```rust
+#[derive(Debug, Clone, PartialEq)]
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+fn main() {
+    let p1 = Point { x: 1.0, y: 2.0 };
+    let p2 = p1.clone();
+    
+    println!("{:?}", p1);     // Debug
+    println!("{}", p1 == p2); // PartialEq
+}
+```
+
+#### Common Derivable Traits
+
+| Trait | What It Does | Derive Requirement |
+| :--- | :--- | :--- |
+| `Debug` | `{:?}` formatting | All fields implement `Debug` |
+| `Clone` | Explicit duplication via `.clone()` | All fields implement `Clone` |
+| `Copy` | Implicit duplication (no `.clone()` needed) | All fields implement `Copy` + `Clone` |
+| `PartialEq` | `==` and `!=` comparison | All fields implement `PartialEq` |
+| `Eq` | Marker for total equality | `PartialEq` + all fields implement `Eq` |
+| `PartialOrd` | `<`, `>`, `<=`, `>=` comparison | `PartialEq` + all fields implement `PartialOrd` |
+| `Ord` | Total ordering | `PartialOrd` + `Eq` + all fields implement `Ord` |
+| `Hash` | Hashing for `HashMap`/`HashSet` | All fields implement `Hash` |
+| `Default` | Default value via `Default::default()` | All fields implement `Default` |
+
+> **💡 Key Insight:** `derive` generates boilerplate implementations. For custom behavior, implement the trait manually.
+
+---
+
+### Standard Library Traits Deep Dive
+
+#### `Debug` and `Display`
+
+```rust
+use std::fmt;
+
+struct Point { x: f64, y: f64 }
+
+// Debug: for programmers (derive-able)
+impl fmt::Debug for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Point {{ x: {}, y: {} }}", self.x, self.y)
+    }
+}
+
+// Display: for users (manual only)
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+fn main() {
+    let p = Point { x: 1.0, y: 2.0 };
+    println!("{:?}", p);  // Point { x: 1.0, y: 2.0 }
+    println!("{}", p);    // (1.0, 2.0)
+}
+```
+
+#### `Clone` vs `Copy`
+
+| Trait | Duplication | Syntax | Use Case |
+| :--- | :--- | :--- | :--- |
+| `Clone` | Explicit | `x.clone()` | Types with heap data |
+| `Copy` | Implicit | `let y = x;` | Small, stack-only types |
+
+```rust
+#[derive(Clone)]
+struct HeapData {
+    data: Vec<u8>,
+}
+
+#[derive(Clone, Copy)]
+struct StackData {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let h1 = HeapData { data: vec![1, 2, 3] };
+    let h2 = h1.clone();  // Must explicitly clone
+    // let h3 = h1;       // Would MOVE h1
+    
+    let s1 = StackData { x: 1, y: 2 };
+    let s2 = s1;          // Implicitly copies
+    let s3 = s1;          // s1 still valid!
+}
+```
+
+#### `From` and `Into`
+
+Type conversions:
+
+```rust
+struct Meters(f64);
+struct Feet(f64);
+
+impl From<Feet> for Meters {
+    fn from(feet: Feet) -> Self {
+        Meters(feet.0 * 0.3048)
+    }
+}
+
+fn main() {
+    let distance_ft = Feet(100.0);
+    let distance_m: Meters = distance_ft.into();  // Into is auto-implemented
+    let distance_m2 = Meters::from(Feet(50.0));
+}
+```
+
+#### `Deref` and `DerefMut`
+
+Enable smart pointer behavior:
+
+```rust
+use std::ops::Deref;
+
+struct MyBox<T>(T);
+
+impl<T> Deref for MyBox<T> {
+    type Target = T;
+    
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+fn main() {
+    let x = MyBox(5);
+    assert_eq!(*x, 5);  // Deref allows * operator
+}
+```
+
+#### `Drop`
+
+Custom cleanup when a value goes out of scope (RAII):
+
+```rust
+struct DatabaseConnection {
+    id: u32,
+}
+
+impl Drop for DatabaseConnection {
+    fn drop(&mut self) {
+        println!("Closing connection {}", self.id);
+        // Cleanup code here
+    }
+}
+
+fn main() {
+    let conn = DatabaseConnection { id: 1 };
+    // ...
+}  // "Closing connection 1" printed here automatically
+```
+
+> **📌 OS Relevance:** The `Drop` trait is essential for RAII (Resource Acquisition Is Initialization). File handles, mutexes, network sockets—anything that needs cleanup implements `Drop`.
+
+---
+
+## Standard Library Types
+
+### Smart Pointers
+
+Smart pointers are structs that implement `Deref` and `Drop`:
+
+#### `Box<T>` — Heap Allocation
+
+```rust
+fn main() {
+    // Allocate an i32 on the heap
+    let boxed = Box::new(5);
+    println!("Boxed value: {}", *boxed);
+    
+    // Useful for recursive types
+    enum List {
+        Cons(i32, Box<List>),
+        Nil,
+    }
+}
+```
+
+#### `Rc<T>` — Reference Counting (Single-Threaded)
+
+```rust
+use std::rc::Rc;
+
+fn main() {
+    let data = Rc::new(vec![1, 2, 3]);
+    
+    let a = Rc::clone(&data);  // Increment reference count
+    let b = Rc::clone(&data);  // Increment again
+    
+    println!("Reference count: {}", Rc::strong_count(&data));  // 3
+}
+```
+
+#### `Arc<T>` — Atomic Reference Counting (Multi-Threaded)
+
+```rust
+use std::sync::Arc;
+use std::thread;
+
+fn main() {
+    let data = Arc::new(vec![1, 2, 3]);
+    
+    let handles: Vec<_> = (0..3).map(|i| {
+        let data = Arc::clone(&data);
+        thread::spawn(move || {
+            println!("Thread {} sees: {:?}", i, data);
+        })
+    }).collect();
+    
+    for handle in handles {
+        handle.join().unwrap();
+    }
+}
+```
+
+| Smart Pointer | Thread Safe | Overhead | Use Case |
+| :--- | :--- | :--- | :--- |
+| `Box<T>` | Yes | Minimal | Simple heap allocation |
+| `Rc<T>` | No | Reference count | Shared ownership, single thread |
+| `Arc<T>` | Yes | Atomic ref count | Shared ownership, multiple threads |
+
+---
+
+### Interior Mutability (Brief Mention)
+
+When you need to mutate data even with immutable references:
+
+| Type | Thread Safe | Checking | Use Case |
+| :--- | :--- | :--- | :--- |
+| `Cell<T>` | No | None (Copy types) | Simple values |
+| `RefCell<T>` | No | Runtime | Complex borrows |
+| `Mutex<T>` | Yes | Runtime (blocking) | Multi-threaded mutation |
+| `RwLock<T>` | Yes | Runtime (blocking) | Multi-threaded, read-heavy |
+
+```rust
+use std::cell::RefCell;
+
+let data = RefCell::new(5);
+
+*data.borrow_mut() += 1;  // Mutable borrow at runtime
+println!("{}", data.borrow());  // Immutable borrow
+```
+
+> **📌 Note:** We'll cover these in depth in a future lecture on concurrency.
+
+---
+
+### Common Collections
+
+| Collection | Description | Key Traits |
+| :--- | :--- | :--- |
+| `Vec<T>` | Dynamic array | `Deref<Target=[T]>`, `Index` |
+| `String` | UTF-8 string | `Deref<Target=str>`, `Display` |
+| `HashMap<K, V>` | Key-value store | `Index` (for reading) |
+| `HashSet<T>` | Unique values | (no Index) |
+| `VecDeque<T>` | Double-ended queue | `Index` |
+
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Red"), 50);
+
+// Access
+let blue_score = scores.get("Blue");  // Option<&i32>
+let red_score = scores["Red"];        // i32 (panics if missing)
+```
+
+---
+
+## Summary
+
+| Concept | Key Point | Memory Impact |
+| :--- | :--- | :--- |
+| **Named Struct** | Fields accessed by name, own their data | Sum of field sizes + padding |
+| **Tuple Struct** | Positional access, great for newtypes | Same as named |
+| **Unit Struct** | Zero-sized, markers and type states | 0 bytes |
+| **Enum** | Tagged union, variants can hold data | Discriminant + largest variant |
+| **Trait** | Shared behavior, no inheritance | No direct cost (method pointers if `dyn`) |
+| **Derive** | Auto-implement common traits | No runtime cost |
+| **Smart Pointers** | `Box`, `Rc`, `Arc` implement `Deref`/`Drop` | Pointer + potential ref count |
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Struct** — Custom data type grouping related values; owns its fields
+- **Enum** — Type with multiple variants, each potentially holding different data
+- **Trait** — Collection of methods defining shared behavior
+- **Newtype** — Single-field tuple struct for type safety
+- **ZST** — Zero-sized type, takes no memory
+
+**Struct Ownership Rules:**
+
+| Operation | Non-Copy Fields | Copy Fields |
+| :--- | :--- | :--- |
+| `let b = a;` | Moved | Copied |
+| `..existing` | Moved | Copied |
+| Field access | Borrows struct | Copies value |
+
+**Enum Memory Formula:**
+
+```
+size = discriminant + max(variant_sizes) + padding
+```
+
+**Trait Quick Reference:**
+
+| Trait | Purpose | Derivable? |
+| :--- | :--- | :--- |
+| `Debug` | `{:?}` formatting | Yes |
+| `Display` | `{}` formatting | No |
+| `Clone` | Explicit copy | Yes |
+| `Copy` | Implicit copy | Yes |
+| `PartialEq` | Equality | Yes |
+| `Default` | Default value | Yes |
+| `From`/`Into` | Conversion | No |
+| `Deref` | Smart pointer | No |
+| `Drop` | Cleanup | No |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [The Rust Book: Structs](https://doc.rust-lang.org/book/ch05-00-structs.html) — Comprehensive struct guide
+- [The Rust Book: Enums](https://doc.rust-lang.org/book/ch06-00-enums.html) — Enums and pattern matching
+- [The Rust Book: Traits](https://doc.rust-lang.org/book/ch10-02-traits.html) — Trait fundamentals
+- [Rust By Example: Custom Types](https://doc.rust-lang.org/rust-by-example/custom_types.html) — Interactive examples
+
+### Advanced Topics
+
+- [The Rustonomicon: Data Layout](https://doc.rust-lang.org/nomicon/data.html) — Memory layout details
+- [The Rustonomicon: Repr](https://doc.rust-lang.org/nomicon/other-reprs.html) — `#[repr(...)]` attributes
+- [Rust Reference: Type Layout](https://doc.rust-lang.org/reference/type-layout.html) — Official specification
+
+### Standard Library Documentation
+
+- [std::option::Option](https://doc.rust-lang.org/std/option/enum.Option.html) — Option enum
+- [std::result::Result](https://doc.rust-lang.org/std/result/enum.Result.html) — Result enum
+- [std::ops](https://doc.rust-lang.org/std/ops/) — Operator traits
+- [std::convert](https://doc.rust-lang.org/std/convert/) — From/Into traits
+
+</LectureResources>
