@@ -204,6 +204,89 @@ _Consider: coordination, load balancing, bottlenecks, and communication overhead
 
 ---
 
-## Grading Details
+## Alternate Assignment (For Absences)
 
-**Participation-based** - No winner or loser! Just engage, try your best, and participate in the discussion.
+Couldn't make it to class? You can make up the points by completing this alternate assignment!
+
+### Watch These Videos
+
+Watch these videos about parallel computing approaches. Keep the **data parallel** vs **task parallel** distinction in mind throughout:
+
+1. **[AMD Simplified: Serial vs. Parallel Computing](https://www.youtube.com/watch?v=XIiq7LUX7uo)** - A clear introduction to why parallelism matters and how it speeds up computation
+
+2. **[CPU Pipeline - Computerphile](https://www.youtube.com/watch?v=BVNx3wtJ9vs)** - Matt Godbolt explains pipelining (task parallelism) in CPU architecture
+
+While watching, think about:
+- Which approach is like everyone doing the same task on different data? (Data Parallel)
+- Which approach is like an assembly line where each person does one step? (Task Parallel)
+
+### Answer These Questions
+
+Submit a PDF with your answers to Brightspace:
+
+<QuestionBox>
+**Q1:** In your own words, define **data parallelism** and **task parallelism**. Provide a real-world (non-computing) example of each.
+
+_Hint: Think about factories, restaurants, or other production systems._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q2:** For each of the following scenarios, identify whether **data parallelism** or **task parallelism** would be more appropriate. Justify your answer:
+
+a) Processing 10,000 images through the same filter  
+b) A web server handling requests where each request requires authentication, database lookup, and response formatting  
+c) Training a neural network on a large dataset  
+d) A video editing pipeline: decode → apply effects → encode → write to disk
+
+</QuestionBox>
+
+<QuestionBox>
+**Q3:** In the activity, task parallel teams sometimes had a "bottleneck" where one slow step held up the entire pipeline. Explain why this happens and propose two strategies a team could use to address it.
+
+_Connect this to the concept of **load balancing** in parallel systems._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q4:** **Amdahl's Law** states that the speedup from parallelism is limited by the sequential portion of a program. If a program is 80% parallelizable and 20% must run sequentially, what is the maximum theoretical speedup with infinite processors? 
+
+_Show your reasoning. Formula: Speedup = 1 / ((1 - P) + P/N) where P is the parallel fraction and N is the number of processors._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q5:** The Computerphile video discusses CPU pipelining. Explain what a **pipeline stall** is and why it reduces the benefits of pipelining. How does this relate to the challenges a task parallel team might face in the origami activity?
+
+</QuestionBox>
+
+<QuestionBox>
+**Q6:** Consider the trade-offs between data parallelism and task parallelism:
+
+| Factor | Data Parallelism | Task Parallelism |
+|--------|------------------|------------------|
+| Coordination overhead | ? | ? |
+| Sensitivity to individual speed variation | ? | ? |
+| Ability to specialize | ? | ? |
+| Scalability with more workers | ? | ? |
+
+Fill in each cell with "Low", "Medium", or "High" and briefly explain your reasoning for each row.
+
+</QuestionBox>
+
+<QuestionBox>
+**Q7:** Many real systems use **hybrid approaches** that combine data and task parallelism. Describe a system (real or hypothetical) that uses both. Explain which parts use data parallelism, which use task parallelism, and why this combination is beneficial.
+
+_Example domains: video streaming, web applications, scientific simulations, game engines._
+
+</QuestionBox>
+
+<QuestionBox>
+**Q8:** Create an analogy to explain the difference between data parallelism and task parallelism to someone with no technical background. Your analogy should clearly illustrate:
+- How work is divided differently in each approach
+- The main advantage of each approach
+- The main limitation of each approach
+
+</QuestionBox>
+
+**Submission:** Upload your PDF to the relevant Brightspace assignment.
