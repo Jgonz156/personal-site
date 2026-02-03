@@ -1,0 +1,743 @@
+import { DisplayMath } from "@/components/math"
+
+## Recap
+
+Last time we explored the **Boolean Type** through George Boole's historical discovery. We expanded on **reducibility** — how different systems can solve the same problem — and used that insight to visualize logical operations with **Venn Diagrams**.
+
+---
+
+## Today's Agenda
+
+- **Operator Syntax** — Types tell us what operators mean
+- **Operator Notation** — Many ways to write the same operation  
+- **The Big Reveal** — Addition isn't about numbers!
+
+---
+
+## Operator Syntax and Types
+
+So far, our type judgments look like this:
+
+<DisplayMath formula="a : A" />
+
+But operators are **functions**, not just values. Addition takes two inputs and produces an output:
+
+<DisplayMath formula="+ : (\mathbb{N}, \mathbb{N}) \to \mathbb{N}" />
+
+This reads: "the `+` operator takes two natural numbers and returns a natural number."
+
+### Type Signatures for Operators
+
+We can capture the behavior of all our operators this way:
+
+| Operator | Type Signature |
+| :--- | :--- |
+| Conjunction | $\land : (\text{Bool}, \text{Bool}) \to \text{Bool}$ |
+| Disjunction | $\lor : (\text{Bool}, \text{Bool}) \to \text{Bool}$ |
+| Negation | $\lnot : \text{Bool} \to \text{Bool}$ |
+| Implication | $\to : (\text{Bool}, \text{Bool}) \to \text{Bool}$ |
+
+Remember: Boole discovered that arithmetic on 0 and 1 represents logic! So arithmetic operators can work on Booleans too:
+
+<DisplayMath formula="\times : (\text{Bool}, \text{Bool}) \to \text{Bool}" />
+<DisplayMath formula="+ : (\text{Bool}, \text{Bool}) \to \text{Bool}" />
+
+### Operator Overloading
+
+The **type** disambiguates meaning. The same symbol can mean different things:
+
+| Type Signature | Meaning |
+| :--- | :--- |
+| $+ : (\mathbb{N}, \mathbb{N}) \to \mathbb{N}$ | Add naturals |
+| $+ : (\mathbb{Z}, \mathbb{Z}) \to \mathbb{Z}$ | Add integers |
+| $+ : (\mathbb{R}, \mathbb{R}) \to \mathbb{R}$ | Add reals |
+| $+ : (\text{String}, \text{String}) \to \text{String}$ | Concatenate strings |
+| $+ : (\text{Bool}, \text{Bool}) \to \text{Bool}$ | Boolean OR |
+
+This is called **overloading** — the `+` symbol means different things based on context!
+
+---
+
+## Operator Notation
+
+Beyond meaning, we also vary how operators **look**. The same operation can be written multiple ways:
+
+| Notation | Addition | Division | Exponentiation |
+| :--- | :--- | :--- | :--- |
+| **Infix** | $a + b$ | $a \div b$ | $a \wedge b$ |
+| **Prefix** | $+\ a\ b$ | $\div\ a\ b$ | $\wedge\ a\ b$ |
+| **Postfix** | $a\ b\ +$ | $a\ b\ \div$ | $a\ b\ \wedge$ |
+
+**Why different notations?** Each has advantages:
+
+- **Infix** ($a + b$) — Familiar, reads naturally
+- **Prefix** ($+\ a\ b$) — Chains easily: $+\ a\ b\ c\ d$ means $a + b + c + d$
+- **Postfix** ($a\ b\ +$) — No parentheses needed, used in calculators
+
+Clojure uses prefix notation:
+
+```clojure
+(+ 1 2 3 4)  ; => 10 (adds all arguments)
+```
+
+### Familiar "Weird" Notations
+
+You already use unconventional notations without thinking:
+
+<DisplayMath formula="\log_b(a) \quad \sqrt{a} \quad \frac{a}{b} \quad \int a \, dx \quad a^b" />
+
+Fractions use **vertical** layout. Exponents use **superscript**. Integrals wrap around their argument. These aren't infix, prefix, or postfix — they're custom notations designed for clarity.
+
+### Juxtaposition
+
+Sometimes operators are so common we omit the symbol entirely:
+
+| Written | Meaning |
+| :--- | :--- |
+| $ab$ | $a \times b$ (multiplication) |
+| $AB$ | $A \land B$ (conjunction) |
+| $fa$ | $f(a)$ (function application) |
+
+### Unary Operators
+
+Operators with one argument also have multiple notations. Negation alone has six common forms:
+
+<DisplayMath formula="\lnot A \quad \sim A \quad !A \quad \bar{A} \quad A' \quad A^c" />
+
+Type signature: $\lnot : \text{Bool} \to \text{Bool}$
+
+### Ternary Operators
+
+What about three arguments? The **conditional operator** is a classic example:
+
+<DisplayMath formula="\text{condition} \; ? \; \text{consequence} : \text{alternative}" />
+
+Type: $? : (\text{Bool}, \text{Any}, \text{Any}) \to \text{Any}$
+
+If the condition is true, return the consequence; otherwise, return the alternative.
+
+```python
+# Python's version reads like English:
+x = 1 if condition else 2
+```
+
+---
+
+> **💡 Key Insight:** Syntax is flexible! The **type** tells us what an operator does. The **notation** is just how we choose to write it. Different fields use different notations because they clarify different things.
+
+---
+
+## Addition isn't about numbers...
+
+The previous lecture was to expand your understanding of mathematics to include the idea that completely separate systems of reasoning can be used to solve the same problem.
+The previous part of this lecture was to show you it's very common to make new and useful ways to visualize different things.
+
+So now we embark on the journey of showing you that this leads to an amazing conclusion!
+
+It turns out that addition isn't about numbers at all! Let's find out why!
+
+---
+
+### The Number Line: Your First Addition System
+
+Remember the number line from grade school? Before you ever learned algebra, you learned to add by **moving along a line**.
+
+Let's revisit that, but this time we'll hide the numbers to reveal what's really happening:
+
+import { NumberLine } from "@/components/number-line"
+
+<NumberLine
+  start={0}
+  hops={[1, 4]}
+  showNumbers={true}
+  hopLabels={["+1", "+4"]}
+  caption="1 + 4 = 5 on a number line"
+/>
+
+Now let's see the same operation **without any numbers visible**:
+
+<NumberLine
+  start={0}
+  hops={[1, 4]}
+  showNumbers={false}
+  hopLabels={["hop", "hop hop hop hop"]}
+  caption="Addition without numbers — just movement!"
+/>
+
+Let's try another example: **2 + 3 = 5**
+
+<NumberLine
+  start={0}
+  hops={[2, 3]}
+  showNumbers={true}
+  hopLabels={["+2", "+3"]}
+  caption="2 + 3 = 5 on a number line"
+/>
+
+And again without numbers:
+
+<NumberLine
+  start={0}
+  hops={[2, 3]}
+  showNumbers={false}
+  hopLabels={["hop hop", "hop hop hop"]}
+  caption="Same operation, no numbers — still works!"
+/>
+
+What do you notice? Addition on the number line is really about **movement** and **direction**:
+- Start somewhere
+- Move in a direction
+- Your destination is the "sum"
+
+The numbers are just labels for positions — the actual operation is **combining movements**.
+
+> **💡 Key Insight:** Addition is about **movement/direction**, not values. The number line taught us this as children, but we forgot it when we learned algebra!
+
+---
+
+### Addition as Chain Building
+
+Here's another way to visualize addition that has nothing to do with arithmetic.
+
+import { GraphVisualization } from "@/components/graph-visualization"
+
+**What is "1"?** A single node:
+
+<GraphVisualization
+  nodes={[
+    { id: "a", label: "●" },
+  ]}
+  edges={[]}
+  height="200px"
+/>
+
+**What is "4"?** Four separate nodes:
+
+<GraphVisualization
+  nodes={[
+    { id: "b", label: "●" },
+    { id: "c", label: "●" },
+    { id: "d", label: "●" },
+    { id: "e", label: "●" },
+  ]}
+  edges={[]}
+  height="220px"
+/>
+
+**What is "1 + 4"?** Connect them into a chain!
+
+<GraphVisualization
+  nodes={[
+    { id: "a", label: "●" },
+    { id: "b", label: "●" },
+    { id: "c", label: "●" },
+    { id: "d", label: "●" },
+    { id: "e", label: "●" },
+  ]}
+  edges={[
+    { from: "a", to: "b" },
+    { from: "b", to: "c" },
+    { from: "c", to: "d" },
+    { from: "d", to: "e" },
+  ]}
+  height="220px"
+/>
+
+The result "5" is just the length of the combined chain!
+
+Let's try another example: **2 + 3 = 5**
+
+**What is "2"?** Two nodes:
+
+<GraphVisualization
+  nodes={[
+    { id: "p", label: "●" },
+    { id: "q", label: "●" },
+  ]}
+  edges={[]}
+  height="100px"
+/>
+
+**What is "3"?** Three nodes:
+
+<GraphVisualization
+  nodes={[
+    { id: "r", label: "●" },
+    { id: "s", label: "●" },
+    { id: "t", label: "●" },
+  ]}
+  edges={[]}
+  height="220px"
+/>
+
+**What is "2 + 3"?** Connect them into a chain!
+
+<GraphVisualization
+  nodes={[
+    { id: "p", label: "●" },
+    { id: "q", label: "●" },
+    { id: "r", label: "●" },
+    { id: "s", label: "●" },
+    { id: "t", label: "●" },
+  ]}
+  edges={[
+    { from: "p", to: "q" },
+    { from: "q", to: "r" },
+    { from: "r", to: "s" },
+    { from: "s", to: "t" },
+  ]}
+  height="120px"
+/>
+
+Again, the result "5" is the length of the combined chain — no numbers needed!
+
+> **💡 Key Insight:** Addition is about **combining/concatenating** — linking things together. No arithmetic required!
+
+---
+
+### String Concatenation: Addition Without Numbers
+
+You've been doing "addition" with strings this whole time:
+
+```python
+"Hello" + " " + "World"
+# => "Hello World"
+```
+
+There are no numbers here, yet the `+` operator feels natural. Why?
+
+Because string concatenation **combines** things, just like:
+- Number line hops combine movements
+- Graph chains combine nodes
+- Numbers combine quantities
+
+Remember our type signature from earlier?
+
+```
++ : (String, String) -> String
+```
+
+The `+` operator is overloaded to work on strings because concatenation shares something fundamental with addition...
+
+But what exactly do they share? Let's find out!
+
+---
+
+## What Makes Addition... Addition?
+
+We've seen addition in three different systems:
+1. **Number line** — combining movements
+2. **Graphs** — combining chains
+3. **Strings** — combining text
+
+They all *feel* like addition, but they look completely different. What do they have in common?
+
+The answer comes from **Abstract Algebra**, and it will change how you think about mathematics forever.
+
+import { DefinitionBox } from "@/components/interactive-example"
+
+---
+
+### The Commutative Property
+
+<DefinitionBox term="Commutative Property">
+
+An operation `⊕` is **commutative** if the order of operands doesn't matter:
+
+`a ⊕ b = b ⊕ a`
+
+</DefinitionBox>
+
+Let's test our systems:
+
+**Numbers:** `1 + 4 = 4 + 1 = 5` ✓
+
+**Number Line:** Does it matter if we hop +1 then +4, or hop +4 then +1?
+
+<NumberLine
+  start={0}
+  hops={[1, 4]}
+  showNumbers={true}
+  hopLabels={["+1", "+4"]}
+  caption="1 + 4: hop 1, then hop 4"
+/>
+
+<NumberLine
+  start={0}
+  hops={[4, 1]}
+  showNumbers={true}
+  hopLabels={["+4", "+1"]}
+  caption="4 + 1: hop 4, then hop 1 — same destination!"
+/>
+
+Both paths land at position 5! The number line is **commutative**. ✓
+
+**Graph Chains:** Does it matter which chain we connect first?
+
+<GraphVisualization
+  nodes={[
+    { id: "a", label: "A" },
+    { id: "b", label: "B" },
+    { id: "c", label: "C" },
+    { id: "d", label: "D" },
+    { id: "e", label: "E" },
+  ]}
+  edges={[
+    { from: "a", to: "b" },
+    { from: "b", to: "c" },
+    { from: "c", to: "d" },
+    { from: "d", to: "e" },
+  ]}
+  height="220px"
+/>
+
+Whether we connect "1 node to 4 nodes" or "4 nodes to 1 node", we get the same 5-node chain. ✓
+
+**Strings:** `"Hello" + "World"` vs `"World" + "Hello"`...
+
+```python
+"Hello" + "World"  # => "HelloWorld"
+"World" + "Hello"  # => "WorldHello"
+```
+
+**Wait!** These are NOT the same! String concatenation is **NOT commutative**! ✗
+
+> 🚨 **Important:** We found our first difference! Keep this in mind...
+
+---
+
+### The Associative Property
+
+<DefinitionBox term="Associative Property">
+
+An operation `⊕` is **associative** if grouping doesn't matter:
+
+`(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`
+
+</DefinitionBox>
+
+Let's test again:
+
+**Numbers:** `(1 + 2) + 3 = 3 + 3 = 6` and `1 + (2 + 3) = 1 + 5 = 6` ✓
+
+**Number Line:** Let's compare `(1 + 4) + 2` vs `1 + (4 + 2)`:
+
+<NumberLine
+  start={0}
+  hops={[1, 4, 2]}
+  showNumbers={true}
+  hopLabels={["(+1", "+4)", "+2"]}
+  max={8}
+  caption="(1 + 4) + 2: Compute 1+4 first (=5), then add 2"
+/>
+
+<NumberLine
+  start={0}
+  hops={[1, 6]}
+  showNumbers={true}
+  hopLabels={["+1", "(+4+2)"]}
+  max={8}
+  caption="1 + (4 + 2): Compute 4+2 first (=6), then add to 1"
+/>
+
+Both arrive at 7! Whether we compute `(1+4)+2 = 5+2 = 7` or `1+(4+2) = 1+6 = 7`, the destination is the same. Grouping doesn't matter. ✓
+
+**Graph Chains:** Whether we connect (A-B) then C, or A then (B-C), we get the same chain. ✓
+
+**Strings:** `("a" + "b") + "c"` vs `"a" + ("b" + "c")`:
+
+```python
+("a" + "b") + "c"  # => "ab" + "c" => "abc"
+"a" + ("b" + "c")  # => "a" + "bc" => "abc"
+```
+
+Both give `"abc"`! String concatenation IS **associative**. ✓
+
+---
+
+### The Big Reveal
+
+Here's what Abstract Algebra tells us:
+
+> **An operation that is both commutative AND associative behaves like addition.**
+
+This is the mathematical definition of "addition-like" behavior. The name of the operation doesn't matter. The symbol doesn't matter. Only these **properties** matter!
+
+| System | Commutative? | Associative? | "Addition"? |
+| :--- | :--- | :--- | :--- |
+| Number addition | ✓ | ✓ | **Yes** |
+| Number line hops | ✓ | ✓ | **Yes** |
+| Graph chain building | ✓ | ✓ | **Yes** |
+| String concatenation | ✗ | ✓ | **No!** |
+
+String concatenation uses the `+` symbol, but it's **not mathematically addition** because it's not commutative!
+
+---
+
+### The Mind-Bending Examples
+
+If addition is defined by commutativity and associativity, what about other operations?
+
+**Multiplication:**
+- Commutative? `a × b = b × a` ✓
+- Associative? `(a × b) × c = a × (b × c)` ✓
+
+**Wait... is multiplication also "addition"?!**
+
+Yes! Multiplication satisfies both properties — it's structurally "additive"!
+
+**Boolean AND (∧):**
+- Commutative? `A ∧ B = B ∧ A` ✓
+- Associative? `(A ∧ B) ∧ C = A ∧ (B ∧ C)` ✓
+
+**Boolean OR (∨):**
+- Commutative? `A ∨ B = B ∨ A` ✓
+- Associative? `(A ∨ B) ∨ C = A ∨ (B ∨ C)` ✓
+
+AND and OR are both "addition" too!
+
+> **🤯 Mind-Blown Moment:** Multiplication (×) is mathematically "addition" even though it uses a different symbol. String concatenation (+) is NOT mathematically "addition" even though it uses the + symbol!
+
+**The symbol is just syntax. The PROPERTIES define the true nature of an operation.**
+
+This feels wrong because we were taught these are "different" operations. But Abstract Algebra reveals they share the same fundamental structure! We just gave them different names based on what they operate on, not based on their mathematical behavior.
+
+---
+
+### The String Concatenation Trap
+
+Let's really drive this home.
+
+We programmers have been using `+` for strings forever:
+
+```python
+greeting = "Hello" + " " + "World"
+```
+
+But here's the uncomfortable truth:
+
+| Operation | Symbol | Commutative | Associative | Mathematically "Addition"? |
+| :--- | :--- | :--- | :--- | :--- |
+| Multiplication | `×` | Yes | Yes | **YES** |
+| Boolean AND | `∧` | Yes | Yes | **YES** |
+| Boolean OR | `∨` | Yes | Yes | **YES** |
+| String concat | `+` | **No** | Yes | **NO** |
+
+The operation that *looks* most like addition (uses `+`) is the one that *isn't* addition!
+
+This is a perfect example of **syntax misleading us**. Programmers borrowed the `+` notation because concatenation *feels* like adding, but it doesn't satisfy the mathematical requirements.
+
+> **📚 Formal Term:** String concatenation forms a **monoid** (associative with identity), but not an **abelian group** (which requires commutativity). Addition, multiplication, AND, and OR all form abelian groups over their domains!
+
+---
+
+## More Algebraic Properties
+
+Commutativity and associativity are just the beginning. Let's explore two more fundamental properties that help characterize operations.
+
+---
+
+### The Identity Property
+
+<DefinitionBox term="Identity Property">
+
+An operation `⊕` has an **identity element** `e` if combining anything with `e` leaves it unchanged:
+
+`a ⊕ e = a` and `e ⊕ a = a`
+
+</DefinitionBox>
+
+Every "addition-like" operation has an identity — something that "does nothing":
+
+| System | Operation | Identity Element | Example |
+| :--- | :--- | :--- | :--- |
+| Natural numbers | Addition | `0` | `5 + 0 = 5` |
+| Natural numbers | Multiplication | `1` | `5 × 1 = 5` |
+| Number line | Hops | 0-hop (stay in place) | `position + 0 = position` |
+| Graphs | Chain building | Empty chain | `chain ⊕ ∅ = chain` |
+| Strings | Concatenation | `""` (empty string) | `"hello" + "" = "hello"` |
+| Booleans | OR (∨) | `False` | `A ∨ False = A` |
+| Booleans | AND (∧) | `True` | `A ∧ True = A` |
+
+Notice something interesting:
+- Addition's identity is `0`
+- Multiplication's identity is `1`
+- AND's identity is `True`
+- OR's identity is `False`
+
+The identity depends on the operation, not the type!
+
+> **💡 Key Insight:** Even string concatenation has an identity (the empty string). Having an identity doesn't make something "addition" — you also need commutativity!
+
+---
+
+### The Closure Property
+
+<DefinitionBox term="Closure Property">
+
+An operation is **closed** if its output type matches its input types. In our type theory notation:
+
+$\oplus : (A, A) \to A$
+
+The inputs are type `A`, and the output is also type `A`. The operation "stays within" the type.
+
+</DefinitionBox>
+
+You've already seen this pattern! Look at our type signatures:
+
+```
++ : (Natural, Natural) -> Natural   ✓ Closed!
+∧ : (Boolean, Boolean) -> Boolean   ✓ Closed!
++ : (String, String) -> String      ✓ Closed!
+```
+
+The input types match the output type — the operation never "escapes" to a different type.
+
+**But what about subtraction on naturals?**
+
+```
+- : (Natural, Natural) -> ???
+```
+
+What's `3 - 5`? It's `-2`, which is NOT a natural number! Subtraction on naturals is **NOT closed** — the output type doesn't match the input type. We'd have to write:
+
+```
+- : (Natural, Natural) -> Integer   ✗ Not closed!
+```
+
+| Type | Operation | Type Signature | Closed? |
+| :--- | :--- | :--- | :--- |
+| Natural | Addition | `(Natural, Natural) -> Natural` | ✓ |
+| Natural | Subtraction | `(Natural, Natural) -> Integer` | **✗** |
+| Integer | Subtraction | `(Integer, Integer) -> Integer` | ✓ |
+| String | Concatenation | `(String, String) -> String` | ✓ |
+| Boolean | AND | `(Boolean, Boolean) -> Boolean` | ✓ |
+| Boolean | OR | `(Boolean, Boolean) -> Boolean` | ✓ |
+
+**Why does closure matter?**
+
+If an operation isn't closed, you can "escape" the type! Subtraction on naturals can produce integers, which aren't naturals. This is why mathematicians invented integers — to make subtraction closed!
+
+> **📚 Set Theory Note:** In set theory, this is called being "closed over a set" — same idea, different vocabulary. When you take a course on set theory, you'll see closure defined in terms of sets rather than types, but the concept is identical.
+
+---
+
+## The Complete Picture
+
+Let's put it all together with our comprehensive summary:
+
+| System | Operation | Symbol | Commutative | Associative | Identity | Closed | "Addition"? |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Natural Numbers | Addition | `+` | Yes | Yes | 0 | Yes | **Yes** |
+| Natural Numbers | Multiplication | `×` | Yes | Yes | 1 | Yes | **Yes!** |
+| Number Line | Hops | → | Yes | Yes | 0-hop | Yes | **Yes** |
+| Graphs | Chain Building | ⊕ | Yes | Yes | Empty | Yes | **Yes** |
+| Strings | Concatenation | `+` | **No** | Yes | "" | Yes | **No!** |
+| Booleans | Disjunction (OR) | `∨` | Yes | Yes | False | Yes | **Yes!** |
+| Booleans | Conjunction (AND) | `∧` | Yes | Yes | True | Yes | **Yes!** |
+
+**The Surprising Truth:**
+- Multiplication (×) IS mathematically "addition" — despite its different name and symbol
+- String concatenation (+) is NOT mathematically "addition" — despite using the + symbol
+- AND and OR are both mathematically "addition" — they're just addition over different domains!
+
+---
+
+## The Bigger Picture: Group Theory
+
+What we've been exploring is the foundation of **Group Theory**, a branch of Abstract Algebra that studies these structural properties.
+
+<DefinitionBox term="Algebraic Structures">
+
+Different combinations of properties define different algebraic structures:
+
+- **Magma**: Just closure (any binary operation)
+- **Semigroup**: Closure + Associativity
+- **Monoid**: Closure + Associativity + Identity (this is string concatenation!)
+- **Group**: Closure + Associativity + Identity + Inverses
+- **Abelian Group**: All of the above + Commutativity (this is "addition"!)
+
+</DefinitionBox>
+
+You don't need to memorize these, but notice:
+- **String concatenation** is a monoid (no commutativity)
+- **Addition, multiplication, AND, OR** are all abelian groups (fully "additive")
+
+> **🔮 Looking Ahead:** These properties will return when you study:
+> - **Linear Algebra** — Vector addition forms an abelian group
+> - **Cryptography** — Security relies on group theory
+> - **Programming Language Theory** — Type systems use algebraic structures
+> - **Category Theory** — The "algebra of composition"
+
+The seemingly simple question "what is addition?" leads to some of the deepest mathematics in existence!
+
+---
+
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Commutative Property** — Order doesn't matter: `a ⊕ b = b ⊕ a`
+- **Associative Property** — Grouping doesn't matter: `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`
+- **Identity Element** — An element `e` that leaves others unchanged: `a ⊕ e = a`
+- **Closure** — Output type matches input types: `⊕ : (A, A) → A`
+
+**The "Addition" Test:**
+
+An operation is mathematically "addition" if it satisfies:
+1. Commutativity ✓
+2. Associativity ✓
+
+| Operation | Symbol | Commutative | Associative | "Addition"? |
+| :--- | :--- | :--- | :--- | :--- |
+| Number addition | `+` | ✓ | ✓ | Yes |
+| Multiplication | `×` | ✓ | ✓ | Yes |
+| Boolean AND | `∧` | ✓ | ✓ | Yes |
+| Boolean OR | `∨` | ✓ | ✓ | Yes |
+| String concat | `+` | ✗ | ✓ | **No** |
+
+**The Key Insight:**
+
+The symbol doesn't define the operation — the **properties** do:
+- Multiplication uses `×` but IS mathematically "addition"
+- String concatenation uses `+` but is NOT mathematically "addition"
+
+**Algebraic Structures (for reference):**
+
+- **Monoid** = Associative + Identity (e.g., string concatenation)
+- **Abelian Group** = Associative + Commutative + Identity + Inverses (e.g., addition)
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [3Blue1Brown: "Group Theory, Pair of Pants" (2023)](https://www.youtube.com/watch?v=X63MWZIN3gM) — Visual introduction to algebraic structures
+- [Numberphile: "Abstract Algebra" (2019)](https://www.youtube.com/watch?v=IP7nW_hKB7I) — Accessible introduction to the field
+
+### Further Reading
+
+- [Wikipedia: Commutative Property](https://en.wikipedia.org/wiki/Commutative_property) — Overview with examples
+- [Wikipedia: Associative Property](https://en.wikipedia.org/wiki/Associative_property) — Overview with examples
+- [Wikipedia: Monoid](https://en.wikipedia.org/wiki/Monoid) — The structure string concatenation forms
+- [Wikipedia: Abelian Group](https://en.wikipedia.org/wiki/Abelian_group) — The structure "addition" forms
+
+### Historical Context
+
+- **Évariste Galois** (1811-1832) — Founder of group theory, died in a duel at age 20
+- **Niels Henrik Abel** (1802-1829) — "Abelian" groups are named after him
+- **Emmy Noether** (1882-1935) — Revolutionized abstract algebra and its connection to physics
+
+### Connection to Programming
+
+- [Haskell Typeclassopedia](https://wiki.haskell.org/Typeclassopedia) — How algebraic structures appear in functional programming
+- Monoids and Semigroups are fundamental in Haskell, Scala, and Rust for combining data
+
+</LectureResources>
+
