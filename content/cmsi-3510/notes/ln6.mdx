@@ -1,0 +1,676 @@
+import { DefinitionBox } from "@/components/interactive-example"
+import { SystemExplorer } from "@/components/system-explorer"
+import { MotherboardDiagram, CPUDiagram, RAMDiagram, IOHardwareDiagram, HDDDiagram } from "@/components/hardware"
+import { KernelUserRingDiagram } from "@/components/kernel-user-ring-diagram"
+import { HistoricalTimeline, hardwareEvolutionTimeline, processEvolutionTimeline } from "@/components/historical-timeline"
+import { MemoryLayoutDiagram } from "@/components/memory-layout-diagram"
+import { InterleavedExecution, multiprogrammingExample } from "@/components/interleaved-execution"
+
+## Recap
+
+In our previous lectures, we've been learning Rust from the ground up:
+
+- **LN1-2**: Syntax, semantics, variables, types, and memory locations
+- **LN3**: Ownership and borrowing — Rust's core memory safety guarantees
+- **LN4**: Functions, closures, and higher-order patterns
+- **LN5**: Structs, enums, and traits — building complex data types
+
+We've been using Rust as our lens into systems programming. Now it's time to step back and look at the **bigger picture**: the Operating System itself.
+
+---
+
+## Today's Agenda
+
+Today we transition from Rust-specific features to fundamental OS concepts:
+
+1. **The History of Operating Systems** — How did we get here?
+2. **Hardware Components** — The physical foundation
+3. **Virtualization** — How one machine runs many programs
+4. **Processes and the PCB** — The illusion of isolation
+5. **Threads** — Lightweight concurrency
+6. **Kernel Threads vs Green Threads** — Two models of execution
+7. **Rust Examples** — Threading in practice
+
+> **💡 Key Transition:** We've learned *how* Rust manages memory safely. Now we'll learn *why* that matters at the OS level.
+
+---
+
+## The History of Operating Systems
+
+Before we can understand threads, we need to understand how operating systems evolved. Each era solved a specific problem — and created new ones.
+
+### Era 1: No Operating System (1940s-1950s)
+
+In the beginning, there was **no operating system**. Programmers physically operated the machine:
+
+- Loaded programs via punch cards or switches
+- Had exclusive access to the entire machine
+- Waited while the computer processed (often overnight)
+- Debugged by examining blinking lights
+
+**The problem:** One program at a time. Expensive machines sat idle between jobs.
+
+| Aspect | Reality |
+| :--- | :--- |
+| Programs running | 1 at a time |
+| CPU utilization | Very low (lots of waiting) |
+| User interaction | None during execution |
+| Cost efficiency | Poor — machines cost millions |
+
+### Era 2: Batch Processing (Late 1950s)
+
+The first operating systems were **batch systems**. Human operators collected jobs and ran them in sequence:
+
+- Programs submitted as "jobs" on punch cards
+- Operators grouped similar jobs into batches
+- OS loaded and ran jobs one after another
+- Output collected and returned to users
+
+**Key innovation:** The **job queue** — programs waiting to run.
+
+**The problem:** CPU still idle during I/O. If a program waited for tape, the whole machine waited.
+
+### Era 3: Multiprogramming (1960s)
+
+**Multiprogramming** solved I/O waiting by keeping multiple programs in memory:
+
+- While Program A waits for disk, run Program B
+- Switch between programs based on I/O events
+- Memory divided among several programs
+- First need for **memory protection**
+
+**Key innovation:** **Interleaved execution** — multiple programs taking turns.
+
+<div className="my-6">
+  <InterleavedExecution programs={multiprogrammingExample} showCPURow animated />
+</div>
+
+### Era 4: Time-Sharing (1970s)
+
+MIT's **CTSS** (1961) and later **Unix** (1969) introduced **time-sharing**:
+
+- Each program gets a small **time slice** (e.g., 10ms)
+- Timer interrupts force switches even without I/O
+- Multiple users share one machine interactively
+- Illusion of having your own computer
+
+**Key innovation:** **Fairness** — every program gets a turn, regardless of I/O.
+
+> **📚 Historical Note:** Unix was written in C (1972), making it portable across hardware. This was revolutionary — previous OSes were written in assembly for specific machines.
+
+### Era 5: Modern Operating Systems (1980s-Present)
+
+Modern operating systems add:
+
+- **Preemptive multitasking** — OS can interrupt any program, anytime
+- **Virtual memory** — Programs think they have unlimited RAM
+- **Kernel/User separation** — Privileged code protected from user programs
+- **True parallelism** — Multiple CPUs running programs simultaneously
+- **Threads** — Lightweight execution units within processes
+
+| Feature | Purpose |
+| :--- | :--- |
+| Preemption | Prevents any program from hogging the CPU |
+| Virtual memory | Isolation + illusion of infinite memory |
+| Kernel mode | Protects critical OS code from user programs |
+| Multiple cores | Actual simultaneous execution |
+| Threads | Cheaper concurrency than processes |
+
+---
+
+## Hardware Components
+
+Before we can virtualize hardware, we need to understand what we're virtualizing. A modern computer has four major component categories:
+
+### 1. CPU — Central Processing Unit
+
+The **brain** of the computer. Executes instructions, performs calculations, makes decisions.
+
+**Key internal components:**
+- **Registers** — Tiny, ultra-fast storage (nanoseconds)
+- **ALU** — Arithmetic Logic Unit for math operations
+- **Control Unit** — Decodes and sequences instructions
+- **MMU** — Memory Management Unit for address translation
+- **Interrupt Handler** — Responds to external events
+
+> **🔮 Future Connection:** We'll explore CPU scheduling — how the OS decides which program runs next.
+
+<div className="my-6 flex justify-center">
+  <CPUDiagram width={280} height={220} showLabels />
+</div>
+
+### 2. Memory (RAM) — Random Access Memory
+
+**Fast, volatile storage** for running programs. Much larger than registers, but slower.
+
+**Key characteristics:**
+- Volatile — loses data when power off
+- Random access — any location accessible in same time
+- Organized into pages (typically 4KB chunks)
+- Shared between all running programs (with protection)
+
+> **🔮 Future Connection:** We'll explore virtual memory and paging — how each process thinks it has its own memory.
+
+<div className="my-6 flex justify-center">
+  <RAMDiagram width={360} height={100} showLabels />
+</div>
+
+### 3. I/O and Networking
+
+**Communication** with the outside world:
+
+- **Device controllers** — Manage specific hardware (keyboard, display)
+- **DMA (Direct Memory Access)** — Lets devices access RAM without CPU
+- **Interrupts** — Devices notify CPU when they need attention
+- **Network interface** — Communication with other computers
+
+> **🔮 Future Connection:** We'll explore device drivers and I/O scheduling.
+
+<div className="my-6 flex justify-center">
+  <IOHardwareDiagram width={400} height={250} showLabels />
+</div>
+
+### 4. Long-term Storage (Disk)
+
+**Persistent storage** that survives power loss:
+
+- **HDD** — Spinning platters with mechanical arm
+- **SSD** — Flash memory, no moving parts
+- Much slower than RAM, but permanent
+- Organized into blocks and files
+
+> **🔮 Future Connection:** We'll explore file systems and disk scheduling algorithms.
+
+<div className="my-6 flex justify-center">
+  <HDDDiagram width={220} height={160} showLabels animateArm />
+</div>
+
+---
+
+## The Virtualization Solution
+
+Here's the fundamental challenge of operating systems:
+
+> **How can ONE set of hardware run MANY programs "simultaneously"?**
+
+The answer is **virtualization**. Each running program (process) gets a **virtual view** of the hardware. The process "thinks" it has:
+
+- Its own CPU (with its own registers)
+- Its own memory (starting at address 0)
+- Its own I/O devices
+- Its own disk storage
+
+In reality, the OS **multiplexes** the real hardware among all processes, switching so fast that each process appears to have its own machine.
+
+<DefinitionBox term="Virtualization">
+
+Creating an **illusion** of a resource that doesn't physically exist. Each process gets a virtual machine that the OS maps to real hardware.
+
+</DefinitionBox>
+
+### Explore the Layers
+
+Use this interactive visualization to explore how virtualization works at different levels:
+
+<SystemExplorer />
+
+---
+
+## Processes and the Process Control Block
+
+A **process** is a running program. It's more than just code — it's the complete execution state:
+
+<DefinitionBox term="Process">
+
+A program in execution, including its code, data, open files, and current execution state. The OS's unit of resource allocation.
+
+</DefinitionBox>
+
+### What Makes a Process?
+
+| Component | Description |
+| :--- | :--- |
+| **Code (Text)** | The compiled program instructions |
+| **Data** | Global variables, constants |
+| **Heap** | Dynamically allocated memory |
+| **Stack** | Function calls, local variables |
+| **Open files** | File handles, network connections |
+| **Execution state** | Register values, program counter |
+
+### The Process Control Block (PCB)
+
+The OS maintains a **Process Control Block** for each process — a data structure containing everything needed to pause and resume execution:
+
+| PCB Field | Purpose |
+| :--- | :--- |
+| Process ID (PID) | Unique identifier |
+| Process State | Running, Ready, Blocked |
+| Program Counter | Next instruction to execute |
+| CPU Registers | Saved register values |
+| Memory Info | Page tables, segment info |
+| I/O Status | Open files, pending I/O |
+| Scheduling Info | Priority, time used |
+
+Here's how a process's virtual memory is organized:
+
+<div className="my-6 flex justify-center">
+  <MemoryLayoutDiagram width={220} height={320} showAddresses showLabels />
+</div>
+
+### Context Switching
+
+When the OS switches from Process A to Process B:
+
+1. **Timer interrupt** fires (or I/O completes)
+2. **Save** Process A's registers to its PCB
+3. **Load** Process B's registers from its PCB
+4. **Resume** execution at Process B's program counter
+
+This is called a **context switch**. It takes thousands of CPU cycles — not free!
+
+> **⚠️ Key Insight:** Context switches are expensive. This is why threads exist.
+
+---
+
+## Threads — Lightweight Processes
+
+A **thread** is an execution unit *within* a process. Multiple threads share the same process resources but have their own execution state.
+
+<DefinitionBox term="Thread (Kernel Thread / Lightweight Process)">
+
+An independent sequence of execution within a process. Threads share code, data, and heap, but have their own stack and registers.
+
+</DefinitionBox>
+
+### Thread vs Process
+
+| Aspect | Process | Thread |
+| :--- | :--- | :--- |
+| **Creation cost** | High (copy memory, etc.) | Low (just new stack) |
+| **Context switch** | Expensive (~10,000 cycles) | Cheap (~1,000 cycles) |
+| **Memory** | Isolated | Shared with other threads |
+| **Communication** | IPC required | Direct memory access |
+| **Failure isolation** | One crash = one process | One crash = all threads |
+
+### What Threads Share vs Own
+
+**Shared (Process-level):**
+- Code segment (text)
+- Data segment (globals)
+- Heap
+- Open file descriptors
+- Process ID
+
+**Per-thread:**
+- Thread ID (TID)
+- Register set (including program counter)
+- Stack
+- Thread-local storage
+
+Here's how multiple threads share process resources while maintaining their own stacks:
+
+<div className="my-6 p-4 border rounded-lg bg-card">
+  <div className="text-center mb-4">
+    <span className="text-sm font-semibold text-muted-foreground">Process Memory (Shared)</span>
+  </div>
+  <div className="flex justify-center gap-2 mb-4">
+    <div className="px-3 py-1 bg-purple-500/20 border border-purple-500 rounded text-xs">Code</div>
+    <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded text-xs">Data</div>
+    <div className="px-3 py-1 bg-green-500/20 border border-green-500 rounded text-xs">Heap</div>
+  </div>
+  <div className="grid grid-cols-2 gap-4">
+    <div className="border-2 border-blue-500 rounded-lg p-3 bg-blue-500/10">
+      <div className="text-center text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">Thread 1</div>
+      <MemoryLayoutDiagram width={140} height={180} stackSize={35} heapSize={0} showLabels={false} />
+    </div>
+    <div className="border-2 border-orange-500 rounded-lg p-3 bg-orange-500/10">
+      <div className="text-center text-sm font-semibold text-orange-600 dark:text-orange-400 mb-2">Thread 2</div>
+      <MemoryLayoutDiagram width={140} height={180} stackSize={28} heapSize={0} showLabels={false} />
+    </div>
+  </div>
+  <p className="text-xs text-muted-foreground text-center mt-3">Each thread has its own stack, but they share code, data, and heap</p>
+</div>
+
+### Why Threads?
+
+1. **Cheaper concurrency** — Creating a thread is ~100x faster than forking a process
+2. **Shared memory** — Threads can communicate by sharing data structures
+3. **Responsiveness** — One thread can handle UI while another does computation
+4. **Parallelism** — On multi-core CPUs, threads can run truly simultaneously
+
+---
+
+## Kernel Threads vs User-Space Threads
+
+There are two fundamentally different approaches to threads:
+
+### Kernel Threads (Native/OS Threads)
+
+**Managed by the operating system kernel.**
+
+- OS scheduler decides when each thread runs
+- Context switches go through the kernel
+- Can take advantage of multiple CPU cores
+- What `std::thread` uses in Rust
+
+```rust
+use std::thread;
+
+fn main() {
+    let handle = thread::spawn(|| {
+        println!("Hello from a kernel thread!");
+    });
+    
+    handle.join().unwrap();
+}
+```
+
+**Pros:**
+- True parallelism on multiple cores
+- One blocked thread doesn't block others
+- OS handles scheduling
+
+**Cons:**
+- Context switches are relatively expensive
+- Limited by OS thread limits
+- Thread creation has kernel overhead
+
+### User-Space Threads (Green Threads)
+
+**Managed by the language runtime, not the OS.**
+
+- Runtime scheduler decides when each thread runs
+- Context switches happen in user space (no kernel call)
+- Many green threads can map to few kernel threads (M:N model)
+- What Tokio provides in Rust
+
+```rust
+use tokio;
+
+#[tokio::main]
+async fn main() {
+    let handle = tokio::spawn(async {
+        println!("Hello from a green thread!");
+    });
+    
+    handle.await.unwrap();
+}
+```
+
+**Pros:**
+- Extremely lightweight (can have millions)
+- Very fast context switches
+- Cooperative scheduling (explicit yield points)
+
+**Cons:**
+- Can't automatically use multiple cores (need work-stealing)
+- If one blocks on I/O, may block the kernel thread
+- Requires runtime support
+
+### The Connection to async/await
+
+`async/await` in Rust is essentially syntactic sugar for green threading:
+
+```rust
+async fn fetch_data() -> String {
+    // "await" is a yield point
+    let response = make_request().await;
+    process(response).await
+}
+```
+
+Think of `await` as saying: *"You can work on something else until this is ready."*
+
+This is a **control flow mechanism** like `if` and `while`:
+- `if` — branch based on condition
+- `while` — repeat until condition
+- `await` — pause until result ready
+
+> **💡 Mindset Shift:** Sequential thinking says "this, then that, then this." Async thinking says "do this when it's ready, not in a fixed order."
+
+---
+
+## Rust Threading Examples
+
+Let's see both threading models in action.
+
+### Kernel Threading with std::thread
+
+**Basic thread creation:**
+
+```rust
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    let handle = thread::spawn(|| {
+        for i in 1..5 {
+            println!("Hi from spawned thread: {}", i);
+            thread::sleep(Duration::from_millis(100));
+        }
+    });
+
+    for i in 1..3 {
+        println!("Hi from main thread: {}", i);
+        thread::sleep(Duration::from_millis(100));
+    }
+
+    handle.join().unwrap();
+}
+```
+
+**Output (non-deterministic!):**
+```
+Hi from main thread: 1
+Hi from spawned thread: 1
+Hi from main thread: 2
+Hi from spawned thread: 2
+Hi from spawned thread: 3
+Hi from spawned thread: 4
+```
+
+The exact interleaving depends on the OS scheduler — you'll get different results each run!
+
+### Passing Data with move
+
+Threads need to **own** their data (remember ownership?):
+
+```rust
+use std::thread;
+
+fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+    
+    let handle = thread::spawn(move || {
+        // `move` transfers ownership to the thread
+        let sum: i32 = numbers.iter().sum();
+        println!("Sum: {}", sum);
+    });
+    
+    // numbers is no longer available here!
+    // println!("{:?}", numbers);  // ERROR!
+    
+    handle.join().unwrap();
+}
+```
+
+### Sharing Data with Arc and Mutex
+
+For shared mutable state, use `Arc` (atomic reference counting) and `Mutex`:
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        let handle = thread::spawn(move || {
+            let mut num = counter.lock().unwrap();
+            *num += 1;
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("Result: {}", *counter.lock().unwrap());
+}
+```
+
+### Green Threading with Tokio
+
+**Basic async task:**
+
+```rust
+use tokio::time::{sleep, Duration};
+
+#[tokio::main]
+async fn main() {
+    let task1 = tokio::spawn(async {
+        for i in 1..5 {
+            println!("Task 1: {}", i);
+            sleep(Duration::from_millis(100)).await;
+        }
+    });
+
+    let task2 = tokio::spawn(async {
+        for i in 1..3 {
+            println!("Task 2: {}", i);
+            sleep(Duration::from_millis(150)).await;
+        }
+    });
+
+    // Wait for both to complete
+    let _ = tokio::join!(task1, task2);
+}
+```
+
+**Key difference:** The `await` points are where the runtime can switch to another task. This is **cooperative** scheduling.
+
+---
+
+## Key Takeaways
+
+### 1. Non-Determinism is the New Normal
+
+From user space, thread execution order is **unpredictable**. The OS scheduler is a "black box" — you can't control when your thread runs.
+
+```rust
+// These might print in ANY order!
+thread::spawn(|| println!("A"));
+thread::spawn(|| println!("B"));
+thread::spawn(|| println!("C"));
+```
+
+**Accept it. Design for it. Test for it.**
+
+### 2. Breaking Sequential Thinking
+
+You've spent years learning sequential programming:
+```
+do A
+do B
+do C
+```
+
+Threading breaks this:
+```
+start A
+start B  // B might finish before A!
+start C
+wait for all
+```
+
+### 3. The Async Mindset
+
+Sequential: "This will be done after that."
+
+Async: "This will be done **when it's ready**."
+
+```rust
+// Not "do X then Y"
+// But "start X, start Y, handle whichever finishes first"
+let x = fetch_x().await;
+let y = fetch_y().await;
+```
+
+### 4. Choose the Right Model
+
+| Scenario | Use |
+| :--- | :--- |
+| CPU-bound work | Kernel threads (`std::thread`) |
+| Many I/O-bound tasks | Green threads (Tokio) |
+| Need true parallelism | Kernel threads |
+| Need millions of tasks | Green threads |
+| Simple, few threads | Kernel threads |
+
+---
+
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Process** | A program in execution with its own address space |
+| **Thread** | An execution unit within a process, sharing memory |
+| **PCB** | Process Control Block — OS data structure for process state |
+| **TCB** | Thread Control Block — lighter-weight state for threads |
+| **Context Switch** | Saving one thread/process state and loading another |
+| **Kernel Thread** | Thread managed by the OS kernel |
+| **Green Thread** | Thread managed by language runtime (user space) |
+| **Virtual Memory** | Illusion of private address space per process |
+
+**The Evolution:**
+
+```
+No OS → Batch → Multiprogramming → Time-Sharing → Modern OS
+ 1940s   1950s      1960s            1970s         1980s+
+```
+
+**Thread vs Process:**
+- Threads are cheaper to create and switch
+- Threads share memory (good for communication, risky for bugs)
+- Processes are isolated (safer, but more overhead)
+
+**Rust Threading:**
+- `std::thread` — kernel threads, true parallelism
+- `tokio` — green threads, async I/O, millions of tasks
+- `move` — transfer ownership to thread
+- `Arc<Mutex<T>>` — shared mutable state
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [The Rust Book: Fearless Concurrency](https://doc.rust-lang.org/book/ch16-00-concurrency.html) — Rust's approach to safe threading
+- [Tokio Tutorial](https://tokio.rs/tokio/tutorial) — Async Rust with Tokio
+- [Operating Systems: Three Easy Pieces](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free, excellent OS textbook
+
+### Historical Context
+
+- [The UNIX Time-Sharing System](https://dsf.berkeley.edu/cs262/unix.pdf) (Ritchie & Thompson, 1974) — The paper that started it all
+- [Multics](https://multicians.org/) — Unix's ambitious predecessor
+- [Linux Kernel Development](https://www.kernel.org/) — See how a modern OS works
+
+### Video Resources
+
+- [Computerphile: Processes and Threads](https://www.youtube.com/watch?v=4rLW7zg21gI) — Clear visual explanation
+- [MIT 6.004: Operating Systems](https://www.youtube.com/playlist?list=PLUl4u3cNGP62WVs95MNq3dQBqY2vGOtQ2) — Full lecture series
+
+### Rust Concurrency Deep Dives
+
+- [Rust Atomics and Locks](https://marabos.nl/atomics/) — Free book on low-level concurrency
+- [Jon Gjengset: Crust of Rust](https://www.youtube.com/playlist?list=PLqbS7AVVErFiWDOAVrPt7aYmnuuOLYvOa) — Deep Rust videos
+
+</LectureResources>

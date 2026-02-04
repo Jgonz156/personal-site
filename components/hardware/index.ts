@@ -1,0 +1,5 @@
+export { CPUDiagram, type CPUDiagramProps } from "./cpu-diagram"
+export { RAMDiagram, type RAMDiagramProps } from "./ram-diagram"
+export { IOHardwareDiagram, type IOHardwareDiagramProps } from "./io-hardware-diagram"
+export { HDDDiagram, type HDDDiagramProps } from "./hdd-diagram"
+export { MotherboardDiagram, type MotherboardDiagramProps } from "./motherboard-diagram"
