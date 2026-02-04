@@ -1,4 +1,9 @@
 import { DisplayMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { QuestionBox } from "@/components/question-box"
 
 ## Recap
 
@@ -673,10 +678,138 @@ The seemingly simple question "what is addition?" leads to some of the deepest m
 
 ---
 
-import {
-  LectureNotes,
-  LectureResources,
-} from "@/components/lecture-sections"
+## Applying This in Code
+
+As programmers, we create custom operations all the time. When we overload operators like `+`, we're actually defining new algebraic structures — whether we realize it or not. Understanding the meta-properties we've been discussing helps us write better, more predictable code.
+
+### Python's Operator Overloading
+
+In Python, you can define what `+` means for your custom classes using the `__add__` method:
+
+```python
+def __add__(self, other) -> Self:
+    # Define what a + b means
+    return ...
+```
+
+Notice anything familiar? The type signature `__add__(self, other) -> Self` is exactly our closure pattern from earlier:
+
+$$
+\oplus : (A, A) \rightarrow A
+$$
+
+When you write `__add__`, you're defining an algebraic operation!
+
+### The Dot and Group Classes (Addition Without Numbers!)
+
+Let's push our lecture's central point to its logical extreme: **we'll create addition without any numbers at all**.
+
+First, a completely empty `Dot` class — just a marker with no numeric properties whatsoever:
+
+```python
+class Dot:
+    """A simple marker with no numeric properties."""
+    pass
+```
+
+Now, a `Group` class that holds a collection of Dots and implements `+`:
+
+```python
+class Group:
+    def __init__(self, dots=None):
+        self.dots = dots if dots else []
+    
+    def __add__(self, other):
+        # Create NEW dots for the combined group
+        new_dots = []
+        for _ in self.dots:
+            new_dots.append(Dot())
+        for _ in other.dots:
+            new_dots.append(Dot())
+        return Group(new_dots)
+    
+    def __eq__(self, other):
+        # Groups are equal if they have the same NUMBER of dots
+        return len(self.dots) == len(other.dots)
+    
+    def __len__(self):
+        return len(self.dots)
+    
+    def __repr__(self):
+        return f"Group({len(self.dots)} dots)"
+```
+
+> **💡 Key Insight:** There are no numbers in our `Dot` class. The `Group` class doesn't store any numeric data — it just holds a collection of abstract markers. Yet we can still define addition!
+
+### Testing the Algebraic Properties
+
+Now comes the satisfying part. We can write tests that look exactly like our mathematical definitions:
+
+```python
+# Create some groups
+a = Group([Dot(), Dot()])           # 2 dots
+b = Group([Dot(), Dot(), Dot()])    # 3 dots
+c = Group([Dot()])                  # 1 dot
+empty = Group([])                   # 0 dots (identity candidate)
+
+# Test closure: Group + Group = Group
+result = a + b
+assert isinstance(result, Group)  # ✓ Still a Group!
+
+# Test commutativity: a + b = b + a
+assert a + b == b + a  # ✓ Order doesn't matter!
+
+# Test associativity: (a + b) + c = a + (b + c)
+assert (a + b) + c == a + (b + c)  # ✓ Grouping doesn't matter!
+
+# Test identity: a + empty = a
+assert a + empty == a  # ✓ Empty group is the identity!
+
+print("All algebraic properties verified! ✓")
+```
+
+These tests mirror the exact formulas we saw earlier:
+- **Commutativity**: $a \oplus b = b \oplus a$
+- **Associativity**: $(a \oplus b) \oplus c = a \oplus (b \oplus c)$
+- **Identity**: $a \oplus e = a$
+
+### Why This Matters
+
+Understanding your operation's algebraic properties has real practical benefits:
+
+| Property | Programming Benefit |
+| :--- | :--- |
+| **Associativity** | Enables parallel processing — you can compute `(a + b) + c` and `a + (b + c)` on different cores and get the same result (great for map-reduce!) |
+| **Commutativity** | Allows compilers to reorder operations for optimization |
+| **Identity** | Gives you a natural "default" or "zero" value for your type |
+| **Closure** | Guarantees you can chain operations without type errors |
+
+> **🔮 Real-World Example:** Libraries like NumPy, Pandas, and even database query builders rely on these properties for optimization. When the library knows your operation is associative, it can parallelize it!
+
+### The Type Theory Connection
+
+Let's circle back to the lecture's theme. When you define `__add__`:
+
+```python
+def __add__(self, other: "Group") -> "Group":
+    ...
+```
+
+You're stating the type signature: `+ : (Group, Group) → Group`
+
+This **is** closure! Your type annotation captures the algebraic property. And by ensuring your implementation satisfies commutativity and associativity, you've created something that is mathematically **addition** — even though there are no numbers anywhere in sight.
+
+<QuestionBox>
+
+Did we just prove addition isn't about numbers by writing Python code?
+
+Yes! Our `Group + Group` operation satisfies all the same properties as `5 + 3`. The fact that there are no numbers in our implementation proves that addition is defined by its **properties**, not by the objects it operates on.
+
+</QuestionBox>
+
+---
+
+
 
 <LectureNotes>
 
