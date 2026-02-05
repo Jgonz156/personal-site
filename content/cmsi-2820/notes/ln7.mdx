@@ -1,0 +1,676 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { QuestionBox } from "@/components/question-box"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DivisorPairTable } from "@/components/divisor-pair-table"
+import { DivisorPairVisualizer } from "@/components/divisor-pair-visualizer"
+import { NumberRingDiagram } from "@/components/number-ring-diagram"
+import { NumberLineWrap } from "@/components/number-line-wrap"
+import { HyperbolaGraph } from "@/components/hyperbola-graph"
+import { PrimeFactorizationTable } from "@/components/prime-factorization-table"
+import { DivisionRemainderTable } from "@/components/division-remainder-table"
+
+## Recap
+
+Last time we explored **algebraic properties** — the fundamental characteristics that define operations. We discovered that **closure**, **associativity**, **commutativity**, and **identity** are the building blocks that determine whether an operation forms a group structure.
+
+Most importantly, we learned that **closure** tells us when an operation "stays within" a type:
+
+<DisplayMath formula="\oplus : (A, A) \to A" />
+
+When an operation isn't closed, it signals something interesting: we might need a **new type** to capture all possible outputs!
+
+---
+
+## Today's Agenda
+
+- **Division's Problem** — Why division breaks closure
+- **The Divides Operator** — A closed alternative
+- **Divisor Pairs & Primes** — Investigating factor structure
+- **Modular Arithmetic** — Number rings instead of number lines
+- **Congruence** — Logical equivalence for numbers
+- **Applications** — Where number theory appears in the real world
+
+---
+
+## Division Lacks Closure
+
+Let's examine standard division on the natural numbers:
+
+<DisplayMath formula="\div : (\mathbb{N}, \mathbb{N}) \to \; ???" />
+
+What is the output type? Let's test some examples:
+
+| Expression | Result | Type |
+| :--- | :--- | :--- |
+| 10 ÷ 2 | 5 | ℕ (natural) |
+| 10 ÷ 3 | 3.333... | ℚ (rational) |
+| 10 ÷ 4 | 2.5 | ℚ (rational) |
+| 10 ÷ 0 | undefined | ??? |
+
+Division on naturals produces rationals! The operation "escapes" the type:
+
+<DisplayMath formula="\div : (\mathbb{N}, \mathbb{N}) \to \mathbb{Q}" />
+
+This is **not closed**. Division transforms our nice natural numbers into fractions (or worse, undefined values).
+
+> **Key Insight:** When mathematicians encounter an unclosed operation, they often ask: "Can we define a related operation that IS closed?"
+
+---
+
+## The Divides Operator
+
+Instead of asking "what is a divided by b?", let's ask a different question:
+
+> **"Does a divide evenly into b? And if so, what's the multiplier?"**
+
+### Our Custom Divides Operator
+
+Let's define a custom version that returns the integer multiplier when it exists:
+
+<DefinitionBox term="Custom Divides Operator (|?)">
+
+We define $a \mid_? b$ to return the integer k such that b = a × k, if such a k exists:
+
+<DisplayMath formula="a \mid_? b = k \quad \text{where } b = a \times k \quad (\text{undefined if no such } k \text{ exists})" />
+
+</DefinitionBox>
+
+This custom operator is **algebraically closed** on integers when defined:
+
+<DisplayMath formula="\mid_? \; : (\mathbb{Z}, \mathbb{Z}) \rightharpoonup \mathbb{Z}" />
+
+The arrow $\rightharpoonup$ indicates a **partial function** — it only produces output when the relationship exists.
+
+**Examples:**
+
+| Expression | Result | Reasoning |
+| :--- | :--- | :--- |
+| $3 \mid_? 12$ | 4 | 12 = 3 × **4** |
+| $5 \mid_? 25$ | 5 | 25 = 5 × **5** |
+| $2 \mid_? 22$ | 11 | 22 = 2 × **11** |
+| $3 \mid_? 10$ | undefined | No integer k where 10 = 3 × k |
+| $7 \mid_? 22$ | undefined | No integer k where 22 = 7 × k |
+
+### The Standard Divides Operator
+
+The standard mathematical notation $a \mid b$ is slightly different — it returns a **boolean**:
+
+<DefinitionBox term="Standard Divides Operator (|)">
+
+We say **a divides b** (written $a \mid b$) if there exists an integer k such that:
+
+<DisplayMath formula="a \mid b \iff \exists k \in \mathbb{Z} : b = a \times k" />
+
+</DefinitionBox>
+
+<DisplayMath formula="\mid \; : (\mathbb{Z}, \mathbb{Z}) \to \text{Bool}" />
+
+Note: The standard version is **not closed** in the algebraic sense — it maps from integers to booleans, changing the type! Our custom version stays within the integers.
+
+For this lecture, we'll use our custom operator to find actual solutions.
+
+---
+
+## Comparing Division and Divides
+
+Let's really understand the difference between these two operators through a concrete example.
+
+### Question 1: Find x where 22/x is defined
+
+<DisplayMath formula="\frac{22}{x} = \; ?" />
+
+What values can x take? Well, x can be:
+- Any positive number: 1, 2, 3, 0.5, π, √2, ...
+- Any negative number: -1, -0.1, -100, ...
+- Basically **anything except 0**!
+
+The answer space is essentially **infinite and continuous**. Let's visualize this absurdity:
+
+<HyperbolaGraph 
+  numerator={22}
+  xRange={[-25, 25]}
+  yRange={[-25, 25]}
+  highlightPoints={[1, 2, 11, 22, -1, -2, -11]}
+  caption="The hyperbola y = 22/x — every point is a valid (x, y) pair!"
+/>
+
+When we ask "find x such that 22/x = y", we're asking for points on this curve. The curve contains **infinitely many** points — rational, irrational, positive, negative. The question is absurdly open-ended!
+
+### Question 2: Find x where x |? 22 is defined
+
+<DisplayMath formula="x \mid_? 22 = k" />
+
+What values of x give us a defined result? We need to find all integers x where 22 = x × k for some integer k.
+
+Let's systematically find them:
+
+<DivisorPairTable 
+  number={22}
+  showAllPairs={true}
+  highlightSymmetry={true}
+  caption="All divisor pairs of 22 — notice the symmetry!"
+/>
+
+The answer is **finite and discrete**: only \{1, 2, 11, 22\} (and their negatives) — just 8 total values compared to infinitely many!
+
+Now let's look at a larger number to see the pattern more clearly:
+
+<DivisorPairTable 
+  number={100}
+  showAllPairs={true}
+  highlightSymmetry={true}
+  caption="All divisor pairs of 100 — the symmetry point is exactly √100 = 10"
+/>
+
+<QuestionBox>
+
+Why is the divides question fundamentally different from the division question?
+
+The divides operator reframes division as a **search problem** over integers. Instead of computing a quotient (which might not be an integer), we're asking whether a particular integer relationship exists. This constrains our answer space dramatically!
+
+</QuestionBox>
+
+---
+
+## The Symmetry of Divisor Pairs
+
+Look carefully at the divisor pair tables above. Notice something interesting?
+
+When we write 22 = a × b, the pairs are:
+- 1 × 22
+- 2 × 11
+- ↕ **symmetry line** ↕
+- 11 × 2 — swapped!
+- 22 × 1 — swapped!
+
+And for 100 = a × b:
+- 1 × 100
+- 2 × 50
+- 4 × 25
+- 5 × 20
+- 10 × 10 — **perfect square, the symmetry point!**
+- 20 × 5 — swapped!
+- 25 × 4 — swapped!
+- 50 × 2 — swapped!
+- 100 × 1 — swapped!
+
+The pairs **mirror** each other around a central point. Where is that point?
+
+<DisplayMath formula="\sqrt{n}" />
+
+Once we pass $\sqrt{n}$, all new pairs are just swapped versions of pairs we've already found! This means:
+
+> **To find all divisors of n, we only need to check numbers from 1 to √n.**
+
+This is a huge efficiency gain! To find divisors of 1,000,000, we only need to check up to 1,000 — not all million possibilities.
+
+---
+
+## Visualizing Divisor Counts
+
+Now let's zoom out and look at divisor counts across many numbers. How does the number of divisors change as numbers get larger?
+
+<DivisorPairVisualizer 
+  maxValue={60}
+  highlightPrimes={true}
+  desmosUrl="https://www.desmos.com/calculator"
+  caption="Divisor count for numbers 1-60. Red points are primes (exactly 2 divisors)."
+/>
+
+### Observations
+
+Look at the visualization and notice:
+
+1. **Primes stand out** — They're the red dots at exactly 2 divisors (only 1 and themselves)
+2. **No clear pattern** — Larger numbers don't necessarily have more divisors
+3. **Highly composite numbers** — Some numbers like 12, 24, 36, 48, 60 have unusually many divisors
+4. **Powers of 2** — Numbers like 2, 4, 8, 16, 32 form a diagonal pattern
+
+The irregularity of this pattern is one of the deep mysteries of number theory!
+
+---
+
+## Prime Numbers
+
+Those special points with exactly 2 divisors deserve a name:
+
+<DefinitionBox term="Prime Number">
+
+A natural number p > 1 is **prime** if its only positive divisors are 1 and p itself.
+
+Equivalently, p is prime if:
+<DisplayMath formula="\forall a \in \mathbb{N} : a \mid p \implies (a = 1 \lor a = p)" />
+
+</DefinitionBox>
+
+The first several primes are: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, ...
+
+### Why Primes Matter
+
+Primes are the **atoms** of multiplication. Every positive integer can be built from primes in exactly one way:
+
+<DefinitionBox term="Fundamental Theorem of Arithmetic">
+
+Every integer n > 1 can be represented as a product of prime numbers in exactly one way (up to ordering):
+
+<DisplayMath formula="n = p_1^{e_1} \times p_2^{e_2} \times \cdots \times p_k^{e_k}" />
+
+This representation is called the **prime factorization** of n.
+
+</DefinitionBox>
+
+This might seem abstract, so let's see it visually:
+
+<PrimeFactorizationTable 
+  maxNumber={20}
+  caption="Every number from 1-20 broken down into its prime building blocks"
+/>
+
+Notice how primes (highlighted) are their own factorization — they can't be broken down further. Every other number is built by multiplying primes together!
+
+This theorem is why primes are fundamental — they're the irreducible building blocks of all integers!
+
+---
+
+## Introducing the Remainder
+
+We've been ignoring something. When division doesn't work evenly, there's a **remainder**:
+
+<DisplayMath formula="a = q \times b + r \quad \text{where } 0 \leq r < b" />
+
+This is called the **division algorithm**. Every division produces:
+- **q** — the quotient (how many complete times b fits into a)
+- **r** — the remainder (what's left over)
+
+**Examples:**
+
+| a | b | q (quotient) | r (remainder) | Check: q×b + r |
+| :--- | :--- | :--- | :--- | :--- |
+| 17 | 5 | 3 | 2 | 3×5 + 2 = 17 ✓ |
+| 23 | 7 | 3 | 2 | 3×7 + 2 = 23 ✓ |
+| 100 | 12 | 8 | 4 | 8×12 + 4 = 100 ✓ |
+| 15 | 5 | 3 | 0 | 3×5 + 0 = 15 ✓ |
+
+Notice: when r = 0, that's exactly when $b \mid a$!
+
+---
+
+## The Modulus Operator
+
+The remainder is so useful it gets its own operator:
+
+<DefinitionBox term="Modulus Operator (mod)">
+
+The expression $a \mod b$ returns the remainder when a is divided by b:
+
+<DisplayMath formula="a \mod b = r \quad \text{where } a = qb + r \text{ and } 0 \leq r < b" />
+
+</DefinitionBox>
+
+**Examples:**
+
+| Expression | Value | Reasoning |
+| :--- | :--- | :--- |
+| 17 mod 5 | 2 | 17 = 3×5 + **2** |
+| 23 mod 7 | 2 | 23 = 3×7 + **2** |
+| 100 mod 12 | 4 | 100 = 8×12 + **4** |
+| 15 mod 5 | 0 | 15 = 3×5 + **0** |
+
+The modulus operator IS closed on naturals:
+
+<DisplayMath formula="\text{mod} : (\mathbb{N}, \mathbb{N}^+) \to \mathbb{N}" />
+
+The output is always a natural number between 0 and b-1!
+
+### The Cyclic Pattern of Remainders
+
+Here's something beautiful — remainders create **repeating patterns**:
+
+<DivisionRemainderTable 
+  maxNumber={12}
+  divisors={[2, 3, 4, 5]}
+  showQuotient={true}
+  caption="Watch how remainders cycle! Division by d creates a pattern that repeats every d numbers."
+/>
+
+Each row shows a different divisor, and you can see the remainder cycling: 0, 1, 2, ..., d-1, then back to 0. This cyclic behavior is the key to modular arithmetic!
+
+---
+
+## From Number Lines to Number Rings
+
+Here's where things get beautiful. Think about what mod does:
+
+- 0 mod 5 = 0
+- 1 mod 5 = 1
+- 2 mod 5 = 2
+- 3 mod 5 = 3
+- 4 mod 5 = 4
+- 5 mod 5 = 0 ← **wraps back to 0!**
+- 6 mod 5 = 1
+- 7 mod 5 = 2
+- ...
+
+The infinite number line **wraps around** into a finite cycle!
+
+<NumberLineWrap 
+  modulus={5}
+  maxDisplay={3}
+  caption="Watch the infinite number line collapse into a finite ring — numbers that differ by 5 land on the same position!"
+/>
+
+This animation shows the key insight: in modular arithmetic, **infinitely many numbers become equivalent**.
+
+- 0 ≡ 5 ≡ 10 ≡ 15 ≡ ... (all multiples of 5)
+- 1 ≡ 6 ≡ 11 ≡ 16 ≡ ...
+- 2 ≡ 7 ≡ 12 ≡ 17 ≡ ...
+
+---
+
+## Working with Number Rings
+
+Instead of the infinite number line, modular arithmetic uses a **finite ring** with positions 0 through n-1.
+
+<NumberRingDiagram 
+  modulus={12}
+  highlight={[3, 9]}
+  showLabels={true}
+  caption="A mod 12 ring (like a clock!) with positions 3 and 9 highlighted"
+/>
+
+You already know mod 12 arithmetic — it's **clock arithmetic**!
+
+- 9 o'clock + 5 hours = 2 o'clock (because 14 mod 12 = 2)
+- 11 o'clock + 3 hours = 2 o'clock (because 14 mod 12 = 2)
+
+<NumberRingDiagram 
+  modulus={5}
+  highlight={[2]}
+  equivalentValues={[2, 7, 12, 17]}
+  showLabels={true}
+  caption="Mod 5 ring showing that 2, 7, 12, 17, ... all map to position 2"
+/>
+
+---
+
+## Congruence: Logical Equivalence for Numbers
+
+Remember the three-bar equals sign from our logic lectures?
+
+<DisplayMath formula="A \equiv B" />
+
+We used it for **logical equivalence** — two statements that always have the same truth value.
+
+Now we extend this symbol to numbers:
+
+<DefinitionBox term="Congruence">
+
+Two integers a and b are **congruent modulo n** if they have the same remainder when divided by n:
+
+<DisplayMath formula="a \equiv b \pmod{n} \iff n \mid (a - b)" />
+
+This is equivalent to saying a and b land on the **same position** in the mod n ring.
+
+</DefinitionBox>
+
+**Examples:**
+
+| Statement | True? | Why |
+| :--- | :--- | :--- |
+| $17 \equiv 2 \pmod{5}$ | ✓ | Both give remainder 2 when divided by 5 |
+| $23 \equiv 8 \pmod{5}$ | ✓ | Both give remainder 3 when divided by 5 |
+| $14 \equiv 2 \pmod{12}$ | ✓ | 14 - 2 = 12, and $12 \mid 12$ |
+| $10 \equiv 3 \pmod{5}$ | ✗ | 10 mod 5 = 0, but 3 mod 5 = 3 |
+
+### Why Use ≡ Instead of =?
+
+The symbol ≡ reminds us this is an **equivalence relation**, not true equality:
+
+- 17 **is not equal to** 2
+- But 17 **is equivalent to** 2 in the mod 5 world
+
+Just like in logic where "A implies B" and "not A or B" are **logically equivalent** (same truth table) but not the same formula, 17 and 2 are **congruently equivalent** (same position on the ring) but not the same number.
+
+<NumberRingDiagram 
+  modulus={7}
+  highlight={[0, 3, 6]}
+  showLabels={true}
+  caption="Mod 7 ring — multiples of 3 land on positions 0, 3, and 6"
+/>
+
+---
+
+## Properties of Congruence
+
+Congruence behaves like equality in many ways! These properties make modular arithmetic useful:
+
+### Reflexive
+<DisplayMath formula="a \equiv a \pmod{n}" />
+
+Every number is congruent to itself.
+
+### Symmetric
+<DisplayMath formula="a \equiv b \pmod{n} \implies b \equiv a \pmod{n}" />
+
+If a is congruent to b, then b is congruent to a.
+
+### Transitive
+<DisplayMath formula="a \equiv b \pmod{n} \land b \equiv c \pmod{n} \implies a \equiv c \pmod{n}" />
+
+If a ≡ b and b ≡ c, then a ≡ c.
+
+### Compatible with Arithmetic
+<DisplayMath formula="\text{If } a \equiv b \text{ and } c \equiv d \pmod{n}, \text{ then:}" />
+<DisplayMath formula="a + c \equiv b + d \pmod{n}" />
+<DisplayMath formula="a \times c \equiv b \times d \pmod{n}" />
+
+You can add and multiply congruent numbers and stay congruent!
+
+---
+
+## The Big Picture
+
+Today we've traced a path from a simple observation to a powerful mathematical framework:
+
+```
+Division isn't closed on ℕ
+    ↓
+Define "|" (divides) — a closed integer operation
+    ↓
+Study divisor pairs → discover primes
+    ↓
+Acknowledge remainders → define mod
+    ↓
+Mod creates finite rings from infinite lines
+    ↓
+Congruence (≡) formalizes ring equivalence
+```
+
+This is number theory's foundation — the study of integers, divisibility, and the beautiful structures that emerge from simple questions about "what divides what."
+
+<QuestionBox>
+
+Why did mathematicians develop all this machinery just for division?
+
+Because division's failure to be closed reveals deep structure! The integers aren't just a line of numbers — they have internal relationships based on divisibility. Primes, factorization, and modular arithmetic are tools for understanding these hidden patterns. And these "pure math" ideas turn out to be essential for cryptography, computer science, and many other applications!
+
+</QuestionBox>
+
+---
+
+## A Tour of Number Theory Applications
+
+All this abstract machinery about divisibility and modular arithmetic might seem purely theoretical — but it powers some of the most important technologies in our world!
+
+### Cryptography: Keeping Secrets with Primes
+
+The **RSA encryption algorithm** protects nearly all secure internet communication. Its security relies on a simple asymmetry:
+
+- **Easy:** Multiply two large primes: $p \times q = N$
+- **Hard:** Given N, find p and q (factoring)
+
+When p and q are 300+ digits each, factoring N is computationally infeasible — even for supercomputers! Your bank transactions, private messages, and passwords all depend on this number-theoretic hardness.
+
+### Random Number Generation
+
+**Linear Congruential Generators (LCG)** use modular arithmetic to create pseudo-random sequences:
+
+<DisplayMath formula="X_{n+1} = (a \cdot X_n + c) \mod m" />
+
+Starting from a "seed" value, this formula generates numbers that appear random but are completely deterministic. Video games, simulations, and statistical sampling all use variants of this technique.
+
+The choice of a, c, and m dramatically affects the quality — number theory helps us pick good values!
+
+### Error Detection: Catching Mistakes
+
+Ever wonder how a website knows you mistyped your credit card number *before* contacting the bank?
+
+**ISBN Check Digits:** Every book's ISBN has a check digit computed using mod 10 or mod 11 arithmetic. If any digit is wrong, the check fails.
+
+```python
+def isbn10_check(isbn: str) -> bool:
+    """Validate an ISBN-10 using mod 11 arithmetic."""
+    digits = [int(d) if d != 'X' else 10 
+              for d in isbn.replace('-', '')]
+    total = sum((10 - i) * d for i, d in enumerate(digits))
+    return total % 11 == 0
+
+# Try it!
+isbn10_check("0-306-40615-2")  # => True (valid ISBN)
+isbn10_check("0-306-40615-3")  # => False (one digit wrong!)
+```
+
+**Credit Card (Luhn Algorithm):** Your card number includes a check digit. The algorithm can detect:
+- Any single-digit error
+- Most transpositions of adjacent digits
+
+All without needing network access — pure modular arithmetic!
+
+```python
+def luhn_check(card_number: str) -> bool:
+    """Validate a card number using the Luhn algorithm (mod 10)."""
+    digits = [int(d) for d in card_number.replace(' ', '')]
+    
+    # Double every second digit from the right
+    for i in range(len(digits) - 2, -1, -2):
+        digits[i] *= 2
+        if digits[i] > 9:
+            digits[i] -= 9  # Same as summing the digits!
+    
+    return sum(digits) % 10 == 0
+
+# Try it with a test card number
+luhn_check("4532 0151 1283 0366")  # => True or False
+```
+
+### Hash Tables: Fast Data Lookup
+
+Hash tables — the data structure behind dictionaries, sets, and databases — use modular arithmetic:
+
+<DisplayMath formula="\text{index} = \text{hash}(key) \mod \text{table\_size}" />
+
+Why do hash tables often use **prime** sizes? Because primes distribute values more evenly, reducing collisions. Number theory directly improves your code's performance!
+
+```python
+# Python dicts use this principle internally!
+def get_index(key, table_size):
+    return hash(key) % table_size
+
+# Same key always maps to same bucket
+table_size = 11  # Prime! Better distribution
+get_index("hello", table_size)  # => some index 0-10
+get_index("hello", table_size)  # => same index every time!
+```
+
+### Clock Arithmetic Everywhere
+
+Modular arithmetic appears in everyday computing:
+
+- **Time calculations:** 23:00 + 3 hours = 02:00 (mod 24)
+- **Day of week:** Adding days wraps around (mod 7)
+- **Color cycling:** RGB values wrap at 256 (mod 256)
+- **Circular buffers:** Array indices wrap around (mod buffer_size)
+
+Circular indexing is second nature to Python programmers — cycling through a list by using `i % len(list)` creates a ring structure from a linear array:
+
+```python
+# Circular indexing is a common Python idiom!
+colors = ["red", "green", "blue"]
+
+for i in range(10):
+    print(colors[i % len(colors)])
+# Outputs: red, green, blue, red, green, blue, red, green, blue, red
+
+# This wraps around automatically — that's modular arithmetic in action!
+```
+
+You've been using number theory all along — now you know the formal framework!
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Custom Divides Operator** — $a \mid_? b = k$ returns k where b = a×k (undefined otherwise)
+- **Standard Divides Operator** — $a \mid b$ returns true if ∃k : b = a×k
+- **Prime Number** — n > 1 with only divisors 1 and n
+- **Fundamental Theorem of Arithmetic** — Every n > 1 has a unique prime factorization
+- **Modulus Operator** — a mod b returns the remainder of a ÷ b
+- **Congruence** — $a \equiv b \pmod{n}$ means n | (a - b)
+
+**Key Insights:**
+
+| Concept | Key Property |
+| :--- | :--- |
+| Division | NOT closed on ℕ (produces rationals) |
+| Custom Divides (\|?) | Closed on ℤ when defined (partial function) |
+| Standard Divides (\|) | Not closed: maps ℤ → Bool |
+| Divisor pairs | Symmetric around √n |
+| Primes | Exactly 2 divisors (1 and itself) |
+| Modulus | Closed: output in \{0, 1, ..., n-1\} |
+| Number rings | Finite cyclic structure |
+| Congruence (≡) | Equivalence relation on integers |
+
+**The √n Bound:**
+
+To find all divisors of n, only check 1 to √n. Each divisor d ≤ √n pairs with n/d ≥ √n.
+
+**Congruence Properties:**
+
+- Reflexive: a ≡ a (mod n)
+- Symmetric: a ≡ b → b ≡ a (mod n)
+- Transitive: a ≡ b ∧ b ≡ c → a ≡ c (mod n)
+- Arithmetic: ≡ is preserved under + and ×
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [3Blue1Brown: "But what is modular arithmetic?"](https://www.youtube.com/watch?v=lJ3CD9M3nEQ) — Beautiful visualization of modular arithmetic
+- [Computerphile: "RSA Encryption"](https://www.youtube.com/watch?v=JD72Ry60eP4) — How primes secure the internet
+
+### Further Reading
+
+- [Wikipedia: Modular Arithmetic](https://en.wikipedia.org/wiki/Modular_arithmetic) — Complete treatment
+- [Wikipedia: Prime Number](https://en.wikipedia.org/wiki/Prime_number) — Deep dive into primes
+- [Wikipedia: Fundamental Theorem of Arithmetic](https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic) — Uniqueness of prime factorization
+
+### Historical Context
+
+- **Euclid** (c. 300 BCE) — Proved there are infinitely many primes
+- **Eratosthenes** (c. 276 BCE) — Invented the "Sieve" algorithm for finding primes
+- **Carl Friedrich Gauss** (1777-1855) — Formalized modular arithmetic in *Disquisitiones Arithmeticae*
+
+### Connection to Programming
+
+- Cryptography (RSA, Diffie-Hellman) and hash tables rely on primes and modular arithmetic
+- Python's `divmod()`, `//`, and `%` operators directly implement the division algorithm
+
+</LectureResources>
