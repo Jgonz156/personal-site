@@ -1,0 +1,1369 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath } from "@/components/math"
+import { ReductionStepper } from "@/components/reduction-stepper"
+
+## Recap
+
+Last time we built **Set Theory** as our second foundational tool—a system for constructing mathematical objects from nothing. We defined numbers, tuples, relations, and functions, all from sets.
+
+But we ended on an uncomfortable note. The set-theoretic definition of a function is *static*. The successor function, for example, is just the infinite set:
+
+<DisplayMath formula="\{(0, 1), (1, 2), (2, 3), (3, 4), \ldots\}" />
+
+This is a lookup table, not a computation. It tells us *what* maps to *what*, but it says nothing about *how* to compute the result. In programming, functions *do* things—they execute, they transform, they compute.
+
+What if there were a formal system where functions weren't just described—they were *executable*? Where the notation itself was a computation waiting to happen?
+
+There is. It's called **The Lambda Calculus**.
+
+---
+
+## Today's Agenda
+
+Today we build our third foundational tool: **The Lambda Calculus**.
+
+- **The Background: Church's Insight** — Where the lambda calculus came from and why it matters
+- **Syntax of the Lambda Calculus** — The four kinds of expressions, built from scratch
+- **The Three Reductions (Informal)** — Alpha, Beta, Eta in plain English
+- **When Reductions Go Wrong** — How naive manipulation breaks everything
+- **Free and Bound Variables** — The diagnostic tool that explains what went wrong
+- **Proper Substitution** — Reformatting programs safely
+- **The Three Conversions (Formal)** — Alpha, Beta, Eta with full rigor
+- **Reduction and Normal Forms** — What it means to "run" a lambda expression
+- **Evaluation Strategies** — Call-by-value vs call-by-name
+- **Lambdas in Real Programming Languages** — From theory to practice
+- **Combinators** — Closed expressions and the birds of combinatory logic
+- **The Pure Lambda Calculus** — Building all of mathematics from functions alone
+- **Recursion and Fixed Points** — Visualizing the Y combinator
+- **Syntactic Sugar** — Making lambda expressions readable
+- **Toward Types: The Simply Typed Lambda Calculus** — Adding discipline to the calculus
+- **Reflections: de Bruijn Indices** — An alternative that implementations prefer
+
+---
+
+## The Background: Church's Insight
+
+In the 1930s, while mathematicians were searching for the foundations of mathematics, **Alonzo Church** (who would later become Alan Turing's PhD advisor) was pursuing a different angle. Rather than building everything from sets, Church asked: what if we built everything from *functions*?
+
+His key insight was radical:
+
+> **Functions aren't just static mappings. They are *rules* for computation.**
+
+The notation $\lambda x. x + 1$ doesn't describe an infinite table of pairs—it's a *recipe*: "given $x$, compute $x + 1$." The recipe itself is the function.
+
+Church distilled functions down to three fundamental ideas:
+
+1. **A function can be applied** to an argument to produce a result
+2. **A function can be created** by specifying a parameter and a body
+3. **Functions don't need names**—the recipe is enough
+
+If you've written code in any modern language, you've already used all three ideas:
+
+```python
+# Python: an anonymous function applied to an argument
+(lambda x: x + 1)(5)   # => 6
+```
+
+```javascript
+// JavaScript: same thing
+((x) => x + 1)(5)   // => 6
+```
+
+```haskell
+-- Haskell: same thing
+(\x -> x + 1) 5   -- => 6
+```
+
+The lambda calculus is the formal theory behind all of this.
+
+---
+
+### Application: Using Functions
+
+A function is applied to an argument to compute a result:
+
+<DisplayMath formula="\texttt{square} \; 5 \Longrightarrow 25" />
+
+<DisplayMath formula="\texttt{not} \; \texttt{true} \Longrightarrow \texttt{false}" />
+
+Notice: we write application by *juxtaposition*—the function next to its argument, separated by a space. No parentheses around the argument are required.
+
+---
+
+### Abstraction: Creating Functions
+
+Functions don't need names. We can write them anonymously using the lambda notation:
+
+<DisplayMath formula="\lambda x. \; x + 1" />
+
+This reads: "the function that takes $x$ and returns $x + 1$." The $\lambda$ symbol signals a function definition. The variable after $\lambda$ is the *parameter*. Everything after the dot is the *body*.
+
+Compare across languages:
+
+| Lambda Calculus | Python | JavaScript | Haskell | Rust |
+| :--- | :--- | :--- | :--- | :--- |
+| $\lambda x. x + 1$ | `lambda x: x + 1` | `x => x + 1` | `\x -> x + 1` | `\|x\| x + 1` |
+| $\lambda x. x$ | `lambda x: x` | `x => x` | `\x -> x` | `\|x\| x` |
+| $\lambda x. \texttt{not} \; x$ | `lambda x: not x` | `x => !x` | `\x -> not x` | `\|x\| !x` |
+
+---
+
+### Currying: Multi-Argument Functions
+
+Every lambda takes *exactly one* argument and produces *exactly one* result. But we can simulate multiple arguments through **currying**: a function that returns another function.
+
+<DisplayMath formula="\texttt{plus} = \lambda x. \lambda y. x + y" />
+
+Now $\texttt{plus} \; 3$ is itself a function—"the function that adds 3 to its argument":
+
+<DisplayMath formula="\texttt{plus} \; 3 \; 5 \Longrightarrow (\texttt{plus} \; 3) \; 5 \Longrightarrow 8" />
+
+Every language handles this differently:
+
+```python
+# Python: manual currying
+plus = lambda x: lambda y: x + y
+plus(3)(5)  # => 8
+add_three = plus(3)
+add_three(5)  # => 8
+```
+
+```haskell
+-- Haskell: currying is the default!
+plus x y = x + y
+plus 3 5        -- => 8
+let addThree = plus 3
+addThree 5      -- => 8
+```
+
+```javascript
+// JavaScript: arrow functions make currying natural
+const plus = x => y => x + y
+plus(3)(5)  // => 8
+```
+
+> **💡 Note:** This technique is named after Haskell Curry (the logician after whom the Haskell programming language is also named). Having only single-argument functions is no limitation at all.
+
+---
+
+### Higher-Order Functions
+
+Functions can take other functions as arguments and return functions as results. Consider the function $\texttt{twice}$:
+
+<DisplayMath formula="\texttt{twice} = \lambda f. \lambda x. f \; (f \; x)" />
+
+This takes a function $f$ and a value $x$, and applies $f$ twice:
+
+<DisplayMath formula="\texttt{twice} \; \texttt{square} \; 5 \Longrightarrow \texttt{square} \; (\texttt{square} \; 5) \Longrightarrow \texttt{square} \; 25 \Longrightarrow 625" />
+
+```python
+# Python
+twice = lambda f: lambda x: f(f(x))
+twice(lambda x: x ** 2)(5)  # => 625
+```
+
+```haskell
+-- Haskell
+twice f x = f (f x)
+twice (^2) 5  -- => 625
+```
+
+Functions that operate on other functions are called **higher-order functions**. This is one of the most powerful ideas in all of computer science.
+
+---
+
+## Syntax of the Lambda Calculus
+
+Now let's make this rigorous. The Lambda Calculus is a *formal system*—it has precise rules for what counts as a valid expression and how expressions transform.
+
+There are exactly **four kinds** of expressions in the **Untyped Applied Lambda Calculus**. We'll build them up one at a time.
+
+---
+
+### The Four Kinds of Expressions
+
+**Kind 1: Constants.** The atoms of our language—numbers ($0, 1, 2, \ldots$), booleans ($\texttt{true}$, $\texttt{false}$), and built-in operations ($\texttt{plus}$, $\texttt{times}$, $\texttt{not}$, $\texttt{sqrt}$).
+
+**Kind 2: Variables.** Names that stand for unknown or yet-to-be-determined values: $x$, $y$, $z$, $f$, $g$, $\ldots$
+
+**Kind 3: Application.** Given any two expressions $M$ and $N$, we can form the application $(M \; N)$, meaning "apply $M$ to $N$." Here $M$ is called the **operator** and $N$ is called the **operand**.
+
+**Kind 4: Abstraction.** Given a variable $x$ and any expression $M$, we can form the abstraction $(\lambda x. M)$, meaning "the function with **parameter** $x$ and **body** $M$."
+
+That's it. Four kinds. Every lambda expression is built from these.
+
+<DefinitionBox term="Lambda Expression">
+
+A **lambda expression** (or **term**) is one of:
+
+| Kind | Form | Name | Lambda Calculus | Python | JavaScript |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Constant | $k$ | Constant | $5$ | `5` | `5` |
+| Variable | $v$ | Variable | $x$ | `x` | `x` |
+| Application | $(M \; N)$ | Application | $\texttt{square} \; 5$ | `square(5)` | `square(5)` |
+| Abstraction | $(\lambda x. M)$ | Abstraction | $\lambda x. x + 1$ | `lambda x: x + 1` | `x => x + 1` |
+
+</DefinitionBox>
+
+Once we've seen the full picture, we can summarize the abstract syntax compactly:
+
+<DisplayMath formula="e \; ::= \; k \;\mid\; v \;\mid\; e \; e \;\mid\; \lambda x. \; e" />
+
+> **📌 Looking ahead:** In LN 7, we'll learn a formal notation called a *grammar* that lets us specify syntax like this precisely. For now, these four building blocks and the notation above are all we need.
+
+---
+
+### Simplifying Parentheses
+
+The fully parenthesized syntax is unambiguous but hard to read. We adopt two conventions:
+
+1. **The body of an abstraction extends as far to the right as possible.**
+   So $\lambda x. M \; N$ means $\lambda x. (M \; N)$, not $(\lambda x. M) \; N$.
+
+2. **Application associates to the left.**
+   So $f \; x \; y$ means $(f \; x) \; y$, not $f \; (x \; y)$.
+
+| Fully Parenthesized | Simplified |
+| :--- | :--- |
+| $(\texttt{square} \; 5)$ | $\texttt{square} \; 5$ |
+| $((\texttt{plus} \; 5) \; 8)$ | $\texttt{plus} \; 5 \; 8$ |
+| $((((x \; y) \; z) \; w) \; x)$ | $x \; y \; z \; w \; x$ |
+| $(\texttt{sin} \; (\texttt{sqrt} \; 2))$ | $\texttt{sin} \; (\texttt{sqrt} \; 2)$ |
+| $(\lambda x. (x \; y))$ | $\lambda x. x \; y$ |
+| $((\lambda x. x) \; y)$ | $(\lambda x. x) \; y$ |
+
+<DefinitionBox term="Value">
+
+A **value** is any expression that is *not* an application. Constants, variables, and abstractions are all values. Values are "finished"—they don't need further computation.
+
+</DefinitionBox>
+
+---
+
+## The Three Reductions (Informal)
+
+Before we build any formal machinery, let's understand the three operations that make the lambda calculus *compute*. We'll state them informally first, then see how they can go wrong, and only *then* build the rigorous versions.
+
+---
+
+### Alpha-Reduction: Renaming Parameters
+
+> **Plain English:** The name of a function's parameter doesn't matter. Only the structure of how it's used matters.
+
+<DisplayMath formula="\lambda x. x + 1 \;\Longrightarrow_\alpha\; \lambda y. y + 1" />
+
+These are the same function—"add 1 to the argument." We just changed the label.
+
+You already know this from programming:
+
+```python
+# These are the same function:
+f = lambda x: x + 1
+g = lambda y: y + 1
+f(5) == g(5)  # True — both return 6
+```
+
+```haskell
+-- Haskell: same thing
+f = \x -> x + 1
+g = \y -> y + 1
+-- f 5 == g 5 == 6
+```
+
+---
+
+### Beta-Reduction: Applying Functions
+
+> **Plain English:** Calling a function means plugging the argument in for the parameter throughout the body.
+
+<ReductionStepper
+  title="Beta-Reduction: applying the successor"
+  steps={[
+    { formula: "\\textcolor{#f59e0b}{(\\lambda x.\\; x + 1)} \\;\\; \\textcolor{#3b82f6}{5}", description: "We have a function (orange) applied to an argument (blue)" },
+    { formula: "\\textcolor{#f59e0b}{5} + 1", description: "Replace every x in the body with 5" },
+    { formula: "6", description: "Compute the result" }
+  ]}
+/>
+
+In programming, this is just calling a function:
+
+```python
+# Python: beta-reduction is function calling
+(lambda x: x + 1)(5)  # => 6
+# The interpreter "plugs in" 5 for x in the body x + 1
+```
+
+```javascript
+// JavaScript: same thing
+((x) => x + 1)(5)  // => 6
+```
+
+Here's a more interesting example with higher-order functions:
+
+<ReductionStepper
+  title="Beta-Reduction with higher-order functions"
+  steps={[
+    { formula: "\\textcolor{#f59e0b}{(\\lambda f.\\; f \\; (f \\; 10))} \\;\\; \\textcolor{#3b82f6}{(\\lambda x.\\; x + 1)}", description: "Apply 'twice-apply' to the successor function" },
+    { formula: "\\textcolor{#3b82f6}{(\\lambda x.\\; x + 1)} \\; (\\textcolor{#3b82f6}{(\\lambda x.\\; x + 1)} \\; 10)", description: "Replace f with the successor function throughout the body" },
+    { formula: "(\\lambda x.\\; x + 1) \\; (\\textcolor{#f59e0b}{11})", description: "Inner application: 10 + 1 = 11" },
+    { formula: "12", description: "Outer application: 11 + 1 = 12" }
+  ]}
+/>
+
+---
+
+### Eta-Reduction: Removing Unnecessary Wrappers
+
+> **Plain English:** Wrapping a function in a needless lambda is redundant. If all a function does is pass its argument straight to another function, just use that other function directly.
+
+<DisplayMath formula="\lambda x. \texttt{square} \; x \;\Longrightarrow_\eta\; \texttt{square}" />
+
+You already do this in code reviews:
+
+```python
+# Before (redundant wrapper):
+process = lambda x: do_thing(x)
+
+# After (just use the function directly):
+process = do_thing
+```
+
+```haskell
+-- Haskell makes this especially clear:
+process = \x -> doThing x  -- redundant
+process = doThing            -- cleaner (eta-reduced)
+```
+
+```rust
+// Rust: same pattern
+let process = |x| do_thing(x);  // redundant wrapper
+let process = do_thing;           // just use it directly
+```
+
+---
+
+## When Reductions Go Wrong
+
+Those three reductions seem simple enough. But there's a trap. If you perform them *carelessly*, you can change the meaning of an expression entirely. Let's see how each one can break.
+
+---
+
+### Failed Alpha: Variable Capture
+
+Consider $\lambda x. y$. This is the function that *ignores* its argument and always returns the external value $y$.
+
+If we naively rename $x$ to $y$:
+
+<DisplayMath formula="\lambda x. y \;\;\not\Rightarrow\;\; \lambda y. y" />
+
+The original function ignores its argument and returns $y$. The "renamed" version returns its argument! The external $y$ got **captured** by the new parameter name.
+
+**This same bug happens in real code:**
+
+```python
+y = 10
+
+# Original: always returns external y (which is 10)
+f = lambda x: y
+f(999)  # => 10
+
+# If we "rename x to y" — disaster!
+g = lambda y: y
+g(999)  # => 999 — completely different behavior!
+```
+
+The parameter name $y$ **shadowed** the outer variable $y$, changing the function's meaning entirely.
+
+---
+
+### Failed Beta: Argument Capture
+
+Consider applying $(\lambda x. \lambda y. x \; y)$ to the argument $y$:
+
+<DisplayMath formula="(\lambda x. \lambda y. x \; y) \; y \;\;\not\Rightarrow\;\; \lambda y. y \; y" />
+
+The original function takes $x$ and returns "a function that applies $x$ to its argument." If we pass the external $y$ as $x$, the result should be "a function that applies the external $y$ to its argument." But after naive substitution, the external $y$ got **captured** by $\lambda y$, turning it into "a function that applies its argument to itself." Completely different!
+
+**This is the classic closure capture bug in JavaScript:**
+
+```javascript
+// We want each callback to log a different value
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100)
+}
+// Prints: 3, 3, 3 — not 0, 1, 2!
+// The variable i was captured by reference, not by value
+```
+
+```python
+# Python version of the same bug:
+funcs = []
+for i in range(3):
+    funcs.append(lambda: i)  # i is captured by reference!
+
+[f() for f in funcs]  # => [2, 2, 2], not [0, 1, 2]
+```
+
+---
+
+### Failed Eta: Variable Escape
+
+Consider $\lambda x. x \; x$. This is the self-application function.
+
+If we naively eta-reduce by "removing the wrapper":
+
+<DisplayMath formula="\lambda x. x \; x \;\;\not\Rightarrow\;\; x" />
+
+The original was a self-contained function. The "reduced" version is a bare variable $x$—it escaped from its binding! The bound $x$ became **free**.
+
+---
+
+### The Key Insight
+
+These three failure modes—**capture** (a free variable becomes bound) and **escape** (a bound variable becomes free)—are the *only* ways the lambda calculus can go wrong.
+
+> **🤔 If we had a way to track which variables are "owned" by a lambda and which reference the outside world, we could prevent all of these disasters.**
+
+That's exactly what the concepts of *free* and *bound* variables give us.
+
+---
+
+## Free and Bound Variables
+
+Now we know *why* we need these concepts: they're the diagnostic tool that tells us when a reduction is safe and when it isn't.
+
+<DefinitionBox term="Bound and Free Variable Occurrences">
+
+A variable **occurrence** is **bound** if it appears within the body of an abstraction that uses the same variable as its parameter. A variable occurrence is **free** if it is not bound by any enclosing abstraction.
+
+</DefinitionBox>
+
+> **⚠️ Important:** The same variable name can appear both free and bound in the same expression. In $(\lambda x. x) \; x$, the first $x$ (inside the lambda body) is bound, and the last $x$ (the argument) is free. Always think about *occurrences*, not variable names.
+
+---
+
+### The Closures Connection
+
+If you've worked with closures, you already understand free and bound variables intuitively:
+
+```python
+def make_adder(n):          # n is BOUND here (parameter of make_adder)
+    return lambda x: x + n  # x is BOUND (parameter of the lambda)
+                             # n is FREE in this lambda — captured by closure!
+
+add5 = make_adder(5)
+add5(3)  # => 8
+```
+
+```javascript
+// JavaScript closures capture free variables:
+function makeGreeter(greeting) {    // greeting is BOUND
+  return (name) => `${greeting}, ${name}`
+  //                  ^^^^^^^^ FREE (captured from outer scope)
+  //                            ^^^^ BOUND (parameter of arrow function)
+}
+```
+
+In programming terms: **bound variables** are parameters; **free variables** are what closures capture from the enclosing scope.
+
+---
+
+### Formal Definitions
+
+We define $FV(e)$ (free variable occurrences) and $BV(e)$ (bound variable occurrences) recursively:
+
+| Expression | $FV$ | $BV$ |
+| :--- | :--- | :--- |
+| $k$ (constant) | $\varnothing$ | $\varnothing$ |
+| $x$ (variable) | $\{x\}$ | $\varnothing$ |
+| $(M \; N)$ | $FV(M) \cup FV(N)$ | $BV(M) \cup BV(N)$ |
+| $(\lambda x. M)$ | $FV(M) - \{x\}$ | $BV(M) \cup \{x\}$ |
+
+---
+
+### Worked Examples
+
+In each expression, **free** occurrences are marked with ${}^f$:
+
+- $x^f$ — just a free variable
+- $x^f \; y^f \; z^f$ — all free
+- $\lambda x. y^f$ — $x$ is bound, $y$ is free
+- $\lambda x. x \; y^f$ — $x$ is bound, $y$ is free
+- $(\lambda x. x) \; x^f$ — first $x$ is bound; last $x$ is free
+- $(\lambda x. x \; y^f) \; \lambda z. w^f \; \lambda w. w \; z \; y^f \; x^f$ — Can you identify all the free and bound occurrences?
+
+---
+
+### Now We Can Diagnose the Failures
+
+Looking back at our three disasters:
+
+| Failure | What happened | In terms of FV/BV |
+| :--- | :--- | :--- |
+| $\lambda x. y \not\Rightarrow \lambda y. y$ | Free $y$ became bound | We renamed $x$ to $y$, but $y \in FV(\text{body})$ |
+| $(\lambda x. \lambda y. x \; y) \; y \not\Rightarrow \lambda y. y \; y$ | Free $y$ in argument became bound | Substituting $y$ put it inside $\lambda y$, capturing it |
+| $\lambda x. x \; x \not\Rightarrow x$ | Bound $x$ became free | Removing the $\lambda$ freed a previously bound variable |
+
+Free and bound variables tell us *exactly* what went wrong and *exactly* what conditions we need to check before performing a reduction.
+
+---
+
+## Proper Substitution
+
+The core operation of the lambda calculus is *substitution*—replacing a variable with an expression. Think of it as **reformatting a program**: you're rewriting the code so that everywhere the variable appeared, the new expression appears instead. But just like refactoring code, you have to be careful not to break anything.
+
+<DefinitionBox term="Proper Substitution">
+
+The notation $M[N/x]$ means: **the proper substitution of $N$ for all free occurrences of $x$ in $M$.**
+
+"Proper" means we avoid captures—no free variable in $N$ should become bound after substitution.
+
+</DefinitionBox>
+
+---
+
+### The Full Definition
+
+| $M$ | $M[N/x]$ | Rationale |
+| :--- | :--- | :--- |
+| $k$ (constant) | $k$ | Nothing to substitute |
+| $x$ | $N$ | This *is* the variable we're replacing |
+| $y$ (where $y \neq x$) | $y$ | Not the variable we're replacing |
+| $(M_1 \; M_2)$ | $(M_1[N/x] \; M_2[N/x])$ | Substitute into both parts |
+| $\lambda x. M$ | $\lambda x. M$ | $x$ is bound here—don't touch it! |
+| $\lambda y. M$ (where $y \neq x$) | See below | This is the tricky case... |
+
+For the last case ($\lambda y. M$ where $y \neq x$):
+
+- **If** $y \notin FV(N)$ or $x \notin FV(M)$: no capture risk, so $(\lambda y. M)[N/x] = \lambda y. M[N/x]$
+- **Otherwise**: $y$ would get captured! So first rename $y$ to a fresh variable $z$ (not free in $M$ or $N$), then substitute: $(\lambda y. M)[N/x] = \lambda z. (M[z/y])[N/x]$
+
+> **📌 The key idea:** whenever substitution would cause a capture, rename the offending bound variable first. This is exactly like renaming a local variable during a code refactor to avoid shadowing.
+
+---
+
+### Practice
+
+| Substitution | Result | Why |
+| :--- | :--- | :--- |
+| $\texttt{times}[2/x]$ | $\texttt{times}$ | Constant—nothing to substitute |
+| $x[2/x]$ | $2$ | Direct replacement |
+| $y[2/x]$ | $y$ | Wrong variable |
+| $(f \; x)[2/x]$ | $f \; 2$ | Substitute into the $x$ |
+| $(x \; x)[z/x]$ | $z \; z$ | Both occurrences are free |
+| $(g \; x \; x)[2/x]$ | $g \; 2 \; 2$ | Both $x$'s replaced |
+| $(\lambda x. f \; x \; y)[2/x]$ | $\lambda x. f \; x \; y$ | $x$ is bound—no substitution! |
+| $(\lambda y. f \; x \; y)[z/x]$ | $\lambda y. f \; z \; y$ | Safe: $y \notin FV(z)$ |
+| $(\lambda y. f \; x \; y)[y/x]$ | $\lambda z. f \; y \; z$ | Capture alert! Rename $y$ to $z$ first |
+
+> **🤔 That last one is critical.** Without the rename, we'd get $\lambda y. f \; y \; y$—a completely different function. The fresh variable $z$ prevents the capture, just like renaming a local variable in a refactor.
+
+---
+
+## The Three Conversions (Formal)
+
+Now we have the machinery for rigorous definitions. Each conversion uses proper substitution to guarantee safety.
+
+---
+
+### Alpha-Conversion (Renaming)
+
+<DefinitionBox term="Alpha-Conversion">
+
+<DisplayMath formula="\lambda x. M \Longrightarrow_\alpha \lambda y. M[y/x] \quad \text{provided } y \notin FV(M)" />
+
+The name of a bound variable doesn't matter—only its binding structure does.
+
+</DefinitionBox>
+
+---
+
+### Beta-Conversion (Application)
+
+<DefinitionBox term="Beta-Conversion">
+
+<DisplayMath formula="(\lambda x. M) \; N \Longrightarrow_\beta M[N/x]" />
+
+Apply a function by substituting the argument for the parameter throughout the body, using proper substitution.
+
+</DefinitionBox>
+
+> **💡 This is computation.** Beta-conversion is the lambda calculus's equivalent of "running a program." And here's a practical insight: beta-reduction is exactly what compilers call **function inlining**—replacing a function call with the function's body. GHC, V8, and Rust's compiler all do this as an optimization.
+
+---
+
+### Eta-Conversion (Simplification)
+
+<DefinitionBox term="Eta-Conversion">
+
+<DisplayMath formula="\lambda x. M \; x \Longrightarrow_\eta M \quad \text{provided } x \notin FV(M)" />
+
+Wrapping a function in a needless lambda is redundant. Similarly, **eta-expansion** goes the other direction: $M \Longrightarrow \lambda x. M \; x$ (provided $x \notin FV(M)$). Eta-reduction corresponds to what a compiler does when it removes unnecessary wrapper functions.
+
+</DefinitionBox>
+
+---
+
+### The Church-Turing Thesis Connection
+
+Beta-reduction as a computational mechanism turns out to be extraordinarily powerful. In the 1930s, three independent formalisms emerged for defining "what is computable":
+
+| Formalism | Creator | Core Idea |
+| :--- | :--- | :--- |
+| **Lambda Calculus** | Alonzo Church (1936) | Functions and beta-reduction |
+| **Turing Machines** | Alan Turing (1936) | Tape, head, and state transitions |
+| **Recursive Functions** | Kurt Gödel, Jacques Herbrand (1934) | Primitive recursion and minimization |
+
+All three define the *exact same class* of computable functions. The **Church-Turing Thesis** states that this class captures everything that is "effectively computable." Three completely different starting points, one destination.
+
+---
+
+## Reduction and Normal Forms
+
+Computation in the lambda calculus proceeds by **reducing** expressions—repeatedly applying beta-conversion and constant applications until no more reductions are possible.
+
+<DefinitionBox term="Redex and Normal Form">
+
+A **redex** (reducible expression) is an expression that can be reduced: either a beta-redex $(\lambda x. M) \; N$ or a constant application like $\texttt{plus} \; 3 \; 5$.
+
+An expression is in **normal form** if it contains no redexes—the "answer" of a computation.
+
+</DefinitionBox>
+
+---
+
+### Not Every Expression Has a Normal Form
+
+<ReductionStepper
+  title="Omega: an infinite loop"
+  steps={[
+    { formula: "\\textcolor{#f59e0b}{(\\lambda x.\\; x \\; x)} \\;\\; \\textcolor{#3b82f6}{(\\lambda x.\\; x \\; x)}", description: "This is Omega. Apply the left function to the right argument." },
+    { formula: "\\textcolor{#3b82f6}{(\\lambda x.\\; x \\; x)} \\;\\; \\textcolor{#3b82f6}{(\\lambda x.\\; x \\; x)}", description: "After substitution, we get... the exact same expression! It loops forever." }
+  ]}
+/>
+
+$\Omega$ has no normal form. This is the lambda calculus equivalent of an infinite loop.
+
+---
+
+### The Church-Rosser Theorem
+
+When reducing an expression, you sometimes have a choice of *which* redex to reduce first:
+
+<ReductionStepper
+  title="Church-Rosser: different paths, same answer"
+  steps={[
+    { formula: "(\\lambda x.\\; x + x)\\;\\textcolor{#f59e0b}{(3 \\times 5)}", description: "We can reduce the argument first (orange)..." },
+    { formula: "(\\lambda x.\\; x + x)\\;(15)", description: "...getting 15, then apply the function..." },
+    { formula: "15 + 15 = \\textcolor{#22c55e}{30}", description: "...and get 30." },
+    { formula: "\\textcolor{#f59e0b}{(\\lambda x.\\; x + x)}\\;(3 \\times 5)", description: "OR we can apply the function first (orange)..." },
+    { formula: "(3 \\times 5) + (3 \\times 5)", description: "...substituting the unevaluated argument..." },
+    { formula: "15 + 15 = \\textcolor{#22c55e}{30}", description: "...and still get 30. Same answer!" }
+  ]}
+/>
+
+<DefinitionBox term="Church-Rosser Theorem">
+
+For every lambda expression $E$, if $E$ reduces to both $M_1$ and $M_2$, then there exists an $N$ such that both $M_1$ and $M_2$ reduce to $N$.
+
+**Corollary:** Every expression has **at most one** normal form (unique up to alpha-equivalence). You might not reach an answer, but if you do, it's unique.
+
+</DefinitionBox>
+
+---
+
+## Evaluation Strategies
+
+The Church-Rosser theorem says reduction order doesn't affect the *result*—but it affects *whether* we reach one at all.
+
+---
+
+### Call-by-Value (CBV)
+
+Evaluate the argument fully **before** applying the function. No reductions inside abstraction bodies. This is what **Python, JavaScript, Java, C, and Rust** do.
+
+<ReductionStepper
+  title="Call-by-Value reduction"
+  steps={[
+    { formula: "(\\lambda x.\\; x + x)\\;\\textcolor{#f59e0b}{((\\lambda x.\\; 3x + 1) \\; 5)}", description: "CBV: must evaluate the argument first (orange)" },
+    { formula: "(\\lambda x.\\; x + x)\\;\\textcolor{#f59e0b}{(3 \\times 5 + 1)}", description: "Evaluating inner application..." },
+    { formula: "\\textcolor{#f59e0b}{(\\lambda x.\\; x + x)}\\;16", description: "Argument is now a value (16). Now apply the outer function." },
+    { formula: "16 + 16 = 32", description: "Final result: 32" }
+  ]}
+/>
+
+---
+
+### Call-by-Name (CBN)
+
+Apply the function **immediately** without evaluating the argument. The argument gets substituted as-is. This is what **Haskell** uses (via lazy evaluation).
+
+<ReductionStepper
+  title="Call-by-Name reduction"
+  steps={[
+    { formula: "\\textcolor{#f59e0b}{(\\lambda x.\\; x + x)}\\;((\\lambda x.\\; 3x + 1) \\; 5)", description: "CBN: apply the function immediately (orange)" },
+    { formula: "\\textcolor{#3b82f6}{((\\lambda x.\\; 3x+1)\\;5)} + \\textcolor{#3b82f6}{((\\lambda x.\\; 3x+1)\\;5)}", description: "The unevaluated argument appears twice! Now reduce each copy." },
+    { formula: "\\textcolor{#f59e0b}{16} + ((\\lambda x.\\; 3x + 1) \\; 5)", description: "Left copy evaluates to 16..." },
+    { formula: "16 + \\textcolor{#f59e0b}{16} = 32", description: "Right copy also evaluates to 16. Same answer, more work!" }
+  ]}
+/>
+
+```python
+# Python is call-by-value:
+def double(x):     # x is evaluated BEFORE the call
+    return x + x
+
+double(3 * 5 + 1)  # evaluates 16 first, then computes 16 + 16
+```
+
+```haskell
+-- Haskell is call-by-name (lazy):
+double x = x + x
+
+double (3 * 5 + 1)  -- substitutes the UNEVALUATED expression
+-- becomes: (3 * 5 + 1) + (3 * 5 + 1)
+-- (Haskell actually uses "call-by-need" to avoid recomputing)
+```
+
+---
+
+### When They Diverge
+
+<DisplayMath formula="(\lambda x. \; 0) \; \Omega \quad \text{where } \Omega = (\lambda x. x \; x)(\lambda x. x \; x)" />
+
+**CBV:** Must evaluate $\Omega$ first. But $\Omega$ loops forever. **Diverges.**
+
+**CBN:** Applies immediately, substituting $\Omega$ for $x$ in $0$. But $x$ doesn't appear in $0$! The argument is discarded: $\Longrightarrow 0$. **Terminates.**
+
+> **🤔 Does this contradict Church-Rosser?** No! Church-Rosser says: if two paths *both reach* a normal form, those forms agree. CBV simply never reaches one here.
+
+A fundamental result: **Normal Order Reduction** (leftmost outermost redex first, related to CBN) will *always* find a normal form if one exists. Applicative Order (related to CBV) might not.
+
+---
+
+## Lambdas in Real Programming Languages
+
+The lambda calculus isn't just theory—it's in every modern programming language:
+
+| Language | The Square Function |
+| :--- | :--- |
+| JavaScript | `x => x ** 2` |
+| Python | `lambda x: x ** 2` |
+| Rust | `\|x\| x * x` |
+| Haskell | `\x -> x ^ 2` |
+| Java | `(x) -> x * x` |
+| C++ | `[](double x){ return x * x; }` |
+| Go | `func(x float64) float64 { return x * x }` |
+| Ruby | `->(x) { x ** 2 }` |
+| Swift | `{ $0 * $0 }` |
+| Kotlin | `{ x: Double -> x * x }` |
+| F# | `fun x -> x * x` |
+| Lisp | `(lambda (x) (* x x))` |
+| Clojure | `#(* % %)` |
+| Julia | `x -> x^2` |
+
+Lambdas are especially powerful with higher-order functions like `map`, `filter`, and `reduce`:
+
+```javascript
+// JavaScript: sum of squares of even numbers
+const sumOfEvenSquares = (a) =>
+  a.filter(x => x % 2 === 0)
+   .map(x => x ** 2)
+   .reduce((x, y) => x + y, 0)
+```
+
+```python
+# Python
+def sum_of_even_squares(a):
+    return sum(x*x for x in a if x % 2 == 0)
+```
+
+```haskell
+-- Haskell: completely point-free (no variable names!)
+sumOfEvenSquares = sum . map (^2) . filter even
+```
+
+```rust
+// Rust
+fn sum_of_even_squares(a: &[i32]) -> i32 {
+    a.iter()
+     .filter(|&&x| x % 2 == 0)
+     .map(|&x| x * x)
+     .sum()
+}
+```
+
+> **💡 Notice:** The Haskell version uses no variable names at all! This connects to combinators, which we'll see next.
+
+---
+
+## Combinators
+
+<DefinitionBox term="Combinator">
+
+A **combinator** is a lambda expression with **no free variables**—a **closed expression**. Every variable is bound by some enclosing lambda. An expression with free variables is called **open**.
+
+</DefinitionBox>
+
+Combinators are self-contained building blocks. Following Raymond Smullyan's book *To Mock a Mockingbird*, they have bird names:
+
+| Combinator | Bird Name | Definition | Behavior |
+| :--- | :--- | :--- | :--- |
+| $I$ | Identity Bird | $\lambda x. x$ | $I \; x = x$ |
+| $M$ | Mockingbird | $\lambda x. x \; x$ | $M \; x = x \; x$ |
+| $K$ | Kestrel | $\lambda x. \lambda y. x$ | $K \; x \; y = x$ |
+| $KI$ | Kite | $\lambda x. \lambda y. y$ | $KI \; x \; y = y$ |
+| $T$ | Thrush | $\lambda x. \lambda y. y \; x$ | $T \; x \; y = y \; x$ |
+| $W$ | Warbler | $\lambda x. \lambda y. x \; y \; y$ | $W \; x \; y = x \; y \; y$ |
+| $S$ | Starling | $\lambda x. \lambda y. \lambda z. x \; z \; (y \; z)$ | $S \; x \; y \; z = x \; z \; (y \; z)$ |
+| $B$ | Bluebird | $\lambda x. \lambda y. \lambda z. x \; (y \; z)$ | $B \; x \; y \; z = x \; (y \; z)$ |
+| $C$ | Cardinal | $\lambda x. \lambda y. \lambda z. x \; z \; y$ | $C \; x \; y \; z = x \; z \; y$ |
+| $V$ | Vireo | $\lambda x. \lambda y. \lambda z. z \; x \; y$ | $V \; x \; y \; z = z \; x \; y$ |
+
+### The $S$-$K$ Basis
+
+> **Every combinator can be built from just $S$ and $K$.**
+
+For example, the identity: $I = S \; K \; K$ (verify: $S \; K \; K \; x = K \; x \; (K \; x) = x$).
+
+Two combinators form a **basis** for all of computation. In Haskell, `.` is the Bluebird ($B$) and `flip` is the Cardinal ($C$).
+
+---
+
+## The Pure Lambda Calculus
+
+So far we've used constants like numbers and $\texttt{plus}$. But we don't actually *need* them. In the **Pure Lambda Calculus**, there are no constants—only variables, abstractions, and applications.
+
+The astonishing claim: **you can build all of mathematics from nothing but functions.**
+
+> **💡 "Data is behavior."** In the pure lambda calculus, the number 3 isn't a thing sitting in memory—it's an *action*: "apply $f$ three times." A boolean isn't a value—it's a *choice*: "pick the first or second option." Data is defined entirely by what it *does*, not by what it *is*.
+
+---
+
+### Church Numerals
+
+The number $n$ is a function that applies its first argument $n$ times:
+
+| Number | Church Numeral | In words |
+| :--- | :--- | :--- |
+| $0$ | $\lambda f. \lambda x. x$ | Apply $f$ zero times |
+| $1$ | $\lambda f. \lambda x. f \; x$ | Apply $f$ once |
+| $2$ | $\lambda f. \lambda x. f \; (f \; x)$ | Apply $f$ twice |
+| $3$ | $\lambda f. \lambda x. f \; (f \; (f \; x))$ | Apply $f$ three times |
+
+**Successor** — apply $f$ one more time:
+
+<DisplayMath formula="\texttt{succ} = \lambda n. \lambda f. \lambda x. f \; (n \; f \; x)" />
+
+<ReductionStepper
+  title="Verifying: succ 2 = 3"
+  steps={[
+    { formula: "\\textcolor{#f59e0b}{(\\lambda n. \\lambda f. \\lambda x. f\\;(n\\;f\\;x))} \\;\\; \\textcolor{#3b82f6}{(\\lambda f. \\lambda x. f\\;(f\\;x))}", description: "succ (orange) applied to 2 (blue)" },
+    { formula: "\\lambda f. \\lambda x. f\\;(\\textcolor{#3b82f6}{(\\lambda f. \\lambda x. f\\;(f\\;x))} \\;\\; \\textcolor{#f59e0b}{f} \\;\\; x)", description: "Substitute 2 for n. Now the inner application: apply 2 to f and x" },
+    { formula: "\\lambda f. \\lambda x. f\\;(\\textcolor{#22c55e}{f\\;(f\\;x)})", description: "2 applied f twice to x. Then the outer f applies once more..." },
+    { formula: "\\lambda f. \\lambda x. f\\;(f\\;(f\\;x)) \\;=\\; \\textcolor{#22c55e}{3} \\;\\; \\checkmark", description: "Three applications of f — this is 3!" }
+  ]}
+/>
+
+**Addition and Multiplication:**
+
+<DisplayMath formula="\texttt{plus} = \lambda m. \lambda n. \lambda f. \lambda x. m \; f \; (n \; f \; x)" />
+<DisplayMath formula="\texttt{times} = \lambda m. \lambda n. \lambda f. m \; (n \; f)" />
+<DisplayMath formula="\texttt{pow} = \lambda b. \lambda e. e \; b" />
+
+---
+
+### Church Booleans
+
+Booleans are functions that *choose* between two options:
+
+| Boolean | Definition | Behavior |
+| :--- | :--- | :--- |
+| $\texttt{true}$ | $\lambda x. \lambda y. x$ | Selects the first argument |
+| $\texttt{false}$ | $\lambda x. \lambda y. y$ | Selects the second argument |
+
+> **🤔 Notice:** $\texttt{true}$ is the Kestrel ($K$) and $\texttt{false}$ is the Kite ($KI$) from our combinator table!
+
+<DisplayMath formula="\texttt{not} = \lambda p. p \; \texttt{false} \; \texttt{true}" />
+<DisplayMath formula="\texttt{and} = \lambda p. \lambda q. p \; q \; p" />
+<DisplayMath formula="\texttt{or} = \lambda p. \lambda q. p \; p \; q" />
+
+<ReductionStepper
+  title="Verifying: and true false = false"
+  steps={[
+    { formula: "\\textcolor{#f59e0b}{(\\lambda p. \\lambda q. p \\; q \\; p)} \\;\\; \\textcolor{#3b82f6}{\\texttt{true}} \\;\\; \\texttt{false}", description: "and (orange) applied to true (blue) and false" },
+    { formula: "\\textcolor{#f59e0b}{(\\lambda q. \\texttt{true} \\; q \\; \\texttt{true})} \\;\\; \\textcolor{#3b82f6}{\\texttt{false}}", description: "Substitute true for p. Now apply to false." },
+    { formula: "\\textcolor{#f59e0b}{\\texttt{true}} \\;\\; \\textcolor{#3b82f6}{\\texttt{false}} \\;\\; \\texttt{true}", description: "Substitute false for q. Now true picks between false and true." },
+    { formula: "\\textcolor{#f59e0b}{(\\lambda x. \\lambda y. x)} \\;\\; \\textcolor{#3b82f6}{\\texttt{false}} \\;\\; \\texttt{true}", description: "Expand true: it selects its FIRST argument..." },
+    { formula: "\\textcolor{#22c55e}{\\texttt{false}} \\;\\; \\checkmark", description: "true selected false. So and true false = false!" }
+  ]}
+/>
+
+---
+
+### Church Pairs and Lists
+
+<DisplayMath formula="\texttt{pair} = \lambda x. \lambda y. \lambda f. f \; x \; y" />
+<DisplayMath formula="\texttt{first} = \lambda p. p \; \texttt{true}" />
+<DisplayMath formula="\texttt{second} = \lambda p. p \; \texttt{false}" />
+
+<ReductionStepper
+  title="Verifying: first (pair a b) = a"
+  steps={[
+    { formula: "\\texttt{first} \\;\\; \\textcolor{#3b82f6}{(\\texttt{pair} \\; a \\; b)}", description: "first applied to (pair a b)" },
+    { formula: "\\texttt{first} \\;\\; \\textcolor{#3b82f6}{(\\lambda f. f \\; a \\; b)}", description: "Expand pair a b: it's a function waiting to receive a selector" },
+    { formula: "\\textcolor{#3b82f6}{(\\lambda f. f \\; a \\; b)} \\;\\; \\textcolor{#f59e0b}{\\texttt{true}}", description: "first passes true as the selector..." },
+    { formula: "\\textcolor{#f59e0b}{\\texttt{true}} \\;\\; a \\;\\; b", description: "The selector (true) picks between a and b..." },
+    { formula: "\\textcolor{#22c55e}{a} \\;\\; \\checkmark", description: "true selects the first argument: a!" }
+  ]}
+/>
+
+**Lists** are built from pairs:
+
+| Sugared | Lambda Expression |
+| :--- | :--- |
+| $[]$ | $\texttt{emptylist} = \lambda x. \texttt{true}$ |
+| $[3]$ | $\texttt{pair} \; 3 \; \texttt{emptylist}$ |
+| $[8, 3]$ | $\texttt{pair} \; 8 \; (\texttt{pair} \; 3 \; \texttt{emptylist})$ |
+
+> **Functions all the way down.** Numbers, booleans, pairs, lists—they're all just functions. Three symbols—$\lambda$, dot, and parentheses—are enough for all of mathematics.
+
+---
+
+## Recursion and Fixed Points
+
+We can do arithmetic, logic, data structures—but can we do *iteration*? Can we write something like the factorial function?
+
+---
+
+### Why Recursion Is Hard
+
+The obvious approach **doesn't work**:
+
+<DisplayMath formula="\texttt{fact} = \lambda n. \texttt{if} \; (n = 0) \; 1 \; (n \times \texttt{fact} \; (n - 1))" />
+
+This is circular! We're using $\texttt{fact}$ in its own definition. In the lambda calculus, definitions are abbreviations—the right side must be fully self-contained.
+
+What if your programming language didn't have `def` or `function` for named recursion? How would you achieve it?
+
+```python
+# What if Python only had lambda?
+# This DOESN'T work:
+# fact = lambda n: 1 if n == 0 else n * fact(n - 1)
+# NameError: 'fact' is not defined (at definition time)
+
+# The trick: pass the function to ITSELF
+fact_helper = lambda self: lambda n: 1 if n == 0 else n * self(self)(n - 1)
+fact = fact_helper(fact_helper)
+fact(5)  # => 120!
+```
+
+Look at that: `fact_helper(fact_helper)` — the function receives *itself* as an argument. This is the key insight. Self-application is how we achieve recursion without names.
+
+---
+
+### Fixed Points: The Mathematical Idea
+
+<DefinitionBox term="Fixed Point">
+
+A **fixed point** of a function $f$ is a value $x$ such that $f(x) = x$. The function maps $x$ back to itself.
+
+</DefinitionBox>
+
+**Graphical intuition:** A fixed point is where the graph of $y = f(x)$ crosses the line $y = x$:
+
+| Function | Fixed Point(s) | How to visualize |
+| :--- | :--- | :--- |
+| $f(x) = \cos(x)$ | $0.7391\ldots$ | Where $y = \cos(x)$ crosses $y = x$ |
+| $f(x) = x^2$ | $0$ and $1$ | Where the parabola crosses the diagonal |
+| $f(x) = 6 - x^2$ | $2$ and $-3$ | Two crossings |
+| $f(x) = x$ | All values | The function IS the diagonal |
+| $f(x) = x + 1$ | None | Parallel to the diagonal — never crosses |
+
+You can find fixed points by **iterating**: start with a guess, keep applying $f$:
+
+$x_0, \; f(x_0), \; f(f(x_0)), \; f(f(f(x_0))), \; \ldots$
+
+For $f(x) = \cos(x)$, starting from $x_0 = 1$:
+
+$1 \to 0.5403 \to 0.8576 \to 0.6543 \to 0.7935 \to \ldots \to 0.7391$
+
+It converges to the fixed point!
+
+---
+
+### From Fixed Points to Recursion
+
+Now here's the connection. What we *want* for factorial is not a circular definition, but a **fixed point**.
+
+Define a "factory function" $F$ that takes a function and returns a *better* function:
+
+<DisplayMath formula="F = \lambda f. \lambda n. \texttt{if} \; (n = 0) \; 1 \; (n \times f \; (n - 1))" />
+
+Notice: $F$ is *not* recursive. It takes a candidate function $f$ and produces a new function that handles one more case than $f$ did.
+
+If we could find a fixed point of $F$—a function $\texttt{fact}$ such that $F(\texttt{fact}) = \texttt{fact}$—then:
+
+<DisplayMath formula="\texttt{fact} = F(\texttt{fact}) = \lambda n. \texttt{if} \; (n = 0) \; 1 \; (n \times \texttt{fact} \; (n - 1))" />
+
+That's exactly the recursive factorial! The fixed point of $F$ *is* the recursive function we want.
+
+---
+
+### The Unraveling: How Fixed Points Create Recursion
+
+If we had a magic function $\texttt{fix}$ that finds fixed points, we'd define $\texttt{fact} = \texttt{fix} \; F$. Here's what happens when we compute $\texttt{fact} \; 3$:
+
+<ReductionStepper
+  title="The Unraveling: fact 3 via fixed points"
+  steps={[
+    { formula: "\\texttt{fix}\\;F\\;\\;3", description: "fact 3, where fact = fix F" },
+    { formula: "\\textcolor{#f59e0b}{F\\;(\\texttt{fix}\\;F)}\\;\\;3", description: "Unravel one layer: fix F = F(fix F)" },
+    { formula: "\\texttt{if}\\;(\\textcolor{#3b82f6}{3 = 0})\\;1\\;(3 \\times (\\texttt{fix}\\;F)\\;2)", description: "Apply F: check the base case. 3 ≠ 0, so take the else branch." },
+    { formula: "3 \\times \\textcolor{#f59e0b}{(\\texttt{fix}\\;F)\\;2}", description: "Need to compute fact 2. Unravel another layer..." },
+    { formula: "3 \\times \\texttt{if}\\;(\\textcolor{#3b82f6}{2 = 0})\\;1\\;(2 \\times (\\texttt{fix}\\;F)\\;1)", description: "Apply F again. 2 ≠ 0, so take the else branch." },
+    { formula: "3 \\times 2 \\times \\textcolor{#f59e0b}{(\\texttt{fix}\\;F)\\;1}", description: "Need fact 1. Unravel again..." },
+    { formula: "3 \\times 2 \\times 1 \\times \\textcolor{#f59e0b}{(\\texttt{fix}\\;F)\\;0}", description: "1 ≠ 0, so we get 1 × fact 0. One more unraveling..." },
+    { formula: "3 \\times 2 \\times 1 \\times \\texttt{if}\\;(\\textcolor{#22c55e}{0 = 0})\\;\\textcolor{#22c55e}{1}\\;(\\ldots)", description: "Base case hit! 0 = 0, so return 1." },
+    { formula: "3 \\times 2 \\times 1 \\times 1 = \\textcolor{#22c55e}{6} \\;\\; \\checkmark", description: "Collapse the tower: 3 × 2 × 1 × 1 = 6" }
+  ]}
+/>
+
+The key insight: **each unraveling only happens when needed.** The $\texttt{fix}$ doesn't produce an infinite tower all at once—it lazily unfolds one layer at a time, like a call stack. The base case is what makes it finite.
+
+This is exactly how recursive calls work in your programming language: each call creates a new stack frame, and the base case stops the recursion.
+
+---
+
+### The Y Combinator
+
+The **Y combinator** is exactly this fixed-point function, built from pure lambda calculus:
+
+<DisplayMath formula="Y = \lambda f. (\lambda g. f \; (g \; g)) \; (\lambda g. f \; (g \; g))" />
+
+Let's verify $Y \; f = f \; (Y \; f)$:
+
+<ReductionStepper
+  title="Proving Y f = f (Y f)"
+  steps={[
+    { formula: "Y\\;f = \\textcolor{#f59e0b}{(\\lambda f.\\;(\\lambda g.\\;f\\;(g\\;g))\\;(\\lambda g.\\;f\\;(g\\;g)))}\\;\\;\\textcolor{#3b82f6}{f}", description: "Expand Y and apply to f" },
+    { formula: "\\textcolor{#f59e0b}{(\\lambda g.\\;f\\;(g\\;g))} \\;\\; \\textcolor{#3b82f6}{(\\lambda g.\\;f\\;(g\\;g))}", description: "After beta-reduction: substitute f into Y's body" },
+    { formula: "f\\;(\\textcolor{#3b82f6}{(\\lambda g.\\;f\\;(g\\;g))}\\;\\textcolor{#3b82f6}{(\\lambda g.\\;f\\;(g\\;g))})", description: "Apply the left λg to the right — the inner part is Y f again!" },
+    { formula: "f\\;(\\textcolor{#22c55e}{Y\\;f}) \\;\\; \\checkmark", description: "So Y f = f(Y f). The fixed-point equation holds!" }
+  ]}
+/>
+
+Remember `fact_helper(fact_helper)` from earlier? The Y combinator generalizes that pattern into a universal tool.
+
+> **📌 Note:** $Y$ works in the call-by-name calculus. For call-by-value (most programming languages), we need the **Z combinator**, which delays the self-application with an extra lambda:
+
+<DisplayMath formula="Z = \lambda f. (\lambda g. f \; (\lambda h. g \; g \; h)) \; (\lambda g. f \; (\lambda h. g \; g \; h))" />
+
+> **This justifies recursion as a proper computational mechanism.** No circular definitions, no special language features—recursion emerges naturally from fixed points.
+
+---
+
+## Syntactic Sugar
+
+The lambda calculus can express everything, but some expressions are awkward. *Syntactic sugar* adds no power but improves readability.
+
+---
+
+### Let, In, and Where
+
+Applying a function to an argument is the same as binding a name:
+
+<DisplayMath formula="(\lambda x. \texttt{plus} \; 5 \; x) \; 3 \quad = \quad \texttt{let} \; x = 3 \; \texttt{in} \; (\texttt{plus} \; 5 \; x)" />
+
+We can also write: $(\texttt{plus} \; 5 \; x) \; \texttt{where} \; x = 3$
+
+All three mean the same thing. The symbols `let`, `in`, and `where` are sugar for abstraction and application.
+
+---
+
+### If-Then-Else
+
+<DisplayMath formula="\texttt{if} \; E_1 \; \texttt{then} \; E_2 \; \texttt{else} \; E_3" />
+
+**Example:**
+
+<DisplayMath formula="(\lambda x. \texttt{if} \; x < 3 \; \texttt{then} \; 2x \; \texttt{else} \; x + 5) \; 10 \;\Longrightarrow\; 15" />
+
+---
+
+### Infix Operators
+
+| Standard Form | Sugared Form |
+| :--- | :--- |
+| $\texttt{plus} \; x \; y$ | $x + y$ |
+| $\texttt{minus} \; x \; y$ | $x - y$ |
+| $\texttt{times} \; x \; y$ | $x \times y$ |
+| $\texttt{divide} \; x \; y$ | $x \div y$ |
+| $\texttt{power} \; x \; y$ | $x^y$ |
+| $\texttt{less} \; x \; y$ | $x < y$ |
+| $\texttt{eq} \; x \; y$ | $x = y$ |
+| $\texttt{negate} \; x$ | $-x$ |
+| $\texttt{factorial} \; x$ | $x!$ |
+
+---
+
+## Toward Types: The Simply Typed Lambda Calculus
+
+The untyped lambda calculus allows *nonsensical* expressions. Nothing prevents $5 \; 3$—"apply the number 5 to the number 3." The **Simply Typed Lambda Calculus** ($\lambda^\to$) adds types to prevent this.
+
+---
+
+### Simple Types
+
+Types are built from:
+
+1. **Base types:** $\texttt{Int}$, $\texttt{Bool}$, or any other atomic type
+2. **Function types:** $\tau_1 \to \tau_2$ — functions from $\tau_1$ to $\tau_2$
+
+The arrow $\to$ associates to the right: $\texttt{Int} \to \texttt{Int} \to \texttt{Int}$ means $\texttt{Int} \to (\texttt{Int} \to \texttt{Int})$.
+
+---
+
+### Typing Rules
+
+We write $\Gamma \vdash e : \tau$ to mean "in context $\Gamma$, expression $e$ has type $\tau$."
+
+**Variable rule:**
+
+<DisplayMath formula="\frac{x : \tau \in \Gamma}{\Gamma \vdash x : \tau}" />
+
+**Abstraction rule:**
+
+<DisplayMath formula="\frac{\Gamma, \; x : \tau_1 \vdash M : \tau_2}{\Gamma \vdash (\lambda x : \tau_1. \; M) : \tau_1 \to \tau_2}" />
+
+**Application rule:**
+
+<DisplayMath formula="\frac{\Gamma \vdash M : \tau_1 \to \tau_2 \quad \Gamma \vdash N : \tau_1}{\Gamma \vdash (M \; N) : \tau_2}" />
+
+---
+
+### Type Safety
+
+> **Well-typed terms don't go wrong.**
+
+| Property | Statement |
+| :--- | :--- |
+| **Progress** | A well-typed term is either a value or can be reduced |
+| **Preservation** | Reduction preserves types |
+
+Together: a well-typed program never "gets stuck."
+
+---
+
+### Strong Normalization
+
+Unlike the untyped calculus, the simply typed lambda calculus has a remarkable property:
+
+> **Every well-typed term terminates. There are no infinite loops.**
+
+The type system prevents self-application like $x \; x$ (because $x$ would need type $\tau = \tau \to \sigma$, which is impossible in simple types). No $\Omega$, no divergence.
+
+This is both a strength (guaranteed termination) and a limitation (not Turing-complete). Extensions like **System F** (polymorphic types) and **dependent type theory** recover expressiveness.
+
+> **📌 Note:** There is a deep correspondence between types and logic—types correspond to propositions and programs to proofs. This is called the **Curry-Howard correspondence**, which connects to the natural deduction we studied in LN 2. We'll revisit this when we study semantics later in the course.
+
+---
+
+## Reflections: de Bruijn Indices
+
+Now that we've built the full machinery of named variables, alpha-conversion, and capture-avoiding substitution, let's ask: is there a simpler way?
+
+**Nicolaas Govert de Bruijn** proposed an elegant alternative in 1972. Instead of names, variables are *numbers* counting how many lambdas outward to look:
+
+| Named | de Bruijn |
+| :--- | :--- |
+| $\lambda x. x$ | $\lambda. \; 0$ |
+| $\lambda x. \lambda y. x$ | $\lambda. \lambda. \; 1$ |
+| $\lambda x. \lambda y. y$ | $\lambda. \lambda. \; 0$ |
+| $\lambda x. \lambda y. x \; y$ | $\lambda. \lambda. \; 1 \; 0$ |
+| $(\lambda x. x) \; (\lambda y. y)$ | $(\lambda. \; 0) \; (\lambda. \; 0)$ |
+
+**The key benefit:** alpha-equivalence becomes *syntactic equality*. $\lambda x. x$ and $\lambda y. y$ both become $\lambda. \; 0$. No renaming needed, ever.
+
+**Why we didn't start here:** named variables build better intuition. But when *implementing* the lambda calculus—in interpreters, compilers, and proof assistants—de Bruijn indices eliminate the entire capture-avoidance machinery.
+
+> **📌 Looking ahead:** When you build your lambda calculus interpreter in HW 2, you may find de Bruijn indices simplify the implementation considerably.
+
+---
+
+## Two Views of Functions: A Comparison
+
+In LN 3, we defined functions as **sets of ordered pairs** — a set-theoretic, extensional view. Today we've built an entirely different tool — the **lambda calculus** — where functions are intensional, computational objects. Let's put them side by side and see how our new system measures up.
+
+---
+
+### Side-by-Side: The Same Concepts in Two Systems
+
+| Concept | Set Theory (LN 3) | Lambda Calculus (LN 4) |
+| :--- | :--- | :--- |
+| **What is a function?** | A relation $f \subseteq A \times B$ with uniqueness: $\forall a. \exists! b. (a,b) \in f$ | An abstraction $\lambda x. M$ — a recipe for computing outputs from inputs |
+| **Applying a function** | Look up the pair: if $(a, b) \in f$, then $f(a) = b$ | Beta-reduce: $(\lambda x. M)\;N \Longrightarrow M[N/x]$ |
+| **Multi-argument functions** | Use tuples: $f \subseteq (A \times B) \times C$ | Use currying: $\lambda x. \lambda y. M$ |
+| **Identity function** | $\{(a, a) \mid a \in A\}$ — an infinite set of pairs | $\lambda x. x$ — a three-symbol expression |
+| **Function composition** | $g \circ f = \{(a, c) \mid \exists b. (a,b) \in f \land (b,c) \in g\}$ | $\lambda x. g \; (f \; x)$ — or the Bluebird: $B \; g \; f$ |
+| **Injection** | $f(a_1) = f(a_2) \Rightarrow a_1 = a_2$ | Same property, but proven via reduction rather than set membership |
+| **Surjection** | $\forall b \in B. \exists a \in A. f(a) = b$ | Same property — "every value in the codomain is reachable" |
+| **Bijection** | Injection + surjection; enables cardinality arguments | Same concept — but cardinality is a set-theoretic strength |
+| **Partial functions** | Not every $a \in A$ has a pair in $f$ | Expressions that don't reduce to a normal form (diverge) |
+| **Domain and codomain** | Explicit: $f : A \to B$ declares both sets | Implicit in the untyped calculus; explicit in the simply typed calculus ($\lambda x : \tau_1. M : \tau_2$) |
+| **Function space** | $A \to B \subseteq \mathcal{P}(A \times B)$ | The type $\tau_1 \to \tau_2$ in the typed calculus |
+| **Higher-order functions** | Functions on power sets: $f : \mathcal{P}(A) \to B$ | First-class: $\lambda f. \lambda x. f \; (f \; x)$ — functions naturally take and return functions |
+
+---
+
+### Where Each System Shines
+
+| Strength | Set Theory | Lambda Calculus |
+| :--- | :--- | :--- |
+| **Defining "what" a function is** | Excellent — extensional equality: two functions are equal iff they agree on all inputs | Not its focus — intensional: two expressions can compute the same function but look different |
+| **Reasoning about size** | Cardinality, countability, diagonalization — powerful tools for impossibility proofs | Not applicable — the calculus doesn't talk about "how many" functions exist |
+| **Describing computation** | Awkward — a static table doesn't compute | Excellent — beta-reduction *is* computation |
+| **Building interpreters** | Possible but indirect | Natural — an interpreter is just a beta-reducer |
+| **Foundation for semantics** | Denotational semantics maps programs to mathematical objects (sets, domains) | Operational semantics defines meaning via reduction steps |
+| **Dealing with non-termination** | Domain theory (Scott, Strachey) — adds a "bottom" element $\bot$ to handle divergence | Built in — $\Omega$ simply doesn't reduce to a normal form |
+
+---
+
+### Set Theory Is Not Replaced
+
+The lambda calculus gives us a better tool for *computation*, but set theory remains indispensable:
+
+- **Denotational semantics** maps programs to mathematical objects in domains — these are set-theoretic constructions. When we study semantics in LN 10-12, we'll need both views: operational semantics (lambda-style reduction) and denotational semantics (set-theoretic function mappings).
+- **Cardinality arguments** prove fundamental impossibility results. The fact that there are uncountably many functions $\mathbb{N} \to \mathbb{N}$ but only countably many programs is a *set-theoretic* argument — and it's why some functions are uncomputable.
+- **Domain theory**, developed by Dana Scott in the 1970s, uses set-theoretic tools (partial orders, lattices, fixed-point theorems) to give mathematical meaning to recursive programs. Scott's work bridges the two worlds — the lambda calculus *computes*, and domain theory explains *what it means* mathematically.
+
+> **💡 Key takeaway:** Set theory and the lambda calculus are complementary tools, not competitors. Set theory asks "what *is* this function?" (extensional). The lambda calculus asks "how does this function *work*?" (intensional). A well-equipped programming language theorist needs both.
+
+---
+
+### Revisiting "Functions Everywhere"
+
+In LN 3, we saw that programming language theory is built on functions:
+
+| PL Function | Set-Theoretic View (LN 3) | Lambda Calculus View (LN 4) |
+| :--- | :--- | :--- |
+| Parse: $\Sigma^* \to \text{AST}$ | A set of (string, tree) pairs | A function that *transforms* strings into trees step by step |
+| Eval: $\text{AST} \to \text{Value}$ | A mapping from trees to values | A *reduction process* — repeatedly apply rules until a value emerges |
+| TypeCheck: $\text{AST} \to \text{Type}$ | A mapping from trees to types | An *inference procedure* — apply typing rules bottom-up |
+| Compile: $\text{AST} \to \text{AST}$ | A mapping from one tree to another | A *sequence of transformations* — each a beta-reduction or rewrite |
+
+The set-theoretic view tells us these functions *exist* and what properties they must satisfy. The lambda calculus view tells us how to *implement* them. In the homework assignments ahead, you'll do both: reason about what your interpreter *should* do (set-theoretic), then build it so it actually *does* it (lambda-style).
+
+---
+
+## Summary
+
+Today we built the **Lambda Calculus**—our third foundational tool, and the one most directly connected to programming.
+
+- **Functions are computational objects**, not static set-theoretic mappings
+- **Four expression forms** (constants, variables, abstraction, application) are all you need
+- **Three reductions** ($\alpha$, $\beta$, $\eta$) are the rules of computation—but they must be done carefully
+- **Free and bound variables** diagnose exactly when reductions go wrong (captures and escapes)
+- **Proper substitution** prevents captures—like safe code refactoring
+- **Church-Rosser** guarantees unique normal forms; **CBV** and **CBN** differ in whether they find them
+- **Combinators** are closed expressions; $S$ and $K$ alone suffice for all computation
+- **Church encodings** build mathematics from pure functions—data is behavior
+- **Fixed-point combinators** ($Y$, $Z$) justify recursion by lazily unraveling a tower of function calls
+- **The Simply Typed Lambda Calculus** prevents nonsensical terms and guarantees termination
+- **Set theory and lambda calculus are complementary** — one extensional (what *is* the mapping?), one intensional (how does it *compute*?) — and PL theory needs both
+
+> **Next time:** We'll investigate the foundational theories of computation — Language Theory, Automata Theory, Computability Theory, and Complexity Theory — and how they relate to the tools we've built so far.
+
+---
+
+<LectureNotes>
+
+### Key Definitions
+
+| Term | Definition |
+| :--- | :--- |
+| **Lambda Expression** | One of: constant, variable, application $M \; N$, or abstraction $\lambda x. M$ |
+| **Application** | $(M \; N)$ — apply operator $M$ to operand $N$ |
+| **Abstraction** | $(\lambda x. M)$ — function with parameter $x$ and body $M$ |
+| **Value** | Any expression that is not an application |
+| **Free Variable** | A variable occurrence not bound by any enclosing $\lambda$ |
+| **Bound Variable** | A variable occurrence captured by an enclosing $\lambda$ |
+| **Proper Substitution** | $M[N/x]$ — substitute $N$ for free $x$ in $M$, avoiding captures |
+| **Redex** | A reducible expression (beta-redex or constant application) |
+| **Normal Form** | An expression with no redexes |
+| **Combinator** | A lambda expression with no free variables (closed expression) |
+| **Fixed Point** | A value $x$ such that $f(x) = x$ |
+
+### Conversion Rules
+
+| Conversion | Rule | Condition |
+| :--- | :--- | :--- |
+| $\alpha$ | $\lambda x. M \Longrightarrow \lambda y. M[y/x]$ | $y \notin FV(M)$ |
+| $\beta$ | $(\lambda x. M) \; N \Longrightarrow M[N/x]$ | (proper substitution) |
+| $\eta$ | $\lambda x. M \; x \Longrightarrow M$ | $x \notin FV(M)$ |
+
+### Church Encodings
+
+| Object | Encoding |
+| :--- | :--- |
+| $0$ | $\lambda f. \lambda x. x$ |
+| $n$ | $\lambda f. \lambda x. f^n \; x$ |
+| $\texttt{succ}$ | $\lambda n. \lambda f. \lambda x. f \; (n \; f \; x)$ |
+| $\texttt{plus}$ | $\lambda m. \lambda n. \lambda f. \lambda x. m \; f \; (n \; f \; x)$ |
+| $\texttt{times}$ | $\lambda m. \lambda n. \lambda f. m \; (n \; f)$ |
+| $\texttt{true}$ | $\lambda x. \lambda y. x$ |
+| $\texttt{false}$ | $\lambda x. \lambda y. y$ |
+| $\texttt{pair}$ | $\lambda x. \lambda y. \lambda f. f \; x \; y$ |
+
+### Key Theorems
+
+| Theorem | Statement |
+| :--- | :--- |
+| **Church-Rosser** | Every expression has at most one normal form (up to $\alpha$-equivalence) |
+| **Church-Turing Thesis** | Lambda calculus, Turing machines, and recursive functions compute the same class |
+| **Strong Normalization** ($\lambda^\to$) | Every well-typed term in the simply typed lambda calculus terminates |
+
+### Fixed-Point Combinators
+
+| Combinator | Definition | Used in |
+| :--- | :--- | :--- |
+| $Y$ | $\lambda f. (\lambda g. f \; (g \; g)) \; (\lambda g. f \; (g \; g))$ | Call-by-name |
+| $Z$ | $\lambda f. (\lambda g. f \; (\lambda h. g \; g \; h)) \; (\lambda g. f \; (\lambda h. g \; g \; h))$ | Call-by-value |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Computerphile: "Lambda Calculus" (2017)](https://www.youtube.com/watch?v=eis11j_iGMs) — Accessible introduction by Professor Graham Hutton
+- [Computerphile: "Y Combinator" (2016)](https://www.youtube.com/watch?v=9T8A89jgeTI) — The fixed-point combinator explained visually
+- [Jim Fowler: Point-Free series](https://www.youtube.com/playlist?list=PLxj9UAX4Em-KJPgjQIi6poBnMNihkMaEB) — Deep dive into combinatory logic
+
+### Further Reading
+
+- [Ray Toal: Lambda Calculus Notes](https://cs.lmu.edu/~ray/notes/lambdacalculus/) — The comprehensive reference this lecture draws from
+- [David F. Martin: Notes on the Lambda Calculus](https://www.irif.fr/~mellies/mpri/mpri-ens/articles/martin-notes-on-lambda-calculus.pdf) — Detailed technical overview
+- [Stanford Encyclopedia: The Lambda Calculus](https://plato.stanford.edu/entries/lambda-calculus/) — Philosophical and historical overview
+- [Stanford Encyclopedia: Type Theory](https://plato.stanford.edu/entries/type-theory/) — Comprehensive overview of typed lambda calculi
+- Slonneger & Kurtz — *Formal Syntax and Semantics of Programming Languages* — Chapter 5 covers lambda calculus
+
+### Historical Papers
+
+- Church, A. (1936) — "An Unsolvable Problem of Elementary Number Theory" — Lambda calculus introduced
+- Church, A. & Rosser, J.B. (1936) — "Some Properties of Conversion" — The confluence theorem
+- Turing, A. (1937) — "On Computable Numbers" — Turing machines and the equivalence
+- Curry, H.B. & Feys, R. (1958) — *Combinatory Logic, Vol. I* — Foundations of combinatory logic
+- de Bruijn, N.G. (1972) — "Lambda Calculus Notation with Nameless Dummies" — de Bruijn indices
+
+### Books
+
+- Smullyan, R. — *To Mock a Mockingbird* — Combinatory logic through bird puzzles
+- Barendregt, H.P. — *The Lambda Calculus: Its Syntax and Semantics* — The definitive reference
+- Pierce, B.C. — *Types and Programming Languages* — The standard PL theory textbook
+
+</LectureResources>
