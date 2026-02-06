@@ -1,0 +1,866 @@
+import {
+  ProgrammingSection,
+} from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+
+This homework covers material from **Lecture 3: Set Theory** and **Lecture 4: Lambda Calculus**. Unlike HW 1, this assignment is **entirely programmatic** — you will write code that operationalizes the mathematical definitions and formal systems from these two lectures.
+
+You may use **any programming language** that supports first-class functions (Python, JavaScript/TypeScript, Haskell, Rust, OCaml, Java, C#, Go, etc.). Your choice of language does not affect grading — only correctness and completeness.
+
+---
+
+<ProgrammingSection points={100}
+brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/295659/event/871316/detailsview?searchString=&year=2026&month=2&day=6&typefilterguid=e014e7f3-824a-4038-9db9-ba9da72f8fc6"
+githubClassroomUrl="https://classroom.github.com/a/1Y4PssOK"
+>
+
+## General Requirements
+
+Before diving into the two parts, please note the following requirements that apply to your entire submission:
+
+**Repository Structure:**
+
+Your repository must include a `README.md` at the root with:
+
+1. The **programming language** you chose and why (one sentence is fine)
+2. **Exact terminal commands** to install any dependencies
+3. **Exact terminal commands** to run Part 1 (Relation Analyzer)
+4. **Exact terminal commands** to run Part 2 (Lambda Interpreter) in both CBN and CBV mode
+
+I will clone your repository and follow your README to run your code. If I cannot run it from your instructions, points will be deducted.
+
+**Output Format:**
+
+All output should be written to plain `.txt` files in the `outputs/` folder within each part directory, one result per line. Compare your output against the corresponding `expected_outputs/` files to verify correctness.
+
+**No External Parser Libraries:**
+
+For Part 2, your parser must be **hand-written**. Do not use parser generators (ANTLR, yacc, PEG.js, Ohm, etc.) or parser combinator libraries. The point of this exercise is to understand parsing from the ground up. Standard string manipulation, regex for tokenizing, and data structure libraries are fine.
+
+**Test Files:**
+
+Test input files will be provided in your assignment repository. You must produce the corresponding output files.
+
+---
+
+## Part 1: Relation and Function Analyzer (35 points)
+
+In LN 3, we defined relations as subsets of cross products and functions as special relations with a uniqueness condition. In this part, you will turn those formal definitions into working code.
+
+Given a universe set and a set of ordered pairs, your program will determine which mathematical properties the relation satisfies — directly operationalizing the definitions from lecture.
+
+---
+
+<QuestionBox qid="Q1" title="Input Parsing and Output Format" points={5}>
+
+Your program must read two types of input files:
+
+**Universe file** — a set of elements:
+
+```
+{1, 2, 3, 4, 5}
+```
+
+**Relation file** — a set of ordered pairs:
+
+```
+{(1,1), (2,2), (3,3), (1,2), (2,1)}
+```
+
+For function classification (Q3), a second set (the codomain) may be provided:
+
+```
+A = {1, 2, 3}
+B = {a, b, c}
+R = {(1,a), (2,b), (3,c)}
+```
+
+Your program should be invoked as:
+
+```bash
+./run-analyzer part1/inputs/universe1.txt part1/inputs/relation1.txt > part1/outputs/relation1_output.txt
+```
+
+Or, for function classification with a codomain:
+
+```bash
+./run-analyzer part1/inputs/domain1.txt part1/inputs/codomain1.txt part1/inputs/function1.txt > part1/outputs/function1_output.txt
+```
+
+**Output format** — one property per line, with `true` or `false`:
+
+```
+Reflexive: true
+Symmetric: true
+Transitive: true
+Antisymmetric: false
+Equivalence Relation: true
+Partial Order: false
+```
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q2" title="Relation Properties" points={15}>
+
+Given a relation $R$ on a universe $A$ (i.e., $R \subseteq A \times A$), determine whether $R$ satisfies each of the following properties.
+
+<SubQuestion qid="Q2a" points={2}>
+
+**Reflexive** — Every element is related to itself.
+
+Recall from LN 3: $R$ is reflexive iff $\forall a \in A. \; (a, a) \in R$
+
+Your program should check whether every element in the universe appears as a pair with itself.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={2}>
+
+**Symmetric** — If $a$ is related to $b$, then $b$ is related to $a$.
+
+Recall from LN 3: $R$ is symmetric iff $\forall a, b. \; (a, b) \in R \Rightarrow (b, a) \in R$
+
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={3}>
+
+**Transitive** — If $a$ is related to $b$ and $b$ is related to $c$, then $a$ is related to $c$.
+
+Recall from LN 3: $R$ is transitive iff $\forall a, b, c. \; (a, b) \in R \land (b, c) \in R \Rightarrow (a, c) \in R$
+
+This one requires checking all triples — make sure your implementation handles chains correctly.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2d" points={3}>
+
+**Antisymmetric** — If $a$ is related to $b$ and $b$ is related to $a$, then $a$ must equal $b$.
+
+Recall from LN 3: $R$ is antisymmetric iff $\forall a, b. \; (a, b) \in R \land (b, a) \in R \Rightarrow a = b$
+
+Note: antisymmetric is *not* the negation of symmetric. A relation can be both, neither, or one without the other.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2e" points={2}>
+
+**Equivalence Relation** — Reflexive, symmetric, and transitive.
+
+Output `true` only if all three properties hold.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2f" points={3}>
+
+**Partial Order** — Reflexive, antisymmetric, and transitive.
+
+Output `true` only if all three properties hold. The classic example from lecture: $\leq$ on numbers is a partial order, while $\subseteq$ on sets is a partial order that is *not* total.
+
+</SubQuestion>
+
+> **💡 Implementation Hints for Q2:**
+>
+> - **Data structures:** Represent your universe as a set (or list) and your relation as a set of pairs/tuples. Using a hash-set for $R$ makes membership checks $O(1)$ — important since transitivity requires checking many triples.
+> - **Reflexive:** Loop over every element $a$ in the universe and check that $(a, a) \in R$.
+> - **Symmetric:** Loop over every pair $(a, b) \in R$ and check that $(b, a) \in R$.
+> - **Transitive:** For every pair $(a, b) \in R$ and every pair $(b', c) \in R$ where $b = b'$, check that $(a, c) \in R$. One approach: for each $(a, b) \in R$, find all pairs starting with $b$ and verify the chain.
+> - **Antisymmetric:** For every pair $(a, b) \in R$ where $a \neq b$, check that $(b, a) \notin R$.
+> - **Equivalence and Partial Order** are just conjunctions of the properties above — no new logic needed.
+> - **General pattern:** Each property is a direct translation of its $\forall$ definition into a loop. If any counterexample is found, the property is false. If no counterexample exists after checking all cases, it's true.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q3" title="Function Classification" points={15}>
+
+Given a relation $R \subseteq A \times B$ (where $A$ is the domain and $B$ is the codomain), determine whether $R$ qualifies as a function and, if so, what kind.
+
+<SubQuestion qid="Q3a" points={3}>
+
+**Function** — Every element of $A$ maps to exactly one element of $B$.
+
+Recall from LN 3: $R$ is a function iff $\forall a \in A. \; \exists! b \in B. \; (a, b) \in R$
+
+Check two things: (1) every element of $A$ has at least one pair, and (2) no element of $A$ has more than one pair.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={3}>
+
+**Partial Function** — Some elements of $A$ may have no mapping, but those that do map to exactly one element.
+
+A partial function relaxes the "every element" requirement. Output `true` if the relation is functional (at most one output per input) but not total.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={3}>
+
+**Injective (One-to-One)** — Different inputs give different outputs.
+
+Recall from LN 3: $f$ is injective iff $f(a_1) = f(a_2) \Rightarrow a_1 = a_2$
+
+Only check this if the relation is a function (or partial function). Output `N/A` if the relation is not functional.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3d" points={3}>
+
+**Surjective (Onto)** — Every element of $B$ is mapped to by some element of $A$.
+
+Recall from LN 3: $f$ is surjective iff $\forall b \in B. \; \exists a \in A. \; f(a) = b$
+
+Only check this if the relation is a function. Output `N/A` if not functional.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3e" points={3}>
+
+**Bijective** — Both injective and surjective.
+
+Output `true` only if both properties hold. A bijection establishes a one-to-one correspondence between $A$ and $B$ — recall from LN 3 that this is how we define "same cardinality."
+
+</SubQuestion>
+
+The output format for function classification:
+
+```
+Function: true
+Partial Function: false
+Injective: true
+Surjective: true
+Bijective: true
+```
+
+> **💡 Implementation Hints for Q3:**
+>
+> - **Build a mapping:** Group the pairs by their first element into a dictionary/map: `{ a1: [b1, b2, ...], a2: [...], ... }`. This structure answers almost every question directly.
+> - **Function check:** The relation is a function if (1) every element of $A$ appears as a key, and (2) every key maps to exactly one value (list length = 1 for all keys).
+> - **Partial function:** Same as a function but relax condition (1) — some keys may be missing. Check that no key maps to more than one value.
+> - **Injective:** Collect all the output values. If the number of *unique* outputs equals the number of inputs, it's injective. Equivalently: no two different keys map to the same value.
+> - **Surjective:** Collect all output values into a set and check that this set equals $B$.
+> - **Bijective:** Simply check that both injective and surjective are true.
+
+</QuestionBox>
+
+---
+
+## Part 2: Lambda Calculus Interpreter (65 points)
+
+In LN 4, we built the Lambda Calculus from scratch — its syntax, the three conversions, proper substitution, and evaluation strategies. Now you will bring all of that to life by building a working parser and interpreter.
+
+This is the first step toward building formally-defined programming languages from scratch. By the end of this assignment, you will have a program that can take a lambda expression as text, parse it into a structured representation, and reduce it to its normal form — exactly as we did by hand in lecture.
+
+---
+
+<QuestionBox qid="Q4" title="Parsing Lambda Expressions" points={20}>
+
+Build a parser that reads lambda calculus expressions and converts them into an internal representation (e.g., an AST, tree structure, or algebraic data type).
+
+**The four expression forms** (from LN 4, "Syntax of the Lambda Calculus"):
+
+| Form | Concrete Syntax | Example |
+| :--- | :--- | :--- |
+| Variable | lowercase identifiers | `x`, `y`, `foo` |
+| Constant | integers, booleans, built-ins | `0`, `42`, `true`, `succ`, `plus` |
+| Abstraction | `(\x. body)` or `(λx. body)` | `(\x. x)`, `(\f. (\x. (f x)))` |
+| Application | `(func arg)` | `((\x. x) 5)`, `(succ 0)` |
+
+**Specifics:**
+
+- **Variables:** single or multi-character lowercase identifiers (`x`, `y`, `n`, `foo`, `bar`)
+- **Constants:** integers (`0`, `1`, `42`), booleans (`true`, `false`), and built-in operations (`succ`, `pred`, `plus`, `times`, `iszero`, `not`, `and`, `or`)
+- **Abstractions:** `(\x. body)` — the backslash `\` is the ASCII-friendly lambda. Optionally accept the Unicode `λ` as well
+- **Applications:** `(f x)` — always fully parenthesized in input files for unambiguous parsing
+- **Whitespace** between tokens is flexible (spaces, tabs, newlines)
+
+**Input files** (`.lam` extension) contain one expression per line. Your parser should read each line and either produce a parsed representation or report a parse error.
+
+**Invalid expressions** should produce a clear error output: `[PARSE ERROR: description]`
+
+<SubQuestion qid="Q4a" points={10}>
+
+Implement the parser. It should correctly handle all four expression forms, nested expressions of arbitrary depth, and flexible whitespace. Demonstrate that it works on the provided `basics.lam` test file.
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={5}>
+
+Implement a **pretty-printer** that converts your internal representation back to a readable string. This is how your output files will be generated. The output should use the `(\x. body)` notation for abstractions and full parenthesization for applications.
+
+</SubQuestion>
+
+<SubQuestion qid="Q4c" points={5}>
+
+Handle **parse errors** gracefully. For each malformed expression in the input, output `[PARSE ERROR]` on the corresponding output line. Your parser should not crash on invalid input — it should skip the bad line and continue processing.
+
+</SubQuestion>
+
+> **💡 Implementation Hints for Q4:**
+>
+> - **Two-phase approach:** Separate *tokenizing* from *parsing*. First, scan the input string into a flat list of tokens: `LPAREN`, `RPAREN`, `LAMBDA` (for `\` or `λ`), `DOT`, `VARIABLE("x")`, `CONSTANT(42)`, etc. Then parse the token list recursively.
+> - **AST representation:** Model your abstract syntax tree with four variants — one for each expression form. In an OOP language, use a class hierarchy or tagged objects. In a functional language, use an algebraic data type. For example:
+>   - `Var(name)` — a variable
+>   - `Const(value)` — a constant
+>   - `Abs(param, body)` — an abstraction (param is a string, body is an AST)
+>   - `App(func, arg)` — an application (both func and arg are ASTs)
+> - **Parsing logic:** Since input is fully parenthesized, parsing is straightforward. When you see `(`, peek at the next tokens: if you see `\` or `λ`, it's an abstraction; otherwise it's an application. Recursively parse the sub-expressions and consume the closing `)`.
+> - **Distinguishing variables from constants:** Maintain a set of known constant names (`succ`, `pred`, `plus`, `times`, `true`, `false`, etc.). If an identifier is in this set or is a number, it's a constant; otherwise it's a variable.
+> - **Pretty-printing:** Recursively convert your AST back to a string. For `Abs(x, body)`, produce `(\x. <body>)`. For `App(f, a)`, produce `(<f> <a>)`. Variables and constants print as themselves.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q5" title="Proper Substitution" points={15}>
+
+Implement capture-avoiding substitution $M[N/x]$ — the most subtle part of the Lambda Calculus.
+
+Recall from LN 4 ("Proper Substitution"), the six cases:
+
+| Expression $M$ | Result $M[N/x]$ | Rationale |
+| :--- | :--- | :--- |
+| Constant $k$ | $k$ | Nothing to substitute |
+| Variable $x$ (same) | $N$ | Replace with the substitution |
+| Variable $y$ (different) | $y$ | Not the target variable |
+| Application $(M_1 \; M_2)$ | $(M_1[N/x] \; M_2[N/x])$ | Recurse into both parts |
+| Abstraction $\lambda x. M$ | $\lambda x. M$ | $x$ is bound — leave it alone |
+| Abstraction $\lambda y. M$ ($y \neq x$) | Depends on capture risk | See below |
+
+For the last case: if $y \in FV(N)$ and $x \in FV(M)$, the substitution would cause a **capture**. You must rename $y$ to a fresh variable $z$ (not free in $M$ or $N$) before substituting.
+
+<SubQuestion qid="Q5a" points={8}>
+
+Implement proper substitution with full capture-avoidance. Your implementation must handle the renaming case correctly.
+
+**Key test case from lecture:** $(\lambda y. f \; x \; y)[y/x]$ should produce $\lambda z. f \; y \; z$ — *not* $\lambda y. f \; y \; y$ (which would be a capture bug).
+
+</SubQuestion>
+
+<SubQuestion qid="Q5b" points={4}>
+
+Implement a **free variables** function $FV(e)$ that computes the set of free variables in an expression. This is needed by your substitution implementation and is directly from the recursive definition in LN 4:
+
+| Expression | $FV$ |
+| :--- | :--- |
+| Constant $k$ | $\varnothing$ |
+| Variable $x$ | $\{x\}$ |
+| Application $(M \; N)$ | $FV(M) \cup FV(N)$ |
+| Abstraction $(\lambda x. M)$ | $FV(M) - \{x\}$ |
+
+</SubQuestion>
+
+<SubQuestion qid="Q5c" points={3}>
+
+Implement a **fresh variable generator** that produces variable names guaranteed not to conflict with any existing free variables. A simple approach: append incrementing numbers to a base name (e.g., `z0`, `z1`, `z2`, ...) until you find one not in the free variable set.
+
+</SubQuestion>
+
+> **💡 Implementation Hints for Q5:**
+>
+> - **Implement `FV` first.** Free variables is a simple recursive function and can be tested independently. Once `FV` works, substitution becomes much easier because you can check capture risk.
+> - **Follow the six-case table exactly.** Your substitution function should pattern-match (or if/else) on the form of $M$ and handle each case from the LN 4 table. The first five cases are straightforward; the sixth is where captures live.
+> - **The capture-avoidance case in detail:** When substituting $N$ for $x$ in $\lambda y. M$ (where $y \neq x$):
+>   1. Compute $FV(N)$ and $FV(M)$
+>   2. If $y \notin FV(N)$ OR $x \notin FV(M)$: safe to proceed — return $\lambda y. M[N/x]$
+>   3. Otherwise: pick a fresh $z$ not in $FV(M) \cup FV(N)$, rename $y$ to $z$ in $M$, then substitute — return $\lambda z. (M[z/y])[N/x]$
+> - **Fresh variable generator:** Start with `"z0"`. Check if it's in the combined free variable set. If so, try `"z1"`, `"z2"`, etc. This is simple and correct.
+> - **Testing strategy:** Test `FV` on several expressions first. Then test substitution on the easy cases (constants, variables, applications). Finally test the capture case with the lecture example: $(\lambda y. f \; x \; y)[y/x]$ must produce $\lambda z. f \; y \; z$.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q6" title="Evaluation: Call-by-Name and Call-by-Value" points={20}>
+
+Implement **both** evaluation strategies from LN 4 ("Evaluation Strategies"), selectable via a command-line flag.
+
+Your interpreter should be invoked as:
+
+```bash
+./run-lambda --cbn part2/inputs/basics.lam > part2/outputs/output_basics_cbn.txt
+./run-lambda --cbv part2/inputs/basics.lam > part2/outputs/output_basics_cbv.txt
+```
+
+<SubQuestion qid="Q6a" points={10}>
+
+**Call-by-Name (CBN):** Apply the function immediately — substitute the unevaluated argument into the body. Reduce the leftmost outermost redex first (normal order).
+
+Recall from LN 4: CBN does *not* evaluate the argument before applying. The argument is substituted as-is, which means it may be duplicated and evaluated multiple times (or never, if unused).
+
+**Key property:** If an expression has a normal form, CBN will find it.
+
+</SubQuestion>
+
+<SubQuestion qid="Q6b" points={10}>
+
+**Call-by-Value (CBV):** Fully evaluate the argument to a value before applying. Do not reduce inside abstraction bodies.
+
+Recall from LN 4: A **value** is any expression that is not an application — constants, variables, and abstractions are all values.
+
+**Key property:** CBV may diverge on expressions where CBN terminates. The classic example from lecture: $(\lambda x. 0) \; \Omega$ terminates under CBN (yielding $0$) but diverges under CBV (trying to evaluate $\Omega$ first).
+
+</SubQuestion>
+
+**Divergence detection:** Your interpreter must halt after a maximum of **1000 reduction steps** and output `[DIVERGES]` for that expression. This prevents infinite loops on expressions like $\Omega = (\lambda x. x \; x)(\lambda x. x \; x)$.
+
+**Built-in constant evaluation:** When a built-in operation is fully applied to constant arguments, evaluate it directly:
+- `(succ 0)` $\Longrightarrow$ `1`
+- `(plus 3 5)` $\Longrightarrow$ `8`
+- `(iszero 0)` $\Longrightarrow$ `true`
+- `(not true)` $\Longrightarrow$ `false`
+
+> **💡 Implementation Hints for Q6:**
+>
+> - **Shared engine, different strategies.** Both CBN and CBV use the same parser, AST, `FV`, substitution, and pretty-printer. The only difference is the `step` function that decides *which* redex to reduce.
+> - **Implement a `step` function** that takes an expression and returns either a reduced expression or a signal that no reduction is possible (normal form reached). Then write an `evaluate` loop that calls `step` repeatedly until normal form or the step limit.
+> - **CBN step logic:** Find the leftmost outermost beta-redex — an application `App(Abs(x, body), arg)` — and reduce it immediately via substitution. Do NOT evaluate `arg` first.
+> - **CBV step logic:** Find the leftmost outermost application `App(Abs(x, body), arg)` where `arg` is already a value (a `Var`, `Const`, or `Abs`). If `arg` is not a value, step into `arg` first to reduce it.
+> - **"Is it a value?" check:** A value is anything that is not an `App` node. Constants, variables, and abstractions are all values.
+> - **Built-in evaluation:** When you encounter `App(Const("succ"), Const(n))`, return `Const(n+1)`. For two-argument built-ins like `plus`, you'll see `App(App(Const("plus"), Const(a)), Const(b))` — return `Const(a+b)`. Handle these as special cases in your step function.
+> - **Divergence counter:** Pass a mutable counter (or accumulator) through your evaluate loop. Increment it on each step. If it exceeds 1000, return the string `[DIVERGES]`.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q7" title="Test Suite and Output Files" points={10}>
+
+Run your interpreter against the provided test suite and produce output files. Each output file should contain one result per line, corresponding to the input expressions:
+
+- The **normal form** as a string (e.g., `(\x. x)` or `42` or `true`)
+- `[DIVERGES]` if the step limit is reached
+- `[PARSE ERROR]` for malformed input
+
+<SubQuestion qid="Q7a" points={3}>
+
+**`basics.lam`** — Simple expressions testing fundamental operations:
+
+```
+(\x. x)
+((\x. x) 5)
+((\x. (\y. x)) 1 2)
+(succ 0)
+(plus 2 3)
+(not false)
+```
+
+Produce `part2/outputs/output_basics_cbn.txt` and `part2/outputs/output_basics_cbv.txt`.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7b" points={3}>
+
+**`substitution.lam`** — Expressions testing capture-avoidance:
+
+```
+((\x. (\y. x)) y)
+((\x. (\y. (x y))) (\y. y))
+((\f. (\x. (f x))) (\x. x))
+```
+
+These expressions specifically test whether your substitution correctly handles cases where free variables in the argument could be captured by inner lambdas. Produce `part2/outputs/output_substitution_cbn.txt` and `part2/outputs/output_substitution_cbv.txt`.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7c" points={2}>
+
+**`church.lam`** — Church encodings from LN 4's Pure Lambda Calculus section:
+
+```
+((\f. (\x. x)) succ 0)
+((\f. (\x. (f (f x)))) succ 0)
+((\n. (\f. (\x. (f ((n f) x))))) (\f. (\x. (f (f x)))))
+```
+
+The first is Church numeral $0$ applied to `succ` and `0` (should yield `0`). The second is Church numeral $2$ (should yield `2`). The third is $\texttt{succ} \; 2$ (should yield the Church numeral for $3$). Produce `part2/outputs/output_church_cbn.txt` and `part2/outputs/output_church_cbv.txt`.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7d" points={2}>
+
+**`divergence.lam`** — Expressions that test divergence behavior:
+
+```
+((\x. (x x)) (\x. (x x)))
+((\x. 0) ((\x. (x x)) (\x. (x x))))
+```
+
+The first is $\Omega$ — it should output `[DIVERGES]` under both strategies. The second is $(\lambda x. 0) \; \Omega$ — it should output `[DIVERGES]` under CBV but `0` under CBN. This is the key test from lecture that distinguishes the two strategies.
+
+Produce `part2/outputs/output_divergence_cbn.txt` and `part2/outputs/output_divergence_cbv.txt`.
+
+</SubQuestion>
+
+</QuestionBox>
+
+</ProgrammingSection>
+
+---
+
+## Repository Structure
+
+Your assignment repository will contain the following files:
+
+```
+CMSI-5850-HW2/
+├── part1/
+│   ├── inputs/
+│   │   ├── universe1.txt
+│   │   ├── relation1.txt
+│   │   ├── relation2.txt
+│   │   ├── relation3.txt
+│   │   ├── domain1.txt
+│   │   ├── codomain1.txt
+│   │   ├── function1.txt
+│   │   ├── function2.txt
+│   │   └── function3.txt
+│   ├── expected_outputs/
+│   │   ├── relation1_output.txt
+│   │   ├── relation2_output.txt
+│   │   ├── relation3_output.txt
+│   │   ├── function1_output.txt
+│   │   ├── function2_output.txt
+│   │   └── function3_output.txt
+│   └── outputs/
+│       └── .gitkeep
+├── part2/
+│   ├── inputs/
+│   │   ├── basics.lam
+│   │   ├── substitution.lam
+│   │   ├── church.lam
+│   │   └── divergence.lam
+│   ├── expected_outputs/
+│   │   ├── output_basics_cbn.txt
+│   │   ├── output_basics_cbv.txt
+│   │   ├── output_substitution_cbn.txt
+│   │   ├── output_substitution_cbv.txt
+│   │   ├── output_church_cbn.txt
+│   │   ├── output_church_cbv.txt
+│   │   ├── output_divergence_cbn.txt
+│   │   └── output_divergence_cbv.txt
+│   └── outputs/
+│       └── .gitkeep
+├── .gitignore
+└── README.md
+```
+
+Write all of your output files into the `outputs/` folder within the corresponding part. The `.gitkeep` files ensure the empty folders are tracked by git — you can leave them in place.
+
+---
+
+## Provided File Contents
+
+Below are the full contents of every provided file. If you experience any issues with your repository, you can reconstruct the files from here.
+
+---
+
+### Part 1 Input Files
+
+#### `part1/inputs/universe1.txt`
+
+```
+{1, 2, 3}
+```
+
+#### `part1/inputs/relation1.txt`
+
+An equivalence relation on the set above:
+
+```
+{(1,1), (2,2), (3,3), (1,2), (2,1)}
+```
+
+#### `part1/inputs/relation2.txt`
+
+A partial order (the "less than or equal" relation):
+
+```
+{(1,1), (2,2), (3,3), (1,2), (1,3), (2,3)}
+```
+
+#### `part1/inputs/relation3.txt`
+
+Neither an equivalence relation nor a partial order:
+
+```
+{(1,2), (2,3)}
+```
+
+#### `part1/inputs/domain1.txt`
+
+```
+{1, 2, 3}
+```
+
+#### `part1/inputs/codomain1.txt`
+
+```
+{a, b, c}
+```
+
+#### `part1/inputs/function1.txt`
+
+A bijection:
+
+```
+{(1,a), (2,b), (3,c)}
+```
+
+#### `part1/inputs/function2.txt`
+
+A function that is not injective (two inputs map to the same output):
+
+```
+{(1,a), (2,a), (3,b)}
+```
+
+#### `part1/inputs/function3.txt`
+
+Not a function (element 1 maps to two different outputs):
+
+```
+{(1,a), (1,b), (2,c)}
+```
+
+---
+
+### Part 1 Expected Outputs
+
+#### `part1/expected_outputs/relation1_output.txt`
+
+```
+Reflexive: true
+Symmetric: true
+Transitive: true
+Antisymmetric: false
+Equivalence Relation: true
+Partial Order: false
+```
+
+#### `part1/expected_outputs/relation2_output.txt`
+
+```
+Reflexive: true
+Symmetric: false
+Transitive: true
+Antisymmetric: true
+Equivalence Relation: false
+Partial Order: true
+```
+
+#### `part1/expected_outputs/relation3_output.txt`
+
+```
+Reflexive: false
+Symmetric: false
+Transitive: false
+Antisymmetric: true
+Equivalence Relation: false
+Partial Order: false
+```
+
+#### `part1/expected_outputs/function1_output.txt`
+
+```
+Function: true
+Partial Function: false
+Injective: true
+Surjective: true
+Bijective: true
+```
+
+#### `part1/expected_outputs/function2_output.txt`
+
+```
+Function: true
+Partial Function: false
+Injective: false
+Surjective: false
+Bijective: false
+```
+
+#### `part1/expected_outputs/function3_output.txt`
+
+```
+Function: false
+Partial Function: false
+Injective: N/A
+Surjective: N/A
+Bijective: N/A
+```
+
+---
+
+### Part 2 Input Files
+
+#### `part2/inputs/basics.lam`
+
+```
+(\x. x)
+((\x. x) 5)
+((\x. (\y. x)) 1 2)
+(succ 0)
+(plus 2 3)
+(not false)
+```
+
+#### `part2/inputs/substitution.lam`
+
+```
+((\x. (\y. x)) y)
+((\x. (\y. (x y))) (\y. y))
+((\f. (\x. (f x))) (\x. x))
+```
+
+#### `part2/inputs/church.lam`
+
+```
+((\f. (\x. x)) succ 0)
+((\f. (\x. (f (f x)))) succ 0)
+((\n. (\f. (\x. (f ((n f) x))))) (\f. (\x. (f (f x)))))
+```
+
+#### `part2/inputs/divergence.lam`
+
+```
+((\x. (x x)) (\x. (x x)))
+((\x. 0) ((\x. (x x)) (\x. (x x))))
+```
+
+---
+
+### Part 2 Expected Outputs
+
+#### `part2/expected_outputs/output_basics_cbn.txt`
+
+```
+(\x. x)
+5
+1
+1
+5
+true
+```
+
+#### `part2/expected_outputs/output_basics_cbv.txt`
+
+```
+(\x. x)
+5
+1
+1
+5
+true
+```
+
+#### `part2/expected_outputs/output_substitution_cbn.txt`
+
+```
+(\z. y)
+(\z. ((\y. y) z))
+(\x. ((\x. x) x))
+```
+
+#### `part2/expected_outputs/output_substitution_cbv.txt`
+
+```
+(\z. y)
+(\z. ((\y. y) z))
+(\x. ((\x. x) x))
+```
+
+#### `part2/expected_outputs/output_church_cbn.txt`
+
+```
+0
+2
+(\f. (\x. (f (f (f x)))))
+```
+
+#### `part2/expected_outputs/output_church_cbv.txt`
+
+```
+0
+2
+(\f. (\x. (f (f (f x)))))
+```
+
+#### `part2/expected_outputs/output_divergence_cbn.txt`
+
+```
+[DIVERGES]
+0
+```
+
+#### `part2/expected_outputs/output_divergence_cbv.txt`
+
+```
+[DIVERGES]
+[DIVERGES]
+```
+
+---
+
+### README Template
+
+#### `README.md`
+
+```markdown
+# CMSI 5850 — HW 2
+
+## Language Choice
+
+[Your language here] — [One sentence on why you chose it]
+
+## Setup
+
+[Exact terminal commands to install dependencies, if any]
+```
+
+## Running Part 1: Relation Analyzer
+
+```bash
+# Relation properties (universe + relation file → outputs/):
+[your command] part1/inputs/universe1.txt part1/inputs/relation1.txt > part1/outputs/relation1_output.txt
+
+# Function classification (domain + codomain + relation file → outputs/):
+[your command] part1/inputs/domain1.txt part1/inputs/codomain1.txt part1/inputs/function1.txt > part1/outputs/function1_output.txt
+```
+
+## Running Part 2: Lambda Interpreter
+
+```bash
+# Call-by-Name (→ outputs/):
+[your command] --cbn part2/inputs/basics.lam > part2/outputs/output_basics_cbn.txt
+
+# Call-by-Value (→ outputs/):
+[your command] --cbv part2/inputs/basics.lam > part2/outputs/output_basics_cbv.txt
+```
+
+---
+
+## Submission Guidelines
+
+- Submit your repository via **GitHub Classroom** (link will be provided)
+- Your `README.md` must contain exact terminal commands to run both parts
+- All output `.txt` files must be committed in the `part1/outputs/` and `part2/outputs/` folders
+- Ensure your code compiles/runs without errors from a fresh clone
+- Include a `.gitignore` appropriate for your language
+
+---
+
+## Point Summary
+
+| Part | Question | Points |
+| :--- | :--- | :---: |
+| **Part 1** | Q1: Input/Output Format | 5 |
+| | Q2: Relation Properties | 15 |
+| | Q3: Function Classification | 15 |
+| **Part 2** | Q4: Parsing Lambda Expressions | 20 |
+| | Q5: Proper Substitution | 15 |
+| | Q6: Evaluation (CBN + CBV) | 20 |
+| | Q7: Test Suite Output | 10 |
+| **Total** | | **100** |

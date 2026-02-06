@@ -317,7 +317,7 @@ const allEvents: CourseEvent[] = [
     availableDate: schedule.getSpecificDate(2026, 2, 6, "5850-hw2-available"),
     dueTime: "11:59 PM",
     description:
-      "In this homework you will get practice with operationalizing Set theory and creating a Lambda Calculus Interpreter in Python!",
+      "In this homework you will operationalize Set Theory by building a Relation and Function Analyzer, and bring the Lambda Calculus to life by building a parser and interpreter with both CBN and CBV evaluation — in any language of your choice!",
     courseId: "cmsi-5850",
     standard: "Mathematical Foundations",
     contentUrl: "/cmsi-5850/hw2",
