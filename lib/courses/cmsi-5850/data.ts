@@ -250,6 +250,10 @@ const allEvents: CourseEvent[] = [
     lnTopics: ["Lambda Calculus", "Reductions", "Free and Bound Variables"],
     contentUrl: "/cmsi-5850/ln4",
     recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/k5DCrVAwzisN3moKSiqVWU4BTTLv-dG4dAmSjaxRiZh2qfBcCLlN6FFHVOp86bH8.clyVIXy4zH0L2iVC"
+      }
     ],
   },
   {
