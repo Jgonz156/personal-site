@@ -1,0 +1,903 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ExecutionModelComparison } from "@/components/execution-model-comparison"
+import { IsoefficiencySurface } from "@/components/isoefficiency-surface"
+
+## Recap
+
+In LN6, we made the leap from Rust fundamentals into operating systems:
+
+- **OS History** — From batch processing to modern preemptive multitasking
+- **Hardware Components** — CPU, RAM, I/O, and storage
+- **Virtualization** — How one machine runs many programs
+- **Processes and the PCB** — The illusion of isolation
+- **Threads** — Lightweight concurrency within a process
+- **Kernel vs Green Threads** — Two models of execution (`std::thread` vs Tokio)
+- **The Mindset Shift** — From "this, then that" to "do this when it's ready"
+
+We left off with a teaser: threads let us express **non-sequential** code. But *when* should we actually use them? Today we answer that question.
+
+---
+
+## Today's Agenda
+
+1. **Building Intuition** — Take a problem, make it parallel, and see the speedup
+2. **Cautionary Tales** — When threads make things *worse*
+3. **Threads Are Not Magic** — Key principles, Amdahl's Law, and computational theory
+4. **Sequential vs Concurrent vs Parallel** — Visualizing the three execution models
+5. **Know Your Hardware** — Why cores, caches, and GPUs matter
+6. **The Four Key Parallelization Concerns** — Partitioning, Communication, Synchronization, Load Balancing
+7. **Decomposition Strategies** — Data parallel vs Task parallel programming
+8. **Formal Theory Extensions** — Work-Depth model, Brent's Theorem, Isoefficiency, and beyond
+
+> **💡 Key Transition:** In LN6 we learned *how* to create threads in Rust. Today we learn *when* and *why* — and what can go wrong.
+
+---
+
+## Building Intuition: When to Parallelize
+
+The best way to develop intuition for parallelism is to take a concrete problem, solve it sequentially, then see how threading helps.
+
+### Problem: Searching an Unsorted Array
+
+**The task:** Given an unsorted array of 1 million integers, determine whether a target value exists.
+
+#### Sequential Solution
+
+```rust
+fn search_sequential(data: &[i32], target: i32) -> bool {
+    for &item in data {
+        if item == target {
+            return true;
+        }
+    }
+    false
+}
+```
+
+Worst case: **1,000,000 comparisons**, one at a time. If each takes ~1ns, that's ~1ms.
+
+#### Parallel Solution (4 Threads)
+
+The key insight: **this problem is easy to split!** Each thread searches a different chunk:
+
+```rust
+use std::thread;
+
+fn search_parallel(data: &[i32], target: i32) -> bool {
+    let chunk_size = data.len() / 4;
+    let mut handles = vec![];
+
+    for chunk in data.chunks(chunk_size) {
+        let chunk = chunk.to_vec();
+        let handle = thread::spawn(move || {
+            chunk.contains(&target)
+        });
+        handles.push(handle);
+    }
+
+    // Collect results — did ANY thread find it?
+    handles.into_iter().any(|h| h.join().unwrap())
+}
+```
+
+Each thread searches **250,000 elements** instead of 1,000,000. With 4 cores, the work happens truly simultaneously. Speedup: **nearly 4x**.
+
+> **🤔 Why does this work so well?** The problem has three key properties:
+> 1. **Easy to partition** — just split the array into chunks
+> 2. **No communication needed** — each thread works independently
+> 3. **Minimal synchronization** — we just collect boolean results at the end
+>
+> Not all problems have these properties. Let's see what happens when they don't.
+
+---
+
+### Cautionary Tale #1: Sequential Fibonacci
+
+**The task:** Compute the 50th Fibonacci number.
+
+```rust
+fn fibonacci(n: u64) -> u64 {
+    if n <= 1 { return n; }
+    let mut prev = 0u64;
+    let mut curr = 1u64;
+    for _ in 2..=n {
+        let next = prev + curr;
+        prev = curr;
+        curr = next;
+    }
+    curr
+}
+```
+
+**"What if we threw threads at it?"**
+
+The problem: each Fibonacci value **depends on the previous two**. This is a strict data dependency chain:
+
+```
+F(2) needs F(1) and F(0)
+F(3) needs F(2) and F(1)
+F(4) needs F(3) and F(2)
+...
+F(50) needs F(49) and F(48)
+```
+
+There's nothing to parallelize! Adding threads would only add **overhead** (thread creation, joining) with **zero benefit**. The computation is inherently sequential.
+
+> **⚠️ Lesson:** Before adding threads, analyze the **structure** of your problem. If every step depends on the previous one, threading won't help.
+
+---
+
+### Cautionary Tale #2: Tiny Inputs
+
+**The task:** Sum an array of 10 numbers.
+
+```rust
+// Sequential: ~10 nanoseconds
+let sum: i32 = numbers.iter().sum();
+
+// Threaded: ~100,000 nanoseconds (thread creation overhead!)
+let handle = thread::spawn(move || numbers.iter().sum::<i32>());
+let sum = handle.join().unwrap();
+```
+
+Creating a kernel thread costs **microseconds** of OS overhead (allocating a stack, updating the scheduler, etc.). For a computation that takes **nanoseconds**, the thread creation alone is 10,000x more expensive than the work itself!
+
+| Approach | Work Time | Overhead | Total |
+| :--- | :--- | :--- | :--- |
+| Sequential | ~10ns | 0 | ~10ns |
+| 1 Thread | ~10ns | ~100,000ns | ~100,010ns |
+
+> **⚠️ Lesson:** Threading has a **minimum cost**. The work per thread must significantly exceed the coordination overhead.
+
+---
+
+## Threads Are Not a Silver Bullet
+
+From these examples, we can extract three key principles:
+
+### Principle 1: Threads Add Overhead
+
+Every thread you create costs something:
+
+| Overhead Type | Approximate Cost |
+| :--- | :--- |
+| Thread creation (kernel) | ~10-100μs |
+| Context switch | ~1-10μs |
+| Synchronization (mutex lock) | ~10-100ns |
+| Cache invalidation | Variable, can be severe |
+
+### Principle 2: Overhead Must Be Analyzed
+
+The work per thread must **exceed** the cost of coordination. A useful rule of thumb:
+
+> **If your parallel task takes less than ~1ms of computation, think carefully about whether threading helps.**
+
+### Principle 3: The Power of Threading
+
+The real speedup comes when threads let us:
+- **Remove waiting** — While one thread waits for I/O, another can compute
+- **Divide and conquer** — Split large independent work across cores
+- **Overlap operations** — Memory accesses, network calls, and computation happening simultaneously
+
+---
+
+### Side Note: Computational Theory
+
+<DefinitionBox term="Parallelism and Computability">
+
+Parallel computation does **not** expand the class of computable problems. The Church-Turing thesis still holds — anything a parallel machine can compute, a sequential machine can too (just slower). In general, parallelism does **not** lower the asymptotic complexity class of problems. The speedup is a constant factor (bounded by processor count), not an asymptotic improvement.
+
+</DefinitionBox>
+
+> **📚 Connection to Algorithms:** Think of it this way — if a problem is O(n²) sequentially, throwing P processors at it gives you O(n²/P) at best, which is still O(n²). The complexity class doesn't change. Only in very special formal models (like the NC complexity class, which we'll touch on at the end) do we see problems with fundamentally different parallel complexity.
+
+---
+
+### Amdahl's Law: The Formalization
+
+Gene Amdahl formalized "threads are not a silver bullet" in 1967 with a simple, devastating formula:
+
+<DefinitionBox term="Amdahl's Law">
+
+The question Amdahl's Law answers: **"What is the maximum speedup I can achieve by parallelizing my program?"**
+
+```
+                              1
+Speedup  =  ──────────────────────────────────────────────────
+             (1 - Parallelizable Fraction)        Parallelizable Fraction
+                                            +  ───────────────────────────
+                                                      Processors
+```
+
+- **Parallelizable Fraction:** The portion of your program that can be run in parallel (0 to 1)
+- **Processors:** The number of cores available
+- The serial portion `(1 - Parallelizable Fraction)` always remains, no matter how many processors you add
+
+As Processors → ∞, the maximum speedup approaches **1 / (1 - Parallelizable Fraction)**.
+
+</DefinitionBox>
+
+The key insight: **the serial portion dominates**. Even a small sequential fraction caps your maximum speedup:
+
+| Parallelizable Fraction | 2 cores | 4 cores | 16 cores | 64 cores | ∞ cores |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **50%** | 1.3x | 1.6x | 1.9x | 2.0x | **2x** |
+| **75%** | 1.6x | 2.3x | 3.4x | 3.8x | **4x** |
+| **90%** | 1.8x | 3.1x | 6.4x | 8.8x | **10x** |
+| **95%** | 1.9x | 3.5x | 9.1x | 15.4x | **20x** |
+| **99%** | 2.0x | 3.9x | 13.9x | 39.3x | **100x** |
+
+Even if 90% of your program is perfectly parallelizable, you can never exceed a **10x speedup** — no matter how many cores you have. That remaining 10% sequential work creates an absolute ceiling.
+
+> **💡 Key Insight:** Amdahl's Law tells us that **optimizing the serial portion** of our code is often more valuable than throwing more cores at the parallel portion. This will connect to isoefficiency analysis at the end of this lecture.
+
+---
+
+## Sequential vs Concurrent vs Parallel
+
+Now let's make these ideas concrete with a visualization. We'll define 4 threads with different mixtures of **computation** (CPU-bound) and **memory** (I/O-bound) operations:
+
+| Thread | Operations | Total Time |
+| :--- | :--- | :--- |
+| T1 | 3ms compute | 3ms |
+| T2 | 2ms memory, 1ms compute | 3ms |
+| T3 | 1ms compute, 2ms memory | 3ms |
+| T4 | 1ms memory, 1ms compute, 1ms memory | 3ms |
+
+Now watch what happens under three different execution models:
+
+<ExecutionModelComparison />
+
+### What's Happening in Each Model?
+
+**Sequential (12ms):** Each thread runs to completion before the next starts. The CPU sits idle during memory operations. This is the worst case — no overlap at all.
+
+**Concurrent (7ms):** With one core, we can't compute two things simultaneously. But we **can** overlap memory waits with computation from other threads. While T2 waits for memory, T1 uses the CPU. This interleaving removes idle time. This is what a single-core OS scheduler does!
+
+**Parallel (3ms):** With four cores, every thread gets its own processor. All computation and memory operations happen simultaneously. The total time equals the longest single thread.
+
+> **📌 Key Distinction:**
+> - **Concurrent** = multiple tasks making progress (possibly on one core via interleaving)
+> - **Parallel** = multiple tasks executing at the exact same instant (requires multiple cores)
+>
+> All parallel execution is concurrent, but not all concurrent execution is parallel!
+
+---
+
+## Know Your Hardware
+
+Before parallelizing anything, you need to understand what you're working with. Hardware dictates what's possible and what's efficient.
+
+### Core Count Dictates Your Strategy
+
+| Hardware | Capability | Implication |
+| :--- | :--- | :--- |
+| 1 core | Concurrency only | Interleave tasks, overlap I/O with compute |
+| 4 cores | Limited parallelism | Good for small-scale parallel decomposition |
+| 128 cores (server) | Massive parallelism | Can support many independent workers |
+| GPU (thousands of cores) | Data-parallel powerhouse | Best for identical operations on large data |
+
+Creating 1,000 threads on a 4-core machine doesn't give you 1,000x parallelism — it gives you 4x parallelism with 996 threads waiting in the scheduler queue, paying context-switch overhead every time they swap.
+
+> **📌 Heuristic:** For CPU-bound work, aim for **threads ≈ available cores**. For I/O-bound work, more threads can help because they spend time waiting (not competing for CPU).
+
+### Cache Hierarchy: The Speed of Communication
+
+When threads share data, the **cache hierarchy** determines how fast that communication is:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Main RAM                             │
+│                     ~100ns access                           │
+│                   Shared by ALL cores                       │
+├─────────────────────────────┬───────────────────────────────┤
+│        L3 Cache (~10ns)     │        L3 Cache (~10ns)       │
+│      Shared across cores    │      Shared across cores      │
+├──────────────┬──────────────┼──────────────┬────────────────┤
+│  L2 (~5ns)   │  L2 (~5ns)   │  L2 (~5ns)   │  L2 (~5ns)    │
+│  Per-core    │  Per-core    │  Per-core    │  Per-core     │
+├──────────────┼──────────────┼──────────────┼────────────────┤
+│  L1 (~1ns)   │  L1 (~1ns)   │  L1 (~1ns)   │  L1 (~1ns)    │
+│  Per-core    │  Per-core    │  Per-core    │  Per-core     │
+├──────────────┼──────────────┼──────────────┼────────────────┤
+│   Core 0     │   Core 1     │   Core 2     │   Core 3      │
+└──────────────┴──────────────┴──────────────┴────────────────┘
+```
+
+| Level | Latency | Shared Between | Size |
+| :--- | :--- | :--- | :--- |
+| **L1 Cache** | ~1ns | Just this core | ~64KB |
+| **L2 Cache** | ~5ns | Just this core | ~256KB |
+| **L3 Cache** | ~10ns | All cores on a chip | ~8-32MB |
+| **RAM** | ~100ns | All cores | ~16-64GB |
+
+> **💡 Key Insight:** L3 cache is the **highest level of fast shared memory** between threads. If your threads' shared data fits in L3, communication is 10x faster than going to RAM. Design your decomposition to keep shared data in cache!
+
+### GPU Awareness
+
+GPUs have **thousands of simple cores** optimized for doing the same operation across massive data. If your problem is data-parallel (same operation, lots of data), a GPU can be orders of magnitude faster than a CPU.
+
+> **📌 Rule of Thumb:** Don't force the CPU to do what a GPU does better, and don't force a GPU to do what a CPU does better. CPUs excel at complex, branching logic. GPUs excel at uniform, data-parallel computation.
+
+---
+
+## The Four Key Parallelization Concerns
+
+When approaching a new problem for parallel execution, you need a systematic framework. These four concerns — adapted from Ian Foster's methodology — give you a structured way to think through any parallelization challenge:
+
+### 1. Partitioning (Decomposition)
+
+<DefinitionBox term="Partitioning">
+
+**Partitioning** is the process of decomposing a problem into smaller subproblems that can be executed in parallel. The goal is to maximize the number of **independent** subproblems.
+
+</DefinitionBox>
+
+This is the first and most important step. Just like in your algorithms class with **divide and conquer**, the key is identifying **optimal substructure** — can the problem be broken into pieces that don't depend on each other?
+
+Two main strategies exist:
+
+| Strategy | Approach | Example |
+| :--- | :--- | :--- |
+| **Data decomposition** | Split the *input data* into chunks | Array search: each thread gets a slice |
+| **Task decomposition** | Split the *computation* into stages | Pipeline: each thread does one step |
+
+We'll explore these in depth in the next section.
+
+> **📚 Cross-disciplinary — Compilers/Hardware:** Your CPU already does a form of partitioning! Instruction-Level Parallelism (ILP) in CPU pipelines decomposes your sequential code into parallel micro-operations behind the scenes. The hardware is doing functional decomposition of instruction execution automatically.
+
+### 2. Communication
+
+<DefinitionBox term="Communication">
+
+**Communication** is the exchange of data or signals between threads. The goal is to **minimize** communication, as it introduces overhead and can become the bottleneck.
+
+</DefinitionBox>
+
+Depending on your decomposition strategy, threads may need to exchange data:
+
+| Communication Type | Mechanism | Overhead |
+| :--- | :--- | :--- |
+| **Shared memory** | Threads read/write common variables | Fast but needs synchronization |
+| **Message passing** | Threads send data through channels | More explicit, potentially slower |
+| **None** | Threads are fully independent | Ideal — "embarrassingly parallel" |
+
+<DefinitionBox term="Embarrassingly Parallel">
+
+A problem is **embarrassingly parallel** when it can be divided into completely independent subproblems with **zero communication** between them. Examples: rendering independent pixels, Monte Carlo simulations, brute-force search.
+
+</DefinitionBox>
+
+Our array search example is embarrassingly parallel — each thread searches its chunk independently and reports a boolean. No thread needs to talk to any other during computation.
+
+> **💡 Connection to Rust:** Remember `Arc<Mutex<T>>` from LN6? That's shared-memory communication — multiple threads accessing the same data through atomic reference counting and mutual exclusion. Rust's `mpsc::channel` provides message-passing communication instead.
+
+> **📚 Cross-disciplinary — MapReduce / Big Data:** Google's MapReduce paper (2004) formalized data-parallel decomposition for distributed systems where communication happens *over the network*. The "shuffle" phase in MapReduce is entirely about communication between distributed workers. If you take distributed systems courses, you'll see these same concepts scaled to thousands of machines.
+
+### 3. Synchronization
+
+<DefinitionBox term="Synchronization">
+
+**Synchronization** ensures that threads respect **task dependencies** and don't corrupt shared data. It maintains the correctness guarantees that sequential execution provides for free.
+
+</DefinitionBox>
+
+Even in parallel code, some operations must happen in a specific order:
+- A result must be computed before it can be used
+- A shared counter must be updated atomically
+- A file must be written before it can be read
+
+The danger is **shared mutable data**. If two threads modify the same variable without coordination, you get a **data race** — unpredictable results that change every run.
+
+```rust
+// DANGER: Data race!
+// Two threads incrementing the same counter without synchronization
+static mut COUNTER: i32 = 0;
+
+// Thread 1: reads 5, computes 6, writes 6
+// Thread 2: reads 5 (before Thread 1 writes!), computes 6, writes 6
+// Expected: 7, Actual: 6 — a lost update!
+```
+
+> **💡 Connection to Rust:** This is exactly why the ownership system exists! Rust's borrow checker prevents data races **at compile time**. The `&mut` exclusivity rule is essentially a synchronization primitive built into the language — you can only have one mutable reference at a time, preventing concurrent mutation. Those strict rules from LN3 finally pay off here!
+
+> **🔮 Future Connection:** In LN12, we'll explore mutexes, semaphores, condition variables, and the dreaded **deadlock** problem. For now, just know that synchronization is necessary but expensive — minimize it.
+
+### 4. Load Balancing
+
+<DefinitionBox term="Load Balancing">
+
+**Load Balancing** is the distribution of work among processors so that all processors are **equally busy**. Unbalanced loads waste resources — one thread finishes early and sits idle while another is still grinding.
+
+</DefinitionBox>
+
+A parallel program is only as fast as its **slowest thread**. If you split work unevenly:
+
+```
+Thread 1: ████████████████████████ (90% of work)
+Thread 2: ██ (3%)
+Thread 3: ██ (3%)
+Thread 4: ██ (4%)
+
+Total time ≈ Thread 1 alone — the other threads barely help!
+```
+
+Load balancing considerations:
+- **Core count:** Don't decompose into 128 tasks for 2 cores (or 2 tasks for 128 cores)
+- **Cache size:** Keep working sets within cache for each thread
+- **Memory bandwidth:** Don't have all threads fighting over the same memory bus
+- **Heterogeneous hardware:** If you have a GPU, use it for its strengths (massive data parallelism)
+
+This ties directly back to Amdahl's Law: an unbalanced load where one thread has most of the work creates an effectively serial bottleneck, capping your speedup.
+
+> **📚 Cross-disciplinary — Machine Learning:** Training neural networks uses data parallelism (batch processing across GPUs) and model parallelism (splitting the model layers across devices) — exactly the two decomposition strategies. Load balancing across GPUs is a real engineering challenge in ML systems: if one GPU gets a harder batch, it becomes the bottleneck and all other GPUs wait.
+
+### The Four Concerns as a Process
+
+Think of these concerns as a pipeline for approaching any parallel problem:
+
+```
+┌──────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌───────────────┐
+│  PARTITION    │───▶│  COMMUNICATION   │───▶│ SYNCHRONIZATION │───▶│ LOAD BALANCE  │
+│              │    │                  │    │                 │    │               │
+│ Decompose    │    │ Minimize data    │    │ Maintain order  │    │ Distribute    │
+│ into sub-    │    │ exchange between │    │ where required, │    │ work equally  │
+│ problems     │    │ threads          │    │ protect shared  │    │ across your   │
+│              │    │                  │    │ mutable data    │    │ hardware      │
+└──────────────┘    └──────────────────┘    └─────────────────┘    └───────────────┘
+```
+
+---
+
+## Decomposition Strategies
+
+Now let's dive deeper into the two major recurring parallelization strategies we previewed in Partitioning.
+
+### Data Parallelism (Domain Decomposition)
+
+<DefinitionBox term="Data Parallelism">
+
+**Data parallelism** (domain decomposition) divides the **input data** into chunks and assigns each chunk to a thread. Every thread performs the **same operation** on its chunk.
+
+</DefinitionBox>
+
+Think of it as a **bounty board** or **worker pool**: there's a big pile of work, and each worker grabs a piece and does the same thing to it.
+
+#### How It Works
+
+```
+Input Data: [████████████████████████████████████████████]
+                    ↓ SPLIT ↓
+Thread 1: [██████████]  →  same_operation()  →  result_1
+Thread 2: [██████████]  →  same_operation()  →  result_2
+Thread 3: [██████████]  →  same_operation()  →  result_3
+Thread 4: [██████████]  →  same_operation()  →  result_4
+                    ↓ COLLECT ↓
+Final Result: combine(result_1, result_2, result_3, result_4)
+```
+
+#### Examples
+
+- **Ray tracing:** Each thread casts rays for a different region of the image
+- **Frame rendering:** Split the screen into tiles, each thread renders a tile
+- **Monte Carlo simulation:** Each thread runs independent random trials
+- **Array search:** Each thread searches a different chunk (our opening example!)
+- **Image processing:** Each thread processes different pixels
+
+#### Rust Example
+
+```rust
+use std::thread;
+
+fn parallel_sum(data: &[i64]) -> i64 {
+    let num_threads = 4;
+    let chunk_size = data.len() / num_threads;
+    let mut handles = vec![];
+
+    for chunk in data.chunks(chunk_size) {
+        let chunk = chunk.to_vec();
+        let handle = thread::spawn(move || {
+            chunk.iter().sum::<i64>()  // Same operation on each chunk
+        });
+        handles.push(handle);
+    }
+
+    // Collect and combine results
+    handles.into_iter()
+        .map(|h| h.join().unwrap())
+        .sum()
+}
+```
+
+#### Key Characteristics
+
+| Property | Data Parallelism |
+| :--- | :--- |
+| **Thread behavior** | All threads do the same thing |
+| **Division** | Split the data |
+| **Communication** | Minimal (usually just collecting results) |
+| **Scalability** | Excellent with large data |
+| **Best for** | Large datasets, uniform operations |
+
+#### Human Analogy: The Machine Shop
+
+Drawing on my machining background — imagine a busy **mechanic's workshop**:
+
+- There are **many cars** waiting for oil changes
+- Each mechanic works on **one car** independently
+- Each mechanic has their **own set of tools** in their bay
+- Mechanics **rarely need to share** work or communicate
+- When all cars are done, the shop's work is complete
+
+This is data parallelism in action: same operation (oil change), different data (different cars), independent workers (mechanics), minimal communication.
+
+> **📚 Cross-disciplinary — MapReduce:** Google's MapReduce is data parallelism at planetary scale. The "Map" phase is embarrassingly parallel — every worker applies the same function to its chunk of data. The "Reduce" phase collects results. This is the exact same pattern as our parallel search, just distributed across thousands of machines instead of threads.
+
+> **📚 Cross-disciplinary — ML Training:** Batch Stochastic Gradient Descent across multiple GPUs is data parallelism — each GPU processes a different mini-batch through the same model, then gradients are averaged.
+
+---
+
+### Task Parallelism (Functional Decomposition)
+
+<DefinitionBox term="Task Parallelism">
+
+**Task parallelism** (functional decomposition) divides the **computation** into distinct stages. Each thread performs a **unique operation**, and data flows through the stages like an assembly line.
+
+</DefinitionBox>
+
+Think of it as an **assembly line** or **pipeline**: each station has one specialized job, and items flow through all stations in sequence.
+
+#### How It Works
+
+```
+Input → [Stage 1] → [Stage 2] → [Stage 3] → [Stage 4] → Output
+         Thread 1    Thread 2    Thread 3    Thread 4
+
+Item A:  ████
+Item B:       ████
+Item C:            ████
+Item D:                 ████
+
+         ^--- Multiple items "in flight" at different stages!
+```
+
+The key insight: **throughput increases** even though latency per item stays the same. While Thread 1 processes Item B, Thread 2 is processing Item A. Multiple items are "in flight" simultaneously.
+
+#### Examples
+
+- **ARM RISC CPU pipeline:** Fetch → Decode → Execute → Memory → Writeback
+- **GPU graphics pipeline:** Vertex → Geometry → Rasterization → Fragment → Output
+- **Unix pipes:** `cat file | grep pattern | sort | uniq -c`
+- **Video encoding:** Decode → Transform → Quantize → Entropy encode
+
+#### Rust Example
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn pipeline_example(input: Vec<i32>) -> Vec<i32> {
+    let (tx1, rx1) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
+    let (tx3, rx3) = mpsc::channel();
+
+    // Stage 1: Double each value
+    thread::spawn(move || {
+        for val in input {
+            tx1.send(val * 2).unwrap();
+        }
+    });
+
+    // Stage 2: Filter evens
+    thread::spawn(move || {
+        for val in rx1 {
+            if val % 4 == 0 {
+                tx2.send(val).unwrap();
+            }
+        }
+    });
+
+    // Stage 3: Add 1
+    thread::spawn(move || {
+        for val in rx2 {
+            tx3.send(val + 1).unwrap();
+        }
+    });
+
+    // Collect results
+    rx3.iter().collect()
+}
+```
+
+#### Key Characteristics
+
+| Property | Task Parallelism |
+| :--- | :--- |
+| **Thread behavior** | Each thread does a different job |
+| **Division** | Split the computation into stages |
+| **Communication** | High (data passes between stages) |
+| **Scalability** | Limited by the number of stages |
+| **Best for** | Multi-stage processing, streaming data |
+
+#### Human Analogy: The Car Wash
+
+Imagine an **automatic car wash**:
+
+- Cars line up on a **conveyor belt**
+- Each station does **one job**: soap, scrub, rinse, dry
+- Each station **only does that one job**, over and over
+- Cars move through stages — multiple cars are being washed **simultaneously**
+- A car isn't "done faster," but the **throughput** is much higher
+
+This is task parallelism: different operations (soap/scrub/rinse/dry), same data type (cars), pipeline flow, high throughput.
+
+> **📚 Cross-disciplinary — GPU Graphics:** The GPU graphics pipeline (vertex → geometry → rasterization → fragment → output) is the canonical task-parallel pipeline. Each stage runs on dedicated hardware and processes different primitives simultaneously.
+
+> **📚 Cross-disciplinary — CPU Design:** The RISC pipeline (fetch/decode/execute/memory/writeback) is task parallelism at the instruction level — multiple instructions are "in flight" at different stages, just like cars in the car wash.
+
+---
+
+### Combining Both Strategies
+
+Real systems almost always combine both strategies:
+
+| System | Task Parallelism | Data Parallelism |
+| :--- | :--- | :--- |
+| **GPU** | Pipeline stages (vertex → fragment) | Each stage processes thousands of items |
+| **Video Encoding** | Pipeline (decode → transform → encode) | Each stage processes many blocks |
+| **Web Server** | Request pipeline (parse → auth → process → respond) | Multiple requests handled simultaneously |
+
+> **💡 Key Insight:** This is why GPUs are so powerful — they exploit **both** dimensions of parallelism. The pipeline provides task parallelism, and within each stage, thousands of cores provide data parallelism.
+
+### Looking Ahead: The Origami Activity
+
+In our next class activity — **AC1: Getting Folded** — you'll physically experience both decomposition strategies through competitive origami. The vocabulary and framework we've built today will directly apply as you decide whether to use a "bounty board" (data parallel) or "assembly line" (task parallel) strategy to fold the most origami in a fixed time. Choose wisely!
+
+---
+
+## Formal Theory Extensions
+
+Everything we've covered today has deep formal underpinnings that connect back to your math and algorithms courses. This section introduces the key theoretical tools that make parallel analysis rigorous.
+
+### The Work-Depth Model
+
+Let's formalize the intuitions we've been building:
+
+<DefinitionBox term="Work and Depth">
+
+- **Work (W):** The total number of operations in a computation — equivalent to sequential execution time. Think of it as the "area under the Gantt chart."
+- **Depth (D) / Span:** The longest chain of sequential data dependencies — the **critical path**. This is the execution time with *unlimited* processors.
+
+</DefinitionBox>
+
+The ratio **W / D** gives us the **parallelism** of a problem — the maximum number of processors that can usefully contribute.
+
+Let's revisit our examples through this lens:
+
+| Problem | Work (W) | Depth (D) | Parallelism (W/D) | Verdict |
+| :--- | :--- | :--- | :--- | :--- |
+| Array Search | O(n) | O(1) fan-in | O(n) | Highly parallel |
+| Fibonacci | O(n) | O(n) | O(1) | Inherently sequential |
+| Array Sum | O(n) | O(log n) tree | O(n/log n) | Good parallelism |
+
+Fibonacci has W = O(n) and D = O(n), so parallelism = O(1) — confirming our earlier intuition that it's inherently sequential! The parallel search has high parallelism because each comparison is independent.
+
+### Brent's Theorem
+
+The fundamental theorem that bridges the work-depth model to real hardware. The intuition: **"How long does my program actually take on a specific number of processors?"**
+
+<DefinitionBox term="Brent's Theorem">
+
+For a parallel computation, the execution time on a real machine is bounded by:
+
+```
+                                    Total Work - Critical Path
+Time on P Processors  ≤  Critical Path  +  ─────────────────────────
+                                                  Processors
+```
+
+Or more compactly:
+
+```
+Time(processors)  ≤  Depth  +  (Work - Depth) / Processors
+```
+
+</DefinitionBox>
+
+**Reading this equation:** You *always* pay the critical path cost — that's the sequential dependency chain that no amount of cores can eliminate. The remaining work (Total Work minus the critical path) can be divided among your processors. This is a more nuanced version of Amdahl's Law — it accounts for the actual **structure** of the computation, not just a percentage.
+
+**Concrete example — Parallel Array Search:**
+
+Our search has Work = n (check every element) and Depth = 1 (just a final fan-in to combine booleans). Plugging in:
+
+```
+Time(processors)  ≤  1  +  (n - 1) / processors
+```
+
+With 4 processors and n = 1,000,000: Time ≤ 1 + 999,999/4 ≈ **250,000** — nearly a perfect 4x speedup! The critical path is so small (just 1 step) that almost all the work is parallelizable.
+
+**Concrete example — Array Sum (Reduction Tree):**
+
+Summing n numbers with a tree-based reduction has Work = n and Depth = log₂(n) (the tree's height). Plugging in:
+
+```
+Time(processors)  ≤  log₂(n)  +  (n - log₂(n)) / processors
+```
+
+With n = 1,000,000 and processors = 50,000: Time ≤ 20 + (999,980 / 50,000) ≈ **40 steps**. The critical path (20 levels of the tree) is a real constraint here, but we still get massive speedup from the sequential ~1,000,000 steps.
+
+### Isoefficiency Analysis
+
+This is where **Calculus 3 meets algorithms**. Amdahl's Law tells us the ceiling; isoefficiency analysis tells us the **growth rate** we need to maintain efficiency as we scale.
+
+The intuition starts with a simple question: **"What fraction of my processors' time is actually doing useful work?"**
+
+**Efficiency** measures exactly that:
+
+```
+                    Speedup we actually got
+Efficiency  =  ────────────────────────────────
+                Number of Processors we used
+
+                            1
+            =  ──────────────────────────────
+                1 + (Total Overhead / Problem Size)
+```
+
+Here, **Total Overhead** captures everything that *isn't* useful work: communication between threads, synchronization waiting, load imbalance, and idle time. **Problem Size** is the total useful work.
+
+When overhead is small relative to problem size, efficiency is close to 1 (100%) — every processor is busy doing useful work. When overhead grows, efficiency drops — processors spend more time coordinating than computing.
+
+**The key question:** As we add more processors, overhead typically grows. So how much bigger does our problem need to be to keep overhead from dominating?
+
+<DefinitionBox term="Isoefficiency Function">
+
+The **isoefficiency function** answers: "How fast must my problem size grow as I add processors to maintain the same efficiency?" Formally, we solve:
+
+```
+Problem Size  =  K  ×  Total Overhead(Problem Size, Processors)
+```
+
+for Problem Size in terms of Processors, where K is a constant determined by our desired efficiency level. The growth rate of Problem Size as a function of Processors is the isoefficiency — and slower growth means better scalability.
+
+</DefinitionBox>
+
+Different overhead growth rates lead to very different scalability:
+
+| Isoefficiency | What It Means | Scalability |
+| :--- | :--- | :--- |
+| **Problem Size = O(Processors)** | Double processors → double the problem to stay efficient | Best — linearly scalable |
+| **Problem Size = O(Processors · log Processors)** | Slightly faster growth needed (e.g., parallel sum) | Very good |
+| **Problem Size = O(Processors²)** | Double processors → quadruple the problem | Poor |
+| **Problem Size = O(2^Processors)** | Problem must grow exponentially | Not scalable |
+
+### The 3D Isoefficiency Surface
+
+Now for the Calculus 3 payoff. Efficiency is a function of **two variables**: processor count P and problem size n. We can visualize this as a **3D surface**:
+
+- **X-axis:** Number of processors (P)
+- **Y-axis:** Problem size (n), log scale
+- **Z-axis:** Efficiency (E), from 0% to 100%
+
+The **contour lines** on this surface at constant efficiency values (E = 50%, 75%, 90%) are the **isoefficiency curves** — they trace the path you must follow as you scale processors to maintain your desired efficiency.
+
+Interact with the surface below — drag to orbit, scroll to zoom, and switch between overhead models to see how the landscape changes:
+
+<IsoefficiencySurface />
+
+Notice how:
+- The **linear overhead** model maintains a high, flat efficiency surface — nearly everything is efficient
+- The **log-linear model** shows a gentle slope — you need to grow the problem a bit faster than the processor count
+- The **quadratic overhead** model shows a steep **cliff** — efficiency drops rapidly as processors increase unless the problem size grows quadratically
+
+### Gustafson's Law: The Optimist's Response
+
+Amdahl's Law paints a pessimistic picture because it assumes a **fixed problem size** — you have one job and you're trying to finish it faster. But John Gustafson asked a different question: **"What if, when we get more hardware, we solve bigger problems instead?"**
+
+<DefinitionBox term="Gustafson's Law">
+
+```
+Scaled Speedup  =  Processors  -  Serial Fraction × (Processors - 1)
+```
+
+Where **Serial Fraction** is the portion of work that can't be parallelized (0 to 1). Instead of measuring how much faster we solve the *same* problem, this measures how much *more work* we can do in the same time.
+
+</DefinitionBox>
+
+**Reading this equation:** With 100 processors and a 5% serial fraction: Scaled Speedup = 100 - 0.05 × 99 = **95.05x**. Compare this to Amdahl's prediction of only ~17x for the same scenario! The difference is the assumption: Amdahl holds the problem fixed; Gustafson scales the problem with the hardware.
+
+The insight: in practice, when people get faster hardware, they don't solve the same spreadsheet faster — they build **bigger simulations**, train **larger models**, render **higher resolution** images. Gustafson reframes parallelism from "how much faster?" to "how much more can we do?" — and this connects directly to the isoefficiency analysis above.
+
+### The NC Complexity Class
+
+> **📚 Open Problem in CS Theory:** NC (Nick's Class) is the class of problems solvable in **polylogarithmic time** O(log^k n) with **polynomially many processors**. Problems in NC are considered "efficiently parallelizable." The open question **NC vs P** — is every efficiently solvable problem *also* efficiently parallelizable? — is one of the major unsolved problems in theoretical computer science. This connects to our earlier observation that parallelism doesn't generally lower complexity classes.
+
+---
+
+## Summary
+
+| Concept | Key Point |
+| :--- | :--- |
+| **Threads aren't magic** | Overhead (creation, context switch, sync) can exceed the benefit |
+| **Amdahl's Law** | Serial fraction caps maximum speedup, no matter how many cores |
+| **Sequential** | One task at a time, no overlap |
+| **Concurrent** | Multiple tasks interleaved on shared cores |
+| **Parallel** | Multiple tasks executing simultaneously on separate cores |
+| **Partitioning** | Decompose the problem into independent subproblems |
+| **Communication** | Minimize data exchange between threads |
+| **Synchronization** | Maintain order and protect shared mutable data |
+| **Load Balancing** | Distribute work equally across hardware |
+| **Data Parallel** | Same operation, different data chunks (worker pool) |
+| **Task Parallel** | Different operations, data flows through stages (pipeline) |
+| **Work** | Total operations in a computation — the sequential execution time |
+| **Depth** | Critical path (longest dependency chain) — time with unlimited processors |
+| **Brent's Theorem** | Time ≤ Critical Path + (Work - Critical Path) / Processors |
+| **Isoefficiency** | How fast must problem size grow with processors to stay efficient? |
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Parallel Execution** | Multiple tasks executing at the exact same instant on separate cores |
+| **Concurrent Execution** | Multiple tasks making progress, possibly interleaved on one core |
+| **Embarrassingly Parallel** | A problem requiring zero communication between parallel tasks |
+| **Amdahl's Law** | Speedup = 1 / ((1 - Parallelizable Fraction) + Parallelizable Fraction / Processors) |
+| **Work** | Total number of operations in a computation (sequential execution time) |
+| **Depth** | Longest chain of sequential dependencies — the critical path |
+| **Brent's Theorem** | Time ≤ Depth + (Work - Depth) / Processors |
+| **Isoefficiency** | Growth rate of problem size needed to maintain efficiency as processors scale |
+
+**The Four Concerns:**
+
+```
+1. PARTITION    →  Break into independent subproblems
+2. COMMUNICATE  →  Minimize data exchange
+3. SYNCHRONIZE  →  Maintain correctness of shared data
+4. BALANCE      →  Distribute work equally across hardware
+```
+
+**Data vs Task Parallelism:**
+
+| Property | Data Parallel | Task Parallel |
+| :--- | :--- | :--- |
+| Divides | Input data | Computation stages |
+| Threads do | Same operation | Different operations |
+| Analogy | Machine shop | Car wash |
+| Communication | Low | High (between stages) |
+| Scalability | Excellent | Limited by stage count |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [Operating Systems: Three Easy Pieces — Concurrency](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free, excellent OS textbook with great concurrency chapters
+- [An Introduction to Parallel Programming (Pacheco)](https://www.cs.usfca.edu/~peter/ipp/) — The standard parallel programming textbook
+- [Rust Atomics and Locks (Mara Bos)](https://marabos.nl/atomics/) — Free book on low-level concurrency in Rust
+
+### Foundational Papers
+
+- [Amdahl's Law (1967)](https://en.wikipedia.org/wiki/Amdahl%27s_law) — The ceiling on parallel speedup
+- [Gustafson's Law (1988)](https://en.wikipedia.org/wiki/Gustafson%27s_law) — The scaling perspective
+- [Isoefficiency: Measuring Scalability (IEEE, 1993)](https://ieeexplore.ieee.org/document/242438) — The original isoefficiency paper
+- [MapReduce: Simplified Data Processing on Large Clusters (Google, 2004)](https://research.google/pubs/pub62/) — Data parallelism at planetary scale
+- [Brent's Theorem and Work-Depth Analysis](https://en.wikipedia.org/wiki/Analysis_of_parallel_algorithms) — Formal parallel algorithm analysis
+
+### Video Resources
+
+- [Computerphile: Parallel Computing](https://www.youtube.com/results?search_query=computerphile+parallel+computing) — Clear visual explanations
+- [MIT 6.172: Performance Engineering](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/) — Deep dive into parallelism and performance
+
+### Rust Concurrency
+
+- [The Rust Book: Fearless Concurrency](https://doc.rust-lang.org/book/ch16-00-concurrency.html) — Rust's approach to safe threading
+- [Rayon: Data Parallelism in Rust](https://docs.rs/rayon/latest/rayon/) — The go-to library for data-parallel Rust
+- [Tokio Tutorial](https://tokio.rs/tokio/tutorial) — Async Rust with green threads
+
+</LectureResources>
