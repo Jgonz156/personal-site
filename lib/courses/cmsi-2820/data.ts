@@ -358,14 +358,7 @@ const allEvents: CourseEvent[] = [
     standard: "Collections",
     contentUrl: "/cmsi-2820/ln8",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/imbrdZl74I0fltcnIhOPTOzbbrA0bWNAgYFM_jPi0AcUF7ZrtaNSO9dAHLyPYP37.z59k5spVg6Qkq5PS",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/ZKHpLWk-N235Iix0i89NGRHmwDIbLo6F9plKWq3Nqc3tO3Yp7cm8prPb1iVpYyUI.1Q9hppiesoSuu7La",
-      },
+
     ],
   },
   {
@@ -379,14 +372,7 @@ const allEvents: CourseEvent[] = [
     standard: "Collections",
     contentUrl: "/cmsi-2820/ln9",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/ET9vj2YYYUqk4HYlSzqc0mckRSjtY53Ad1H2Vpr4lnc7cK8MyWQSyzvnqWwSjF2h.HfWKWl5j5e-su3oj",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/ICQNejqDeCzt2xB0nqzjaMmKXmoalManRFG-P7s9IcgTv7AayjnuvoNBqYIyzyd5.VhX4S3ffQEzigHWA",
-      },
+
     ],
   },
   {
@@ -400,14 +386,7 @@ const allEvents: CourseEvent[] = [
     standard: "Collections",
     contentUrl: "/cmsi-2820/ln10",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/IwDztL9vPRJBPiX9yaIfvK1ILH2VSPoBYRZZJ7nwIOHAt2LTEvonpNWh2bZ6jjgU.y8wQ4lIIjYjJoKwT",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/sKqX7ShRhWS2KNWTspDnjZBp5mYTj4FVYzIQenE3OGiTjeo0Ry_X13v8jp_aZQ.8FQqNOepXYdSOySO",
-      },
+
     ],
   },
   {
@@ -421,14 +400,7 @@ const allEvents: CourseEvent[] = [
     standard: "Collections",
     contentUrl: "/cmsi-2820/ln11",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/UqAl9mjtGDdxPNXRYdEoDD4RMjg4dYsasfwDh3jpCxwbR6S9iGjILho5iV0Pvw.VolcdDa3Ev54QuWT",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/S4BDDtyO2bCyCvwUqfaPlyVCjcuNIg4klJb07PUaFdC5m4YR6ACHjr67JBQ4u3ta.l_p1ZOVJstMzh5Wm",
-      },
+
     ],
   },
   {
