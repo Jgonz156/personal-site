@@ -1,4 +1,5 @@
 import { QuestionBox } from "@/components/question-box"
+import { ActivityLeaderboard } from "@/components/activity-leaderboard"
 
 ## Overview
 
@@ -53,6 +54,38 @@ This activity consists of **4 competitive rounds** (20 minutes each):
 4. **Stage 4:** Same teams swap roles (Tulip)
 
 **Optional Stage 5:** Free-form - combine techniques however you want!
+
+<ActivityLeaderboard data={{
+  activityTitle: "Getting Folded",
+  showRole: true,
+  results: [
+    // Add your semester data here. Example:
+    // { semester: "Fall 2024", studentCount: 24, totalProduction: 47, stages: [
+    //   { stageNumber: 1, stageLabel: "Sanbou-box", teams: [
+    //     { role: "data", count: 12 }, { role: "task", count: 15 }
+    //   ]},
+    //   { stageNumber: 2, stageLabel: "Sanbou-box", teams: [
+    //     { role: "task", count: 10 }, { role: "data", count: 10 }
+    //   ]}
+    // ]}
+    {semester: "Fall 2025", studentCount: 32, totalProduction: 126, stages : [
+      {stageNumber: 1, stageLabel: "Sanbou-box", durationMinutes: 20, teams: [
+        {role: "data", count: 29}, {role: "task", count: 28},
+      ]},
+      {stageNumber: 2, stageLabel: "Sanbou-box", durationMinutes: 20, teams: [
+        {role: "task", count: 33}, {role: "data", count: 36},
+      ]}
+    ]},
+    {semester: "Spring 2025", studentCount: 4, totalProduction: 22, stages : [
+      {stageNumber: 1, stageLabel: "Sanbou-box", durationMinutes: 20, teams: [
+        {role: "data", count: 9},
+      ]},
+      {stageNumber: 2, stageLabel: "Sanbou-box", durationMinutes: 20, teams: [
+        {role: "task", count: 13},
+      ]}
+    ]},
+  ],
+}} />
 
 ---
 

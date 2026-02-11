@@ -1,4 +1,5 @@
 import { QuestionBox } from "@/components/question-box"
+import { ActivityLeaderboard } from "@/components/activity-leaderboard"
 
 ## Overview
 
@@ -50,6 +51,28 @@ Set a timer for 20 minutes per stage. When the timer runs out, tally scores and 
 **Scoring:** Each group tracks their own score. At the end, compare performance across different I/O types. Did some activities naturally produce higher scores? Why might that be?
 
 </QuestionBox>
+
+<ActivityLeaderboard data={{
+  activityTitle: "Ring Around the I/Osie",
+  results: [
+    // Add your semester data here. Example:
+    // { semester: "Spring 2025", studentCount: 27, totalProduction: 94, stages: [
+    //   { stageNumber: 1, stageLabel: "Block Devices", durationMinutes: 20, teams: [
+    //     { count: 12 }, { count: 8 }, { count: 15 }
+    //   ]},
+    //   { stageNumber: 2, stageLabel: "Character Devices", durationMinutes: 20, teams: [
+    //     { count: 10, timeToCompleteMinutes: 14 },
+    //     { count: 14, timeToCompleteMinutes: 18 },
+    //     { count: 9 }
+    //   ]},
+    //   { stageNumber: 3, stageLabel: "Network Devices", durationMinutes: 20, teams: [
+    //     { count: 7, timeToCompleteMinutes: 12 },
+    //     { count: 6, timeToCompleteMinutes: 16 },
+    //     { count: 12, timeToCompleteMinutes: 11 }
+    //   ]}
+    // ]}
+  ],
+}} />
 
 ---
 
