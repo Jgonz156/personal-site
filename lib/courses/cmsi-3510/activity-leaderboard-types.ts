@@ -19,6 +19,8 @@ export interface ActivityClassResult {
   semester: string
   studentCount: number
   totalProduction: number
+  /** Optional: per-team sizes when teams weren't evenly split. teamSizes[i] = students on team i. */
+  teamSizes?: number[]
   stages?: StageResult[]
 }
 

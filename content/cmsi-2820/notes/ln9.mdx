@@ -1,0 +1,830 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { QuestionBox } from "@/components/question-box"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap
+
+Last time we explored **tuples** — ordered collections where position is everything. We defined tuple equality as positional comparison, introduced the indexing and concatenation operators, and discovered that product types and even operator type judgments are secretly built on tuples.
+
+Most importantly, we saw that tuples express the fundamental nature of **order** — programs, objects, and even numbers can all be captured by putting things in the right positions.
+
+---
+
+## Today's Agenda
+
+Today we meet tuples' older sibling: the **set**. Where tuples care about order, sets care about one thing only — **membership**.
+
+- **Introducing Sets** — Curly braces and the two new rules
+- **Same Set, Different Looks** — When different notation means the same set
+- **Tuples vs Sets** — Order vs membership
+- **The Membership Operator** — Asking "are you in the set?"
+- **Set Equality** — Building it up from membership
+- **Subset and Superset** — Half the equality story
+- **Expressive Power** — Concurrent programs and tags
+- **A Brief History of Set Syntax** — Prose, literal, and set builder notation
+- **Cardinality** — Measuring the size of sets
+- **Sets in Python** — Comprehensions and beyond
+
+---
+
+## Introducing Sets
+
+A **set** is a collection of items enclosed in curly braces:
+
+<DisplayMath formula="\{1, 2, 3\}" />
+
+That looks a lot like a tuple — just with different brackets. But sets obey **two new rules** that make them fundamentally different:
+
+<DefinitionBox term="Set (Informal)">
+
+A **set** is an unordered collection of distinct elements. Two rules distinguish sets from tuples:
+
+1. **No ordering** — elements have no position. There is no "first" or "second" element.
+2. **No duplicates** — each element appears at most once. Listing an element multiple times doesn't change the set.
+
+</DefinitionBox>
+
+These two rules might seem like minor restrictions, but they completely change how sets behave. Let's see why.
+
+---
+
+## Same Set, Different Looks
+
+Because sets have no ordering and no duplicates, many different-looking expressions can describe the **same** set.
+
+### Order Doesn't Matter
+
+<DisplayMath formula="\{1, 2, 3\} = \{3, 1, 2\} = \{2, 3, 1\}" />
+
+All three are the same set. The elements are identical — only the notation differs. Compare this with tuples, where reordering changes everything:
+
+<DisplayMath formula="(1, 2, 3) \neq (3, 1, 2) \neq (2, 3, 1)" />
+
+### Duplicates Collapse
+
+<DisplayMath formula="\{1, 1, 2, 3, 3, 3\} = \{1, 2, 3\}" />
+
+Writing an element multiple times doesn't add anything new. It's like writing "the the" in English — the meaning comes through, but the repetition is redundant. We don't reject it as an error; we just treat it as a verbose way of writing the same set.
+
+### Combined
+
+<DisplayMath formula="\{3, 1, 2, 1, 3\} = \{1, 2, 3\}" />
+
+Reorder, duplicate, scramble — as long as the underlying collection of distinct elements is the same, the sets are equal.
+
+> **💡 Key Insight:** A set is defined entirely by **which elements it contains**, not by how you wrote them down. The notation is just a way to communicate the set's membership — and many different notations can communicate the same membership.
+
+---
+
+## Tuples vs Sets
+
+Let's put the two collections side by side to crystalize the difference:
+
+| Property | Tuple | Set |
+| :--- | :--- | :--- |
+| Syntax | $(a, b, c)$ | $\{a, b, c\}$ |
+| Ordering | Ordered (position matters) | Unordered |
+| Duplicates | Allowed | Not allowed |
+| Equality test | Positional comparison | Membership comparison |
+| Fundamental concept | Sequence / order | Collection / membership |
+| Python analog | `tuple`, `list` | `set`, `frozenset` |
+
+The key difference is philosophical: tuples answer "**what's at position $i$?**" while sets answer "**is $x$ a member?**"
+
+These aren't competing — they complement each other. Many structures use both: a database table is a **set** of **tuples** (rows). A running computer is a **set** of **tuple**-structured processes. Order *within* each item, membership *across* the collection.
+
+---
+
+## The Membership Operator
+
+Before we can formally define set equality, we need a new tool. With tuples, we checked equality position by position. But sets don't have positions — so what do we check?
+
+We check **membership**: is a given element in the set or not?
+
+<DefinitionBox term="Membership Operator (∈)">
+
+The **membership operator** $\in$ tests whether an element belongs to a set:
+
+<DisplayMath formula="a \in A" />
+
+reads as "**$a$ is a member of $A$**" or "**$a$ is in $A$**."
+
+Type judgment:
+
+<DisplayMath formula="\in\; : (T, \text{Set}) \to \text{Bool}" />
+
+The left operand is a value, the right operand is a set. The result is a boolean.
+
+</DefinitionBox>
+
+**Examples:**
+
+| Expression | Result | Why |
+| :--- | :--- | :--- |
+| $1 \in \{1, 2, 3\}$ | $T$ | 1 is in the set |
+| $5 \in \{1, 2, 3\}$ | $F$ | 5 is not in the set |
+| $\text{"hi"} \in \{1, 2, 3\}$ | $F$ | "hi" is not in the set |
+| $2 \in \{2\}$ | $T$ | 2 is the sole element |
+| $1 \in \{\}$ | $F$ | Nothing is in the empty set |
+
+We also have the **negation** of membership:
+
+<DisplayMath formula="a \notin A \;\equiv\; \lnot(a \in A)" />
+
+So $5 \notin \{1, 2, 3\}$ reads as "5 is **not** a member of $\{1, 2, 3\}$."
+
+### Python Comparison
+
+Python's `in` keyword is exactly this operator:
+
+```python
+s = {1, 2, 3}
+1 in s       # True
+5 in s       # False
+"hi" in s    # False
+5 not in s   # True — Python's "not in" is our ∉
+```
+
+> **💡 Key Insight:** The membership operator is to sets what the indexing operator ($\downarrow$) is to tuples. It's the fundamental way we interact with the collection — but instead of asking "what's at position $i$?", we ask "is $x$ in the set?"
+
+---
+
+## Building Set Equality from Membership
+
+Now we have the tool we need. Let's build up set equality the same way we built tuple equality in LN8 — step by step.
+
+### A Small Example
+
+Are $\{1, 2\}$ and $\{2, 1\}$ equal?
+
+Since sets don't have positions, we can't compare position by position. Instead, we check membership **in both directions**:
+
+**Direction 1: Is every element of A in B?**
+- $1 \in \{2, 1\}$? Yes ✓
+- $2 \in \{2, 1\}$? Yes ✓
+
+**Direction 2: Is every element of B in A?**
+- $2 \in \{1, 2\}$? Yes ✓
+- $1 \in \{1, 2\}$? Yes ✓
+
+Both directions pass — the sets are equal! ✓
+
+### A Failing Example
+
+Are $\{1, 2\}$ and $\{1, 2, 3\}$ equal?
+
+**Direction 1 (A → B): Is every element of A in B?**
+- $1 \in \{1, 2, 3\}$? Yes ✓
+- $2 \in \{1, 2, 3\}$? Yes ✓
+
+Direction 1 passes!
+
+**Direction 2 (B → A): Is every element of B in A?**
+- $1 \in \{1, 2\}$? Yes ✓
+- $2 \in \{1, 2\}$? Yes ✓
+- $3 \in \{1, 2\}$? **No** ✗
+
+Direction 2 fails — the sets are **not** equal. ✗
+
+Notice that one direction can pass while the other fails. This is why we need **both** directions.
+
+### The General Pattern
+
+<DefinitionBox term="Set Equality">
+
+Two sets $A$ and $B$ are equal exactly when every element of $A$ is in $B$ **and** every element of $B$ is in $A$:
+
+<DisplayMath formula="A = B \;\equiv\; (\forall x.\; x \in A \to x \in B) \;\land\; (\forall x.\; x \in B \to x \in A)" />
+
+Both directions of membership must hold.
+
+</DefinitionBox>
+
+Compare this with tuple equality from LN8:
+
+| | Tuple Equality | Set Equality |
+| :--- | :--- | :--- |
+| What we check | Each **position** matches | Each **member** is present in both |
+| Direction | One-way (left to right) | Two-way (A→B and B→A) |
+| Uses | Conjunction of positional equalities | Conjunction of membership implications |
+
+Tuple equality is a conjunction of positional checks. Set equality is a conjunction of **bidirectional** membership checks. Both build on the same logical connectives from our logic lectures!
+
+---
+
+## Subset and Superset
+
+Look at our equality definition again:
+
+<DisplayMath formula="A = B \;\equiv\; \underbrace{(\forall x.\; x \in A \to x \in B)}_{\text{Direction 1}} \;\land\; \underbrace{(\forall x.\; x \in B \to x \in A)}_{\text{Direction 2}}" />
+
+Each half of this definition is independently valuable. Let's give them names.
+
+### Subset
+
+Direction 1 alone — "every element of A is in B" — defines the **subset** relationship:
+
+<DefinitionBox term="Subset (⊆)">
+
+$A$ is a **subset** of $B$ if every element of $A$ is also an element of $B$:
+
+<DisplayMath formula="A \subseteq B \;\equiv\; \forall x.\; x \in A \to x \in B" />
+
+Type judgment: $\subseteq\; : (\text{Set}, \text{Set}) \to \text{Bool}$
+
+</DefinitionBox>
+
+### Superset
+
+Direction 2 alone — "every element of B is in A" — defines the **superset** relationship:
+
+<DefinitionBox term="Superset (⊇)">
+
+$A$ is a **superset** of $B$ if every element of $B$ is also an element of $A$:
+
+<DisplayMath formula="A \supseteq B \;\equiv\; \forall x.\; x \in B \to x \in A" />
+
+Equivalently: $A \supseteq B \;\equiv\; B \subseteq A$
+
+</DefinitionBox>
+
+### Equality Restated
+
+With subset and superset defined, set equality becomes beautifully simple:
+
+<DisplayMath formula="A = B \;\equiv\; A \subseteq B \;\land\; A \supseteq B" />
+
+Two sets are equal when each is a subset of the other.
+
+### Proper Subset and Proper Superset
+
+Sometimes we want to say "A is contained in B, but B has something extra." This is a **proper** subset:
+
+<DisplayMath formula="A \subset B \;\equiv\; A \subseteq B \;\land\; A \neq B" />
+
+The distinction between $\subseteq$ and $\subset$ mirrors a familiar pattern from numbers:
+
+| Sets | Numbers | Meaning |
+| :--- | :--- | :--- |
+| $A \subseteq B$ | $a \leq b$ | Contained or equal / less than or equal |
+| $A \subset B$ | $a < b$ | Strictly contained / strictly less than |
+| $A \supseteq B$ | $a \geq b$ | Contains or equal / greater than or equal |
+| $A \supset B$ | $a > b$ | Strictly contains / strictly greater than |
+
+**Examples:**
+
+| Statement | True? | Why |
+| :--- | :--- | :--- |
+| $\{1, 2\} \subseteq \{1, 2, 3\}$ | ✓ | Every element of the left is in the right |
+| $\{1, 2\} \subset \{1, 2, 3\}$ | ✓ | Subset AND not equal (3 is extra) |
+| $\{1, 2, 3\} \subseteq \{1, 2, 3\}$ | ✓ | Every set is a subset of itself |
+| $\{1, 2, 3\} \subset \{1, 2, 3\}$ | ✗ | Not proper — they're equal! |
+| $\{1, 2, 3\} \supseteq \{1, 2\}$ | ✓ | The left contains everything in the right |
+
+---
+
+## Expressive Power: Programs as Sets
+
+In the tuple lecture, we showed that a tuple like `(do_x, do_y, do_z)` looks like a program — a sequence of ordered instructions. What happens if we try the same thing with a set?
+
+<DisplayMath formula="\{\text{do_x}, \text{do_y}, \text{do_z}\}" />
+
+We've lost the ordering guarantee! We can't say "do x first, then y, then z" because sets have no notion of "first" or "then."
+
+Is this useless? Far from it — it represents something incredibly important in modern computing: **operations that can run in any order**.
+
+Think about your computer right now. It's running many programs simultaneously:
+
+<DisplayMath formula="\{\text{Spotify}, \text{Discord}, \text{Chrome}, \text{VSCode}, \text{Finder}\}" />
+
+These processes don't have a fixed order relative to each other. Spotify doesn't need to "go first" before Chrome can start. They run **concurrently** — and the collection of running processes is naturally described as a set!
+
+Here's the beautiful pattern: each individual process is internally a **tuple** (ordered instructions that must execute in sequence), but the collection of all running processes is a **set** (no ordering between them).
+
+```
+Set of processes: {Spotify, Discord, Chrome, ...}
+Each process:     (load_assets, initialize, run_main_loop, cleanup)
+```
+
+> **🤔 But wait...** This gives us a vocabulary for describing parallelism and concurrency. A tuple says "these steps must happen in this order." A set says "these things coexist, but I don't care about their order." Real systems constantly use both: ordered steps *within* a task, unordered coexistence *across* tasks.
+
+---
+
+## Expressive Power: Sets as Tags and Categories
+
+Here's another direction where sets shine — modeling **tags, labels, and categories**.
+
+Consider a photo in your gallery tagged with:
+
+<DisplayMath formula="\{\text{sunset}, \text{beach}, \text{vacation}\}" />
+
+Does the order of tags matter? No — "sunset, beach, vacation" and "vacation, sunset, beach" describe the same categorization. Does tagging a photo with "beach" twice do anything? No — duplicates are meaningless. This is pure set semantics!
+
+This pattern is everywhere:
+
+| Example | Set |
+| :--- | :--- |
+| Photo tags | $\{\text{sunset}, \text{beach}, \text{vacation}\}$ |
+| Student's courses | $\{\text{CMSI-1010}, \text{CMSI-2820}, \text{MATH-2010}\}$ |
+| Recipe ingredients | $\{\text{flour}, \text{sugar}, \text{eggs}, \text{butter}\}$ |
+| User permissions | $\{\text{read}, \text{write}, \text{admin}\}$ |
+
+In every case, the question isn't "what comes first?" but "**is it in the set or not?**" — pure membership.
+
+```python
+tags = {"sunset", "beach", "vacation"}
+"beach" in tags      # True — membership check!
+tags.add("beach")    # Still {"sunset", "beach", "vacation"} — duplicates rejected
+tags.add("mountain") # Now {"sunset", "beach", "vacation", "mountain"}
+```
+
+> **💡 Key Insight:** Tuples model **sequences** (order matters). Sets model **categories** (membership matters). When you're deciding which to use, ask yourself: "Does position matter, or just presence?"
+
+---
+
+## A Brief History of Set Syntax
+
+Before we explore more set operations, let's understand where set notation comes from — because sets have a surprisingly rich syntactic history.
+
+### The Early Days: Prose Notation
+
+**Georg Cantor**, the founder of set theory in the 1870s, and early set theorists defined sets using **prose** — natural language descriptions:
+
+> "The set of all positive even integers"
+
+> "The set of all prime numbers less than 100"
+
+This was accepted as long as the description had a clear **propositional backing** — a logical condition that unambiguously determines membership. For instance, "the set of all even integers" is backed by the proposition "$x$ is even," which we can test for any integer.
+
+But prose has problems: natural language is ambiguous and culturally loaded! For example, "The set of all large numbers" — what counts as "large"?
+
+### Literal (Roster) Notation
+
+The most common notation you'll encounter is **literal** (or **roster**) notation — literally listing the elements:
+
+<DisplayMath formula="\{2, 4, 6, 8, 10\}" />
+
+It's called "literal" because every element is literally present in the characters you write.
+
+> **💡 Side Note:** This concept of "literal syntax" appears throughout programming! Tuple literals `(1, 2)`, list literals `[1, 2]`, string literals `"hello"`, dictionary literals `{"key": "value"}`. Later we'll even see function literals (lambdas). The idea is always the same: the value is *literally right there* in the code.
+
+Literal notation works perfectly for finite sets. But for **infinite** sets, it requires the reader to infer a pattern from examples — what we might call **"IQ testing"**:
+
+<DisplayMath formula="\{\ldots, -3, -2, -1, 0, 1, 2, 3, \ldots\}" />
+
+That's clear enough — it's all integers. But it's also valid to write the same set as:
+
+<DisplayMath formula="\{\ldots, -1, 0, 1, \ldots\}" />
+
+Or even more aggressively:
+
+<DisplayMath formula="\{\ldots, 0, \ldots\}" />
+
+Who could guess that means all integers? And consider this alternative presentation:
+
+<DisplayMath formula="\{0, -1, 1, -2, 2, -3, 3, \ldots\}" />
+
+This is valid too — remember, sets have no ordering! But it looks confusing because the *notation* implies an unfamiliar pattern.
+
+All four describe the exact same set, but each demands the reader "figure it out." This is the IQ-testing problem: literal notation for infinite sets forces the reader to guess the pattern you intended, which can accidentally lead to misunderstandings about which patterns are "obvious."
+
+### Set Builder Notation
+
+The balanced solution emerged: **set builder notation** combines the rigor of logic with the compactness of symbols.
+
+<DefinitionBox term="Set Builder Notation">
+
+Set builder notation defines a set by specifying a **variable**, a **domain**, and a **condition** (proposition):
+
+<DisplayMath formula="\{x \in D \mid P(x)\}" />
+
+This reads as: "the set of all $x$ in $D$ such that $P(x)$ is true."
+
+The vertical bar $\mid$ means "such that," and $P(x)$ is a proposition — a logical statement that evaluates to true or false for each candidate $x$.
+
+</DefinitionBox>
+
+Now our "set of all integers" is simply:
+
+<DisplayMath formula="\{x \in \mathbb{Z} \mid T\} = \mathbb{Z}" />
+
+No IQ testing required! The domain $\mathbb{Z}$ tells us exactly which values are in play, and the condition $\top$ (always true) means we include them all.
+
+**More examples:**
+
+| Set | Set Builder Notation |
+| :--- | :--- |
+| Even integers | $\{x \in \mathbb{Z} \mid x \bmod 2 = 0\}$ |
+| Positive odd naturals | $\{x \in \mathbb{N} \mid x \bmod 2 = 1 \;\land\; x > 0\}$ |
+| Primes | $\{p \in \mathbb{N} \mid p > 1 \;\land\; d \mid p \to (d = 1 \lor d = p)\}$ |
+| Squares under 100 | $\{x \in \mathbb{N} \mid \sqrt{x} \in \mathbb{N} \;\land\; x < 100\}$ |
+
+Notice: the condition after $\mid$ is a **proposition** — exactly the logical formulas we studied in our logic lectures. Set builder notation is where logic and collections meet!
+
+> **📌 Key Insight:** Set builder notation gives us three clear pieces of information: (1) what variable we're talking about, (2) what domain it comes from, and (3) what condition it must satisfy. No guessing, no cultural assumptions, no ambiguity.
+
+---
+
+## Cardinality
+
+With tuples, we talked about **length** — the number of positions. Sets don't have positions, but they still have a **size**: the number of distinct elements they contain.
+
+<DefinitionBox term="Cardinality Operator (| · |)">
+
+The **cardinality** of a set $A$, written $|A|$, is the number of distinct elements in $A$.
+
+<DisplayMath formula="|\cdot| : \text{Set} \to \mathbb{N}" />
+
+For finite sets, cardinality is simply the count of elements. For infinite sets, things get more complex — we'll explore this further in future lectures.
+
+</DefinitionBox>
+
+**Examples:**
+
+| Set | Cardinality | Why |
+| :--- | :--- | :--- |
+| $\{1, 2, 3\}$ | $3$ | Three distinct elements |
+| $\{a\}$ | $1$ | One element (called a **singleton**) |
+| $\{\}$ (empty set, also written $\emptyset$) | $0$ | No elements at all |
+| $\{1, 1, 2, 2, 3\}$ | $3$ | Duplicates don't count! Same as $\{1, 2, 3\}$ |
+| $\{1, 2\} $ | $2$ | Two elements |
+
+### Python Comparison
+
+Python's `len()` on a set gives you cardinality:
+
+```python
+len({1, 2, 3})          # 3
+len({1, 1, 2, 2, 3})    # 3 — duplicates collapsed!
+len(set())              # 0 — empty set
+```
+
+### Reasoning with Cardinality
+
+Cardinality lets us ask interesting questions about the **size** of sets. Let's try a few:
+
+**Question: Is the set of all odd naturals the same size as the set of all even naturals?**
+
+Let's think about this. The odd naturals are $\{1, 3, 5, 7, 9, \ldots\}$ and the even naturals are $\{2, 4, 6, 8, 10, \ldots\}$.
+
+We can pair them up perfectly:
+
+| Odd | Even |
+| :--- | :--- |
+| 1 | 2 |
+| 3 | 4 |
+| 5 | 6 |
+| 7 | 8 |
+| $\vdots$ | $\vdots$ |
+| $2k + 1$ | $2k + 2$ |
+
+Every odd number has a partner, and every even number has a partner. No one is left out. So yes — the odds and evens have the **same cardinality**!
+
+This "pairing" argument is informal for now, but it's building intuition for a formal technique called **bijective proofs** that we'll see later.
+
+### The Cliffhanger
+
+Now consider a harder question:
+
+**Is the set of all integers the same size as the set of all even integers?**
+
+<DisplayMath formula="|\mathbb{Z}| \stackrel{?}{=} |\{x \in \mathbb{Z} \mid x \equiv 0 \pmod{2}\}|" />
+
+Your first instinct might be "no" — after all, the even integers are a **proper subset** of the integers. The evens are *contained inside* the integers, so surely there are fewer of them... right?
+
+But we just showed that the odds and evens have the same size. And now we're asking if a set is the same size as one of its proper subsets. This feels deeply paradoxical.
+
+<QuestionBox>
+
+Is the set of all integers the same size as the set of all even integers?
+
+This is one of the most famous questions in the history of mathematics, and it led Georg Cantor to revolutionize our understanding of infinity. We don't have the formal tools to answer it yet — we'll need new machinery that we haven't built. For now, sit with the discomfort of not knowing. We'll return to this question, and the answer might surprise you.
+
+</QuestionBox>
+
+---
+
+## Sets in Python
+
+Let's bring our formal knowledge back to the practical world. Python's `set` type implements mathematical sets directly, and understanding the formal concepts makes you a stronger programmer.
+
+### Python Set Basics
+
+```python
+# Creating sets
+s = {1, 2, 3}
+empty = set()          # Note: {} creates an empty dict, not a set!
+
+# Membership (our ∈ operator)
+2 in s                 # True
+5 in s                 # False
+5 not in s             # True (our ∉ operator)
+
+# Cardinality
+len(s)                 # 3
+
+# Adding elements (duplicates silently ignored)
+s.add(4)               # {1, 2, 3, 4}
+s.add(2)               # Still {1, 2, 3, 4} — no duplicates!
+
+# Subset and superset
+{1, 2} <= {1, 2, 3}   # True — subset (⊆)
+{1, 2} < {1, 2, 3}    # True — proper subset (⊂)
+{1, 2, 3} <= {1, 2, 3} # True — subset (every set is a subset of itself)
+{1, 2, 3} < {1, 2, 3}  # False — not a proper subset (they're equal!)
+```
+
+Notice how Python uses `<=` for subset and `<` for proper subset — exactly the analogy we drew between set containment and number comparison!
+
+### Set Comprehensions: Set Builder Notation in Code
+
+Here's the most satisfying connection: Python's **set comprehension** syntax is a direct implementation of set builder notation.
+
+**Side by side:**
+
+| Math (Set Builder) | Python (Set Comprehension) |
+| :--- | :--- |
+| $\{x \in \mathbb{N} \mid x < 21 \;\land\; x \bmod 2 = 0\}$ | `{x for x in range(21) if x % 2 == 0}` |
+| $\{x^2 \mid x \in \mathbb{N} \;\land\; x < 10\}$ | `{x**2 for x in range(10)}` |
+| $\{x \in S \mid x > 0\}$ | `{x for x in S if x > 0}` |
+
+The structure is identical:
+- **Variable**: `x`
+- **Domain**: `for x in range(21)` (the part after $\in$ in math)
+- **Condition**: `if x % 2 == 0` (the part after $\mid$ in math)
+
+```python
+# Even numbers from 0 to 20
+evens = {x for x in range(21) if x % 2 == 0}
+# {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20}
+
+# Perfect squares under 100
+squares = {x**2 for x in range(10)}
+# {0, 1, 4, 9, 16, 25, 36, 49, 64, 81}
+
+# Unique first letters from a list of names
+names = ["Alice", "Bob", "Anna", "Carol", "Bill"]
+initials = {name[0] for name in names}
+# {"A", "B", "C"} — duplicates automatically removed!
+```
+
+### Comprehensions Extend to Other Structures
+
+The comprehension pattern isn't limited to sets. Python applies the same `for ... in ... if ...` pattern to multiple collection types, each mapping to a different formal concept:
+
+| Comprehension | Syntax | Formal Analog | Properties |
+| :--- | :--- | :--- | :--- |
+| Set | `{x for x in S if P(x)}` | Set builder notation | Unordered, no duplicates |
+| List | `[x for x in S if P(x)]` | Filtered sequence | Ordered, duplicates allowed |
+| Dict | `{k: v for k, v in pairs}` | Key-value mapping | Unique keys |
+| Generator | `(x for x in S if P(x))` | Lazy infinite sequence | Lazy, potentially infinite |
+
+```python
+# Set comprehension — unordered, no duplicates
+{x % 3 for x in range(10)}          # {0, 1, 2}
+
+# List comprehension — ordered, duplicates preserved
+[x % 3 for x in range(10)]          # [0, 1, 2, 0, 1, 2, 0, 1, 2, 0]
+
+# Dict comprehension — key-value pairs
+{x: x**2 for x in range(5)}         # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
+
+# Generator expression — lazy, potentially infinite
+squares = (x**2 for x in range(1000000))  # Nothing computed yet!
+next(squares)  # 0 — computed on demand
+next(squares)  # 1
+```
+
+Notice how the same input `x % 3 for x in range(10)` produces different results depending on the brackets: the **set** gives `{0, 1, 2}` (3 elements, duplicates removed), while the **list** gives `[0, 1, 2, 0, 1, 2, 0, 1, 2, 0]` (10 elements, order and duplicates preserved). Same data, different collection semantics!
+
+### The Deduplication Idiom
+
+One of the most common Python patterns leverages set semantics for deduplication:
+
+```python
+names = ["Alice", "Bob", "Alice", "Carol", "Bob"]
+unique = list(set(names))  # ["Alice", "Bob", "Carol"] — duplicates removed!
+```
+
+Converting a list to a set removes duplicates (because sets don't allow them), and converting back to a list gives you a clean, deduplicated sequence. This is set theory in action!
+
+> **📌 Key Insight:** Every time you write a comprehension in Python, you're using formal mathematical notation. Set comprehensions are set builder notation. List comprehensions build ordered sequences. Generator expressions create lazy infinite sequences. The formal concepts from this course are the foundation of these everyday programming tools.
+
+### Sets vs Frozen Sets (and Why Python Has Both Lists and Tuples)
+
+You might have noticed that our Tuples vs Sets comparison table listed **two** Python analogs for each:
+
+| Formal Concept | Mutable Python Version | Immutable Python Version |
+| :--- | :--- | :--- |
+| Tuple (sequence) | `list` | `tuple` |
+| Set (collection) | `set` | `frozenset` |
+
+Why does Python have both `set` and `frozenset`? For the same reason it has both `list` and `tuple` — **mutability**.
+
+A `set` is mutable: you can add and remove elements after creation.
+
+```python
+s = {1, 2, 3}
+s.add(4)       # Now {1, 2, 3, 4} — modified in place
+s.remove(1)    # Now {2, 3, 4}
+```
+
+A `frozenset` is immutable: once created, it cannot be changed.
+
+```python
+fs = frozenset({1, 2, 3})
+fs.add(4)      # AttributeError! Can't modify a frozenset
+```
+
+This distinction matters for one critical reason: **you can only put immutable things inside sets**. Sets use hashing to check membership quickly, and mutable objects can't be reliably hashed (because their hash could change if they're modified).
+
+```python
+# This works — tuples are immutable
+{(1, 2), (3, 4), (5, 6)}
+
+# This fails — lists are mutable
+{[1, 2], [3, 4], [5, 6]}   # TypeError: unhashable type: 'list'
+
+# This works — frozensets are immutable
+{frozenset({1, 2}), frozenset({3, 4})}
+
+# This fails — sets are mutable
+{{1, 2}, {3, 4}}            # TypeError: unhashable type: 'set'
+```
+
+So the pattern becomes clear:
+
+| If you need... | Use this |
+| :--- | :--- |
+| A mutable sequence | `list` |
+| An immutable sequence (e.g., as a dict key or set element) | `tuple` |
+| A mutable collection | `set` |
+| An immutable collection (e.g., as a dict key or set element) | `frozenset` |
+
+Formally, math doesn't distinguish between mutable and immutable — a tuple is a tuple, a set is a set. But Python needs this distinction for practical engineering reasons: **hashing requires immutability**. This is why Python has two versions of each collection type, not because the math demands it, but because the implementation does.
+
+> **💡 Key Insight:** The `list`/`tuple` split and the `set`/`frozenset` split exist for the same reason — mutability. Whenever you see Python offering two versions of a data structure, ask yourself: "Is one of these the immutable version for hashing?" The answer is almost always yes.
+
+### Dictionaries: Sets and Tuples Working Together
+
+Here's one final connection that ties together everything we've learned about collections.
+
+Consider Python's `dict`:
+
+```python
+contacts = {
+    "Alice": "alice@lmu.edu",
+    "Bob": "bob@lmu.edu",
+    "Carol": "carol@lmu.edu",
+}
+```
+
+What *is* a dictionary, really? It's a collection of **key-value pairs** where:
+- **Keys are unique** (no duplicate keys allowed)
+- **Order doesn't matter** for the key-value relationship itself
+
+That sounds familiar. A dictionary is essentially a **set of tuples** — a set of (key, value) pairs!
+
+<DisplayMath formula="\text{contacts} = \{(\text{'Alice'}, \text{'alice@lmu.edu'}), \;(\text{'Bob'}, \text{'bob@lmu.edu'}), \;(\text{'Carol'}, \text{'carol@lmu.edu'})\}" />
+
+We can actually build a "dictionary" using just a set of tuples in Python:
+
+```python
+# A "dictionary" as a set of tuples
+contacts_raw = {
+    ("Alice", "alice@lmu.edu"),
+    ("Bob", "bob@lmu.edu"),
+    ("Carol", "carol@lmu.edu"),
+}
+
+# Looking up a value... is painful
+def lookup(data, key):
+    for k, v in data:
+        if k == key:
+            return v
+    return None
+
+lookup(contacts_raw, "Alice")  # "alice@lmu.edu" — it works!
+lookup(contacts_raw, "Bob")    # "bob@lmu.edu"
+```
+
+It works — but the interface is terrible! Looking up a value requires iterating through every pair. Compare that with an actual dictionary:
+
+```python
+# A real dictionary — same data, better interface
+contacts = {
+    "Alice": "alice@lmu.edu",
+    "Bob": "bob@lmu.edu",
+    "Carol": "carol@lmu.edu",
+}
+
+contacts["Alice"]  # "alice@lmu.edu" — instant lookup!
+contacts["Bob"]    # "bob@lmu.edu"
+```
+
+The `dict` type gives us the same mathematical structure (a set of key-value pairs) with a dramatically better interface:
+
+| Operation | Set of Tuples | Dictionary |
+| :--- | :--- | :--- |
+| Lookup by key | Loop through all pairs | `d[key]` — instant |
+| Add a pair | `s.add((key, val))` | `d[key] = val` |
+| Check if key exists | Loop and compare | `key in d` — instant |
+| Get all pairs | Iterate the set | `d.items()` |
+
+And here's the proof that a `dict` really is a set of tuples under the hood — `dict.items()` gives you exactly that:
+
+```python
+contacts = {"Alice": "alice@lmu.edu", "Bob": "bob@lmu.edu"}
+
+list(contacts.items())
+# [("Alice", "alice@lmu.edu"), ("Bob", "bob@lmu.edu")]
+# A list of tuples! The underlying set of pairs, exposed.
+```
+
+> **🌟 Big Picture:** A dictionary is a set of tuples with a better interface. Our two collection types — sets (for membership) and tuples (for ordered pairing) — combine to create one of the most useful data structures in all of programming. This is the power of understanding formal foundations: you can see that `dict` isn't some mysterious new thing — it's just sets and tuples working together.
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Set** — An unordered collection of distinct elements: no ordering, no duplicates
+- **Membership Operator** ($\in$) — Tests if an element belongs to a set: $a \in A$
+- **Non-Membership** ($\notin$) — Negation of membership: $a \notin A \equiv \lnot(a \in A)$
+- **Set Equality** — $A = B \equiv (\forall x,\; x \in A \to x \in B) \land (\forall x,\; x \in B \to x \in A)$
+- **Subset** ($\subseteq$) — $A \subseteq B \equiv \forall x,\; x \in A \to x \in B$
+- **Superset** ($\supseteq$) — $A \supseteq B \equiv B \subseteq A$
+- **Proper Subset** ($\subset$) — $A \subset B \equiv A \subseteq B \land A \neq B$
+- **Proper Superset** ($\supset$) — $A \supset B \equiv A \supseteq B \land A \neq B$
+- **Set Builder Notation** — $\{x \in D \mid P(x)\}$: "the set of all $x$ in $D$ such that $P(x)$"
+- **Cardinality** ($|A|$) — The number of distinct elements in a set
+
+**Key Operators:**
+
+| Operator | Notation | Type Signature |
+| :--- | :--- | :--- |
+| Membership | $a \in A$ | $(T, \text{Set}) \to \text{Bool}$ |
+| Subset | $A \subseteq B$ | $(\text{Set}, \text{Set}) \to \text{Bool}$ |
+| Superset | $A \supseteq B$ | $(\text{Set}, \text{Set}) \to \text{Bool}$ |
+| Cardinality | $\|A\|$ | $\text{Set} \to \mathbb{N}$ |
+
+**Tuples vs Sets:**
+
+| Property | Tuple | Set |
+| :--- | :--- | :--- |
+| Fundamental concept | Order | Membership |
+| Equality | Positional | Bidirectional membership |
+| Duplicates | Allowed | Rejected |
+| Python (mutable) | `list` | `set` |
+| Python (immutable) | `tuple` | `frozenset` |
+
+**Python Collections and Mutability:**
+
+- `set` / `frozenset` and `list` / `tuple` exist as mutable/immutable pairs for hashing reasons
+- Dictionaries are sets of tuples (key-value pairs) with a better interface: `d.items()` exposes the underlying pairs
+
+**Set Notation Styles:**
+
+| Style | Example | Strength | Weakness |
+| :--- | :--- | :--- | :--- |
+| Prose | "all even integers" | Flexible | Ambiguous |
+| Literal (Roster) | $\{2, 4, 6, \ldots\}$ | Concrete | "IQ testing" for infinite sets |
+| Set Builder | $\{x \in \mathbb{Z} \mid \exists k,\; x = 2k\}$ | Rigorous | Requires logic background |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Numberphile: "Infinity is bigger than you think"](https://www.youtube.com/watch?v=elvOZm0d4H0) — Georg Cantor and the sizes of infinite sets
+- [3Blue1Brown: "How to count past infinity"](https://www.youtube.com/watch?v=SrU9YDoXE88) — Beautiful visualization of cardinality concepts
+
+### Further Reading
+
+- [Wikipedia: Set (mathematics)](https://en.wikipedia.org/wiki/Set_(mathematics)) — Formal treatment of sets
+- [Wikipedia: Set-builder notation](https://en.wikipedia.org/wiki/Set-builder_notation) — The syntax we introduced today
+- [Wikipedia: Cardinality](https://en.wikipedia.org/wiki/Cardinality) — Measuring the size of sets, including infinite ones
+- [Wikipedia: Naive set theory](https://en.wikipedia.org/wiki/Naive_set_theory) — The informal approach to sets (and its pitfalls)
+
+### Historical Context
+
+- **Georg Cantor** (1845-1918) — Founded set theory in the 1870s; revolutionized our understanding of infinity
+- **Bertrand Russell** (1872-1970) — Discovered paradoxes in naive set theory, leading to more rigorous foundations
+- **Ernst Zermelo** (1871-1953) — Developed axiomatic set theory (ZFC) to resolve the paradoxes
+
+### Connection to Programming
+
+- Python's `set` and `frozenset` implement mathematical sets directly (mutable vs immutable)
+- The `list`/`tuple` and `set`/`frozenset` splits exist for the same reason: hashing requires immutability
+- Set comprehensions `{x for x in S if P(x)}` are set builder notation in code
+- List, dict, and generator comprehensions extend the same pattern to other collection types
+- Dictionaries are sets of key-value tuples with a better interface — `d.items()` reveals the underlying pairs
+- Deduplication (`list(set(items))`) is one of the most common set-theory patterns in everyday code
+
+</LectureResources>

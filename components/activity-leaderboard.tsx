@@ -23,10 +23,12 @@ type RankBy = "total" | "perStudent"
 function formatTeamScore(
   team: TeamStageScore,
   teamIndex: number,
-  showRole: boolean
+  showRole: boolean,
+  teamSize?: number
 ): string {
   const roleLabel = showRole && team.role ? ` (${team.role === "data" ? "Data" : "Task"})` : ""
-  const base = `Team ${teamIndex + 1}${roleLabel}: ${team.count}`
+  const sizeLabel = teamSize != null ? ` (${teamSize} students)` : ""
+  const base = `Team ${teamIndex + 1}${roleLabel}${sizeLabel}: ${team.count}`
   if (team.timeToCompleteMinutes != null) {
     return `${base} in ${team.timeToCompleteMinutes} min`
   }
@@ -121,7 +123,12 @@ function LeaderboardRow({
                       <span className="text-muted-foreground">
                         {stage.teams
                           .map((t, i) =>
-                            formatTeamScore(t, i, showRole ?? false)
+                            formatTeamScore(
+                              t,
+                              i,
+                              showRole ?? false,
+                              result.teamSizes?.[i]
+                            )
                           )
                           .join(" | ")}
                       </span>
