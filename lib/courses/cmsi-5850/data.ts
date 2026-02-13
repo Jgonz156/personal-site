@@ -284,7 +284,7 @@ const allEvents: CourseEvent[] = [
     description:
       "In this lecture, we summarize the four foundational theories of computation: Language Theory, Automata Theory, Computability Theory, and Complexity Theory.",
     courseId: "cmsi-5850",
-    standard: "Mathematical Foundations",
+    standard: "Syntax",
     lnTopics: [
       "Language Theory",
       "Automata Theory",

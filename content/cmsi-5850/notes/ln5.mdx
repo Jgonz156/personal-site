@@ -1,0 +1,710 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath } from "@/components/math"
+import { ReductionStepper } from "@/components/reduction-stepper"
+import { TuringMachineTape } from "@/components/turing-machine-tape"
+
+## Recap
+
+Over the past four lectures, we built a **mathematical toolkit** for studying programming languages:
+
+- **LN 2 — Classical Logic:** A system for reasoning about truth, validity, and proof. We learned propositions, operators, quantifiers, and natural deduction.
+- **LN 3 — Set Theory:** A foundation for constructing mathematical objects. We built numbers, tuples, relations, and functions from sets.
+- **LN 4 — Lambda Calculus:** A theory of computation where functions are executable, not static. We learned reductions, substitution, Church encodings, and fixed points.
+
+These are our *tools*. But we haven't yet asked the **big questions** about computation itself. What *is* a computation? What can be computed? What can't? How do we express computations, and how do we carry them out?
+
+Today, we zoom out from our tools to see the map they're drawn on.
+
+---
+
+## Today's Agenda
+
+Today we survey the **four foundational theories of computation** — the pillars upon which all of Computer Science rests.
+
+- **What Is a Theory?** — Why organized knowledge matters
+- **The Four Pillars** — Overview of the four theories
+- **Language Theory** — How are computations *expressed*?
+- **Automata Theory** — How are computations *carried out*?
+- **Computability Theory** — What are the fundamental *limits*?
+- **Complexity Theory** — What *resources* are required?
+- **The Web of Connections** — How discoveries in one theory imply results in the others
+- **What This Means for Us** — Where we go from here
+
+---
+
+## What Is a Theory?
+
+The word "theory" is often used casually — "I have a theory about why the code broke." In everyday speech, a theory is a hunch, a guess.
+
+In science and mathematics, it means something very different:
+
+<DefinitionBox term="Theory">
+
+A **theory** is an organized body of knowledge with **explanatory** and **predictive** powers. It provides a vocabulary for reasoning about phenomena, communicating with others, and generating new knowledge.
+
+</DefinitionBox>
+
+Without a theory, you can still do things — but there's improvisation, guesswork, and difficulty communicating. Consider music: you can play by ear, but music theory gives you the vocabulary to analyze *why* a chord progression feels tense, *how* to resolve it, and *what* alternatives exist. Your practice becomes stronger. Your insights go deeper.
+
+The same is true for computation. We're building a **theory of programming languages** — an organized body of knowledge that lets us:
+
+- **Explain** why languages work the way they do
+- **Predict** what happens when we design new features
+- **Communicate** precisely with other language designers and users
+- **Generate** new languages with desired properties
+
+Theory doesn't replace practice. It *amplifies* it.
+
+---
+
+## The Four Pillars of Computation
+
+Computer Science rests on four major theories, each asking a different fundamental question:
+
+| Theory | The Question |
+| :--- | :--- |
+| **Language Theory** | How are computations *expressed*? |
+| **Automata Theory** | How are computations *carried out*? |
+| **Computability Theory** | What are the fundamental *limits* of computation? |
+| **Complexity Theory** | What *resources* are required to perform certain computations? |
+
+Notice the natural pairing:
+
+- **Language Theory** and **Automata Theory** are about *structure* — how we write computations and how we execute them. These will dominate the rest of this course.
+- **Computability Theory** and **Complexity Theory** are about *boundaries* — the ultimate limits on what's possible and what's practical. These set the constraints within which we design languages.
+
+Let's explore each one.
+
+---
+
+## Language Theory
+
+<DefinitionBox term="Language Theory">
+
+**Language Theory** studies how computations are *expressed*. It asks: what are the formal systems we use to represent information and computation, and what are their properties?
+
+</DefinitionBox>
+
+### The Fundamental Hypothesis
+
+Language Theory begins with a bold claim:
+
+> **Any piece of human-usable information can be represented as a string of symbols.**
+
+Look at the diversity of what strings can represent:
+
+| String | What It Represents |
+| :--- | :--- |
+| `91772.3e-8` | A floating-point number |
+| `Stay behind the yellow line!` | A natural language command |
+| `(* (+ 4 3) (- 9 7))` | A Lisp computation |
+| `int avg(int x, int y) { return (x+y)/2; }` | A C function |
+| `{"name": "Ada", "age": 36}` | Structured data (JSON) |
+| $\lambda x. x + 1$ | A lambda calculus expression |
+| `1. f3 e5 2. g4 Qh4++` | A chess game (Scholar's Mate) |
+
+Symbols are chosen from some finite **alphabet**, and strings are finite sequences of those symbols. A programming language, a data format, a mathematical notation — all are systems for arranging symbols into meaningful strings.
+
+---
+
+### The Hypothesis Is Unprovable — And That's Fascinating
+
+We cannot *prove* that all information is expressible as strings. This is worth pausing on.
+
+Consider: is there information that can be *understood* but never *expressed*? If so, there exist things that can only be **learned through experience**, never communicated through symbols. A teacher could never teach such information. A student could never learn it from a textbook. It could only be *acquired*, not *transmitted*.
+
+What kind of information might this be? The subjective experience of seeing a color? The intuition a master chess player has for "good positions"? The feel of balancing on a bicycle? These seem to resist symbolic capture — but is that a fundamental limitation, or merely a limitation of our current notations?
+
+> **We proceed under the fundamental hypothesis because it's the best we can do — and it works remarkably well.** But the humility of knowing it's unprovable is worth carrying with us. There may be aspects of computation, of thought, of understanding, that lie beyond what any string can capture.
+
+---
+
+### Natural Language: Where It All Began
+
+Before there were formal languages, there was **human language**. And in fact, formal language theory grew directly out of linguistics.
+
+Noam Chomsky developed his hierarchy of grammars in the 1950s not to classify programming languages, but to classify *natural* languages. The formal machinery we'll use for the rest of this course — grammars, parse trees, ambiguity — was invented to understand English, French, and Mandarin before it was ever applied to FORTRAN or Java.
+
+Natural languages are messy: they're **ambiguous** ("I saw the man with the telescope"), **context-dependent** ("They are flying planes" vs "They are flying planes"), and **evolving** (new words, new constructions). Formal languages are our attempt to remove that ambiguity while preserving as much expressiveness as possible.
+
+> **💡 The tension between expressiveness and precision** is a theme that runs through *all* of programming language design. A language that can say anything might say it ambiguously. A language that's perfectly precise might be painfully restrictive. Navigating this tension is what PL design is about.
+
+---
+
+### What Is a Language (Formally)?
+
+Using the set theory from LN 3, we can define a language precisely:
+
+<DefinitionBox term="Formal Language">
+
+An **alphabet** $\Sigma$ is a finite set of symbols.
+
+A **string** over $\Sigma$ is a finite sequence of symbols from $\Sigma$. The set of *all* strings over $\Sigma$ is denoted $\Sigma^*$ (the Kleene closure from LN 3).
+
+A **language** $L$ is a set of strings: $L \subseteq \Sigma^*$.
+
+</DefinitionBox>
+
+**Examples:**
+
+| Language | Alphabet | Some strings in the language |
+| :--- | :--- | :--- |
+| Binary numbers | $\{0, 1\}$ | `0`, `1`, `10`, `110` |
+| Balanced parentheses | $\{(, )\}$ | `()`, `(())`, `(()())` |
+| Valid Python programs | Unicode | `print("hello")`, `x = 42` |
+| Lambda calculus expressions | $\{\lambda, ., (, ), \text{letters}\}$ | $\lambda x. x$, $(\lambda f. f \; 5)$ |
+
+> **📌 A programming language is just a set of strings** — the set of all valid programs. When we write a grammar for a language (LN 7), we're specifying exactly which strings belong to this set.
+
+---
+
+### Three Aspects of a Language
+
+Every language has three dimensions:
+
+| Aspect | Question | Studied In |
+| :--- | :--- | :--- |
+| **Syntax** | Which strings belong to the language? | LN 7-9 |
+| **Semantics** | What do those strings *mean*? | LN 10-12 |
+| **Pragmatics** | How do humans *use* this language? | LN 6 |
+
+Syntax is about *form* — the structure of valid expressions. Semantics is about *meaning* — what a valid expression computes. Pragmatics is about *usage* — how the language fits human needs, conventions, and workflows.
+
+---
+
+### Functions as Strings
+
+Here's a connection that ties Language Theory back to LN 4: **programs are strings that represent computations**. A lambda expression like $\lambda x. x + 1$ is simultaneously:
+
+- A *function* (Lambda Calculus / LN 4)
+- A *string* over an alphabet (Language Theory)
+
+The same computation expressed in different languages — different *strings*, same *meaning*:
+
+```
+λx. not (eq (mod x 2) 0)          -- Lambda Calculus
+lambda x: x % 2 != 0               # Python
+x => x % 2 !== 0                   // JavaScript
+\x -> x `mod` 2 /= 0              -- Haskell
+|x| x % 2 != 0                    // Rust
+(lambda (x) (not (= (mod x 2) 0))) ; Lisp
+```
+
+Six strings. Six languages. One computation: "is $x$ odd?"
+
+> **Cross-theory preview (from Computability):** Not all languages are decidable. Later we'll see that some sets of strings simply cannot be recognized by any machine, no matter how powerful. Language Theory and Computability Theory are deeply intertwined.
+
+---
+
+### Connection to Our Course
+
+Language Theory is the **backbone** of the rest of this course. We'll spend LN 6-9 on syntax (how languages look) and LN 10-12 on semantics (what languages mean). Everything we do from here builds on the idea that a programming language is a formal language — a set of strings with rules for form and meaning.
+
+---
+
+## Automata Theory
+
+<DefinitionBox term="Automata Theory">
+
+**Automata Theory** studies how computations are *carried out*. It asks: what are the formal models of computing devices, and what are their capabilities and limitations?
+
+</DefinitionBox>
+
+### A Brief History of Computing Machines
+
+People have been building machines that compute for millennia:
+
+| Era | Machine | What It Does |
+| :--- | :--- | :--- |
+| ~2400 BCE | Abacus | Arithmetic via bead manipulation |
+| ~100 BCE | Antikythera mechanism | Astronomical calculations via gears |
+| 1642 | Pascal's adder | Mechanical addition and subtraction |
+| 1804 | Jacquard's loom | Programmable weaving via punch cards |
+| 1837 | Babbage's Analytical Engine | General-purpose mechanical computation (designed, never fully built) |
+
+These were amazing feats of engineering. But they all compute *specific things* in *specific ways*. What is the **essence** of computation — stripped of all mechanical detail?
+
+---
+
+### Turing Machines
+
+In 1936, a 24-year-old Alan Turing set out to answer a question posed by the mathematician David Hilbert: is there an algorithm that can determine whether any given mathematical statement is true or false?
+
+To answer this, Turing first had to define what an "algorithm" even *is*. He did so by observing what human computers (people who compute for a living) actually do:
+
+1. They examine some portion of a worksheet
+2. They write something down or erase something
+3. They move to another part of the worksheet
+4. Their actions depend on what they see and their current "state of mind"
+
+Turing reduced this to a minimal abstract machine:
+
+<DefinitionBox term="Turing Machine">
+
+A **Turing Machine** consists of:
+- An infinite **tape** divided into cells, each holding a symbol from a finite alphabet
+- A **head** that reads and writes one cell at a time
+- A finite set of **states** (including a start state and halt states)
+- A **transition function** that, given the current state and symbol, specifies: what to write, which direction to move (left or right), and what state to enter next
+
+</DefinitionBox>
+
+---
+
+### A Worked Example: Multiply by Four
+
+Let's see a concrete Turing Machine. To multiply a binary number by four, we simply append two zeros. Our TM needs just three states:
+
+| Current State | Read Symbol | Write | Move | Next State |
+| :--- | :--- | :--- | :--- | :--- |
+| Scanning | 0 | 0 | Right | Scanning |
+| Scanning | 1 | 1 | Right | Scanning |
+| Scanning | # | 0 | Right | Doubled |
+| Doubled | # | 0 | — | Quadrupled |
+
+Here it is in action, multiplying 5 (binary `0101`) by 4 to get 20 (binary `010100`):
+
+<TuringMachineTape
+  title="Multiply by Four: 5 (binary 0101) → 20 (binary 010100)"
+  steps={[
+    { tape: ["0","1","0","1","#","#","#"], head: 0, state: "Scanning", description: "Start: head at leftmost symbol, in Scanning state" },
+    { tape: ["0","1","0","1","#","#","#"], head: 1, state: "Scanning", description: "Read 0 → keep it, move right" },
+    { tape: ["0","1","0","1","#","#","#"], head: 2, state: "Scanning", description: "Read 1 → keep it, move right" },
+    { tape: ["0","1","0","1","#","#","#"], head: 3, state: "Scanning", description: "Read 0 → keep it, move right" },
+    { tape: ["0","1","0","1","#","#","#"], head: 4, state: "Scanning", description: "Read 1 → keep it, move right. Now we've scanned past the input." },
+    { tape: ["0","1","0","1","0","#","#"], head: 5, state: "Doubled", description: "Read # (blank) → write 0, move right, enter Doubled state. First zero appended!" },
+    { tape: ["0","1","0","1","0","0","#"], head: 5, state: "Quadrupled", description: "Read # → write 0, enter Quadrupled state. Done! 010100 = 20 ✓" }
+  ]}
+/>
+
+Simple? Yes. That's the point. Turing Machines are deliberately *primitive* — and that's what makes them powerful as a theoretical tool. Their simplicity makes it possible to reason rigorously about what computation can and cannot do.
+
+---
+
+### Other Models of Computation
+
+Turing Machines are not the only formal model of computation. Others include:
+
+| Model | Core Idea |
+| :--- | :--- |
+| Register Machines | Numbered registers with increment, decrement, and branch |
+| **Lambda Calculus** | Functions and beta-reduction (LN 4!) |
+| Post Systems | String rewriting rules |
+| Cellular Automata | Grid of cells with local update rules (e.g., Conway's Game of Life) |
+| Queue Automata | Computation via queue operations |
+| Partial Recursive Functions | Functions built from basic operations and minimization |
+
+Notice that **the Lambda Calculus is on this list**. The system we built in LN 4 isn't just a tool for studying functions — it's a full model of computation. Everything a Turing Machine can compute, the Lambda Calculus can compute too.
+
+---
+
+### The Universal Turing Machine
+
+One of Turing's most profound insights: you can encode a Turing Machine's program as a string on a tape. This means a Turing Machine can *process the description of another Turing Machine*. The **Universal Turing Machine** $U$ does exactly this:
+
+> Given the encoding of a machine $M$ and an input $w$, $U$ simulates exactly what $M$ would do on $w$.
+
+This is the theoretical foundation of **general-purpose computers**. Your laptop is a (very sophisticated) Universal Turing Machine — it reads programs (descriptions of specific computations) and executes them.
+
+---
+
+### The Uncomfortable Epistemological Reality
+
+The **Church-Turing Thesis** claims that Turing Machines capture *all of computation* — that anything we'd intuitively call "computable" can be computed by a TM.
+
+The evidence is overwhelming: every alternative model ever proposed (lambda calculus, recursive functions, register machines, cellular automata, quantum computers for decision problems, and more) turns out to be **exactly equivalent** to Turing Machines in terms of what they can compute.
+
+But here's the uncomfortable truth: **the Church-Turing Thesis is empirical, not a theorem.** We cannot *prove* that no more powerful model exists. Why? Because to prove it, we'd need to formally define "all computation" — and doing that requires stepping outside the very system we're trying to characterize.
+
+We *believe* Turing Machines are the ceiling. Every new model we try confirms this. But certainty is out of reach. This isn't Godel's incompleteness theorem directly, but it shares the same philosophical flavor: there are truths about our systems that the systems themselves cannot establish.
+
+> **💡 For our course:** This uncertainty doesn't stop us — we proceed with the thesis as our working assumption. But it's worth remembering that our entire field rests on an *empirical claim* about the nature of computation that we cannot formally verify.
+
+---
+
+### Cross-Theory Implication (from Language Theory)
+
+Here's a deep connection we'll return to in the Web of Connections: **every class of automata corresponds to a class of languages it can recognize.**
+
+| Automaton | Recognizes |
+| :--- | :--- |
+| Finite Automata | Regular languages |
+| Pushdown Automata | Context-free languages |
+| Linear Bounded Automata | Context-sensitive languages |
+| Turing Machines | Recursively enumerable languages |
+
+A machine is defined by the languages it can process. Language Theory and Automata Theory are two sides of the same coin.
+
+---
+
+### Connection to Our Course
+
+When we build **interpreters** and **compilers** later in this course, we are building automata — machines that carry out computations expressed in our languages. Your lexer will be a finite automaton. Your parser will be a pushdown automaton. The theory isn't abstract — you'll build it.
+
+---
+
+## Computability Theory
+
+<DefinitionBox term="Computability Theory">
+
+**Computability Theory** studies the fundamental *limits* of computation. It asks: which functions can be computed by any machine, and which cannot?
+
+</DefinitionBox>
+
+### The Big Question
+
+Can every function be computed?
+
+### The Shocking Answer
+
+**No.**
+
+### The Diagonal Argument
+
+Here's why, and the proof uses set theory from LN 3.
+
+**Programs are countable.** A program is a finite string over a finite alphabet. We can list all programs in lexicographic order: $p_0, p_1, p_2, \ldots$ This is a countably infinite list.
+
+**Functions are uncountable.** Consider all functions $f : \mathbb{N} \to \mathbb{N}$. By Cantor's diagonal argument (from LN 3's cardinality section), this set is *uncountable* — it's strictly larger than the set of natural numbers.
+
+**Therefore:** There are more functions than programs. Most functions have no program. Some functions are simply *not computable*.
+
+> **🤔 This is the cardinality argument from LN 3 applied to computation.** The set-theoretic tool we built two lectures ago just told us something profound about the limits of *all* computing machines.
+
+---
+
+### The Halting Problem
+
+The most famous uncomputable function is the **Halting Problem**: given a program and an input, determine whether the program will eventually stop or run forever.
+
+Suppose we could write such a function. In Python:
+
+```python
+def halts(f, x):
+    """Returns True if f(x) terminates, False if it loops forever."""
+    # ... magic analysis of f's code ...
+
+# Now consider this devious function:
+def fox(f):
+    if halts(f, f):
+        while True: pass  # loop forever
+    # else: return normally
+
+# What happens when we call halts(fox, fox)?
+```
+
+Think carefully. If `halts(fox, fox)` returns `True` (fox halts on itself), then `fox` enters an infinite loop — it *doesn't* halt. Contradiction. If `halts(fox, fox)` returns `False` (fox doesn't halt), then `fox` returns normally — it *does* halt. Contradiction.
+
+The same argument in JavaScript:
+
+```javascript
+function fox(f) {
+  if (halts(f, f)) { while (true) {} }
+}
+// halts(fox, fox) ➜ ??? (contradiction either way)
+```
+
+<ReductionStepper
+  title="The Halting Problem Paradox"
+  steps={[
+    { formula: "\\text{Assume } \\texttt{halts}(f, x) \\text{ exists and is total}", description: "Suppose we have a function that always correctly answers whether f(x) halts." },
+    { formula: "\\text{Define } \\texttt{fox}(f) = \\begin{cases} \\text{loop} & \\text{if } \\texttt{halts}(f, f) = \\text{true} \\\\ \\text{halt} & \\text{if } \\texttt{halts}(f, f) = \\text{false} \\end{cases}", description: "Define fox: it does the OPPOSITE of what halts predicts." },
+    { formula: "\\text{Consider } \\texttt{halts}(\\texttt{fox}, \\texttt{fox})", description: "What happens when we ask: does fox halt on itself?" },
+    { formula: "\\text{If } \\texttt{halts}(\\texttt{fox}, \\texttt{fox}) = \\text{true} \\Rightarrow \\texttt{fox}(\\texttt{fox}) \\text{ loops} \\Rightarrow \\textbf{contradiction!}", description: "If halts says yes, then fox loops — but halts said it halts!" },
+    { formula: "\\text{If } \\texttt{halts}(\\texttt{fox}, \\texttt{fox}) = \\text{false} \\Rightarrow \\texttt{fox}(\\texttt{fox}) \\text{ halts} \\Rightarrow \\textbf{contradiction!}", description: "If halts says no, then fox halts — but halts said it doesn't!" },
+    { formula: "\\therefore \\texttt{halts} \\text{ cannot exist. The Halting Problem is undecidable.}", description: "No such function can exist. Some questions about programs are fundamentally unanswerable." }
+  ]}
+/>
+
+---
+
+### Turing Completeness
+
+<DefinitionBox term="Turing Complete">
+
+A computational model is **Turing-complete** if it can simulate a Turing Machine — meaning it can compute anything that any Turing Machine can compute.
+
+</DefinitionBox>
+
+Most programming languages are Turing-complete: Python, JavaScript, Haskell, Rust, C, Java, and yes, the untyped Lambda Calculus from LN 4. This means they all compute the *same class* of functions — they differ in syntax, ergonomics, and performance, but not in fundamental capability.
+
+---
+
+### What It Means to NOT Be Turing-Complete
+
+But not all useful systems are Turing-complete — and sometimes, that's **by design**.
+
+Recall from LN 4: the **Simply Typed Lambda Calculus** always terminates. Every program in it has a normal form. We noted this as a "limitation" (it can't express infinite loops). But it's equally a *strength*: because every program terminates, you can *guarantee* things about programs that are impossible to guarantee in a Turing-complete system.
+
+This is a general principle:
+
+> **Giving up computational power buys you knowledge.** In a smaller space, you can prove things that are impossible to prove in the full space of computation.
+
+Real-world examples of deliberately non-Turing-complete systems:
+
+| System | What It Gives Up | What It Gains |
+| :--- | :--- | :--- |
+| Regular expressions | Recursion, memory | Guaranteed O(n) matching, decidable equivalence |
+| SQL (originally) | General recursion | Guaranteed termination, query optimization |
+| Dhall, Jsonnet | Infinite loops | Guaranteed termination for config generation |
+| GLSL (shader language) | Dynamic control flow | Predictable GPU execution time |
+| Agda, Idris (total mode) | Non-termination | Proofs as programs — every type is inhabited iff provable |
+| Simply Typed $\lambda$-Calculus | Recursion, self-application | Strong normalization (LN 4) |
+
+This is the **fundamental computability trade-off**: expressiveness vs. guarantees. It drives every language design decision.
+
+---
+
+### Cross-Theory Implications
+
+- **From Language Theory:** The diagonal argument is really about languages. The set of all programs is a language ($L \subseteq \Sigma^*$). The set of halting programs is a *different* language — and it's undecidable. A language's decidability is a computability question.
+- **From Automata Theory:** The Halting Problem proves that Turing Machines cannot fully analyze themselves. This directly limits what **compilers**, **type checkers**, and **static analyzers** can do — and shapes how we design programming languages.
+
+---
+
+### Connection to Our Course
+
+When we design programming languages, we're choosing where on the **expressiveness-guarantees spectrum** to sit:
+
+- Turing-complete languages can express *anything computable* but can guarantee *almost nothing* statically
+- Restricted languages guarantee more but express less
+
+This tension will surface repeatedly: in type system design, in grammar formalism choice, in the limits of static analysis.
+
+---
+
+## Complexity Theory
+
+<DefinitionBox term="Complexity Theory">
+
+**Complexity Theory** studies what *resources* are required to perform computations. Even if a problem is computable, is it *practically* computable? How much time and memory does it need?
+
+</DefinitionBox>
+
+### Time and Space
+
+We measure resources as a function of **input size** $n$:
+
+- **Time complexity:** the number of basic steps as a function of $n$
+- **Space complexity:** the amount of memory used as a function of $n$
+
+---
+
+### How Fast Is Fast?
+
+| Complexity | Name | 10 inputs | 100 inputs | 1000 inputs | Example |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| $O(1)$ | Constant | 1 | 1 | 1 | Array index lookup |
+| $O(\log n)$ | Logarithmic | 3 | 7 | 10 | Binary search |
+| $O(n)$ | Linear | 10 | 100 | 1,000 | Linear scan |
+| $O(n \log n)$ | Linearithmic | 33 | 664 | 9,966 | Merge sort |
+| $O(n^2)$ | Quadratic | 100 | 10,000 | 1,000,000 | Bubble sort |
+| $O(n^3)$ | Cubic | 1,000 | 1,000,000 | $10^9$ | Naive matrix multiply |
+| $O(2^n)$ | Exponential | 1,024 | $10^{30}$ | $10^{301}$ | Brute-force subset search |
+
+> **💡 The jump from polynomial to exponential is the cliff.** $O(n^3)$ on 1000 inputs takes a billion steps (seconds on a modern machine). $O(2^n)$ on 1000 inputs takes $10^{301}$ steps — more than the number of atoms in the observable universe.
+
+---
+
+### P, NP, and the Million-Dollar Question
+
+Two complexity classes dominate the field:
+
+<DefinitionBox term="P and NP">
+
+**P** is the class of problems solvable in **polynomial time** — they have efficient algorithms.
+
+**NP** is the class of problems whose solutions can be *verified* in polynomial time — if someone hands you an answer, you can check it quickly, even if *finding* the answer might be hard.
+
+</DefinitionBox>
+
+Clearly $P \subseteq NP$ (if you can solve it fast, you can certainly verify it fast). But **does P = NP?**
+
+This is the most famous open question in computer science — one of the seven Millennium Prize Problems, with a million-dollar bounty.
+
+- If **P = NP**: every problem whose answer can be quickly *checked* can also be quickly *found*. Cryptography breaks. Optimization becomes easy. Drug design, protein folding, scheduling — all become tractable.
+- If **P $\neq$ NP** (widely believed): some problems are fundamentally harder to solve than to verify. Cryptography is safe. Some computations are inherently expensive.
+
+**NP-complete** problems are the hardest problems in NP — if *any* of them is in P, then *all* of them are (and P = NP). Famous examples: the Traveling Salesman Problem, Boolean Satisfiability, Graph Coloring.
+
+---
+
+### Connection to Our Course
+
+When we study **parsing algorithms** in LN 9, complexity matters directly:
+
+| Parsing Approach | Complexity | Practical? |
+| :--- | :--- | :--- |
+| Regular expression matching | $O(n)$ | Very fast |
+| LL/LR parsing | $O(n)$ | Fast (most real compilers) |
+| Earley parsing | $O(n^3)$ worst case | Slower but more general |
+| Arbitrary context-free parsing | $O(n^3)$ | General but expensive |
+| Context-sensitive parsing | $O(2^n)$ worst case | Usually impractical |
+
+The choice of **grammar formalism** determines the complexity of parsing. This is where Language Theory meets Complexity Theory — the structure of your language directly affects how expensive it is to process.
+
+---
+
+## The Web of Connections
+
+Throughout the previous sections, we wove cross-theory implications into each theory. Now let's pull all those threads together.
+
+---
+
+### The Chomsky Hierarchy: Three Theories in One Table
+
+The most beautiful result connecting these theories is the **Chomsky Hierarchy**. It is simultaneously a classification of *languages*, a classification of *machines*, and a statement about *computability*:
+
+| Grammar Type | Language Class | Automaton | Decidable? |
+| :--- | :--- | :--- | :--- |
+| Regular grammar | Regular languages | Finite Automata | Yes — membership, emptiness, equivalence |
+| Context-free grammar | Context-free languages | Pushdown Automata | Membership yes; equivalence no |
+| Context-sensitive grammar | Context-sensitive languages | Linear Bounded Automata | Membership yes (expensive) |
+| Unrestricted grammar | Recursively enumerable | Turing Machines | Membership: semi-decidable only |
+
+> **📌 One table, three theories.** The Chomsky Hierarchy is simultaneously about languages (Language Theory), machines (Automata Theory), and decidability (Computability Theory). A discovery in one column immediately implies a result in the others.
+
+---
+
+### Cross-Theory Connections
+
+| Connection | What It Says |
+| :--- | :--- |
+| **Language $\leftrightarrow$ Automata** | Every language class corresponds to an automaton class. A language is "regular" *because* finite automata can recognize it, and vice versa. |
+| **Automata $\leftrightarrow$ Computability** | The Halting Problem is a language that no TM can decide. TMs can recognize it (if the program halts, you'll eventually know) but can't decide it (if it doesn't halt, you'll wait forever). |
+| **Language $\leftrightarrow$ Computability** | Some languages are decidable, some aren't. The expressiveness of a grammar formalism determines which languages it can define — and which decidability properties hold. |
+| **Complexity $\leftrightarrow$ All** | Complexity classes stratify the decidable languages. $P$ and $NP$ live *inside* the decidable languages. Parsing complexity ties Language Theory to Complexity Theory. |
+| **Lambda Calculus $\leftrightarrow$ All** | The lambda calculus is simultaneously a *language* (Language Theory), a *computation model* (Automata Theory), and *Turing-complete* (Computability Theory). Our tool from LN 4 touches all four pillars. |
+
+---
+
+### The Expressiveness-Guarantees Spectrum
+
+The Chomsky Hierarchy isn't just a classification — it's a **trade-off curve**:
+
+- **Regular languages** are the least expressive but the most analyzable. Everything is decidable. Parsing is $O(n)$.
+- **Context-free languages** are more expressive (enough for most programming language syntax) but some properties become undecidable (like language equivalence).
+- **Recursively enumerable languages** are maximally expressive but membership itself becomes undecidable.
+
+As you move up the hierarchy, you gain expressiveness but lose guarantees. This is the computability trade-off manifested across the entire landscape of formal systems.
+
+---
+
+## What This Means for Us
+
+For the rest of this course, we live primarily in **Language Theory** and **Automata Theory** — the two theories about *structure*.
+
+Here's the roadmap:
+
+| Lecture | Theory | Topic |
+| :--- | :--- | :--- |
+| LN 6 | Pragmatics | Classifying Programming Languages |
+| LN 7 | Language Theory | Formal Languages and Grammars |
+| LN 8 | Language Theory | Syntax (CST, AST) |
+| LN 9 | Language + Automata + Complexity | Parsing |
+| LN 10-12 | Semantics | Operational, Denotational, and other semantics |
+
+But Computability and Complexity will appear as **constraints**: some things we'd like our languages to do are *impossible* (computability limits), and some things that are possible are *too expensive* (complexity limits).
+
+> As Grady Booch wrote: *"Scientists in material domains observe the cosmos and reduce it to simple principles; computer scientists start with simple principles and from them create new worlds bound only by the imagination."*
+>
+> In LN 1-4, we built our simple principles — logic, sets, lambda calculus. Today we surveyed the map of what's possible. Starting next lecture, we begin **creating new worlds**. These four theories are the map; now we enter the territory.
+
+---
+
+## Summary
+
+Today we surveyed the **four foundational theories of computation** — the pillars upon which all of Computer Science rests.
+
+- **A theory** is an organized body of knowledge with explanatory and predictive powers
+- **Language Theory** asks how computations are *expressed* — as strings over alphabets, with syntax, semantics, and pragmatics
+- **The fundamental hypothesis** that all information can be encoded as strings is unprovable but pragmatically essential
+- **Automata Theory** asks how computations are *carried out* — from Turing Machines to the Lambda Calculus, all equivalent in power
+- **The Church-Turing Thesis** is empirical, not a theorem — we believe TMs are the ceiling but can't prove it
+- **Computability Theory** shows that *most functions are not computable* — the Halting Problem is the canonical example
+- **Giving up Turing-completeness buys guarantees** — the fundamental trade-off of language design
+- **Complexity Theory** asks what resources are needed — P vs NP is the defining open question
+- **The Chomsky Hierarchy** unifies languages, machines, and decidability in one framework
+- **The Lambda Calculus from LN 4** touches all four theories — it is a language, a computation model, and Turing-complete
+
+> **Next time:** We classify programming languages by their design choices — paradigms, type systems, and the pragmatic decisions that shape how we write code.
+
+---
+
+<LectureNotes>
+
+### Key Definitions
+
+| Term | Definition |
+| :--- | :--- |
+| **Theory** | An organized body of knowledge with explanatory and predictive powers |
+| **Alphabet** | A finite set of symbols $\Sigma$ |
+| **String** | A finite sequence of symbols from $\Sigma$ |
+| **Language** | A set of strings $L \subseteq \Sigma^*$ |
+| **Turing Machine** | Tape + head + states + transition function — the canonical model of computation |
+| **Universal TM** | A TM that can simulate any other TM given its description |
+| **Church-Turing Thesis** | The computable functions are exactly those computable by a TM (empirical) |
+| **Turing Complete** | A model that can simulate any Turing Machine |
+| **Decidable** | A language for which a TM always halts with the correct answer |
+| **Undecidable** | A language for which no TM can always halt with the correct answer |
+| **Halting Problem** | The undecidable problem of determining whether a program halts on a given input |
+| **P** | Problems solvable in polynomial time |
+| **NP** | Problems verifiable in polynomial time |
+| **NP-complete** | The hardest problems in NP — if any is in P, then P = NP |
+
+### The Chomsky Hierarchy
+
+| Level | Grammar | Language Class | Automaton | Key Decidability |
+| :--- | :--- | :--- | :--- | :--- |
+| 3 | Regular | Regular | Finite Automata | All properties decidable |
+| 2 | Context-free | Context-free | Pushdown Automata | Membership decidable |
+| 1 | Context-sensitive | Context-sensitive | Linear Bounded Automata | Membership decidable |
+| 0 | Unrestricted | Recursively enumerable | Turing Machines | Membership semi-decidable |
+
+### The Four Theories at a Glance
+
+| Theory | Question | Key Result |
+| :--- | :--- | :--- |
+| Language Theory | How are computations expressed? | Languages are sets of strings; grammars define them |
+| Automata Theory | How are computations carried out? | Machine classes correspond to language classes |
+| Computability Theory | What are the limits? | Most functions are not computable (diagonal argument) |
+| Complexity Theory | What resources are needed? | P vs NP is open; parsing cost depends on grammar formalism |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Computerphile: "Turing Machines Explained" (2014)](https://www.youtube.com/watch?v=dNRDvLACg5Q) — Visual introduction to Turing Machines
+- [Computerphile: "The Halting Problem" (2014)](https://www.youtube.com/watch?v=macM_MtS_w4) — The proof made accessible
+- [Computerphile: "P vs NP" (2014)](https://www.youtube.com/watch?v=YX40hbAHx3s) — The million-dollar question explained
+- [Veritasium: "Math's Fundamental Flaw" (2021)](https://www.youtube.com/watch?v=HeQX2HjkcNo) — Godel, Turing, and the limits of formal systems
+- [Up and Atom: "P vs NP" (2020)](https://www.youtube.com/watch?v=EHp4FPyajKQ) — Clear, visual explanation
+
+### Further Reading
+
+- [Ray Toal: CS Theories Notes](https://cs.lmu.edu/~ray/notes/cstheories/) — The comprehensive reference this lecture draws from
+- [Stanford Encyclopedia: Turing Machines](https://plato.stanford.edu/entries/turing-machine/) — Philosophical and historical overview
+- [Stanford Encyclopedia: Computability and Complexity](https://plato.stanford.edu/entries/computability/) — Technical overview
+- [Scott Aaronson: "Is P Versus NP Formally Independent?"](https://www.scottaaronson.com/papers/pnp.pdf) — The scientific case for P != NP
+- [The Complexity Zoo](https://complexityzoo.net/) — A catalog of every known complexity class
+
+### Books
+
+- Bernhardt, C. — *Turing's Vision: The Birth of Computer Science* — The story of how Turing arrived at his machines
+- Sipser, M. — *Introduction to the Theory of Computation* — The standard textbook for computation theory
+- Hopcroft, J., Motwani, R., Ullman, J. — *Introduction to Automata Theory, Languages, and Computation* — Classic comprehensive reference
+
+### Historical Papers
+
+- Turing, A. (1936) — "On Computable Numbers, with an Application to the Entscheidungsproblem" — The paper that defined computation
+- Church, A. (1936) — "An Unsolvable Problem of Elementary Number Theory" — Lambda calculus as a model of computation
+- Chomsky, N. (1956) — "Three Models for the Description of Language" — The birth of the Chomsky Hierarchy
+- Cook, S. (1971) — "The Complexity of Theorem-Proving Procedures" — The paper that launched NP-completeness
+
+</LectureResources>
