@@ -1,0 +1,727 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { QuestionBox } from "@/components/question-box"
+import { DefinitionBox } from "@/components/interactive-example"
+import { VennDiagram } from "@/components/venn-diagram"
+
+## Recap
+
+Last time we formally introduced **sets** — unordered collections with no duplicates. We defined the membership operator ($\in$), built set equality from bidirectional membership, introduced subset and superset, explored set builder notation, and measured sets with cardinality.
+
+We also saw that sets model tags, concurrent processes, and even dictionaries (as sets of tuples).
+
+---
+
+## Today's Agenda
+
+Today we ask: what can we **do** with sets? How do we combine, compare, and transform them?
+
+- **Union** — Combining membership
+- **Intersection** — Shared membership
+- **Set Difference** — Removing membership
+- **Absolute Complement** — Everything not in a set
+- **Symmetric Difference** — Exclusive membership
+- **The Logic-Set Bridge** — A pattern emerges
+- **Algebraic Properties** — Commutativity, associativity, identity, De Morgan's
+- **Powerset** — The set of all subsets
+- **Cartesian Product** — Ordered pairs from two sets
+- **Cardinality Rules** — How size interacts with operations
+- **A Note on Types and Sets** — Set operations define the types collections inhabit
+
+---
+
+## Union
+
+The **union** of two sets combines everything from both. Think of it as merging two guest lists — if someone is on either list, they get in.
+
+<DefinitionBox term="Union (∪)">
+
+The **union** of sets $A$ and $B$, written $A \cup B$, is the set of all elements that are in $A$, in $B$, or in both.
+
+Type judgment: $\cup\; : (\text{Set}, \text{Set}) \to \text{Set}$
+
+</DefinitionBox>
+
+**Examples:**
+
+| Expression | Result | Why |
+| :--- | :--- | :--- |
+| $\{1, 2, 3\} \cup \{3, 4, 5\}$ | $\{1, 2, 3, 4, 5\}$ | Mixed overlap — 3 appears once |
+| $\{1, 2\} \cup \{3, 4\}$ | $\{1, 2, 3, 4\}$ | Disjoint — no overlap at all |
+| $\{1, 2\} \cup \{1, 2, 3\}$ | $\{1, 2, 3\}$ | Subset — A adds nothing new |
+| $\{1, 2, 3\} \cup \{1, 2, 3\}$ | $\{1, 2, 3\}$ | Identical — union with yourself is yourself |
+
+**Venn Diagram:**
+
+<VennDiagram
+  variables={2}
+  labels={["A", "B"]}
+  formula="A | B"
+  caption="A ∪ B — Everything in A or B (or both) is shaded"
+  height="250px"
+/>
+
+**Python:**
+
+```python
+{1, 2, 3} | {3, 4, 5}        # {1, 2, 3, 4, 5}
+{1, 2, 3}.union({3, 4, 5})    # {1, 2, 3, 4, 5}
+```
+
+### Formalizing with Set Builder Notation
+
+Now let's write this precisely. An element $x$ is in $A \cup B$ when $x$ is in $A$ **or** $x$ is in $B$:
+
+<DisplayMath formula="A \cup B \;\equiv\; \{x \in U \mid x \in A \;\lor\; x \in B\}" />
+
+Notice the $\lor$ — that's **disjunction** from our logic lectures! We'll come back to that.
+
+---
+
+## Intersection
+
+The **intersection** of two sets keeps only what they share. Think of it as finding common friends between two friend groups.
+
+<DefinitionBox term="Intersection (∩)">
+
+The **intersection** of sets $A$ and $B$, written $A \cap B$, is the set of all elements that are in both $A$ and $B$.
+
+Type judgment: $\cap\; : (\text{Set}, \text{Set}) \to \text{Set}$
+
+</DefinitionBox>
+
+**Examples:**
+
+| Expression | Result | Why |
+| :--- | :--- | :--- |
+| $\{1, 2, 3\} \cap \{3, 4, 5\}$ | $\{3\}$ | Mixed overlap — only 3 is shared |
+| $\{1, 2\} \cap \{3, 4\}$ | $\emptyset$ | Disjoint — nothing in common |
+| $\{1, 2\} \cap \{1, 2, 3\}$ | $\{1, 2\}$ | Subset — everything in A is shared |
+| $\{1, 2, 3\} \cap \{1, 2, 3\}$ | $\{1, 2, 3\}$ | Identical — intersection with yourself is yourself |
+
+**Venn Diagram:**
+
+<VennDiagram
+  variables={2}
+  labels={["A", "B"]}
+  formula="A & B"
+  caption="A ∩ B — Only the overlap region is shaded"
+  height="250px"
+/>
+
+**Python:**
+
+```python
+{1, 2, 3} & {3, 4, 5}              # {3}
+{1, 2, 3}.intersection({3, 4, 5})   # {3}
+```
+
+### Formalizing with Set Builder Notation
+
+An element $x$ is in $A \cap B$ when $x$ is in $A$ **and** $x$ is in $B$:
+
+<DisplayMath formula="A \cap B \;\equiv\; \{x \mid x \in A \;\land\; x \in B\}" />
+
+There's the $\land$ — **conjunction**! Another logical connective showing up in a set definition...
+
+---
+
+## Set Difference (Relative Complement)
+
+The **set difference** $A \setminus B$ keeps elements in A that are **not** in B. Think of it as removing everyone on a blacklist from your guest list.
+
+<DefinitionBox term="Set Difference / Relative Complement (∖)">
+
+The **set difference** of $A$ and $B$, written $A \setminus B$, is the set of all elements in $A$ but not in $B$. Also called the **relative complement** of $B$ in $A$.
+
+Type judgment: $\setminus\; : (\text{Set}, \text{Set}) \to \text{Set}$
+
+</DefinitionBox>
+
+**Examples:**
+
+| Expression | Result | Why |
+| :--- | :--- | :--- |
+| $\{1, 2, 3, 4\} \setminus \{3, 4, 5\}$ | $\{1, 2\}$ | Remove the overlap |
+| $\{1, 2\} \setminus \{3, 4\}$ | $\{1, 2\}$ | Disjoint — nothing to remove |
+| $\{1, 2\} \setminus \{1, 2, 3\}$ | $\emptyset$ | A is a subset of B — everything removed |
+| $\{1, 2, 3\} \setminus \{1, 2, 3\}$ | $\emptyset$ | Identical — remove everything |
+
+**Venn Diagram:**
+
+<VennDiagram
+  variables={2}
+  labels={["A", "B"]}
+  formula="A & !B"
+  caption="A ∖ B — The part of A that doesn't overlap with B"
+  height="250px"
+/>
+
+**Python:**
+
+```python
+{1, 2, 3, 4} - {3, 4, 5}              # {1, 2}
+{1, 2, 3, 4}.difference({3, 4, 5})     # {1, 2}
+```
+
+### Formalizing with Set Builder Notation
+
+An element $x$ is in $A \setminus B$ when $x$ is in $A$ **and** $x$ is **not** in $B$:
+
+<DisplayMath formula="A \setminus B \;\equiv\; \{x \mid x \in A \;\land\; x \notin B\}" />
+
+We see $\land$ again, and now $\notin$ (which is $\lnot \in$, i.e., **negation** of membership). The logical connectives keep appearing...
+
+---
+
+## Absolute Complement
+
+What if we want **everything not in A** — not relative to some other set B, but relative to the entire universe?
+
+This requires introducing the **universal set** $U$ — the set of all elements under consideration.
+
+<DefinitionBox term="Absolute Complement (overline)">
+
+The **absolute complement** of $A$ (written $\overline{A}$ or $A^c$) is the set of all elements in the universe $U$ that are not in $A$.
+
+Type judgment: the complement operator takes a Set and returns a Set (requires a universe $U$)
+
+</DefinitionBox>
+
+**Examples** (with $U = \{1, 2, 3, 4, 5\}$):
+
+| Set A | Complement of A | Why |
+| :--- | :--- | :--- |
+| $\{1, 2, 3\}$ | $\{4, 5\}$ | Everything in U not in A |
+| $\{1, 2, 3, 4, 5\}$ | $\emptyset$ | Complement of U is the empty set |
+| $\emptyset$ | $\{1, 2, 3, 4, 5\}$ | Complement of nothing is everything |
+| $\{3\}$ | $\{1, 2, 4, 5\}$ | Remove just one element |
+
+**Venn Diagram:**
+
+<VennDiagram
+  variables={2}
+  labels={["A", "B"]}
+  formula="!A"
+  caption="Complement of A — Everything OUTSIDE A is shaded (the rectangle is U)"
+  height="250px"
+/>
+
+The bounding rectangle in the Venn diagram has always represented the universe! The complement is everything outside the circle.
+
+**Python:**
+
+```python
+U = {1, 2, 3, 4, 5}
+A = {1, 2, 3}
+U - A                   # {4, 5} — the complement
+```
+
+Python doesn't have a built-in complement operator because Python sets don't have a universe. You have to explicitly define $U$ and subtract.
+
+> **🤔 Historical Note:** The need for a universal set raises a famous question: what if $U$ contains itself? This leads to **Russell's Paradox** — the very paradox that motivated the development of Type Theory back in LN4! Sets need careful foundations.
+
+### Formalizing with Set Builder Notation
+
+An element $x$ is in $\overline{A}$ when $x$ is in $U$ and $x$ is **not** in $A$:
+
+<DisplayMath formula="\overline{A} \;\equiv\; \{x \in U \mid x \notin A\} \;\equiv\; U \setminus A" />
+
+Pure **negation** of membership. The logical connective here is $\lnot$.
+
+---
+
+## Symmetric Difference
+
+The **symmetric difference** keeps elements in **one or the other but not both**. Think of it as what's unique to each set — the non-overlapping parts.
+
+<DefinitionBox term="Symmetric Difference (△)">
+
+The **symmetric difference** of $A$ and $B$, written $A \triangle B$, is the set of elements in exactly one of the two sets — but not both.
+
+Equivalently: $A \triangle B = (A \setminus B) \cup (B \setminus A) = (A \cup B) \setminus (A \cap B)$
+
+Type judgment: $\triangle\; : (\text{Set}, \text{Set}) \to \text{Set}$
+
+</DefinitionBox>
+
+**Examples:**
+
+| Expression | Result | Why |
+| :--- | :--- | :--- |
+| $\{1, 2, 3\} \triangle \{3, 4, 5\}$ | $\{1, 2, 4, 5\}$ | Remove the shared 3 |
+| $\{1, 2\} \triangle \{3, 4\}$ | $\{1, 2, 3, 4\}$ | Disjoint — everything is unique |
+| $\{1, 2\} \triangle \{1, 2, 3\}$ | $\{3\}$ | Only 3 is unique to one side |
+| $\{1, 2, 3\} \triangle \{1, 2, 3\}$ | $\emptyset$ | Identical — nothing is unique |
+
+**Venn Diagram:**
+
+<VennDiagram
+  variables={2}
+  labels={["A", "B"]}
+  formula="(A & !B) | (!A & B)"
+  caption="A △ B — The 'exclusive or' of sets: each side but not the overlap"
+  height="250px"
+/>
+
+**Python:**
+
+```python
+{1, 2, 3} ^ {3, 4, 5}                        # {1, 2, 4, 5}
+{1, 2, 3}.symmetric_difference({3, 4, 5})     # {1, 2, 4, 5}
+```
+
+### Formalizing with Set Builder Notation
+
+An element $x$ is in $A \triangle B$ when it's in A but not B, **or** in B but not A:
+
+<DisplayMath formula="A \triangle B \;\equiv\; \{x \in U \mid (x \in A \;\land\; x \notin B) \;\lor\; (x \notin A \;\land\; x \in B)\}" />
+
+That's $\land$, $\lor$, and $\lnot$ all working together — this is **exclusive or** (XOR) expressed with our basic logical connectives!
+
+---
+
+## The Logic-Set Bridge
+
+Did you notice something? Every time we formalized a set operation using set builder notation, a **logical connective** appeared:
+
+| Set Operation | Set Builder Definition | Logical Connective |
+| :--- | :--- | :--- |
+| $A \cup B$ | $x \in A \;\lor\; x \in B$ | Disjunction ($\lor$) |
+| $A \cap B$ | $x \in A \;\land\; x \in B$ | Conjunction ($\land$) |
+| $A \setminus B$ | $x \in A \;\land\; x \notin B$ | Conjunction + Negation |
+| $\overline{A}$ | $x \notin A$ | Negation ($\lnot$) |
+| $A \triangle B$ | $(x \in A \land x \notin B) \lor (x \notin A \land x \in B)$ | XOR |
+
+This isn't a coincidence. **Every set operation is a logical operation in disguise.**
+
+Remember the Venn diagrams from LN5? We used them for **propositional logic**, shading regions based on logical formulas. But those same diagrams can represent **sets** — and each region maps to a membership condition:
+
+<VennDiagram
+  variables={2}
+  labels={["A", "B"]}
+  showRegionLabels={true}
+  caption="Each region corresponds to a membership condition"
+  height="280px"
+/>
+
+| Region | Logic | Set Membership |
+| :---: | :--- | :--- |
+| 0 | A false AND B false | Not in A, not in B |
+| 1 | A true AND B false | In A only |
+| 2 | A false AND B true | In B only |
+| 3 | A true AND B true | In both A and B |
+
+The bridge works because **set builder notation** defines sets using propositions. The proposition determines membership, and the logical connective determines which set operation we're performing. Logic is the engine; sets are the vehicle.
+
+> **🌟 Big Reveal:** Sets and logic aren't just related — they're two views of the same underlying structure. Every logical law we proved in our logic lectures automatically gives us a set law. Let's see this in action...
+
+---
+
+## Algebraic Properties of Set Operations
+
+Because set operations correspond to logical connectives, **every logical law transfers directly to sets**. We can borrow our entire logical toolkit!
+
+### Properties at a Glance
+
+| Property | Union ($\cup$) | Intersection ($\cap$) |
+| :--- | :--- | :--- |
+| **Commutative** | $A \cup B = B \cup A$ | $A \cap B = B \cap A$ |
+| **Associative** | $(A \cup B) \cup C = A \cup (B \cup C)$ | $(A \cap B) \cap C = A \cap (B \cap C)$ |
+| **Identity** | $A \cup \emptyset = A$ | $A \cap U = A$ |
+| **Complement** | $A \cup \overline{A} = U$ | $A \cap \overline{A} = \emptyset$ |
+| **Distributive** | $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$ | $A \cup (B \cap C) = (A \cup B) \cap (A \cup C)$ |
+
+> **📌 Key Insight:** Notice the identity elements! For union, the identity is the **empty set** $\emptyset$ (adding nothing changes nothing). For intersection, the identity is the **universal set** $U$ (intersecting with everything changes nothing). Unlike number addition where the identity is a single value (0), here the identities are special sets — **subsets** fulfilling the identity role!
+
+### Proof by Logic
+
+How do we prove these? By converting to logic via the bridge we just discovered! For example, let's prove **commutativity of union**:
+
+<DisplayMath formula="A \cup B = \{x \mid x \in A \lor x \in B\} = \{x \mid x \in B \lor x \in A\} = B \cup A" />
+
+The set equality follows directly from the **commutativity of disjunction** ($\lor$), which we proved in our logic lectures! No new proof needed — we borrow it.
+
+### De Morgan's Laws for Sets
+
+The most striking transfer from logic. In LN5, we proved De Morgan's Laws for propositions:
+
+- $\lnot(A \lor B) \equiv \lnot A \land \lnot B$
+- $\lnot(A \land B) \equiv \lnot A \lor \lnot B$
+
+Replacing logical connectives with set operations gives us **De Morgan's Laws for Sets**:
+
+<DisplayMath formula="\overline{A \cup B} = \overline{A} \cap \overline{B}" />
+<DisplayMath formula="\overline{A \cap B} = \overline{A} \cup \overline{B}" />
+
+Let's verify the first law visually:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram
+    variables={2}
+    labels={["A", "B"]}
+    formula="!(A | B)"
+    caption="Complement of A ∪ B"
+    height="250px"
+  />
+  <VennDiagram
+    variables={2}
+    labels={["A", "B"]}
+    formula="!A & !B"
+    caption="Complement of A ∩ Complement of B"
+    height="250px"
+  />
+</div>
+
+**They shade the exact same region!** The complement of the union equals the intersection of the complements — De Morgan's Law, now for sets.
+
+And the second law:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram
+    variables={2}
+    labels={["A", "B"]}
+    formula="!(A & B)"
+    caption="Complement of A ∩ B"
+    height="250px"
+  />
+  <VennDiagram
+    variables={2}
+    labels={["A", "B"]}
+    formula="!A | !B"
+    caption="Complement of A ∪ Complement of B"
+    height="250px"
+  />
+</div>
+
+Identical shading again. De Morgan's Laws work for sets because they work for logic — and the logic-set bridge preserves all equivalences.
+
+<QuestionBox>
+
+Why can we borrow logical proofs for set operations?
+
+Because **set builder notation** defines sets via propositions. Two sets are equal when their defining propositions are logically equivalent. So every logical equivalence (commutativity, associativity, De Morgan's, etc.) automatically becomes a set equality. Logic is the engine; sets are the vehicle.
+
+</QuestionBox>
+
+---
+
+## Powerset
+
+When investigating cardinality, Georg Cantor asked a natural question: **how many subsets does a set have?**
+
+To answer this, we need a way to talk about the collection of ALL subsets of a set.
+
+<DefinitionBox term="Powerset (P)">
+
+The **powerset** of a set $A$, written P(A), is the set of all subsets of $A$:
+
+<DisplayMath formula="\mathcal{P}(A) \;\equiv\; \{S \mid S \subseteq A\}" />
+
+Every subset of $A$ — including $\emptyset$ and $A$ itself — is a member of the powerset.
+
+</DefinitionBox>
+
+**Example:**
+
+<DisplayMath formula="\mathcal{P}(\{1, 2\}) = \{\emptyset, \{1\}, \{2\}, \{1, 2\}\}" />
+
+That's 4 subsets. Let's try a larger set:
+
+<DisplayMath formula="\mathcal{P}(\{1, 2, 3\}) = \{\emptyset, \{1\}, \{2\}, \{3\}, \{1,2\}, \{1,3\}, \{2,3\}, \{1,2,3\}\}" />
+
+That's 8 subsets. The pattern:
+
+<DisplayMath formula="|\mathcal{P}(A)| = 2^{|A|}" />
+
+### Why Powers of Two?
+
+Think about building a subset. For each element in $A$, you make a binary choice: **include it or exclude it**. That's 2 choices per element, and with $|A|$ elements:
+
+<DisplayMath formula="|\mathcal{P}(A)| = \underbrace{2 \times 2 \times \cdots \times 2}_{|A| \text{ times}} = 2^{|A|}" />
+
+This connects directly to **binary counting** from LN5! Each subset corresponds to a binary string where 1 means "include" and 0 means "exclude."
+
+| Subset of $\{1,2,3\}$ | Binary | Decimal |
+| :--- | :---: | :---: |
+| $\emptyset$ | 000 | 0 |
+| $\{1\}$ | 001 | 1 |
+| $\{2\}$ | 010 | 2 |
+| $\{1,2\}$ | 011 | 3 |
+| $\{3\}$ | 100 | 4 |
+| $\{1,3\}$ | 101 | 5 |
+| $\{2,3\}$ | 110 | 6 |
+| $\{1,2,3\}$ | 111 | 7 |
+
+### Alternative Notation: $2^A$
+
+The powerset of $A$ is also written as $2^A$. This looks strange — what does it mean to raise a number to the power of a set?
+
+It's purely **syntactic**: the notation $2^A$ exists to encode the cardinality fact directly into the symbol. When you see $2^A$, it reminds you that the result always has a power-of-two number of elements.
+
+<DisplayMath formula="\mathcal{P}(A) = 2^A \quad \text{and} \quad |2^A| = 2^{|A|}" />
+
+So $2^A$ for $A = \{1,2,3\}$ is just another way of writing P(A).
+
+### Python
+
+Python doesn't have a built-in powerset, but we can compute one:
+
+```python
+from itertools import combinations
+
+def powerset(s):
+    s = list(s)
+    result = [set()]
+    for r in range(1, len(s) + 1):
+        for combo in combinations(s, r):
+            result.append(set(combo))
+    return result
+
+powerset({1, 2, 3})
+# [set(), {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
+len(powerset({1, 2, 3}))  # 8 = 2^3
+```
+
+---
+
+## Cartesian Product
+
+This operation was teased back in LN8 when we wrote Cartesian product notation for tuple types. Now we can define it formally.
+
+<DefinitionBox term="Cartesian Product (×)">
+
+The **Cartesian product** of sets $A$ and $B$ is the set of all ordered pairs where the first element comes from $A$ and the second from $B$:
+
+<DisplayMath formula="A \times B \;\equiv\; \{(a, b) \mid a \in A \;\land\; b \in B\}" />
+
+Type judgment: $\times\; : (\text{Set}, \text{Set}) \to \text{Set}$
+
+</DefinitionBox>
+
+**Example:**
+
+<DisplayMath formula="\{1, 2\} \times \{x, y\} = \{(1, x), (1, y), (2, x), (2, y)\}" />
+
+Every element of $A$ is paired with every element of $B$. The result is a **set of tuples** — our two collection types working together!
+
+### Cardinality: Why It's Called a "Product"
+
+<DisplayMath formula="|A \times B| = |A| \times |B|" />
+
+The size **multiplies** — which is exactly why this operation is called a "product"! With 2 elements in $A$ and 2 elements in $B$, we get $2 \times 2 = 4$ pairs.
+
+This connects back to LN8: when we wrote $\mathbb{N} \times \text{String}$, we meant the set of **every possible pairing** of a natural number with a string. The tuple $(1, \text{"hi"})$ is just one member of that (enormous) set.
+
+### Python
+
+```python
+from itertools import product
+
+list(product({1, 2}, {"x", "y"}))
+# [(1, 'x'), (1, 'y'), (2, 'x'), (2, 'y')]
+```
+
+> **💡 Key Insight:** The Cartesian product produces a set of **tuples**. This is our two collection types — sets and tuples — combining forces. We saw this pattern with dictionaries in LN9 (a dict is a set of key-value tuples), and now we see the formal operation that generates such pairings.
+
+---
+
+## Cardinality Rules
+
+Let's collect all the cardinality results. These rules tell us how the **size** of sets interacts with operations.
+
+### Inclusion-Exclusion Principle
+
+The cardinality of a union isn't simply $|A| + |B|$ — that would double-count elements in the overlap!
+
+<DisplayMath formula="|A \cup B| = |A| + |B| - |A \cap B|" />
+
+Why subtract the intersection? Look at the Venn diagram:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <VennDiagram
+    variables={2}
+    labels={["A", "B"]}
+    formula="A"
+    caption="|A| counts everything in A (including the overlap)"
+    height="250px"
+  />
+  <VennDiagram
+    variables={2}
+    labels={["A", "B"]}
+    formula="B"
+    caption="|B| counts everything in B (including the overlap)"
+    height="250px"
+  />
+</div>
+
+When we add $|A| + |B|$, the overlap region gets counted **twice**. Subtracting $|A \cap B|$ corrects for the double-counting:
+
+<VennDiagram
+  variables={2}
+  labels={["A", "B"]}
+  formula="A | B"
+  caption="|A ∪ B| = |A| + |B| - |A ∩ B| — the overlap is counted exactly once"
+  height="250px"
+/>
+
+**Example:** If $|A| = 5$, $|B| = 4$, and $|A \cap B| = 2$:
+
+<DisplayMath formula="|A \cup B| = 5 + 4 - 2 = 7" />
+
+### Complete Cardinality Rules
+
+| Operation | Cardinality Rule |
+| :--- | :--- |
+| Union | $\|A \cup B\| = \|A\| + \|B\| - \|A \cap B\|$ |
+| Set Difference | $\|A \setminus B\| = \|A\| - \|A \cap B\|$ |
+| Cartesian Product | $\|A \times B\| = \|A\| \times \|B\|$ |
+| Powerset | P(A) has $2^n$ elements where $n = \|A\|$ |
+
+Notice how the operations maintain clean algebraic relationships with cardinality — products multiply, powersets exponentiate, and union follows inclusion-exclusion. These aren't coincidences; they're consequences of how the operations construct new sets from old ones.
+
+---
+
+## A Note on Types and Sets
+
+Let's close by revisiting the type theory thread that's been running through the entire course.
+
+### Sets Are Types
+
+Formally, a set is an unordered collection of instances. Formally, a type sets up the blueprint for how it gets inhabited. These sound like the same thing — and they are!
+
+A finite set like $\{1, 2, 3\}$ is actually a **fully enumerated type**. It declares that 1, 2, and 3 inhabit a common space. For typical programmatic types, we define a finite blueprint for how to construct instances — this is equivalent to the **membership test** in set builder notation, filtering all existing structures down to only those matching the definition.
+
+So sets are types, and the named types we've been using all semester — the integers $\mathbb{Z}$, the booleans $\mathbb{B}$, etc. — are just **named sets**.
+
+### The Type of a Set
+
+If a set is a type, then the "type of a set" is just the set itself. But type judgments are meant to state that an instance **inhabits** a type:
+
+<DisplayMath formula="a : A \quad \text{means ``} a \text{ inhabits type } A \text{''}" />
+
+So if we want to write a type judgment for $\{1, 2, 3\}$, we need to show it as a single instance inhabiting some **larger** type. Types can inhabit larger types! And we just learned what structure contains a set as a member: the **powerset**.
+
+<DisplayMath formula="\{1, 2, 3\} : \mathcal{P}(\{1, 2, 3\})" />
+
+This is technically correct — the powerset of $\{1, 2, 3\}$ contains $\{1, 2, 3\}$ as one of its 8 members. But always computing a powerset just to type a set is tedious. Since we know $\{1, 2, 3\} \subseteq \mathbb{Z}$, we can use the larger powerset instead:
+
+<DisplayMath formula="\{1, 2, 3\} : \mathcal{P}(\mathbb{Z})" />
+
+In practice, we shorten this to $\text{Set}(\text{Int})$, which is exactly what Python does with `set[int]`.
+
+### The Unified Pattern
+
+Here's the beautiful part: using a set operation to define the type something inhabits is exactly what we've been doing with **tuples** all along!
+
+When we wrote $(1, \text{"hi"}) : \mathbb{N} \times \text{String}$ in LN8, the Cartesian product $\mathbb{N} \times \text{String}$ is the set of **every possible pairing** of a natural number with a string. The tuple $(1, \text{"hi"})$ is just one member of that set.
+
+| Collection | Inhabits | Set Operation | Python |
+| :--- | :--- | :--- | :--- |
+| Tuple $(1, \text{"hi"})$ | $\mathbb{N} \times \text{String}$ | Cartesian product | `tuple[int, str]` |
+| Set $\{1, 2, 3\}$ | P($\mathbb{Z}$) | Powerset | `set[int]` |
+
+Both use a **set operation** to define the type. The operation constructs every possible instance of that shape, and the specific value is one member of the result.
+
+> **🌟 Big Picture:** Set operations don't just combine sets — they **define the types that collections inhabit**. The Cartesian product is the type-home for tuples. The powerset is the type-home for sets. The formal foundations of this course aren't just theory — they're the blueprint for how Python's type system works under the hood.
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Union** ($\cup$) — $A \cup B \equiv \{x \mid x \in A \lor x \in B\}$
+- **Intersection** ($\cap$) — $A \cap B \equiv \{x \mid x \in A \land x \in B\}$
+- **Set Difference** ($\setminus$) — $A \setminus B \equiv \{x \mid x \in A \land x \notin B\}$
+- **Absolute Complement** ($\overline{A}$) — $\overline{A} \equiv U \setminus A$
+- **Symmetric Difference** ($\triangle$) — $A \triangle B \equiv (A \setminus B) \cup (B \setminus A)$
+- **Powerset** (P(A) or $2^A$) — The set of all subsets of $A$
+- **Cartesian Product** ($\times$) — $A \times B \equiv \{(a,b) \mid a \in A \land b \in B\}$
+- **Universal Set** ($U$) — The set of all elements under consideration
+
+**The Logic-Set Bridge:**
+
+| Set Operation | Logical Connective |
+| :--- | :--- |
+| Union ($\cup$) | Disjunction ($\lor$) |
+| Intersection ($\cap$) | Conjunction ($\land$) |
+| Complement ($\overline{A}$) | Negation ($\lnot$) |
+| Set Difference ($\setminus$) | Conjunction + Negation |
+| Symmetric Difference ($\triangle$) | XOR |
+
+**Key Operators:**
+
+| Operator | Notation | Type Signature | Python |
+| :--- | :--- | :--- | :--- |
+| Union | $A \cup B$ | $(\text{Set}, \text{Set}) \to \text{Set}$ | `A \| B` |
+| Intersection | $A \cap B$ | $(\text{Set}, \text{Set}) \to \text{Set}$ | `A & B` |
+| Set Difference | $A \setminus B$ | $(\text{Set}, \text{Set}) \to \text{Set}$ | `A - B` |
+| Symmetric Diff | $A \triangle B$ | $(\text{Set}, \text{Set}) \to \text{Set}$ | `A ^ B` |
+| Complement | $\overline{A}$ | $\text{Set} \to \text{Set}$ | `U - A` |
+
+**Algebraic Properties:**
+
+| Property | Union | Intersection |
+| :--- | :--- | :--- |
+| Commutative | $A \cup B = B \cup A$ | $A \cap B = B \cap A$ |
+| Associative | $(A \cup B) \cup C = A \cup (B \cup C)$ | $(A \cap B) \cap C = A \cap (B \cap C)$ |
+| Identity | $A \cup \emptyset = A$ | $A \cap U = A$ |
+| Complement | $A \cup \overline{A} = U$ | $A \cap \overline{A} = \emptyset$ |
+
+**De Morgan's Laws for Sets:**
+
+<DisplayMath formula="\overline{A \cup B} = \overline{A} \cap \overline{B}" />
+<DisplayMath formula="\overline{A \cap B} = \overline{A} \cup \overline{B}" />
+
+**Cardinality Rules:**
+
+| Operation | Rule |
+| :--- | :--- |
+| Union | $\|A \cup B\| = \|A\| + \|B\| - \|A \cap B\|$ |
+| Cartesian Product | $\|A \times B\| = \|A\| \times \|B\|$ |
+| Powerset | P(A) has $2^n$ elements where $n = \|A\|$ |
+
+**Type-Theoretic Homes:**
+
+| Collection | Inhabits | Operation |
+| :--- | :--- | :--- |
+| Tuple | Cartesian product | $\times$ |
+| Set | Powerset | P |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Trefor Bazett: "Set Operations"](https://www.youtube.com/watch?v=7bswKSy9sJk) — Clear walkthrough of union, intersection, and complement
+- [3Blue1Brown: "How to count past infinity"](https://www.youtube.com/watch?v=SrU9YDoXE88) — Powersets and cardinality of infinite sets
+
+### Further Reading
+
+- [Wikipedia: Set Operations](https://en.wikipedia.org/wiki/Set_(mathematics)#Basic_operations) — Union, intersection, complement, and more
+- [Wikipedia: Power Set](https://en.wikipedia.org/wiki/Power_set) — The set of all subsets
+- [Wikipedia: Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) — Ordered pairs from two sets
+- [Wikipedia: Inclusion-Exclusion Principle](https://en.wikipedia.org/wiki/Inclusion%E2%80%93exclusion_principle) — Counting elements in unions
+
+### Historical Context
+
+- **Augustus De Morgan** (1806-1871) — Formulated the complement laws that bear his name
+- **Georg Cantor** (1845-1918) — Developed powersets and the study of set cardinality
+- **René Descartes** (1596-1650) — The Cartesian product is named after him (as are Cartesian coordinates)
+
+### Looking Ahead
+
+- **SQL databases** use set operations directly: `UNION`, `INTERSECT`, and `EXCEPT` correspond to $\cup$, $\cap$, and $\setminus$. A `JOIN` is essentially a filtered Cartesian product. You'll see this when you take a database course!
+
+### Connection to Programming
+
+- Python's `|`, `&`, `-`, `^` operators on sets implement union, intersection, difference, and symmetric difference
+- `itertools.product` computes Cartesian products; `itertools.combinations` helps compute powersets
+- Python's type annotations `set[int]` and `tuple[int, str]` are practical shorthands for P($\mathbb{Z}$) and $\mathbb{Z} \times$ String
+
+</LectureResources>
