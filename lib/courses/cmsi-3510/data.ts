@@ -334,7 +334,10 @@ const allEvents: CourseEvent[] = [
     standard: "CPU",
     contentUrl: "/cmsi-3510/ln8",
     recordings: [
-
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/6HCF3d7FZaeTrFclLMjQ-LDQPc-O7KE6tSg4TzJBD03KTNAMLaPTProycBIyyezo.hhbYV-p-nPUDweY0"
+      }
     ],
   },
   {
