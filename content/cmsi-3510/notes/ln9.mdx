@@ -1,0 +1,598 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ProgressiveCPU } from "@/components/progressive-cpu"
+import { PCBPanel } from "@/components/pcb-panel"
+import { MemoryLayoutDiagram } from "@/components/memory-layout-diagram"
+import { ProcessStateDiagram } from "@/components/process-state-diagram"
+import { KernelUserRingDiagram } from "@/components/kernel-user-ring-diagram"
+import { GraphVisualization } from "@/components/graph-visualization"
+import { ContextSwitchAnimation } from "@/components/context-switch-animation"
+import { ContextSwitchVisual } from "@/components/context-switch-visual"
+import { ManagerTag, ManagerLegend } from "@/components/manager-tag"
+
+## Recap
+
+In LN8, we opened the lid on CPU hardware and built our understanding piece by piece:
+
+- **ISAs** — CISC vs RISC, the language the CPU speaks
+- **Registers** — Ultra-fast storage (GPRs and SPRs like PC, SP, FLAGS)
+- **ALU** — Where computation physically happens (pipelined and superscalar)
+- **Control Unit** — The conductor orchestrating fetch-decode-execute
+- **Security Rings** — Hardware privilege enforcement (Ring 0/3, MMU)
+- **Interrupts** — How the outside world gets the CPU's attention
+
+Here's the complete CPU we built — every component will matter today:
+
+<div className="my-6 flex justify-center">
+  <ProgressiveCPU
+    visibleParts={["registers", "alu", "cu", "ring", "mmu", "interrupt"]}
+    label="Our Complete CPU from LN8"
+    width={320}
+    height={250}
+  />
+</div>
+
+Now that we know the hardware, today's question is: **what does it feel like to run a program on it?**
+
+---
+
+## Today's Agenda
+
+1. **What Is a Process?** — The philosophical framing
+2. **The OS View** — <ManagerTag manager="pcb">PCB</ManagerTag> Process Control Block
+3. **The Memory View** — <ManagerTag manager="pas">PAS</ManagerTag> Process Address Space
+4. **The CPU View** — <ManagerTag manager="pec">PEC</ManagerTag> Process Execution Context
+5. **The Scheduler View** — <ManagerTag manager="scheduler">State</ManagerTag> Process state transitions
+6. **The IPC View** — <ManagerTag manager="ipc">IPC</ManagerTag> Inter-Process Communication
+7. **The Hierarchy View** — <ManagerTag manager="hierarchy">Hierarchy</ManagerTag> Process relationships
+8. **The Security View** — <ManagerTag manager="security">Security</ManagerTag> Privilege enforcement
+9. **Context Switching Revisited** — With our new vocabulary
+10. **Exploring Processes in Linux** — Hands-on tools
+
+> **💡 Key Theme:** A process means something different to every component of the system. Each "manager" sees a different slice. To truly understand processes, you must learn to shift between these perspectives.
+
+Throughout this lecture, we'll color-code terminology by which manager uses it:
+
+<ManagerLegend />
+
+---
+
+## What Is a Process?
+
+<DefinitionBox term="Process">
+
+A **process** is the running execution of a finite set of instructions (a program). It encompasses all the state, resources, and management context needed to carry that program from start to finish.
+
+</DefinitionBox>
+
+But that definition only scratches the surface. To really understand what a process *is*, let's ask: **what does the CPU "feel" when a program runs?**
+
+- The **registers** feel values being created, mutated, and moved as computation progresses
+- The **ALU** feels operations being demanded — "add these two numbers," "compare these values"
+- The **Control Unit** feels data movement, control flow decisions, and communication in and out of the CPU
+- The **interrupt hardware** feels the outside world altering the CPU's attention
+
+In much the same way that biology tries to rationalize emotion, memory, and experience as a series of chemical reactions in our sensory systems and neurons, the execution of a program is best understood by reflecting on the **machine that is running it**.
+
+A process, then, is not a single thing you can point to. It's a **nebulous set of management tasks** completed over a given time frame by multiple cooperating subsystems. No single component "is" the process — the process is the *coordination* of all of them.
+
+> **🍽️ The Restaurant Metaphor:** Your experience at a restaurant is the combined work of the host (who seats you), the waiter (who takes your order), the chef (who cooks your food), the bartender (who makes your drink), and the manager (who ensures everything runs smoothly). No single person "is" your dining experience — it's the coordination of all of them. And each person sees your visit differently. Keep this analogy in mind as we examine each "manager" of a process.
+
+> **📚 Historical Note — The Origin of "Process":** The term "process" was coined by the designers of Multics in the 1960s. Before that, the concept was simply "job" (from batch processing). The shift from "job" to "process" reflected the move from sequential batch execution to interactive time-sharing — processes could be paused, resumed, and share the machine. This maps directly to the OS history we covered in LN6.
+
+---
+
+## The OS General View: The <ManagerTag manager="pcb">Process Control Block (PCB)</ManagerTag>
+
+At the most general level, the OS views each process as a <ManagerTag manager="pcb">PCB</ManagerTag> — a data structure that stores everything needed to manage this process relative to all the others.
+
+Think of it as the OS's "customer file" for each process. It doesn't contain the program itself — just the metadata needed for management.
+
+<div className="my-6 flex justify-center">
+  <PCBPanel
+    processId={4827}
+    processName="my_program"
+    state="running"
+    programCounter="0x00401A3C"
+    registers={["RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "RSP", "RBP"]}
+  />
+</div>
+
+### What's Inside a <ManagerTag manager="pcb">PCB</ManagerTag>?
+
+| Field | Purpose | Manager That Uses It |
+| :--- | :--- | :--- |
+| <ManagerTag manager="pcb">PID</ManagerTag> | Unique process identifier | OS, Scheduler, Security |
+| <ManagerTag manager="scheduler">Process State</ManagerTag> | Running, Ready, Blocked, Terminated | Scheduler |
+| <ManagerTag manager="pec">Program Counter</ManagerTag> | Current instruction address (copy from CPU) | OS and CPU |
+| <ManagerTag manager="pec">CPU Registers</ManagerTag> | Saved register snapshot | CPU (via context switch) |
+| <ManagerTag manager="pas">Memory Info</ManagerTag> | Base/limit registers, page tables | Memory hardware (MMU) |
+| I/O Status | Open files, network connections, devices | I/O subsystem |
+| <ManagerTag manager="scheduler">Scheduling Info</ManagerTag> | Priority, execution history, time slice | Scheduler |
+
+Notice how the <ManagerTag manager="pcb">PCB</ManagerTag> references data from *multiple* other managers. It's the central coordination point — the "master file" that ties everything together.
+
+### What's NOT in the <ManagerTag manager="pcb">PCB</ManagerTag>?
+
+The entire program is **not** stored in the <ManagerTag manager="pcb">PCB</ManagerTag>. Think of it like this: your picture ID, social security number, bank statements, and social media profile are all interesting — but the chef making your food doesn't need any of that. They only need your **name** and **order**. Maybe allergy information if it helps prepare your food safely.
+
+The <ManagerTag manager="pcb">PCB</ManagerTag> stores only what's **relevant to managing this process compared to other processes**. More information is only useful if it helps make better decisions about how to distribute limited resources.
+
+### <ManagerTag manager="pcb">PCB</ManagerTag> as a Rust Struct
+
+```rust
+enum ProcessState {
+    New,
+    Ready,
+    Running,
+    Blocked,
+    Terminated,
+}
+
+struct PCB {
+    pid: u32,
+    state: ProcessState,
+    program_counter: usize,
+    registers: RegisterSnapshot,
+    memory_info: Option<PageTablePtr>,
+    io_status: Vec<FileDescriptor>,
+    scheduling: SchedulingInfo,
+}
+```
+
+The <ManagerTag manager="pcb">PCB</ManagerTag> is essentially a large struct containing other structs or basic types — each storing information relevant to a different management concern.
+
+> **📚 Historical Note — Multics PCB Bottleneck:** Multics (1965) was among the first systems to formalize the <ManagerTag manager="pcb">PCB</ManagerTag> concept. But their process table grew so large it became a performance bottleneck — every context switch required traversing it. This taught the field that management overhead must scale carefully. Sound familiar? It's Amdahl's Law from LN7: the serial overhead of management can cap your system's performance, no matter how fast your hardware gets.
+
+---
+
+## The Memory View: The <ManagerTag manager="pas">Process Address Space (PAS)</ManagerTag>
+
+To the memory hardware, a process looks like nothing more than a chunk of address space to organize. The <ManagerTag manager="pas">PAS</ManagerTag> is the sandbox of memory allocated exclusively to one process — no other process can see or touch it.
+
+<div className="my-6 flex justify-center">
+  <MemoryLayoutDiagram width={220} height={320} showAddresses showLabels />
+</div>
+
+### The Four Segments
+
+| Segment | Contents | Behavior |
+| :--- | :--- | :--- |
+| <ManagerTag manager="pas">Text (Code)</ManagerTag> | Compiled machine instructions | Fixed at load time, read-only |
+| <ManagerTag manager="pas">Static (Data)</ManagerTag> | Globals, constants, library links | Fixed at load time |
+| <ManagerTag manager="pas">Stack</ManagerTag> | Function call frames, local variables | Grows downward with each function call |
+| <ManagerTag manager="pas">Heap</ManagerTag> | Dynamic allocations | Grows upward as memory is requested |
+
+The restaurant analogy: a dining table only provides **a place to sit**. It doesn't take your order, cook your food, or check your ID. Memory hardware is the same — it only organizes where processes live. Nothing more.
+
+> **💡 Cross-Manager Connection:** The <ManagerTag manager="pec">Stack Pointer (SP)</ManagerTag> register in the CPU points directly into the <ManagerTag manager="pas">Stack</ManagerTag> segment of the PAS. This is where the CPU and memory views connect — the CPU's register holds an address in the process's memory sandbox.
+
+### Where Rust Lives in the <ManagerTag manager="pas">PAS</ManagerTag>
+
+```rust
+static GLOBAL: i32 = 42;           // Static segment
+const PI: f64 = 3.14159;           // Static segment (may be inlined)
+
+fn main() {                         // Text segment (compiled code)
+    let local = 10;                 // Stack
+    let boxed = Box::new(20);       // Heap (pointer on stack, data on heap)
+    let name = String::from("hi");  // Heap (String data) + Stack (metadata)
+}
+```
+
+Management is about delegating the right tasks to the right tools. The memory subsystem's job is simple: provide organized space. Just as a restaurant dining table isn't responsible for taking your order, the <ManagerTag manager="pas">PAS</ManagerTag> isn't responsible for scheduling or security.
+
+---
+
+## The CPU View: The <ManagerTag manager="pec">Process Execution Context (PEC)</ManagerTag>
+
+The CPU doesn't care about scheduling, memory layout, or security policies. It needs exactly one thing: **enough state to execute the next instruction**. That minimal state is the <ManagerTag manager="pec">PEC</ManagerTag>.
+
+<DefinitionBox term="Process Execution Context (PEC)">
+
+The **PEC** contains only the information necessary to drive the CPU's components: the program counter, register values, stack pointer, flags, and any other hardware-specific execution state.
+
+</DefinitionBox>
+
+### What's in the <ManagerTag manager="pec">PEC</ManagerTag>?
+
+| Field | CPU Component It Drives |
+| :--- | :--- |
+| <ManagerTag manager="pec">Program Counter (PC)</ManagerTag> | Tells the CU what instruction to fetch next |
+| <ManagerTag manager="pec">CPU Registers</ManagerTag> | Operand values for the ALU |
+| <ManagerTag manager="pec">Stack Pointer (SP)</ManagerTag> | Points into the PAS stack for function calls |
+| <ManagerTag manager="pec">Flags/Status Register</ManagerTag> | Condition codes from the last ALU operation |
+
+### The Same Data, Different Decisions
+
+Here's a crucial insight: both the OS and the CPU see the same <ManagerTag manager="pec">Program Counter</ManagerTag>, but they use it to make **completely different decisions**:
+
+| Who | Sees | Decides |
+| :--- | :--- | :--- |
+| **CPU** | PC = `0x00401A3C` | "Fetch the instruction at this address, decode it, set up the ALU" |
+| **OS** | PC = `0x00401A3C` | "This process is mid-execution. Should I let it continue or switch to another?" |
+
+Same data. Different context. Different decisions.
+
+> **🍽️ Restaurant Analogy:** The chef and the manager both see the same food item on an order ticket. The chef uses it to direct the kitchen: "Set up station 3, prep the salmon." The manager uses it to make business decisions: "This customer ordered the special — maybe offer a dessert discount to encourage a return visit." Same information, different concerns.
+
+> **💡 Cross-Manager Connection:** The <ManagerTag manager="pcb">PCB</ManagerTag> stores a *copy* of the <ManagerTag manager="pec">PEC</ManagerTag> — this duplication is the cost of context switching. Every time the OS switches processes, it must save the entire <ManagerTag manager="pec">PEC</ManagerTag> into the <ManagerTag manager="pcb">PCB</ManagerTag> and load a new one. Faster context switches = less data to copy.
+
+---
+
+## The Scheduler View: <ManagerTag manager="scheduler">Process State</ManagerTag>
+
+The scheduler doesn't worry about memory, computations, or hardware details. It needs to answer one question: **what state is this process in, so we can decide whether to give it the CPU?**
+
+Let's "zoom in" on the <ManagerTag manager="scheduler">state</ManagerTag> field of the <ManagerTag manager="pcb">PCB</ManagerTag>.
+
+<ProcessStateDiagram />
+
+### The Five States
+
+| State | Meaning |
+| :--- | :--- |
+| <ManagerTag manager="scheduler">New</ManagerTag> | Process is being created |
+| <ManagerTag manager="scheduler">Ready</ManagerTag> | Can run — waiting for CPU time |
+| <ManagerTag manager="scheduler">Running</ManagerTag> | Currently executing on the CPU |
+| <ManagerTag manager="scheduler">Blocked</ManagerTag> | Waiting for an external event (I/O, signal) |
+| <ManagerTag manager="scheduler">Terminated</ManagerTag> | Finished — resources can be reclaimed |
+
+### Transition Triggers
+
+Each arrow in the state diagram identifies a crucial moment the scheduler must handle:
+
+| Transition | Trigger | What Happens |
+| :--- | :--- | :--- |
+| <ManagerTag manager="scheduler">New → Ready</ManagerTag> | Process created | New <ManagerTag manager="pcb">PCB</ManagerTag>, new <ManagerTag manager="pas">PAS</ManagerTag>, new <ManagerTag manager="pec">PEC</ManagerTag> allocated |
+| <ManagerTag manager="scheduler">Ready → Running</ManagerTag> | Dispatched to CPU | <ManagerTag manager="pec">PEC</ManagerTag> loaded onto hardware, <ManagerTag manager="pas">PAS</ManagerTag> activated |
+| <ManagerTag manager="scheduler">Running → Blocked</ManagerTag> | I/O wait | Computation could proceed but data hasn't arrived |
+| <ManagerTag manager="scheduler">Blocked → Ready</ManagerTag> | I/O complete | Requested data arrived — ready to resume |
+| <ManagerTag manager="scheduler">Running → Ready</ManagerTag> | Interrupt | Preempted — could continue but something urgent came up |
+| <ManagerTag manager="scheduler">Running → Terminated</ManagerTag> | Exit | Process completed — <ManagerTag manager="pcb">PCB</ManagerTag>, <ManagerTag manager="pas">PAS</ManagerTag>, <ManagerTag manager="pec">PEC</ManagerTag> reclaimed |
+
+> **💡 Cross-Manager Connection:** The scheduler's <ManagerTag manager="scheduler">Blocked</ManagerTag> state is triggered by I/O operations that the <ManagerTag manager="pcb">PCB</ManagerTag>'s I/O status field tracks. When the I/O subsystem signals completion, the <ManagerTag manager="pcb">PCB</ManagerTag> is updated and the scheduler transitions the process to <ManagerTag manager="scheduler">Ready</ManagerTag>.
+
+Notice how the scheduler's view is intentionally simplified. A more complex set of states could enable more nuanced decisions, but at a higher management level all that detail boils down to these five states. Abstraction at work!
+
+---
+
+## The IPC View: <ManagerTag manager="ipc">Inter-Process Communication</ManagerTag>
+
+The OS creates an **illusion of isolation** — every process "thinks" it's running alone on the machine. So how does any process become aware of any other?
+
+By **explicitly engaging with another by name**. <ManagerTag manager="ipc">IPC</ManagerTag> breaks through the isolation deliberately.
+
+### <ManagerTag manager="ipc">IPC</ManagerTag> Mechanisms
+
+| Mechanism | Direction | Description | Restaurant Analogy |
+| :--- | :--- | :--- | :--- |
+| <ManagerTag manager="ipc">Pipes</ManagerTag> | Unidirectional | One process writes, another reads | Passing a note one way |
+| <ManagerTag manager="ipc">Message Queues</ManagerTag> | Bidirectional | Structured messages between processes | Having a conversation via the waiter |
+| <ManagerTag manager="ipc">Shared Memory</ManagerTag> | Direct | Processes share a memory region | Pushing tables together (breaks isolation!) |
+| <ManagerTag manager="ipc">Sockets</ManagerTag> | Network/local | Communication across machines | Calling someone on the phone |
+
+<ManagerTag manager="ipc">Shared memory</ManagerTag> is the fastest but most dangerous — it forces the closure of the illusion of isolation and requires careful synchronization. Remember LN7's synchronization concern? This is exactly where it applies.
+
+### Rust Channels as Pipes
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let (sender, receiver) = mpsc::channel();
+
+    thread::spawn(move || {
+        sender.send("Hello from another process!").unwrap();
+    });
+
+    let message = receiver.recv().unwrap();
+    println!("Received: {}", message);
+}
+```
+
+> **💡 Cross-Manager Connection:** <ManagerTag manager="security">Security</ManagerTag> determines *which* <ManagerTag manager="ipc">IPC</ManagerTag> mechanisms a process can use. A user-mode process can't just write to another process's memory — it must use sanctioned channels that the kernel mediates.
+
+---
+
+## The Hierarchy View: <ManagerTag manager="hierarchy">Related Processes</ManagerTag>
+
+How do processes know if they're **related** to one another? This is where UNIX and Windows take fundamentally different approaches.
+
+### UNIX: The <ManagerTag manager="hierarchy">Fork Tree</ManagerTag>
+
+In UNIX, all processes are born from `fork()` — every process is a clone of its parent. Every process has exactly one parent, forming a **tree** rooted at `init` (PID 1).
+
+<GraphVisualization
+  nodes={[
+    { id: "init", label: "init (PID 1)", color: "#F97316" },
+    { id: "login", label: "login", color: "#FB923C" },
+    { id: "sshd", label: "sshd", color: "#FB923C" },
+    { id: "bash", label: "bash", color: "#FDBA74" },
+    { id: "zsh", label: "zsh", color: "#FDBA74" },
+    { id: "vim", label: "vim", color: "#FED7AA" },
+    { id: "rustc", label: "rustc", color: "#FED7AA" },
+    { id: "ls", label: "ls", color: "#FED7AA" },
+    { id: "cron", label: "cron", color: "#FB923C" },
+  ]}
+  edges={[
+    { from: "init", to: "login", arrows: "to" },
+    { from: "init", to: "sshd", arrows: "to" },
+    { from: "init", to: "cron", arrows: "to" },
+    { from: "login", to: "bash", arrows: "to" },
+    { from: "sshd", to: "zsh", arrows: "to" },
+    { from: "bash", to: "vim", arrows: "to" },
+    { from: "bash", to: "rustc", arrows: "to" },
+    { from: "zsh", to: "ls", arrows: "to" },
+  ]}
+  directed
+  height="300px"
+/>
+
+### Windows: The <ManagerTag manager="hierarchy">Disconnected Graph</ManagerTag>
+
+In Windows, processes are created from scratch via `CreateProcess()`. Relationships require **explicit consent** via handles. The result is a disconnected graph — processes that want to relate must opt in.
+
+<GraphVisualization
+  nodes={[
+    { id: "explorer", label: "explorer.exe", color: "#3B82F6" },
+    { id: "chrome", label: "chrome.exe", color: "#3B82F6" },
+    { id: "vscode", label: "code.exe", color: "#3B82F6" },
+    { id: "rust", label: "rustc.exe", color: "#3B82F6" },
+    { id: "svchost", label: "svchost.exe", color: "#60A5FA" },
+    { id: "notepad", label: "notepad.exe", color: "#3B82F6" },
+  ]}
+  edges={[
+    { from: "explorer", to: "chrome", label: "handle" },
+    { from: "vscode", to: "rust", label: "handle" },
+  ]}
+  directed={false}
+  height="250px"
+/>
+
+### Comparison
+
+| Aspect | UNIX | Windows |
+| :--- | :--- | :--- |
+| Creation | <ManagerTag manager="hierarchy">`fork()`</ManagerTag> — clone parent | `CreateProcess()` — from scratch |
+| Structure | Tree (all connected via init) | Disconnected graph |
+| Relationships | Implicit (parent-child) | Explicit (handles, consent) |
+| Finding processes | Tree traversal | Graph search algorithms |
+| Trade-off | Needs security for malformed connections | More isolation but harder discovery |
+
+### Rust Process Spawning
+
+```rust
+use std::process::Command;
+
+let child = Command::new("ls")
+    .arg("-la")
+    .spawn()
+    .expect("Failed to spawn child process");
+
+let output = child.wait_with_output().unwrap();
+println!("Child exited with: {}", output.status);
+```
+
+Rust's `Command` API abstracts over both models — on UNIX it performs `fork()` + `exec()`, on Windows it calls `CreateProcess()`.
+
+> **💀 The Fork Bomb:** `:(){ :|:& };:` — a Bash one-liner where a function recursively forks itself, consuming all available PIDs and crashing the system. This is why process limits (`ulimit`) exist. The <ManagerTag manager="hierarchy">tree structure</ManagerTag> makes it easy to kill an entire subtree when a fork bomb is detected.
+
+---
+
+## The Security View: <ManagerTag manager="security">Privilege Enforcement</ManagerTag>
+
+The bouncer at the club: doesn't care what goes on inside, only **who is allowed in and what they're allowed to do**.
+
+<div className="my-6 flex justify-center">
+  <KernelUserRingDiagram size="lg" currentRing={3} showLabels showSystemCall />
+</div>
+
+<ManagerTag manager="security">Security</ManagerTag> checks whether a process has kernel or user-level access, alerting the OS to block operations the process shouldn't perform. The **system call API** is the only gateway.
+
+### <ManagerTag manager="security">User Mode</ManagerTag> vs <ManagerTag manager="security">Kernel Mode</ManagerTag> System Calls
+
+| User Mode (Ring 3) | What It Requests | Kernel Implementation |
+| :--- | :--- | :--- |
+| <ManagerTag manager="security">`fork()`</ManagerTag> | Create a subprocess | `do_fork()` — allocates new <ManagerTag manager="pcb">PCB</ManagerTag>, <ManagerTag manager="pas">PAS</ManagerTag>, <ManagerTag manager="pec">PEC</ManagerTag> |
+| <ManagerTag manager="security">`open()`</ManagerTag> | Open a file | Kernel driver accesses device hardware directly |
+| <ManagerTag manager="security">`read()` / `write()`</ManagerTag> | File I/O | DMA transfer, buffer management |
+| <ManagerTag manager="security">`exit()`</ManagerTag> | Terminate self | `do_exit()` — reclaims <ManagerTag manager="pcb">PCB</ManagerTag>, <ManagerTag manager="pas">PAS</ManagerTag>, <ManagerTag manager="pec">PEC</ManagerTag> |
+
+Each user-available call is backed by kernel-level code that has **full hardware access** and carries out the request on behalf of the user process. The user process never touches hardware directly.
+
+> **💡 Cross-Manager Connection:** When `fork()` is called, *every* manager is involved:
+> - <ManagerTag manager="pcb">PCB</ManagerTag>: A new PCB is allocated with a fresh PID
+> - <ManagerTag manager="pas">PAS</ManagerTag>: A new address space is created (copy-on-write from parent)
+> - <ManagerTag manager="pec">PEC</ManagerTag>: A new execution context is initialized
+> - <ManagerTag manager="scheduler">Scheduler</ManagerTag>: The new process enters the Ready state
+> - <ManagerTag manager="hierarchy">Hierarchy</ManagerTag>: A parent-child link is established
+> - <ManagerTag manager="security">Security</ManagerTag>: The child inherits the parent's privilege level
+
+This is why `fork()` is one of the most complex system calls — it touches every subsystem.
+
+> **💀 The Dirty COW Vulnerability (2016):** A race condition in the Linux kernel's copy-on-write mechanism (used by `fork()`) allowed unprivileged users to gain **write access to read-only memory mappings**, achieving root privilege escalation. It existed in the kernel for **9 years** before discovery (CVE-2016-5195). This vulnerability directly connects <ManagerTag manager="hierarchy">fork</ManagerTag>, <ManagerTag manager="pas">memory</ManagerTag>, and <ManagerTag manager="security">security</ManagerTag> — a bug in one manager's implementation broke the guarantees of another.
+
+---
+
+## The Big Picture: Every Manager's Perspective
+
+Let's step back and see how each manager views the same process:
+
+| Manager | Sees | Key Concern |
+| :--- | :--- | :--- |
+| <ManagerTag manager="pcb">OS (PCB)</ManagerTag> | A struct of management metadata | Coordinating all other managers |
+| <ManagerTag manager="pas">Memory (PAS)</ManagerTag> | Four segments: text, static, stack, heap | Where to organize the process's data |
+| <ManagerTag manager="pec">CPU (PEC)</ManagerTag> | PC, registers, SP, flags | What to execute next |
+| <ManagerTag manager="scheduler">Scheduler (State)</ManagerTag> | New, Ready, Running, Blocked, Terminated | When to give/take CPU time |
+| <ManagerTag manager="ipc">IPC</ManagerTag> | Pipes, queues, shared memory, sockets | How processes communicate |
+| <ManagerTag manager="hierarchy">Hierarchy</ManagerTag> | Parent-child tree (UNIX) or graph (Windows) | Who is related to whom |
+| <ManagerTag manager="security">Security</ManagerTag> | Ring 0 / Ring 3, syscall permissions | What is allowed |
+
+Your living, breathing experience at a restaurant — or at Disneyland, or a movie theatre — is reflected in all the different jobs that had to be completed by different people or machines to make the whole event happen. Our OS is doing exactly the same thing for each running process.
+
+---
+
+## Context Switching Revisited
+
+With our new vocabulary, let's restate the context switch in precise terms. We first saw this in LN6 — now we understand every piece of it at the hardware level.
+
+### The Steps
+
+**Step 0 — Interrupt Received:**
+A hardware interrupt (timer, device) or software trap (syscall) arrives at the CPU.
+
+**Step 1 — Save Current <ManagerTag manager="pec">PEC</ManagerTag> to <ManagerTag manager="pcb">PCB</ManagerTag>:**
+The **quicksave**. The <ManagerTag manager="pec">Program Counter</ManagerTag>, <ManagerTag manager="pec">registers</ManagerTag>, <ManagerTag manager="pec">Stack Pointer</ManagerTag>, and <ManagerTag manager="pec">flags</ManagerTag> are copied from the CPU into the current process's <ManagerTag manager="pcb">PCB</ManagerTag>.
+
+**Step 2 — Scheduler Selects Next <ManagerTag manager="pcb">PCB</ManagerTag>:**
+The OS calls the <ManagerTag manager="scheduler">scheduler</ManagerTag>, which searches the process table for a <ManagerTag manager="pcb">PCB</ManagerTag> with <ManagerTag manager="scheduler">state = Ready</ManagerTag>.
+
+**Step 3 — Restore New <ManagerTag manager="pec">PEC</ManagerTag> from <ManagerTag manager="pcb">PCB</ManagerTag>:**
+The **quickload**. The selected process's <ManagerTag manager="pec">PEC</ManagerTag> is loaded into the CPU hardware. The <ManagerTag manager="pcb">PCB</ManagerTag> state is updated to <ManagerTag manager="scheduler">Running</ManagerTag>. The <ManagerTag manager="pas">PAS</ManagerTag> is switched (page tables updated in the MMU).
+
+**Step 4 — Resume Execution:**
+The CPU continues from the new process's <ManagerTag manager="pec">Program Counter</ManagerTag> as if nothing happened.
+
+<ContextSwitchAnimation showCycles />
+
+<ContextSwitchVisual showLabels />
+
+> **🤔 How do we decide *when* to context switch and *which* process to run next?** That's the scheduling problem — and it's the entire focus of LN10!
+
+---
+
+## Exploring Processes in Linux
+
+Let's ground all this theory in observable reality. Linux exposes process information through several powerful tools.
+
+### The `/proc` Filesystem
+
+Linux represents every process as a directory under `/proc`. Each directory is named by <ManagerTag manager="pcb">PID</ManagerTag>:
+
+```bash
+# See your own process's status (the PCB in text form!)
+cat /proc/self/status
+
+# See the memory map (the PAS segments!)
+cat /proc/self/maps
+
+# See raw process statistics
+cat /proc/self/stat
+```
+
+The `/proc/self/maps` output directly shows the <ManagerTag manager="pas">text</ManagerTag>, <ManagerTag manager="pas">stack</ManagerTag>, <ManagerTag manager="pas">heap</ManagerTag>, and <ManagerTag manager="pas">library</ManagerTag> segments we discussed — memory addresses and all.
+
+### Process Listing and Trees
+
+```bash
+# List all processes with state, CPU%, memory%
+ps aux
+
+# Visualize the UNIX process tree (Section 7!)
+pstree
+
+# Real-time process monitoring (interactive)
+top
+htop   # More colorful version
+```
+
+`pstree` directly visualizes the <ManagerTag manager="hierarchy">fork tree</ManagerTag> we discussed — you'll see `init` (or `systemd`) at the root with everything branching out.
+
+### Tracing System Calls
+
+```bash
+# Per-process CPU statistics
+pidstat 1
+
+# Trace every system call a process makes (Security section!)
+strace ls -la
+```
+
+`strace` is revelatory — it shows every <ManagerTag manager="security">syscall</ManagerTag> a process makes in real time. You'll see `open()`, `read()`, `write()`, `mmap()`, `brk()` — all the kernel gateways we discussed. Try it on a simple command and watch the <ManagerTag manager="security">system call API</ManagerTag> in action.
+
+---
+
+## Summary
+
+| Concept | Key Point |
+| :--- | :--- |
+| **Process** | Running execution of a program — coordinated across multiple managers |
+| <ManagerTag manager="pcb">PCB</ManagerTag> | OS management struct: PID, state, PC, registers, memory info, I/O, scheduling |
+| <ManagerTag manager="pas">PAS</ManagerTag> | Isolated memory sandbox: text, static, stack, heap |
+| <ManagerTag manager="pec">PEC</ManagerTag> | CPU execution state: PC, registers, SP, flags |
+| <ManagerTag manager="scheduler">State</ManagerTag> | New → Ready → Running → Blocked → Terminated |
+| <ManagerTag manager="ipc">IPC</ManagerTag> | Pipes, message queues, shared memory, sockets |
+| <ManagerTag manager="hierarchy">Hierarchy</ManagerTag> | UNIX fork tree vs Windows disconnected graph |
+| <ManagerTag manager="security">Security</ManagerTag> | Ring 0/3 enforcement, syscall API as the only gateway |
+| **Context Switch** | Quicksave PEC→PCB, scheduler picks next, quickload PCB→PEC |
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Process** | The running execution of a program, managed across multiple subsystems |
+| **PCB** | Process Control Block — OS metadata struct for managing a process |
+| **PAS** | Process Address Space — isolated memory sandbox (text, static, stack, heap) |
+| **PEC** | Process Execution Context — minimal CPU state (PC, registers, SP, flags) |
+| **Process State** | New, Ready, Running, Blocked, or Terminated |
+| **IPC** | Inter-Process Communication — pipes, queues, shared memory, sockets |
+| **Context Switch** | Save current PEC to PCB, select new PCB, load new PEC |
+| **System Call** | The controlled gateway from user mode to kernel functionality |
+
+**Manager Perspectives:**
+
+```
+OS (PCB)       →  Management metadata for coordination
+Memory (PAS)   →  Where to organize data (text, static, stack, heap)
+CPU (PEC)      →  What to execute next (PC, registers, SP, flags)
+Scheduler      →  When to give/take CPU time (state transitions)
+IPC            →  How processes communicate (pipes, shared memory, sockets)
+Hierarchy      →  Who is related (UNIX tree vs Windows graph)
+Security       →  What is allowed (Ring 0/3, syscall permissions)
+```
+
+**Context Switch Steps:**
+
+```
+0. Interrupt received (timer, syscall, device)
+1. Save PEC → PCB (quicksave)
+2. Scheduler selects next Ready PCB
+3. Load PCB → PEC (quickload), update state to Running
+4. Resume execution at new PC
+```
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [Operating Systems: Three Easy Pieces — Processes](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Chapters 4-6 on processes, the process API, and limited direct execution
+- [The Linux Programming Interface (Kerrisk)](https://man7.org/tlpi/) — Definitive guide to Linux process management
+- [The Unix Time-Sharing System (Ritchie & Thompson, 1974)](https://dsf.berkeley.edu/cs262/unix.pdf) — Where `fork()` was introduced
+
+### Linux Tools
+
+- [proc(5) man page](https://man7.org/linux/man-pages/man5/proc.5.html) — Everything in the /proc filesystem
+- [strace documentation](https://strace.io/) — System call tracing tool
+- [htop documentation](https://htop.dev/) — Interactive process viewer
+
+### Historical References
+
+- [The Multics System (1965)](https://multicians.org/) — Where the term "process" and the PCB concept originated
+- [The Dirty COW Vulnerability (CVE-2016-5195)](https://dirtycow.ninja/) — Fork + memory + security interaction bug
+- [Fork Bomb (Wikipedia)](https://en.wikipedia.org/wiki/Fork_bomb) — When process creation goes wrong
+
+### Rust Process Management
+
+- [std::process Module](https://doc.rust-lang.org/std/process/index.html) — Spawning and managing child processes
+- [nix crate](https://docs.rs/nix/latest/nix/) — Safe Rust bindings for Unix system calls including `fork()`
+- [The Rust Book: Fearless Concurrency](https://doc.rust-lang.org/book/ch16-00-concurrency.html) — Channels and shared state
+
+</LectureResources>
