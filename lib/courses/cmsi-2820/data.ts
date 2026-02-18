@@ -375,7 +375,10 @@ const allEvents: CourseEvent[] = [
     standard: "Collections",
     contentUrl: "/cmsi-2820/ln9",
     recordings: [
-
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/oR9LIa8rkrMa4vdwREoHZGR6ZZo2cI6WFsQ92saLj2jLRMwT3C-ug0TF8jj6_ui-.TMQ3FYrzqa2K9FSF"
+      }
     ],
   },
   {
@@ -389,7 +392,10 @@ const allEvents: CourseEvent[] = [
     standard: "Collections",
     contentUrl: "/cmsi-2820/ln10",
     recordings: [
-
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/uenckvRodsw6ONKywdkoZiD7O-eqTiDAUDyQGGS1sDP4a1wFkitWSjoqtscZ7uw.Smd62U_tyFN54nSS"
+      }
     ],
   },
   {
