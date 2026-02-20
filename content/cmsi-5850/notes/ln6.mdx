@@ -1,0 +1,974 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath } from "@/components/math"
+
+## Recap
+
+In LN 5, we surveyed the **four foundational theories of computation**:
+
+- **Language Theory** — How are computations *expressed*? (Alphabets, strings, grammars, the Chomsky Hierarchy)
+- **Automata Theory** — How are computations *carried out*? (Turing Machines, the Church-Turing Thesis)
+- **Computability Theory** — What are the *limits*? (The Halting Problem, decidability, Turing completeness)
+- **Complexity Theory** — What *resources* are required? (P, NP, NP-completeness)
+
+These theories tell us what computation *is*, what it *can* do, and what it *cannot* do. But they say nothing about how computation *should feel* to the person writing it.
+
+Today we turn from the theoretical to the practical. We know that any Turing-complete language can compute anything computable — that question is settled. So the real question becomes: **which language makes it easiest for the programmer to express what they actually care about?**
+
+---
+
+## Today's Agenda
+
+- **Tools for the Job** — Why pragmatics matters more than raw capability
+- **The Abstraction Spectrum** — One function expressed across the entire language landscape
+- **Categories Through the Pragmatic Lens** — Machine, assembly, high-level, scripting, and beyond
+- **The Building Blocks** — The eight design dimensions every language must address
+- **Paradigms: How Languages Shape Thought** — One task solved six completely different ways
+- **The Pragmatic Floor** — What happens when simplification costs capability
+- **Principles for Language Designers** — Lessons from decades of pragmatic successes and failures
+- **Pragmatics Revisited** — Choosing the right tool, and preparing to build your own
+
+---
+
+## Tools for the Job
+
+Imagine you need to make a hole in something. You have options.
+
+A **handheld drill** is portable, lightweight, and easy to carry from place to place. But it requires skill to keep straight — there's no guide, no fixture, no guarantee of precision. The user is responsible for *everything*: alignment, depth, angle. For hanging a shelf? Perfect. For machining a precision engine block? Absolutely not.
+
+A **drill press** is heavier and less mobile. It holds the drill for you, giving you vertical precision you could never achieve by hand. But now you're responsible for clamping the workpiece, aligning it under the spindle, and setting the depth stop. You've traded portability for repeatability. The *tool* manages the drill — you manage the setup.
+
+A **Bridgeport mill** takes this further still. Now you're operating a machine with calibrated X-Y-Z axes, pressure sensors, dial indicators, and precision-ground vises. The same job — putting a hole in something — requires entirely different training, entirely different thinking. You're no longer a contractor with a Dewalt; you're a **machinist**. The tool doesn't just hold the drill — it fundamentally changes what you have to *consider* and how you *interact* with the work.
+
+Notice: each tool makes the **same hole**. The physics doesn't change. What changes is the **level of concern** the operator must manage. The handheld drill forces you to think about everything at once. The Bridgeport handles the low-level details so you can focus on micron-level positioning. But you'd never haul a Bridgeport to a job site to hang drywall — the precision is wasted, and the overhead is absurd.
+
+### The Programming Language Parallel
+
+The exact same spectrum exists in programming languages, and the analogy is not metaphorical — it's structural:
+
+| Level | Language Example | What the Programmer Thinks About |
+| :--- | :--- | :--- |
+| Machine Code | Binary / Hex | Register states, ALU operations, program counter, memory addresses |
+| Assembly | x86, ARM | Mnemonics for instructions, register allocation, jump targets |
+| Intermediate | WASM, LLVM IR | Virtual registers, typed instructions, control flow graphs |
+| Systems | C, Rust | Memory layout, pointers, ownership, stack vs. heap |
+| Application | Java, C++ | Types, objects, class hierarchies, static guarantees |
+| Scripting | Python, Ruby | Objects, methods, rapid iteration, dynamic behavior |
+| Declarative | SQL | *Just the data.* Not how to get it — what you want. |
+
+Each row removes concerns from the programmer and pushes them into the tool. SQL doesn't make you think about how the database engine performs joins — it handles that. But if you *need* to control join strategy, SQL gives you no knob for that. C gives you every knob, including ones that let you corrupt your own memory. Rust gives you the same knobs but forces you to prove you're turning them safely.
+
+<DefinitionBox term="Language Pragmatics">
+
+**Pragmatics** is the study of how a language is *used in practice* — how its design forces the programmer to think, what concerns it surfaces, what it hides, and whether that trade-off matches the problem at hand. A language is pragmatically good not when it can compute everything (any Turing-complete language can), but when it **makes the programmer's time and attention match the problem's actual complexity**.
+
+</DefinitionBox>
+
+**Databaseing in C isn't impossible or even computationally inefficient — it's inefficient *pragmatically*.** It forces you to consider far more than necessary. Our time as programmers is limited. If we don't need to complicate our expression, we shouldn't. And if we *do* need that level of control, we should reach for the tool that gives it to us without fighting us.
+
+This is the lesson of pragmatics: **as long as your system is Turing complete, there is no reason to worry about whether your language is "capable." Focus on whether it's "comfortable."** Comfortable for the *problem*, comfortable for the *programmer*, and comfortable for the *level of concern* that actually matters.
+
+When you build your own language — and you will in this course — this is the design question that matters most.
+
+---
+
+## The Abstraction Spectrum: One Function, Many Worlds
+
+To see the pragmatic spectrum in action, let's write the **same function** at every level. The function is simple:
+
+<DisplayMath formula="f(n) = \begin{cases} 3n + 1 & \text{if } n \text{ is even} \\ 4n - 3 & \text{if } n \text{ is odd} \end{cases}" />
+
+Nothing complicated — a conditional, some arithmetic, a return value. Watch what happens to this tiny function as we move through the spectrum.
+
+### Machine Code — Thinking in Bits
+
+At the very bottom, the function is just a stream of bytes. Here it is for the Intel 64 architecture, in binary:
+
+```
+10001001111110001010100100000001000000000000000000000000
+01110101000001100110101111000000000000011111111111000000
+11000011110000011110000000000010100000111110100000000011
+11000011
+```
+
+Can you tell what it does? No? Let's try hex:
+
+```
+89 F8 A9 01 00 00 00 75 06 6B C0 03 FF C0 C3 C1 E0 02 83 E8 03 C3
+```
+
+Still opaque. At this level, the programmer thinks about **register encodings, opcode formats, and byte-level instruction layout**. The machine doesn't care about your intent — it executes whatever bytes you give it.
+
+**Pragmatic concern**: Everything. You are the machine.
+
+### Assembly — Thinking in Instructions
+
+Assembly gives the same bytes human-readable names. Here's the function in x86-64 GAS syntax:
+
+```x86asm
+        .globl  f
+        .text
+f:
+        mov     %edi, %eax
+        test    $1, %eax
+        jnz     odd
+        imul    $3, %eax
+        inc     %eax
+        ret
+odd:
+        shl     $2, %eax
+        sub     $3, %eax
+        ret
+```
+
+Now we can *read* it: move the parameter into a register, test a bit, branch, multiply, return. But the programmer still thinks about **registers, flags, jump targets, and calling conventions**. There's no notion of "integer" or "function" — just labels and instructions.
+
+**Pragmatic concern**: Hardware state. Which register holds what. How to branch.
+
+### Intermediate — Thinking in Virtual Operations
+
+Virtual machines provide a layer of abstraction above real hardware. Here's the function in LLVM's intermediate representation:
+
+```llvm
+define i32 @f(i32 %n) {
+entry:
+    %rem = srem i32 %n, 2
+    %cmp = icmp eq i32 %rem, 0
+    br i1 %cmp, label %even, label %odd
+
+even:
+    %mul1 = mul i32 %n, 3
+    %add1 = add i32 %mul1, 1
+    ret i32 %add1
+
+odd:
+    %mul2 = mul i32 %n, 4
+    %sub1 = sub i32 %mul2, 3
+    ret i32 %sub1
+}
+```
+
+And in WebAssembly's text format (WAT):
+
+```wasm
+(module
+  (func $f (param $n i32) (result i32)
+    (if (result i32)
+      (i32.eqz (i32.rem_s (local.get $n) (i32.const 2)))
+      (i32.add (i32.mul (i32.const 3) (local.get $n)) (i32.const 1))
+      (i32.sub (i32.mul (i32.const 4) (local.get $n)) (i32.const 3))
+    )
+  )
+  (export "f" (func $f))
+)
+```
+
+We still see typed operations and explicit control flow, but we're no longer tied to any physical machine. The virtual machine handles register allocation, instruction scheduling, and platform differences.
+
+**Pragmatic concern**: Typed operations and control flow graphs — but not hardware.
+
+### C — Thinking in Memory
+
+```c
+int f(const int n) {
+    return (n % 2 == 0) ? 3 * n + 1 : 4 * n - 3;
+}
+```
+
+One line. The function is suddenly *readable*. But C is a systems language — the programmer still thinks about **memory layout, pointer arithmetic, stack frames, and undefined behavior**. The `const` keyword is a hint: even for this simple function, C programmers think about mutation contracts.
+
+**Pragmatic concern**: Memory. Types as machine-level guarantees. What happens if `n` overflows.
+
+### Rust — Thinking in Ownership
+
+```rust
+fn f(n: i32) -> i32 {
+    if n % 2 == 0 { 3 * n + 1 } else { 4 * n - 3 }
+}
+```
+
+Looks almost identical to C, but the pragmatic experience is completely different. Rust's type system and borrow checker force the programmer to prove that **every access to memory is safe** — no dangling pointers, no data races, no use-after-free. For this simple function there's no difference, but the moment you pass data between threads or return references, Rust makes you *think* about ownership in ways C never does.
+
+**Pragmatic concern**: Ownership, lifetimes, and safety proofs — enforced by the compiler.
+
+### Python — Thinking in Objects
+
+```python
+def f(n):
+    return 3 * n + 1 if n % 2 == 0 else 4 * n - 3
+```
+
+No type annotations, no memory concerns, no compilation step. Python lets you think about **the algorithm and nothing else**. But this freedom comes at a cost: no static guarantees, no compile-time error catching, and performance that's orders of magnitude slower than C.
+
+**Pragmatic concern**: Just the logic. Everything else is the runtime's problem.
+
+### Haskell — Thinking in Functions
+
+```haskell
+f n | even n    = 3 * n + 1
+    | otherwise = 4 * n - 3
+```
+
+Haskell uses *guards* — pattern-like conditions that read almost like the mathematical definition we started with. The programmer thinks in **pure functions, types, and algebraic reasoning**. There are no side effects, no mutation, no imperative control flow. The compiler handles laziness, optimization, and memory management.
+
+**Pragmatic concern**: Mathematical correctness. Types as logical propositions.
+
+### Prolog — Thinking in Relations
+
+```prolog
+f(N, X) :- 0 is mod(N, 2), X is 3 * N + 1.
+f(N, X) :- 1 is mod(N, 2), X is 4 * N - 3.
+```
+
+This isn't a function — it's a **relation**. Prolog doesn't compute `f(5)` by calling a function; it searches for values of `X` that satisfy the rules. The programmer thinks in **facts, rules, and logical inference**. You don't tell Prolog *how* to compute — you tell it *what's true*, and it figures out the rest.
+
+**Pragmatic concern**: Logical relationships. The engine handles search and backtracking.
+
+### Lisp — Thinking in Lists
+
+```lisp
+(defun f (n)
+  (if (= (mod n 2) 0)
+    (+ (* 3 n) 1)
+    (- (* 4 n) 3)))
+```
+
+In Lisp, **code and data have the same structure**: nested lists. The `(defun f (n) ...)` is itself a list that happens to define a function. This means programs can manipulate other programs as easily as they manipulate data — the foundation of **metaprogramming**. The uniform syntax looks alien at first, but it gives Lisp a power that curly-brace languages can only approximate with macros.
+
+**Pragmatic concern**: Structure. Everything is a list. Code *is* data.
+
+### Forth — Thinking in Stacks
+
+```forth
+: f  dup 2 mod 0= if 3 * 1 + else 4 * 3 - then ;
+```
+
+Forth is a *concatenative* language: you compose programs by chaining words together, and all data flows through an implicit stack. There are no named parameters, no variables (typically), and no precedence rules. The programmer thinks in **stack effects** — every word consumes some values from the stack and pushes results back.
+
+**Pragmatic concern**: The stack. What's on top, what's underneath, and how each word transforms it.
+
+### SQL — Thinking in Data
+
+SQL doesn't naturally express our arithmetic function, but consider what it *does* express:
+
+```sql
+SELECT name, salary
+FROM employees
+WHERE department = 'Engineering'
+ORDER BY salary DESC;
+```
+
+The programmer specifies **what data they want** — not how to scan tables, build indexes, or sort results. The query optimizer handles all of that. SQL is the ultimate example of a language that *hides* the computational machinery entirely.
+
+**Pragmatic concern**: The data. Nothing else.
+
+### LOLCODE — Thinking in... Memes?
+
+```
+HOW IZ I f YR n
+    I HAS A p ITZ MOD OF n AN 2
+    BOTH SAEM p AN 0, O RLY?
+        YA RLY
+            FOUND YR SUM OF PRODUKT OF 3 AN n AN 1
+        NO WAI
+            FOUND YR DIFF OF PRODUKT OF 4 AN n AN 3
+    OIC
+IF U SAY SO
+```
+
+LOLCODE is an *esoteric language* — not designed for production use, but a perfect demonstration that **syntax is arbitrary**. This program computes `f(n)` correctly. It's Turing complete. It's just a terrible tool for every conceivable job. But it exists, and it works, which proves that the *symbols* a language uses are just a surface — the semantics underneath is what matters.
+
+**Pragmatic concern**: None. That's the joke. (And that's exactly why no one uses it for real work.)
+
+### The Spectrum at a Glance
+
+| Language | Level | Programmer Thinks About |
+| :--- | :--- | :--- |
+| Machine Code | Bare metal | Bytes, opcodes, registers |
+| x86 Assembly | Hardware | Instructions, flags, labels |
+| LLVM IR / WASM | Virtual machine | Typed operations, control flow |
+| C | Systems | Memory, types, undefined behavior |
+| Rust | Systems + safety | Ownership, lifetimes, borrowing |
+| Python | Application | Logic, objects, rapid iteration |
+| Haskell | Functional | Types, purity, algebraic reasoning |
+| Prolog | Logic | Relations, rules, inference |
+| Lisp | Metaprogramming | Lists, code-as-data, macros |
+| Forth | Stack-based | Stack effects, word composition |
+| SQL | Declarative | Data. That's it. |
+| LOLCODE | Esoteric | Nothing useful — and that's the point |
+
+Every single one of these is Turing complete (except SQL in its pure relational form, which is intentionally *not* — a fascinating design choice we'll revisit). The **computational power is identical**. What differs is the **pragmatic experience** of using them.
+
+---
+
+## Categories Through the Pragmatic Lens
+
+The languages above naturally cluster into categories. But rather than treating these as a flat taxonomy, let's see them as a **spectrum of how much the tool manages for you**.
+
+### Machine and Assembly Languages
+
+At the bottom of the spectrum, the programmer *is* the machine. Machine code is the direct binary encoding of instructions executed by hardware. Assembly languages are thin mnemonics over machine code — isomorphic, just readable.
+
+What the tool manages: **Nothing.** You control registers, memory addresses, jump targets, and instruction encoding.
+
+What you must manage: **Everything.** Register allocation, calling conventions, stack frames, and alignment.
+
+These languages exist because *someone* has to talk directly to the hardware. Operating system kernels, bootloaders, device drivers, and performance-critical inner loops all justify this level of concern. But general application development at this level would be pragmatic malpractice.
+
+### Intermediate Languages
+
+Virtual machines (the JVM, WebAssembly, LLVM) provide a hardware-independent abstraction. Their instruction sets look like assembly, but they target an abstract machine rather than physical silicon.
+
+What the tool manages: **Hardware specifics.** Register allocation, instruction selection, platform differences.
+
+What you must manage: **Typed operations and explicit control flow.** The abstraction is still low-level, but it's portable.
+
+Most programmers never write intermediate code directly. These languages serve as compilation targets — the "machine code" that high-level languages compile *to*. But understanding them is essential for anyone building a compiler, which is exactly what this course prepares you for.
+
+### High-Level Languages
+
+This is where most programming happens. High-level languages provide names, types, control structures, functions, modules, and automatic memory management. The categories here split further:
+
+**System languages** (C, C++, Rust, Zig) give the programmer explicit control over memory and hardware interaction. The programmer, not the runtime, manages allocation, deallocation, and data layout. These languages are built for people who *need* that control — operating system developers, embedded engineers, game engine architects.
+
+**Application languages** (Java, C#, Kotlin, Swift, Go) add garbage collection, stronger type safety, and richer standard libraries. The programmer thinks about types, objects, and architecture — not memory addresses.
+
+**Scripting languages** (Python, Ruby, JavaScript, Perl) push even further: dynamic typing, interpreted execution, and extreme expressiveness. The programmer thinks about logic and iteration speed — not compilation, type declarations, or deployment.
+
+### Declarative Languages
+
+At the top of the spectrum, declarative languages don't ask *how* — they ask *what*. SQL describes the data you want. CSS describes what the page should look like. Regular expressions describe which strings to match. The engine figures out the implementation.
+
+What the tool manages: **The entire computation strategy.**
+
+What you must manage: **Only what you want.** Declare it, and trust the engine.
+
+### Visual and Esoteric Languages
+
+**Visual languages** (Scratch, LabVIEW, Unreal Blueprints) replace text with graphical elements. They're pragmatically brilliant for specific audiences — Scratch makes programming accessible to children; LabVIEW maps naturally to signal processing workflows. The "syntax" is drag-and-drop, making certain classes of errors (unmatched brackets, typos) impossible.
+
+**Esoteric languages** (Brainfuck, LOLCODE, Malbolge, Piet) are experiments, jokes, or theoretical curiosities. They prove that Turing completeness is cheap — *any* sufficiently general mechanism can compute anything. But computational power without pragmatic design is useless for real work. In fact, as we'll see later in this lecture, languages like Malbolge push pragmatic hostility so far that *writing programs in them becomes a computationally hard search problem* — a fascinating connection between pragmatics and complexity theory.
+
+### Categories Are Not Mutually Exclusive
+
+A critical point: **languages sit at intersections**, not in boxes. C is both a high-level and a system language. Rust is a system language with application-level safety guarantees. Python is both a scripting language and an application language. JavaScript started as a scripting language, became an application language, and now runs servers.
+
+The categories describe *tendencies*, not boundaries.
+
+### Three Perspectives on "Two Kinds"
+
+Several influential figures have tried to draw a single dividing line across the language landscape:
+
+> **John Ousterhout** (creator of Tcl) proposed that languages split into *system languages* (compiled, statically typed, focused on data structures) and *scripting languages* (interpreted, dynamically typed, focused on gluing components together). This is known as **Ousterhout's Dichotomy**, and while useful, modern languages like Rust, Go, and TypeScript actively blur this boundary.
+
+> **Alan Kay** (creator of Smalltalk) drew a different line: languages are either an *"agglutination of features"* or a *"crystallization of style."*
+>
+> *"COBOL, PL/1, Ada, etc., belong to the first kind; LISP, APL — and Smalltalk — are the second kind. It is probably not an accident that the agglutinative languages all seem to have been instigated by committees, and the crystallization languages by a single person."*
+>
+> This is a pragmatic observation about *design coherence*. A language with a unified vision feels different from one assembled by compromise.
+
+> **Bjarne Stroustrup** (creator of C++) took a more sardonic view:
+>
+> *"There are only two kinds of languages: the ones people complain about and the ones nobody uses."*
+>
+> This is a pragmatic truth: any language successful enough to be widely used will accumulate enough users with enough different needs that complaints are inevitable.
+
+---
+
+## The Building Blocks: What Makes a Language a Language
+
+Every programming language, regardless of category or paradigm, must make decisions about the same fundamental concerns. Think of these as the **eight knobs a language designer turns** — different settings produce radically different languages, even from the same underlying computational model.
+
+When you design your own language in this course, these are the decisions you'll face.
+
+### 1. Names, Binding, and Scope — *How Do We Refer to Things?*
+
+Every language needs a way to **associate names with entities** (variables, functions, types, modules). This act of association is called *binding*, and the region of code where a binding is active is its *scope*.
+
+The choices here have enormous pragmatic consequences:
+
+- **Static (lexical) scope** means you can determine what a name refers to by reading the source code. Most modern languages (Python, Java, Rust, Haskell) use this.
+- **Dynamic scope** means a name refers to whatever was most recently bound at runtime. Early Lisps used this, and it made programs extremely hard to reason about. (Emacs Lisp still uses dynamic scope by default.)
+
+Consider what happens when you see the name `x` in code. In a statically scoped language, you look *outward* through enclosing blocks to find where `x` was declared. In a dynamically scoped language, you look *backward* through the call stack. Same name, completely different meaning.
+
+You already know this distinction: in LN 4, we studied *free and bound variables* in the lambda calculus. Scope is the programming-language manifestation of the same idea.
+
+### 2. Evaluation — *How Do We Compute Values?*
+
+An expression combines values and operators to produce a result. But *how* and *when* that happens varies:
+
+- **Eager evaluation** (most languages): arguments are evaluated before being passed to functions. You always know a value exists before you use it.
+- **Lazy evaluation** (Haskell, some functional contexts): arguments are only evaluated when their value is actually needed. This enables infinite data structures and avoids unnecessary work — but makes performance harder to predict.
+
+Side effects introduce another axis: does evaluating an expression *change the world*? In Python, `x.append(5)` both returns `None` and mutates `x`. In Haskell, that's impossible — evaluation is pure. This difference is a pragmatic trade-off between convenience and predictability.
+
+### 3. Control Flow — *How Do We Organize Computation in Time?*
+
+Languages offer different mechanisms for ordering computation:
+
+- **Sequencing**: do this, then that (semicolons, statement blocks)
+- **Selection**: choose a path (if/else, switch, pattern matching)
+- **Iteration**: repeat (for, while, recursion)
+- **Disruption**: break out (return, break, throw, panic)
+
+Some languages favor some mechanisms over others. Haskell has no loops — only recursion. Prolog has no explicit control flow — only backtracking search. Forth has no structured control at all in the traditional sense — just stack-based words. Each choice shapes how the programmer thinks about sequencing actions.
+
+### 4. Types — *How Do We Constrain What Can Be Said?*
+
+A type system classifies values so they behave in predictable ways. The choices along this dimension have some of the most visible pragmatic effects:
+
+- **Static vs. Dynamic**: Are types checked at compile time or runtime? Java and Haskell check at compile time — you can't add a string to an integer. Python and Ruby check at runtime — the error only appears when the code runs.
+- **Strong vs. Weak**: How strictly are types enforced? Haskell won't let you treat an integer as a boolean. C will let you treat *anything* as anything, if you cast hard enough.
+- **Manifest vs. Inferred**: Must the programmer declare types explicitly, or can the compiler figure them out? Java requires `int x = 5;` while Haskell and Rust infer `x = 5` to have type `Int` / `i32`.
+
+Recall from our spectrum: C's types map closely to machine representations. Haskell's types encode logical properties. Python's types are runtime tags. Same concept — types — but the pragmatic experience of working with each system is completely different.
+
+### 5. Functions — *How Do We Abstract Computation?*
+
+Functions are the most fundamental unit of code reuse. But languages differ wildly in how they handle them:
+
+- **First-class functions**: Can you pass functions as arguments, return them from other functions, and store them in variables? (Yes in Haskell, JavaScript, Python. Not easily in C, Java pre-8.)
+- **Closures**: Can a function capture variables from its enclosing scope? (This is exactly the free-variable capture from LN 4's lambda calculus.)
+- **Parameter passing**: By value? By reference? By name? C passes by value (with pointer workarounds). Rust distinguishes between borrowing and moving. Haskell passes by need (lazy).
+- **Arity and currying**: Must a function take a fixed number of arguments? Haskell functions are automatically curried (they take one argument and return a function for the rest). JavaScript functions can take any number of arguments.
+
+The lambda calculus you studied in LN 4 is the theoretical foundation for all of these decisions. Every language's function semantics is a design choice about which features of the lambda calculus to expose, restrict, or extend.
+
+### 6. Modules — *How Do We Organize Code at Scale?*
+
+Once programs grow beyond a few hundred lines, we need ways to group related code and hide implementation details:
+
+- **Modules and packages**: Python has `import`, Java has `package`, Rust has `mod` and `crate`, Haskell has `module`.
+- **Classes**: Java and C++ use classes as both type definitions and module boundaries. Smalltalk uses classes as the *only* organizing principle.
+- **Open vs. Closed**: Can you add methods to existing types from outside? Ruby and Kotlin say yes (open classes / extension functions). Java says no.
+
+Alan Kay's vision of object-oriented programming was fundamentally about modularity: *"The basic principle of recursive design is to make the parts have the same power as the whole."* He envisioned programs as societies of independent computational agents, each encapsulating their own state and communicating only through messages.
+
+### 7. Concurrency — *How Do We Handle the Real World's Parallelism?*
+
+The real world is concurrent: things happen simultaneously. Languages differ in how they expose this:
+
+- **Shared memory + locks**: C, Java, C++. The programmer manually coordinates access to shared data. Powerful but error-prone (deadlocks, race conditions).
+- **Message passing**: Erlang, Go (channels), Elixir. Processes communicate by sending messages, never sharing memory directly. Safer, but requires thinking about communication patterns.
+- **Async/await**: JavaScript, Python, Rust. Asynchronous functions yield control cooperatively, with promises/futures representing eventual values.
+- **Functional purity**: Haskell. If there are no side effects, parallelism is trivially safe — pure functions can always be evaluated in any order.
+
+The pragmatic impact is immense: writing a concurrent web server in Go (goroutines + channels) feels completely different from writing one in Java (threads + synchronized blocks), even though both produce the same result.
+
+### 8. Metaprogramming — *How Can Programs Reason About Themselves?*
+
+Some languages let programs inspect and manipulate their own structure:
+
+- **Reflection**: Java and C# can inspect class structures at runtime. Python lets you modify classes on the fly.
+- **Macros**: Lisp macros operate on code-as-data (the lists we saw earlier). Rust macros operate on token streams. C macros operate on text substitution.
+- **Eval**: JavaScript and Python can execute strings as code at runtime.
+
+Lisp's homoiconicity — the property that code and data share the same structure — makes metaprogramming natural. In most other languages, metaprogramming feels like a bolt-on feature rather than a core design principle.
+
+### The Design Space
+
+These eight dimensions form a vast design space. Every programming language is a *point* in this space — a specific combination of choices about naming, evaluation, control flow, types, functions, modules, concurrency, and metaprogramming. Understanding this space is what separates someone who *uses* languages from someone who *designs* them.
+
+---
+
+## Paradigms: How Languages Shape Thought
+
+Beyond categories and building blocks, there's a higher-level concept: the **programming paradigm**. A paradigm is a *style* of programming — a way of thinking about and organizing computation.
+
+<DefinitionBox term="Programming Paradigm">
+
+A **paradigm** is a way of *programming*, not a property of a *language*. A paradigm describes how the programmer organizes computation: through commands, functions, objects, rules, or declarations. A language may *facilitate* certain paradigms, but the paradigm exists independently of any particular language.
+
+</DefinitionBox>
+
+> **Never say "programming language paradigm."** A paradigm is a way of *doing* something, not a concrete thing. Haskell facilitates functional programming, but "functional" describes the *paradigm*, not the *language*. The correct phrasing is "Haskell is a functional programming language" — meaning it naturally supports the functional paradigm — not that functional programming is a language paradigm.
+
+To see how paradigms shape thought, let's solve a **single task** in six completely different ways. The task: given a list of people, find all names longer than 5 characters, convert them to uppercase, and sort the result.
+
+### Imperative — Step by Step
+
+The most basic imperative style uses explicit jumps and labels, directly mimicking how a machine executes:
+
+```
+    result = []
+    i = 0
+start:
+    numPeople = length(people)
+    if i >= numPeople goto finished
+    p = people[i]
+    nameLength = length(p.name)
+    if nameLength <= 5 goto nextOne
+    upperName = toUpper(p.name)
+    addToList(result, upperName)
+nextOne:
+    i = i + 1
+    goto start
+finished:
+    return sort(result)
+```
+
+The programmer thinks in **state mutations and jumps**. Every step explicitly changes a variable or moves the instruction pointer. This is how assembly works, translated into text.
+
+### Structured — Loops and Blocks
+
+Structured programming eliminates gotos in favor of **nested control structures**:
+
+```python
+result = []
+for p in people:
+    if len(p.name) > 5:
+        result.append(p.name.upper())
+return sorted(result)
+```
+
+Same computation, but now the programmer thinks in **blocks that compose**. Dijkstra's famous letter *"Go To Statement Considered Harmful"* (1968) launched the structured programming revolution — one of the most significant pragmatic advances in the history of software engineering.
+
+### Object-Oriented — Messages Between Objects
+
+In a pure object-oriented language like Smalltalk, everything is an object, and computation happens through **message passing**:
+
+```smalltalk
+result := List new.
+people each: [:p |
+    p name length greaterThan: 5
+        ifTrue: [result add: (p name upper)]
+].
+^result sort
+```
+
+Notice: `greaterThan:` and `ifTrue:` are *messages* sent to objects, not built-in syntax. Even the conditional is a method call on a boolean object. The programmer thinks about **objects, messages, and encapsulated behavior**.
+
+In practice, most "OOP" languages (Java, C++, C#) keep imperative control flow and use objects primarily for data abstraction. Alan Kay, who coined "object-oriented," has noted the gap:
+
+> *"OOP to me means only messaging, local retention and protection and hiding of state-process, and extreme late-binding of all things. It can be done in Smalltalk and in LISP. There are possibly other systems in which this is possible, but I'm not aware of them."*
+
+### Declarative — Say What, Not How
+
+Declarative programming specifies the *desired result* without describing the steps:
+
+```sql
+SELECT UPPER(name)
+FROM people
+WHERE LENGTH(name) > 5
+ORDER BY name;
+```
+
+No loops, no variables, no mutation. The query engine decides *how* to retrieve, filter, transform, and sort. The programmer thinks only about **what data they want**.
+
+### Functional — Composing Transformations
+
+Functional programming expresses computation by **combining functions**. Let's build up the style gradually.
+
+The raw version with explicit recursion is verbose:
+
+```sml
+let
+    fun uppercasedLongNames [] = []
+      | uppercasedLongNames (p :: ps) =
+          if length (name p) > 5
+          then (toUpper (name p)) :: (uppercasedLongNames ps)
+          else uppercasedLongNames ps
+in
+    sort (uppercasedLongNames people)
+```
+
+But functional programming shines when you pass **functions to functions**:
+
+```javascript
+sort(filter(s => s.length > 5, map(p => p.name.toUpperCase(), people)))
+```
+
+With a pipe operator, this reads left-to-right:
+
+```elixir
+people |> map(p => toUpper(name(p))) |> filter(s => length(s) > 5) |> sort
+```
+
+And with function composition, we eliminate the intermediate variable entirely:
+
+```haskell
+people |> map (toUpper . name) |> filter (\s -> length s > 5) |> sort
+```
+
+Many languages have *comprehensions* that combine map and filter into a single expression:
+
+```python
+sorted(p.name.upper() for p in people if len(p.name) > 5)
+```
+
+The progression from explicit recursion to pipes to comprehensions shows how functional programming evolves pragmatically: same paradigm, increasingly comfortable syntax.
+
+This is the lambda calculus from LN 4 in action. The `map`, `filter`, and pipe operator are all higher-order functions. The anonymous `p => ...` is a lambda abstraction. The Church encodings you built by hand are the same patterns that Haskell, Elixir, and JavaScript use in production every day.
+
+### Logic — Declare the Rules, Let the Engine Search
+
+In Prolog, you don't write algorithms — you write **facts and rules**, and the engine uses unification and backtracking to find solutions:
+
+```prolog
+long_uppercase_name(Person, Upper) :-
+    person_name(Person, Name),
+    atom_length(Name, Len),
+    Len > 5,
+    upcase_atom(Name, Upper).
+```
+
+The programmer states *what constitutes a valid answer*, and Prolog *searches* for values that satisfy all the constraints. There's no explicit loop, no accumulator, no sorting step — just a logical specification.
+
+### Paradigms Are Not Mutually Exclusive
+
+A crucial insight: **paradigms blend**. Python is imperative, object-oriented, *and* functional. Scala supports functional, object-oriented, and imperative programming in a single file. Rust is imperative with strong functional influences. JavaScript started as an imperative scripting language and now features `map`, `filter`, `reduce`, promises, classes, and generator functions.
+
+A language that is *purposely* designed to support multiple paradigms is called a **multi-paradigm language**. Most modern languages are multi-paradigm. Very few languages are paradigmatically "pure":
+
+| Paradigm | Pure-ish Languages | Multi-paradigm Languages |
+| :--- | :--- | :--- |
+| Imperative | Early BASIC, FORTRAN | C, Go, Rust |
+| Functional | Haskell, Elm | Scala, OCaml, JavaScript |
+| Object-Oriented | Smalltalk | Java, Python, Ruby, C++ |
+| Declarative | SQL, CSS | Prolog (with imperative escapes) |
+| Logic | Datalog | Prolog, miniKanren |
+
+The purity of a language's paradigm is itself a pragmatic choice. Pure functional programming gives you powerful guarantees (referential transparency, safe parallelism) but sometimes you *need* a side effect. Haskell handles this with monads — a sophisticated mechanism that threads effects through pure code. Most other languages just... let you have side effects whenever you want, which is simpler but less safe.
+
+---
+
+## The Pragmatic Floor: When Design Costs Capability
+
+Throughout this lecture, we've repeated one mantra: **as long as your system is Turing complete, focus on comfort, not capability.** But this raises an uncomfortable question: what if the pursuit of comfort takes you *below* Turing completeness? What if a pragmatic simplification doesn't just change how you think — it changes *what you can compute*?
+
+This isn't hypothetical. Several of the languages we've already seen sit intentionally below this line. And understanding *why* they do — and what they gain and lose — is one of the most important lessons in language design.
+
+### The Three Requirements for Turing Completeness
+
+Recall the eight design knobs from earlier. Not all of them are needed for Turing completeness — but three capabilities are *absolutely required*:
+
+1. **Conditional branching** — the ability to choose between paths based on data (the *Control Flow* knob)
+2. **Unbounded iteration or recursion** — the ability to repeat without a predetermined limit (the *Control Flow* and *Functions* knobs)
+3. **Unbounded readable/writable storage** — the ability to store and retrieve an arbitrary amount of data (the *Types* knob)
+
+Remove *any one* of these and your language falls below the Turing completeness threshold. It can still be useful — spectacularly useful, in fact — but there will be computable functions it simply cannot express.
+
+### Languages That Choose to Stay Below the Floor
+
+Here is the key insight: **falling below the floor is not always a mistake. Sometimes it's the best design decision you can make.**
+
+| Language | What It Gives Up | What It Gains |
+| :--- | :--- | :--- |
+| **SQL** (pure relational algebra) | No unbounded loops | Query termination guaranteed; optimizer can reason about every query |
+| **Regular Expressions** | No memory beyond current state (finite automata) | Linear-time matching guaranteed; can't count balanced parentheses |
+| **Datalog** | No function symbols (restricted Prolog) | Guaranteed termination; enables sound static analysis |
+| **CSS** | No general computation | Browser can always render; layout always terminates |
+| **Dhall, JSON Schema** | No computation at all | Guaranteed totality; safe to evaluate untrusted configurations |
+| **Agda, Idris** (total fragments) | Every function must provably terminate | Can *prove theorems* about programs; type-checking is decidable |
+
+Each of these languages *intentionally* sacrificed computational universality. And in return, they gained something a Turing-complete language can never offer: **guarantees**.
+
+SQL can promise that your query will finish. A regular expression engine can promise linear-time matching. Dhall can promise that evaluating an untrusted config file won't loop forever. A Turing-complete language *cannot make any of these promises* — the Halting Problem forbids it.
+
+<DefinitionBox term="The Pragmatic Floor">
+
+The **pragmatic floor** is the boundary below which simplification costs computational capability. Languages below the floor (SQL, regex, CSS, Datalog) gain powerful guarantees — termination, decidability, optimization — at the expense of universality. Languages above the floor are Turing complete and computationally equivalent, but vary enormously in the *human complexity* of programming in them.
+
+</DefinitionBox>
+
+### The Expressiveness-Guarantees Trade-off
+
+This reveals a fundamental inverse relationship in language design:
+
+> **The more a language can express, the fewer things the tool can promise about what you've written.**
+
+SQL can guarantee your query terminates. Python cannot guarantee *anything* terminates. Agda can prove your function is total. Haskell cannot — it allows general recursion. Regular expressions can be matched in linear time. Perl-compatible regex (with backreferences) cannot.
+
+This trade-off is not a continuum with a single "right" answer. It's a design axis with valid positions at every point. The question is always: **does the guarantee matter more than the expressiveness for this problem domain?**
+
+For databases, the answer is overwhelmingly *yes* — query termination matters more than being able to express arbitrary computations. For a general-purpose application, the answer is usually *no* — you need the full power of computation and accept the corresponding unpredictability.
+
+### The Escape Hatch Pattern
+
+When a language sits below the pragmatic floor but real-world demands push beyond it, a predictable pattern emerges: **escape hatches**.
+
+SQL databases added **PL/SQL, T-SQL, and recursive CTEs** — procedural extensions that restore Turing completeness when the relational algebra isn't enough. CSS gained **Houdini worklets** and **`calc()` with custom properties** that inch toward general computation. HTML, which is purely declarative, relies on JavaScript to handle anything interactive.
+
+The pattern is universal: pragmatic restrictions create pressure to escape them. When you design a language, this pressure will come. The question is whether you provide controlled escape hatches (like Rust's `unsafe` blocks) or force users to abandon your language entirely for those cases.
+
+### Pragmatics Through the Four Pillars
+
+The four foundational theories from LN 5 aren't just background for this course — they have *concrete* things to say about every pragmatic design choice we've discussed. Let's revisit each pillar through the lens of pragmatics.
+
+**Language Theory — Grammar Complexity is a Pragmatic Choice**
+
+Every pragmatic feature you add to a language has consequences for where it sits in the **Chomsky Hierarchy**. SQL's grammar is context-free — it can be parsed by a pushdown automaton. C's grammar is famously context-sensitive: the expression `T * x` could be a multiplication or a pointer declaration, and parsing depends on whether `T` is a type name. C++ pushes even further — its grammar is so complex that parsing is *undecidable* in the general case (template metaprogramming can force the parser to solve arbitrary computation problems).
+
+The implication: every pragmatic feature you add (operator overloading, context-dependent keywords, implicit conversions) makes your grammar harder to parse. Your grammar's complexity class is itself a pragmatic trade-off — simpler grammars mean faster, more predictable tools.
+
+**Automata Theory — Expressiveness Chooses Your Machine**
+
+The automaton needed to *process* your language changes with its complexity. Regular expressions need only **finite automata** — fast, memoryless, guaranteed to halt. Context-free languages need **pushdown automata** — they can handle nesting but nothing more. Turing-complete languages require **full Turing machines** — and inherit all their undecidable properties.
+
+When you choose how expressive your language is, you're implicitly choosing the **minimum computational model** needed to process it. This has direct engineering consequences: a regex engine is tiny and fast because it only needs a finite automaton. A SQL query optimizer can be sophisticated because the language is bounded. A compiler for a Turing-complete language must contend with the fundamental impossibility of deciding certain properties about the programs it compiles.
+
+**Computability Theory — Below the Floor, the Halting Problem Vanishes**
+
+This is the deepest connection. By giving up Turing completeness, you make previously **undecidable problems decidable**. For non-TC languages:
+
+- *All programs terminate* — no infinite loops, no hanged processes
+- *Equivalence is decidable* — you can determine whether two programs compute the same thing
+- *Optimization is complete* — the tool can always find the most efficient execution plan
+
+This is the *real* reason the pragmatic floor exists as a design target, not just an accident. SQL's query optimizer can guarantee an efficient execution plan *because* SQL is not Turing complete. Datalog can be used for static analysis *because* its evaluation always terminates. Agda can check proofs *because* all its functions are total.
+
+Type-checkers, linters, optimizers, and static analyzers are all more powerful when applied to less expressive languages. The tools your programmers rely on are *enabled* by the restrictions your language imposes.
+
+**Complexity Theory — When Pragmatic Hostility Becomes a Search Problem**
+
+Even among Turing-complete languages — where computational power is identical — pragmatic design can make the *human complexity* of programming vary by orders of magnitude. The most extreme example is **Malbolge**.
+
+Malbolge (Ben Olmstead, 1998) was designed to be the *most difficult programming language possible*. It features self-modifying code, base-3 (ternary) arithmetic, and encrypted instructions — every instruction mutates itself after execution, so the program you wrote is not the program that runs.
+
+The result? The first "Hello, World!" program in Malbolge was not written by a human. It was generated **two years later** by Andrew Cooke using a **beam search algorithm** — a heuristic search technique from AI. Writing a Malbolge program that produces a desired output is effectively a **search problem** over a hostile computation space.
+
+Lou Scheffer later partially "cracked" Malbolge by identifying structural invariants in the self-modification cycle, lowering the effective search complexity. But the fundamental lesson remains:
+
+> **Turing completeness guarantees that a solution *exists*. It says nothing about whether finding or writing that solution is tractable.**
+
+Pragmatics doesn't just determine how comfortable programming is — it determines the **complexity class of programming itself**. In a well-designed language, writing a correct program is straightforward. In Malbolge, it's an NP-hard search problem. Same computational power. Radically different human experience. This is the ultimate proof that pragmatics is not a luxury — it's the difference between a language being *theoretically* capable and *practically* usable.
+
+---
+
+## Principles for Language Designers
+
+We've now covered the full landscape: the abstraction spectrum, the categories, the building blocks, the paradigms, and the pragmatic floor. Before we wrap up, let's distill six **concrete principles** from this landscape — lessons that decades of language design have taught us, and that you should carry into your own designs.
+
+### The Blub Paradox: You Can Only See Down
+
+Paul Graham identified a subtle but devastating bias in how programmers evaluate languages. He called it the **Blub Paradox**:
+
+> A programmer who works in a language (call it "Blub") can look *down* the abstraction spectrum and recognize that lower languages are less powerful. "Why would anyone use gotos when we have structured loops?" But that same programmer looks *up* the spectrum and sees features they've never used as unnecessary or weird. "Why would I need first-class functions? I can just use a for loop."
+
+The paradox is that you *cannot recognize what you're missing from inside a single language*. A C programmer who has never used closures doesn't see the absence of closures as a limitation — they see it as normal. A Java programmer who has never used algebraic data types doesn't know what pattern matching offers. The missing feature is invisible precisely *because* it requires a way of thinking the programmer has never practiced.
+
+This connects directly to our machining analogy: a person who has only ever used a handheld drill genuinely cannot appreciate what a Bridgeport offers. Not because they're incapable, but because the problems that require micron-level precision have never entered their world. They've never needed to think that way.
+
+The implication for language designers is profound: **you cannot evaluate pragmatic fitness from inside a single language.** To develop design judgment, you must move *across* the spectrum — which is exactly why this course surveys so many languages before asking you to build one.
+
+### Pragmatic Gravity: The Pit of Success
+
+Some languages are designed so that the **easiest thing to do is also the correct thing**. The language's defaults, its type system, and its standard patterns all create *gravitational pull* toward safe, maintainable code. This design philosophy is called the **"Pit of Success"** — the programmer falls *into* good practices by default, and must actively fight the language to write bad code.
+
+**Pits of Success:**
+- **Rust**: ownership and borrowing make memory-safe code the default. You must explicitly opt into `unsafe` blocks to bypass the safety guarantees. The path of least resistance is correct code.
+- **Elm**: runtime exceptions are *structurally impossible*. The type system ensures that every possible error case is handled at compile time. You literally cannot ship code that crashes.
+- **Go**: the `error` return value convention (not exceptions) forces programmers to handle errors at every call site. Ignoring an error requires deliberate effort.
+
+**Pits of Despair:**
+- **C**: buffer overflows are trivially easy. The language provides raw pointers with no bounds checking, and the standard library includes famously unsafe functions like `gets()`.
+- **JavaScript**: type coercion produces absurd but valid results. `[] + {} === "[object Object]"` is not a bug — it's the language working exactly as specified. The easy path leads to nonsense.
+- **PHP** (historically): loose comparison operators created entire categories of security vulnerabilities. `"0" == false` and `"" == 0` both evaluate to true, making authentication bypasses trivially easy.
+
+The design principle is straightforward: **a well-designed language should have pragmatic gravity toward correctness.** Make the right thing easy, and make the wrong thing require deliberate, visible effort. When you build your own language, ask yourself: where does the programmer land when they take the path of least resistance?
+
+### Notation as a Tool of Thought
+
+In 1979, Kenneth Iverson — the creator of APL — delivered his Turing Award lecture with a provocative title: *"Notation as a Tool of Thought."* His argument was that good notation doesn't just *express* ideas — it **enables** them. The symbols you choose, and the rules for combining them, shape what thoughts are easy to have and what thoughts are hard.
+
+Consider APL's expression for summing the first N integers: `+/⍳N`. That's four characters. The same operation in Java requires a variable declaration, a loop, an accumulator, a return statement — multiple lines of ceremony that obscure the mathematical essence. The APL notation makes a *pattern visible* that the Java syntax buries.
+
+Conversely, overly verbose notation can actively obstruct thinking. Java's `AbstractSingletonProxyFactoryBean` (a real class from the Spring Framework) contains useful functionality, but the name alone requires cognitive effort to parse. The notation fights the programmer instead of helping them.
+
+This connects to Language Theory: the symbols of a language are arbitrary (any alphabet will do), but their **arrangement shapes cognition**. A mathematical notation that makes commutativity visible at a glance is pragmatically superior to one that hides it, even if both express the same semantics.
+
+Notation is a pragmatic axis that the eight building blocks don't directly capture, but it profoundly affects the programming experience. When you design your own language, the choice of syntax — verbose or concise, symbolic or keyword-heavy, familiar or novel — is itself a design decision with cognitive consequences.
+
+### The Unsung Dimension: Error Messages
+
+How a language communicates failure is one of the most pragmatically significant aspects of its design, yet it rarely appears in textbooks. A language's error messages are themselves a kind of **meta-language** — with their own pragmatic properties.
+
+**Great error messages:**
+- **Rust** is famous for its compiler diagnostics. When the borrow checker rejects code, the error message explains *why*, shows the conflicting lifetimes with visual arrows, and often *suggests the fix*. The error message is a teaching tool.
+- **Elm** was designed from the ground up with error messages as a *first-class design concern*. Every error includes a plain-English explanation, a code snippet highlighting the problem, and a link to documentation. The creator, Evan Czaplicki, treats error messages as a UX problem, not an afterthought.
+
+**Terrible error messages:**
+- **C++ template errors** are notorious. A single missing semicolon in a template-heavy codebase can produce hundreds of lines of incomprehensible type-deduction output. The error message is technically correct but pragmatically useless.
+- **Early GHC** (the Haskell compiler) produced type error messages that assumed you already understood unification, substitution, and higher-kinded types. The messages were precise but excluded anyone who wasn't already an expert.
+
+The connection to Language Theory is direct: the language of error reporting is itself a language with pragmatic properties. A compiler that speaks in terms of "expected type `Vec<&str>`, found type `Vec<String>`" is speaking a language that requires fluency in type systems. A compiler that says "you have a list of borrowed strings but need a list of owned strings — try adding `.to_owned()` to each element" is speaking a language designed for its audience.
+
+When you design your own language and its tooling, the quality of your error messages will determine whether users can *learn* from their mistakes or just stare at them in confusion.
+
+### Greenspun's Tenth Rule: When the Tool Doesn't Fit
+
+Philip Greenspun's famous (satirical) observation captures a deep pragmatic truth:
+
+> *"Any sufficiently complicated C or Fortran program contains an ad hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp."*
+
+What he means is this: when a language lacks the building blocks a problem requires, programmers don't just suffer through the limitation — they **reinvent the missing features poorly** within the language.
+
+Every Java project that builds a custom rule engine is partially reinventing Prolog. Every C project that builds a dynamic dispatch system with function pointers and vtables is partially reinventing Smalltalk. Every JavaScript project that builds a type-checking layer with JSDoc annotations is partially reinventing TypeScript (which is why TypeScript eventually *was* invented).
+
+The pattern reveals when a pragmatic mismatch has become too costly: if you find yourself building infrastructure for a *different kind of language* inside your current one, the correct response is not to keep building — it's to **build the language you actually need**. This is the origin of **Domain-Specific Languages (DSLs)**: languages designed for one problem domain, with building blocks tailored to that domain's concerns.
+
+SQL is a DSL for relational data. CSS is a DSL for visual layout. Regular expressions are a DSL for string patterns. GraphQL is a DSL for API queries. Terraform is a DSL for infrastructure. Each exists because no general-purpose language was pragmatically right for the job, and the reinvention-within-a-language approach wasn't sustainable.
+
+This connects directly to the purpose of this course: **you are learning to build languages because that is sometimes the right pragmatic answer.** Not every problem needs a new language — but when the gap between what you need to express and what your tools let you express grows too wide, building a language becomes the most pragmatically efficient response.
+
+### Pragmatic Debt: Backwards Compatibility
+
+There is one final principle that doesn't appear until your language has *users*, but it dominates the pragmatic landscape of every successful language: **pragmatic decisions compound over time and cannot easily be undone.**
+
+- **JavaScript's `typeof null === "object"`** is a bug from 1995 — Brendan Eich's original 10-day implementation stored null as the zero pointer, and the typeof operator checked the type tag of the pointer. Twenty-five years later, TC39 (the JavaScript standards body) considered fixing it and concluded it would break too much existing code. The bug is permanent.
+
+- **Python 2 to Python 3** changed the semantics of `print`, string types, integer division, and dozens of other features. The migration took **over a decade**, split the community, broke countless libraries, and is widely considered one of the most painful transitions in programming language history — even though every individual change was an improvement.
+
+- **C++'s compatibility with C** permanently constrains its design space. Every C program should (ideally) be a valid C++ program, which means C++ inherits C's raw pointers, undefined behavior, header file system, and implicit conversions. These features create footguns that modern C++ guidelines try to ban (see the C++ Core Guidelines), but the language cannot actually *remove* them.
+
+The lesson is sobering: **when you design a language, your first choices are your most consequential.** Each decision creates a *gravitational field* that shapes every future decision. Default values, operator semantics, scoping rules, how errors propagate — these early choices will be with your language for its entire lifetime. Users will write code that depends on them, libraries will be built on top of them, and changing them later will always be more expensive than getting them right initially.
+
+This is why this course starts with theory before design: understanding the design space *before* you make your first commitment gives you the best chance of making choices that won't become regrets.
+
+---
+
+## Pragmatics Revisited: Choosing the Right Tool
+
+Let's return to where we started — the machine shop.
+
+The handheld drill, the drill press, and the Bridgeport mill all make holes. The choice between them isn't about *capability* (they all penetrate material) but about the **match between the tool's level of concern and the job's actual requirements**.
+
+But now we know the picture is richer than that initial analogy suggested. We've seen that the spectrum doesn't just run from "more control" to "less control" — it has a **floor** below which simplification costs you computational power, a **ceiling** above which pragmatic hostility makes programming intractable, and a set of **design principles** that separate tools that guide you toward correctness from tools that guide you toward disaster.
+
+Programming languages work the same way:
+
+| If your problem is... | Reach for... | Because it forces you to think about... |
+| :--- | :--- | :--- |
+| Querying relational data | SQL | Just the data relationships (intentionally below the floor) |
+| Rapid prototyping | Python, Ruby | Logic and iteration speed |
+| Building type-safe applications | Java, Kotlin, Swift | Object design and static guarantees |
+| Systems programming with safety | Rust | Ownership, lifetimes, zero-cost abstractions (pit of success) |
+| Systems programming with control | C, C++ | Memory layout, hardware interaction (pit of despair available) |
+| Concurrent distributed systems | Erlang, Elixir, Go | Message passing, fault tolerance |
+| Mathematical/scientific computation | Haskell, Julia | Pure functions, algebraic structures |
+| AI and knowledge reasoning | Prolog, Datalog | Logical rules and inference (Datalog intentionally below the floor) |
+| DSLs and code generation | Lisp, Racket | Code-as-data, macros, extensibility (Greenspun's answer) |
+
+None of these is "the best language." Each is the best tool **for its problem domain**, because its pragmatic design matches what the programmer needs to express. And some — SQL, Datalog, regular expressions — are best for their domain *precisely because* they gave up Turing completeness in exchange for guarantees that matter more.
+
+### The Complete Design Checklist
+
+When you design your own language — and you will in this course — here is the full set of questions you now know to ask:
+
+1. **Where on the spectrum?** What level of concern does the programmer need to manage?
+2. **Above or below the floor?** Does this problem domain benefit from Turing completeness, or do termination guarantees matter more?
+3. **Which building blocks?** What settings on the eight design knobs serve this domain best?
+4. **Which paradigm?** How should the programmer organize their thinking?
+5. **Where is the pit?** Does the path of least resistance lead to correct code or broken code?
+6. **What notation?** Do the symbols enable the thoughts that matter, or obscure them?
+7. **How do you communicate failure?** When the programmer makes a mistake, will the error message teach or confuse?
+8. **What is the escape hatch?** When the language's restrictions are too tight, how does the programmer break out safely?
+9. **What happens at scale?** Will today's design choices become tomorrow's backwards-compatibility burdens?
+
+These are the decisions that determine whether your language is a joy to use or an exercise in frustration. And none of them are about computational power — they're all about pragmatics.
+
+### Looking Ahead
+
+Now that we've surveyed the landscape of *existing* tools — how languages are categorized, what building blocks they share, how paradigms shape thought, where the pragmatic floor lies, and what principles distinguish great language designs from poor ones — we're ready to start building our own.
+
+In the next lecture, we begin the deep dive into **formal syntax**: grammars, parse trees, derivations, and the Chomsky Hierarchy applied to real programming languages. We'll move from *using* languages to *defining* them — specifying precisely what strings are and aren't valid programs.
+
+The tools of LN 2 (logic), LN 3 (sets), LN 4 (lambda calculus), and LN 5 (computation theory) are about to converge. The building starts now.
+
+---
+
+## Summary
+
+| Concept | Key Idea |
+| :--- | :--- |
+| **Pragmatics** | How a language forces the programmer to think — not just what it can compute |
+| **Abstraction Spectrum** | Machine code through SQL: each level trades control for convenience |
+| **Language Categories** | Machine, assembly, intermediate, high-level (system/application/scripting), declarative, visual, esoteric — not mutually exclusive |
+| **Building Blocks** | 8 design dimensions: names, evaluation, control flow, types, functions, modules, concurrency, metaprogramming |
+| **Paradigms** | Ways of programming: imperative, structured, OOP, declarative, functional, logic — paradigms blend in multi-paradigm languages |
+| **The Pragmatic Floor** | The boundary below which simplification costs Turing completeness — languages below gain guarantees (termination, decidability) at the expense of universality |
+| **Expressiveness vs. Guarantees** | The more a language can express, the fewer things the tool can promise; non-TC languages trade power for decidability |
+| **Four Pillars Connection** | Pragmatic choices affect grammar complexity (Language Theory), required automata (Automata Theory), decidable properties (Computability Theory), and human programming difficulty (Complexity Theory) |
+| **The Blub Paradox** | Programmers can see down the abstraction spectrum but not up — missing features are invisible from inside a single language |
+| **Pit of Success** | A well-designed language makes the easiest path the correct path; the path of least resistance should lead to safe code |
+| **Greenspun's Tenth Rule** | When a language lacks needed building blocks, programmers reinvent them poorly — the signal to build a DSL |
+| **Pragmatic Debt** | Early design choices compound over time and cannot easily be undone — first choices are most consequential |
+
+### Key Definitions
+
+| Term | Definition |
+| :--- | :--- |
+| **Pragmatics** | The study of how a language is used in practice — what it forces the programmer to consider |
+| **Paradigm** | A style of programming (imperative, functional, OOP, etc.) — a way of *doing*, not a property of a language |
+| **Binding** | Associating a name with an entity |
+| **Scope** | The region of code where a binding is active |
+| **Static Scope** | Scope determined by the text of the program (lexical structure) |
+| **Dynamic Scope** | Scope determined by the runtime call stack |
+| **Eager Evaluation** | Evaluate arguments before passing them to functions |
+| **Lazy Evaluation** | Evaluate arguments only when their values are needed |
+| **First-class Functions** | Functions that can be passed as arguments, returned from functions, and stored in variables |
+| **Homoiconicity** | The property that code and data share the same representation (e.g., Lisp) |
+| **Multi-paradigm** | A language purposely designed to support multiple programming paradigms |
+| **Ousterhout's Dichotomy** | The classification of languages into system languages and scripting languages |
+| **Pragmatic Floor** | The boundary below which pragmatic simplification costs computational capability (Turing completeness) |
+| **Expressiveness-Guarantees Trade-off** | The inverse relationship: more expressiveness means fewer guarantees the tool can provide |
+| **Pit of Success** | A language design where the easiest path leads to correct code — gravitational pull toward safety |
+| **Domain-Specific Language (DSL)** | A language designed for a specific problem domain, with building blocks tailored to that domain's concerns |
+| **Blub Paradox** | Paul Graham's observation that programmers cannot recognize the value of features above their current language's abstraction level |
+| **Pragmatic Debt** | The accumulation of design choices that become increasingly costly to change as users depend on them |
+
+<LectureNotes>
+
+**The Central Insight**: Every Turing-complete language can compute the same things. The pragmatic question is not *what* a language can do, but *how it forces you to think while doing it*. The right tool matches its level of concern to the problem's actual complexity — no more, no less.
+
+**The Pragmatic Floor**: Not all languages are Turing complete, and that's sometimes the best design choice. SQL, regex, Datalog, and CSS intentionally sacrifice universality for guarantees (termination, decidability, optimization). The three requirements for TC are conditional branching, unbounded iteration/recursion, and unbounded storage — remove any one and you fall below the floor.
+
+**The Four Pillars and Pragmatics**: Pragmatic choices affect every pillar from LN 5. Language Theory constrains grammar complexity. Automata Theory determines the minimum machine for processing. Computability Theory dictates which properties are decidable. Complexity Theory governs how hard it is for humans (and machines) to program — as demonstrated by Malbolge.
+
+**Six Design Principles**: (1) The Blub Paradox — you can't see what you're missing from inside one language. (2) Pit of Success — make the easy path correct. (3) Notation shapes thought. (4) Error messages are a meta-language. (5) Greenspun's Rule — if you're reinventing language features, build the language. (6) Pragmatic debt — first choices are permanent.
+
+**The Eight Design Knobs**: Names/Binding/Scope, Evaluation, Control Flow, Types, Functions, Modules, Concurrency, Metaprogramming. Every language is a point in this eight-dimensional design space.
+
+**Paradigms Are Not Languages**: A paradigm is a way of programming. A language may facilitate one or more paradigms, but the paradigm exists independently. Most modern languages are multi-paradigm.
+
+**Looking Ahead**: Next lecture, we begin formal syntax — grammars, parse trees, and the Chomsky Hierarchy applied to real languages. The mathematical tools from LN 1-4 converge here.
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Computerphile: "What Makes a Good Programming Language?" (2018)](https://www.youtube.com/watch?v=fNqhMjUbBBo) — Language design philosophy
+- [Uncle Bob: "The Future of Programming" (2016)](https://www.youtube.com/watch?v=ecIWPzGEbFc) — Historical sweep of paradigm evolution
+- [Bret Victor: "Inventing on Principle" (2012)](https://www.youtube.com/watch?v=PUv66718DII) — How tools shape thought (the definitive talk on language pragmatics in spirit)
+- [Guy Steele: "Growing a Language" (1998)](https://www.youtube.com/watch?v=_ahvzDzKdB0) — A legendary talk on language design, delivered with a brilliant constraint
+
+### Further Reading
+
+- [Ray Toal: Classifying Programming Languages](https://cs.lmu.edu/~ray/notes/pltypes/) — The comprehensive reference this lecture draws from
+- [Ray Toal: Programming Language Concepts](https://cs.lmu.edu/~ray/notes/plconcepts/) — The eight building blocks of language design
+- [Kenneth Iverson: "Notation as a Tool of Thought" (1979)](https://www.jsoftware.com/papers/tot.htm) — Turing Award lecture on how notation enables thinking
+- [Paul Graham: "Beating the Averages" (2001)](https://www.paulgraham.com/avg.html) — The Blub Paradox and why programmers can't see up the abstraction spectrum
+- [Philip Greenspun: The Tenth Rule](https://en.wikipedia.org/wiki/Greenspun%27s_tenth_rule) — Why sufficiently complex programs reinvent Lisp
+- [Wikipedia: Malbolge](https://en.wikipedia.org/wiki/Malbolge) — The most difficult programming language ever designed
+- [Wikipedia: Programming Paradigm](https://en.wikipedia.org/wiki/Programming_paradigm) — Overview with extensive sub-articles
+- [Wikipedia: Ousterhout's Dichotomy](https://en.wikipedia.org/wiki/Ousterhout%27s_dichotomy) — The system vs. scripting divide
+- [Dijkstra: "Go To Statement Considered Harmful" (1968)](https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf) — The letter that launched structured programming
+- [Alan Kay: "The Early History of Smalltalk" (1993)](https://worrydream.com/EarlyHistoryOfSmalltalk/) — OOP as originally envisioned
+- [Elm: Compiler Errors for Humans](https://elm-lang.org/news/compiler-errors-for-humans) — Error messages as a first-class design concern
+
+### Language Explorations
+
+If you want to experience the pragmatic spectrum firsthand, try implementing `f(n)` in a language you've never used:
+
+- [Godbolt Compiler Explorer](https://godbolt.org/) — See how high-level code becomes assembly in real time
+- [Try Haskell](https://tryhaskell.org/) — Interactive Haskell in the browser
+- [SWISH: Online Prolog](https://swish.swi-prolog.org/) — Logic programming in the browser
+- [Replit](https://replit.com/) — Dozens of languages, zero setup
+
+</LectureResources>

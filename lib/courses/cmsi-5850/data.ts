@@ -305,13 +305,16 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln6"),
     description:
-      "In this lecture, we classify programming language features and design into different categories such as: Functional, Imperative, Logical, and Object-Oriented.",
+      "In this lecture, we explore how programming languages force programmers to think at different levels of abstraction — from machine code to SQL — and how choosing the right tool is a pragmatic decision about matching the level of concern to the problem domain.",
     courseId: "cmsi-5850",
     standard: "Syntax",
     lnTopics: [
-      "Language Design",
-      "Paradigms",
-      "Pragmatics",
+      "Language Pragmatics",
+      "Abstraction Levels",
+      "Language Categories",
+      "Programming Paradigms",
+      "Expressiveness vs. Guarantees",
+      "Language Design Principles",
     ],
     contentUrl: "/cmsi-5850/ln6",
     recordings: [
