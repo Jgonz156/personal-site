@@ -345,6 +345,15 @@ const allEvents: CourseEvent[] = [
     hwBrightspaceUrl: "",
   },
   {
+    id: "5850-hol9",
+    title: "ACM Lightning Lectures - No Class!",
+    type: "holiday",
+    date: schedule.getNextRecurringDate("5850-hol9"),
+    description: "ACM Lightning Lecture is one of the major events I'd like to have you attend this semeester, but it coincides with our class time! So we're shifting the course by a week to allow for this!",
+    courseId: "cmsi-5850",
+    pinned: true,
+  },
+  {
     id: "5850-ln7",
     title: "LN 7: Language Theory",
     type: "lecture",
