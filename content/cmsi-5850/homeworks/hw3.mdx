@@ -1,0 +1,579 @@
+import { WrittenSection } from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+import { GraphVisualization } from "@/components/graph-visualization"
+import { DisplayMath } from "@/components/math"
+
+This homework covers material from **Lecture 5: Foundational Theories of Computation** and **Lecture 6: Classifying Programming Languages**. You will explore the four pillars of computer science, discover new computational models, reason about the limits of computation, and analyze how pragmatic design choices shape programming languages.
+
+All questions require written responses. Show your work where applicable, and provide clear justifications for your answers. Several questions require independent research — cite your sources. Partial credit will be awarded based on the quality of your reasoning.
+
+---
+
+<WrittenSection points={100}
+brightspaceUrl = "https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=295659&db=388488"
+>
+
+## Part 1: Language Theory (15 points)
+
+---
+
+<QuestionBox qid="Q1" title="Exploring Forms of Expression" points={15}>
+
+<SubQuestion qid="Q1a" points={4}>
+
+The following four code snippets all compute the **factorial** of a number. Each is written in a language you likely have not used before.
+
+**APL:**
+```
+factorial ← {×/⍳⍵}
+```
+
+**Forth:**
+```forth
+: factorial ( n -- n! ) 1 swap 1+ 1 do i * loop ;
+```
+
+**Prolog:**
+```prolog
+factorial(0, 1).
+factorial(N, F) :- N > 0, N1 is N - 1, factorial(N1, F1), F is N * F1.
+```
+
+**Brainfuck:**
+```
++++++                Set cell 0 to 5 (input)
+[>+>+++<<-]>>+>+<<<  Setup for multiplication loop
+[>[>+>+<<-]>>[<<+>>-]<<<-]  Compute factorial
+>>>.                 Output result
+```
+
+Choose **two** of these snippets. For each:
+1. Identify the **alphabet** $\Sigma$ — the set of symbols the language uses
+2. Without running the code, reason about **what the snippet does** and how it expresses the factorial computation. What clues in the notation help (or hinder) your understanding?
+3. After analyzing both, explain which notation made the computation **easier to understand** and why. Connect your answer to Iverson's concept of *"Notation as a Tool of Thought"* from LN6.
+
+</SubQuestion>
+
+<SubQuestion qid="Q1b" points={3}>
+
+Natural language is famously ambiguous. Consider these two English sentences:
+
+1. *"Every student in the class speaks two languages."*
+2. *"I saw the man on the hill with a telescope."*
+
+For each sentence:
+1. Identify **two distinct valid interpretations** and explain how the ambiguity arises
+2. Rewrite **each interpretation** as an unambiguous formula in **predicate logic** (using quantifiers, predicates, and connectives from LN2). Define any predicates you introduce.
+
+</SubQuestion>
+
+<SubQuestion qid="Q1c" points={4}>
+
+The **Fundamental Hypothesis of Language Theory** (LN5) claims that any piece of human-usable information can be represented as a string of symbols — but this hypothesis is **unprovable**.
+
+Consider the following example of information that seems to resist symbolic capture:
+
+> *A chess grandmaster's "positional intuition" — the ability to glance at a board and immediately sense which side has the advantage, without calculating any specific lines of play.*
+
+1. Argue **for** the representability of this information as a string. If you believe it can be encoded, propose a string-based representation and discuss what it captures and what it might lose.
+2. Argue **against** the representability. If you believe it resists encoding, identify what property of this information prevents string representation.
+3. Regardless of your position, explain why the **unprovability** of the fundamental hypothesis matters for computer science. What does it mean for the limits of what we can formalize?
+
+</SubQuestion>
+
+<SubQuestion qid="Q1d" points={4}>
+
+Programming languages are not the only formal languages. Many domains use their own formal notations to represent structured information as strings.
+
+**Research** one of the following formal languages (or propose your own, subject to instructor approval):
+
+- **ABC notation** — a text-based music notation system
+- **SMILES** — a notation for describing chemical molecular structures
+- **PGN (Portable Game Notation)** — a format for recording chess games
+- **FASTA format** — a notation for representing DNA/protein sequences
+- **Regular expressions** — a language for describing string patterns
+
+For your chosen formal language:
+1. Identify the **alphabet** $\Sigma$ — the set of symbols it uses
+2. Give **3 valid strings** in the language and explain what each represents
+3. Give **2 invalid strings** and explain why they are not in the language
+4. Informally describe the **rules** that determine whether a string is valid. What would a "grammar" for this language need to specify? (You do not need to write a formal grammar — just describe the constraints in plain English.)
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 2: Automata Theory (25 points)
+
+In LN5, we studied **Turing Machines** — the most powerful computational model we know. But Turing Machines are complex: an infinite tape, a read/write head, arbitrary movement. What happens when we strip away that complexity?
+
+In Part 2, you will **discover** two simpler classes of automata by researching them independently, building examples, and exploring their capabilities and limits. By the end, you will construct the **complete hierarchy of computational power** — connecting machines, languages, and decidability.
+
+---
+
+<QuestionBox qid="Q2" title="Guided Discovery — Finite Automata and Their Limits" points={12}>
+
+*In LN5, we defined Turing Machines as tape + head + states + transition function. But what if we removed the tape entirely? What if all a machine had was a finite set of states and transitions between them? In this problem, you will research the simplest class of automata, build one, discover what it cannot do, and connect it to regular expressions.*
+
+<SubQuestion qid="Q2a" points={3}>
+
+**Research: What is a Finite Automaton?**
+
+Look up **Deterministic Finite Automata (DFAs)**. A DFA has no tape and no stack — just a finite set of states, transitions between them based on input symbols, a start state, and a set of accepting states. It reads input one symbol at a time, left to right, with no backtracking.
+
+In your own words:
+1. Define a DFA formally (as a 5-tuple or equivalent description)
+2. Explain how a DFA processes an input string — what happens at each step, and how does it decide to accept or reject?
+3. What makes it "finite"? What resource limitation does a DFA have compared to a Turing Machine?
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={4}>
+
+**Build and Trace a DFA**
+
+Design a DFA that **accepts** binary strings containing an **even number of 1s** and **rejects** those with an odd number of 1s. (The empty string has zero 1s, which is even.)
+
+1. **Draw** the state diagram with labeled transitions for each input symbol (0 and 1)
+2. **Trace** your DFA on the input `10110`, showing the state after each symbol is consumed
+3. Does your DFA need to "remember" the entire input string? What information does it actually track? What does this tell you about the nature of **finite memory**?
+
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={2}>
+
+**Discover a Limitation**
+
+Now consider the language of **balanced parentheses**: the set of strings like `()`, `(())`, `(()(()))`, etc.
+
+Attempt to design a DFA for this language. You will find that you cannot.
+
+1. What would a DFA need to "count" or "remember" to verify that parentheses are balanced?
+2. Why can a **finite** number of states never accomplish this? (Think about what happens as nesting depth grows without bound.)
+
+</SubQuestion>
+
+<SubQuestion qid="Q2d" points={3}>
+
+**Regular Expressions and the Chomsky Connection**
+
+The regular expression `(a|b)*abb` describes a language — the set of all strings over the alphabet $\{a, b\}$ that end in `abb`.
+
+1. **Construct a DFA** that accepts exactly this language. Draw the state diagram with all transitions labeled.
+2. This correspondence — that every regular expression has an equivalent DFA, and every DFA has an equivalent regular expression — is not a coincidence. Using the **Chomsky Hierarchy** from LN5, explain why regular expressions and finite automata characterize the **same class of languages**.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q3" title="Guided Discovery — Pushdown Automata and the Machine Hierarchy" points={13}>
+
+*You have just discovered that DFAs are elegant but limited — they cannot count beyond a fixed bound. What if we gave our finite automaton a single additional data structure? In this problem, you will research Pushdown Automata, see how they overcome the DFA's limitation, discover their own limits, and build the complete hierarchy of computational power.*
+
+<SubQuestion qid="Q3a" points={3}>
+
+**Research: What is a Pushdown Automaton?**
+
+Look up **Pushdown Automata (PDAs)**. A PDA is a finite automaton augmented with a **stack** — an unbounded last-in, first-out (LIFO) data structure.
+
+In your own words:
+1. Define a PDA and describe how it differs from a DFA
+2. What operations can a PDA perform on its stack? (push, pop, peek)
+3. How does the stack change what the machine can "remember" compared to a DFA? Relate the stack to a data structure you have used in programming.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={4}>
+
+**Solving What DFAs Cannot**
+
+In Q2c, you showed that DFAs cannot recognize the language of balanced parentheses because they cannot count unbounded nesting depth.
+
+1. Explain **step-by-step** how a PDA uses its stack to recognize balanced parentheses. What does it push when it reads `(`? What does it do when it reads `)`? How does it know the string is balanced when input ends?
+2. **Trace** your PDA on the input `(()())`, showing the **stack contents** after each symbol is consumed.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={3}>
+
+**Discovering PDA Limitations**
+
+Consider the language of strings consisting of equal numbers of a's, b's, and c's, in that order — for example, `abc`, `aabbcc`, `aaabbbccc`, and so on.
+
+1. Can a PDA recognize this language? Explain why or why not. *(Hint: a stack can match a's against b's by pushing then popping — but then what happens with the c's?)*
+2. What machine from LN5 would you need to recognize this language?
+3. What does this tell you about the relationship between **data structures** and **computational power**?
+
+</SubQuestion>
+
+<SubQuestion qid="Q3d" points={3}>
+
+**Building the Complete Hierarchy**
+
+You have now encountered three machines: **DFAs** (Q2), **PDAs** (Q3), and **Turing Machines** (LN5). Each has strictly more computational power than the last.
+
+1. Arrange them in a **strict hierarchy** and for each adjacent pair, state a **separating language** — a language the weaker machine cannot recognize but the stronger one can. Use the examples you worked through above.
+2. Map your hierarchy to the **Chomsky Hierarchy** from LN5 (the table connecting grammar types, language classes, and automata).
+3. LN6 identified **SQL**, **regex**, and **CSS** as intentionally non-Turing-complete systems. At which level of your hierarchy does each sit? What **guarantees** does each gain by staying below TM-level? Connect this to the **expressiveness-guarantees trade-off** from LN5 and LN6.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 3: Computability Theory (25 points)
+
+In LN5, we learned that **most functions are not computable** — there are more functions than programs. The proof uses the same diagonal argument from LN3's set theory. In Part 3, you will work through this argument yourself and connect the machine hierarchy you built in Part 2 to the fundamental limits of computation.
+
+---
+
+<QuestionBox qid="Q4" title="The Diagonal Argument — A Guided Proof" points={15}>
+
+This is a **guided proof**. Each sub-question builds on the previous one. By the end, you will have constructed a formal argument for why most functions have no program — using the set theory tools from LN3.
+
+<SubQuestion qid="Q4a" points={4}>
+
+**Step 1: Programs Are Countable**
+
+Using the set theory from LN3:
+
+1. Define what it means for a set to be **countable** (countably infinite).
+2. A program is a finite string over a finite alphabet. Explain why the set of **all programs** is countable. *(Hint: consider listing all strings of length 0, then length 1, then length 2, etc.)*
+3. Express your conclusion as a **cardinality statement**: what is the relationship between the set of all programs and $\mathbb{N}$?
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={4}>
+
+**Step 2: Functions Are Uncountable**
+
+Now consider the set of all functions $f : \mathbb{N} \to \mathbb{N}$.
+
+Apply **Cantor's diagonal argument** (from the cardinality section of LN3):
+
+1. **Assume** you have a complete listing of all such functions: $f_0, f_1, f_2, \ldots$
+2. **Construct** the diagonal function $d$ where $d(n) = f_n(n) + 1$
+3. **Show** that $d$ is a valid function from $\mathbb{N}$ to $\mathbb{N}$ but $d \neq f_i$ for any $i$. Where does the contradiction arise?
+4. **Conclude**: what does this tell you about the cardinality of the set of all functions $\mathbb{N} \to \mathbb{N}$?
+
+</SubQuestion>
+
+<SubQuestion qid="Q4c" points={4}>
+
+**Step 3: The Implication**
+
+Combine your results from Q4a and Q4b:
+
+1. You showed that programs are **countable** and functions are **uncountable**. What does this mean about the existence of a **surjection** from programs to functions?
+2. Express this formally: can there exist a bijection (or even a surjection) from the set of all programs to the set of all functions $\mathbb{N} \to \mathbb{N}$? Use the language of injections and surjections from LN3.
+3. State the conclusion in **plain English**: what does this tell us about the limits of computation? What kind of functions must exist that no program can compute?
+
+</SubQuestion>
+
+<SubQuestion qid="Q4d" points={3}>
+
+**Step 4: Connection to the Halting Problem**
+
+The diagonal argument shows that uncomputable functions **exist**. The **Halting Problem** (LN5) gives us a specific, famous one.
+
+1. Briefly restate the Halting Problem and why it is undecidable.
+2. The Halting Problem proof constructs a function `fox(f)` that does the **opposite** of what `halts` predicts — eerily similar to how the diagonal function $d(n)$ is constructed to differ from every $f_n$. Explain this structural parallel.
+3. The Halting Problem is not just a theoretical curiosity. Explain why it places a **fundamental constraint** on what compilers, type checkers, and static analyzers can do. Give a specific example of something these tools *cannot* guarantee as a consequence.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q5" title="Machine Capabilities Across the Hierarchy" points={10}>
+
+<SubQuestion qid="Q5a" points={4}>
+
+In Q2 you built a DFA for binary parity, and in Q3 you built a PDA for balanced parentheses. Consider these three languages:
+
+1. Binary strings with an even number of 1s
+2. Balanced parentheses
+3. Strings of the form $a^n b^n c^n$ for $n \geq 1$
+
+For each language, state the **weakest machine** from the hierarchy you built in Q3d that can recognize it. Then explain **why the next weaker machine cannot** — what specific capability does it lack?
+
+</SubQuestion>
+
+<SubQuestion qid="Q5b" points={3}>
+
+The **Halting Problem** (LN5) defines a language: the set of all (program, input) pairs where the program eventually halts.
+
+1. Where does this language sit relative to your hierarchy from Q3d? Is it at the DFA level, PDA level, TM level, or beyond?
+2. Can any machine in the hierarchy **decide** it — that is, always halt with the correct yes/no answer?
+3. Can a Turing Machine **recognize** it — that is, halt and accept if the answer is yes, but possibly loop forever if no? Explain the difference between deciding and recognizing.
+
+</SubQuestion>
+
+<SubQuestion qid="Q5c" points={3}>
+
+In LN4, we showed that the **Simply Typed Lambda Calculus** always terminates — every well-typed expression has a normal form (strong normalization). This means its set of expressible computations is a **proper subset** of what a Turing Machine can do.
+
+1. Where on your hierarchy would you place the Simply Typed Lambda Calculus? Is it more or less powerful than a DFA? Than a PDA? Than a full TM?
+2. What does **strong normalization buy you** that a Turing-complete language cannot offer? *(Hint: think about what the Halting Problem says about Turing-complete systems.)*
+3. Connect this to the **expressiveness-guarantees trade-off** from LN5: why might a language designer intentionally choose to sacrifice Turing completeness?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 4: Complexity Theory (15 points)
+
+---
+
+<QuestionBox qid="Q6" title="Reducibility and Formalizing Complexity" points={15}>
+
+<SubQuestion qid="Q6a" points={3}>
+
+**Defining Reduction**
+
+In complexity theory, a **polynomial-time reduction** from problem $A$ to problem $B$ (written $A \leq_p B$) shows that $A$ is "no harder than" $B$.
+
+Using the set theory and logic from LN2 and LN3:
+
+1. Define what $A \leq_p B$ means formally. What properties must the reduction function $f$ have?
+2. If $A \leq_p B$ and $B$ is in P, what can you conclude about $A$? Why?
+3. If $A \leq_p B$ and $A$ is NP-hard, what can you conclude about $B$? Why?
+
+</SubQuestion>
+
+<SubQuestion qid="Q6b" points={5}>
+
+**A Guided Reduction: Building Structural Transformation Intuition**
+
+Consider two classic NP-complete problems on graphs:
+
+- **Independent Set**: Given a graph $G = (V, E)$ and an integer $k$, does there exist a set $S \subseteq V$ of size $k$ such that **no two vertices** in $S$ are connected by an edge?
+- **Vertex Cover**: Given a graph $G = (V, E)$ and an integer $k$, does there exist a set $C \subseteq V$ of size $k$ such that **every edge** in $E$ has at least one endpoint in $C$?
+
+Consider the following graph with 5 vertices and 6 edges:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "B", to: "C" },
+    { from: "B", to: "D" },
+    { from: "C", to: "D" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  allowEdit={false}
+  height="350px"
+/>
+
+1. **Prove** that $S$ is an independent set of size $k$ if and only if $V \setminus S$ is a vertex cover of size $|V| - k$. *(Hint: think about what happens to an edge when one endpoint is in S versus not in S.)*
+2. **Construct** the mapping function $f$ that transforms an Independent Set instance $(G, k)$ into a Vertex Cover instance. What does $f$ do to the graph? What does it do to $k$?
+3. **Verify** on the graph above: find an independent set of size 2 and confirm that its complement is a vertex cover of size 3.
+
+> **Looking ahead**: Notice how a systematic structural transformation showed that two problems that *look* different are actually the *same* in disguise. This is the same skill you will use throughout this course: parsing transforms strings into trees, trimming a Concrete Syntax Tree to an Abstract Syntax Tree removes redundant structure while preserving meaning, and evaluating an AST into a semantic value transforms structure into computation. Each of these is a *reduction* — a systematic mapping between representations that preserves what matters.
+
+</SubQuestion>
+
+<SubQuestion qid="Q6c" points={3}>
+
+**Formalizing Complexity with Our Tools**
+
+The formal tools from LN2 (logic) and LN3 (set theory) are exactly what we use to define complexity classes precisely. In this problem, we give you the formal components — your job is to explain what they mean and assemble them correctly.
+
+**1.** The formal definition of **Big-O** is:
+
+<DisplayMath formula="O(g(n)) = \{ f : \mathbb{N} \to \mathbb{N} \mid \exists c \in \mathbb{N}.\; \exists n_0 \in \mathbb{N}.\; \forall n \geq n_0.\; f(n) \leq c \cdot g(n) \}" />
+
+This single definition uses three of our formal tools simultaneously. Identify each one and explain its role:
+
+- **Set theory**: The outer curly braces define a set. A set of *what*? What does the vertical bar ("such that") separate?
+- **Logical quantifiers**: There are two existential and one universal quantifier. In plain English, what does each quantifier "do" in this definition? Why is the *order* (existential before universal) important — what would change if the universal came first?
+- **Functions**: The elements of the set are themselves functions from the naturals to the naturals. How does this connect to the set-theoretic function concept from LN3?
+
+**2.** Now define the complexity class **P**. We give you the building blocks — assemble them into a single formal definition using set-builder notation:
+
+- **Building blocks**: *decision problem* L, *Turing Machine* M, *decides* (halts with correct answer on every input), *polynomial* p(n), *time steps*, input length
+- **Skeleton**:
+
+<DisplayMath formula="\mathbf{P} = \{ L \mid \exists \_\_\_.\; \exists \_\_\_.\; \forall \_\_\_.\; \_\_\_ \}" />
+
+Fill in each blank and explain your choices. *(Hint: you need to say there exists a machine and a polynomial such that for every input, the machine decides correctly within the polynomial bound.)*
+
+**3.** Define **NP** similarly. The key difference is that NP uses a **verifier** instead of a decider:
+
+- **Additional building block**: *certificate* c (a "proof" that the answer is yes), the certificate is polynomial-length
+- **Skeleton**:
+
+<DisplayMath formula="\mathbf{NP} = \{ L \mid \exists \_\_\_.\; \exists \_\_\_.\; \forall \_\_\_.\; (\_\_\_ \Leftrightarrow \exists \_\_\_.\; \_\_\_) \}" />
+
+Fill in the blanks. Then explain: why does NP have an *extra* existential quantifier that P does not? What is being "guessed" versus "checked"?
+
+</SubQuestion>
+
+<SubQuestion qid="Q6d" points={4}>
+
+**Complexity Analysis**
+
+Consider this Python function:
+
+```python
+def find_pair(items, target):
+    for i in range(len(items)):
+        for j in range(i + 1, len(items)):
+            if items[i] + items[j] == target:
+                return (i, j)
+    return None
+```
+
+**1.** Formally prove the **worst-case time complexity** of `find_pair` using the Big-O definition from Q6c. We break this into guided steps:
+
+- **Step A — Count the work**: In the worst case (no pair found), the outer loop runs *n* times. For each iteration *i*, the inner loop runs *n - i - 1* times. Write the total number of comparisons as a summation:
+
+<DisplayMath formula="f(n) = \sum_{i=0}^{n-1} \_\_\_" />
+
+- **Step B — Simplify**: Evaluate the summation. *(Hint: recall the identity below)*
+
+<DisplayMath formula="\sum_{k=0}^{m} k = \frac{m(m+1)}{2}" />
+
+- **Step C — Apply the definition**: Choose g(n) = n². Using your simplified f(n), find specific values of *c* and *n₀* such that f(n) ≤ c · g(n) for all n ≥ n₀. Write your answer in this form:
+
+<DisplayMath formula="\text{Let } c = \_\_\_ \text{ and } n_0 = \_\_\_. \text{ Then for all } n \geq n_0: \; f(n) = \_\_\_ \leq \_\_\_ = c \cdot n^2" />
+
+**2.** Is the problem solved by `find_pair` in **P**? Use your definition of P from Q6c. *(Hint: you just proved its time complexity — does it fit within a polynomial bound? What would the polynomial $p(n)$ be?)*
+
+**3.** Is it in **NP**? Describe a polynomial-time **verifier**: given a proposed solution (a pair of indices $(i, j)$), what does the verifier check, and how many steps does it take? *(Hint: a verifier does not need to search — it only confirms a given answer.)*
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 5: Language Pragmatics (20 points)
+
+In LN6, we explored how programming languages force programmers to think at different levels of abstraction — and how choosing the right tool is a pragmatic decision about matching the level of concern to the problem domain. In Part 5, you will research real languages and apply the pragmatic principles from lecture.
+
+---
+
+<QuestionBox qid="Q7" title="Paradigmatic Friction" points={12}>
+
+For each language pair below, **research** both languages and perform a comparative pragmatic analysis. You should look at documentation, tutorials, and example programs in each language. Cite your sources.
+
+<SubQuestion qid="Q7a" points={6}>
+
+**Functional Pair: Erlang vs. Haskell**
+
+Both Erlang and Haskell are functional programming languages, but they were designed for very different problem domains and make very different pragmatic trade-offs.
+
+1. Identify **3 pragmatic concerns that both languages share** (e.g., both emphasize immutability, both use pattern matching, both favor recursion over loops).
+2. Identify **3 pragmatic concerns where they diverge** (e.g., Erlang's concurrency model vs. Haskell's, purity enforcement, type system design, runtime philosophy, error handling).
+3. Describe a **specific task** that is natural in one language but awkward in the other. Explain what **pragmatic design decision** creates this friction.
+4. Referring to the **8 building blocks** from LN6 (names/binding/scope, evaluation, control flow, types, functions, modules, concurrency, metaprogramming), identify which building block **differs most** between Erlang and Haskell and explain how.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7b" points={6}>
+
+**Systems Pair: Rust vs. C++**
+
+Both Rust and C++ are systems programming languages that give the programmer fine-grained control over memory and performance. But they take fundamentally different approaches to safety and correctness.
+
+Perform the same analysis as Q7a:
+1. **3 shared** pragmatic concerns
+2. **3 divergent** pragmatic concerns
+3. A **specific task** natural in one but awkward in the other, with explanation of the friction
+4. Which of the **8 building blocks** differs most, and how?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q8" title="Pragmatic Principles in the Wild" points={8}>
+
+<SubQuestion qid="Q8a" points={3}>
+
+**Pit of Success or Pit of Despair?**
+
+LN6 introduced the concept of **pragmatic gravity** — some languages make the easiest path the correct path ("pit of success"), while others make the easiest path the dangerous path ("pit of despair").
+
+Choose a language from the LN6 abstraction spectrum that was **not already analyzed in lecture** (do not choose Rust, Elm, C, JavaScript, or PHP). Argue whether your chosen language is a **pit of success** or a **pit of despair** for its primary problem domain.
+
+Provide a **specific code example** that demonstrates the pragmatic gravity — show how the language's defaults either guide the programmer toward correct code or toward error-prone code.
+
+</SubQuestion>
+
+<SubQuestion qid="Q8b" points={3}>
+
+**The Blub Paradox**
+
+Paul Graham's **Blub Paradox** (LN6) argues that programmers can look *down* the abstraction spectrum and recognize inferior tools, but cannot look *up* and recognize what they are missing.
+
+1. Identify a **specific feature** in a language you do not normally use that your primary programming language **lacks**. (Examples: algebraic data types, pattern matching, ownership/borrowing, homoiconicity, lazy evaluation, logic unification, etc.)
+2. Explain what this feature **enables** — what category of problems does it make easier?
+3. How do you **currently work around** the absence of this feature in your primary language?
+4. Do you think the feature is truly unnecessary for your work, or might you be experiencing the Blub Paradox? Justify your answer.
+
+</SubQuestion>
+
+<SubQuestion qid="Q8c" points={2}>
+
+**Error Messages as a Pragmatic Design Dimension**
+
+LN6 argued that error messages are a kind of **meta-language** with their own pragmatic properties.
+
+Find a single **type error** or **syntax error** that can occur in two different languages (or the same error reported by two different compilers/tools). Show the error message produced by each.
+
+Compare:
+1. Which error message **teaches** — helps you understand and fix the problem?
+2. Which error message **confuses** — provides technically correct but practically useless information?
+3. What specific design choice makes one message better than the other?
+
+</SubQuestion>
+
+</QuestionBox>
+
+</WrittenSection>
+
+---
+
+## Submission Guidelines
+
+- Submit your responses as a **single PDF** to Brightspace
+- Clearly label each question and subquestion (Q1a, Q1b, etc.)
+- For state diagrams and automata traces, draw them clearly (digital or neatly hand-drawn)
+- For the guided proof (Q4), show each step explicitly — do not skip reasoning
+- For research questions (Q1d, Q2a, Q3a, Q7, Q8c), **cite your sources**
+- Show your reasoning — partial credit is awarded for correct methodology
+
+---
+
+## Point Summary
+
+| Section | Question | Points |
+| :--- | :--- | :---: |
+| **Part 1: Language Theory** | Q1: Exploring Forms of Expression | 15 |
+| **Part 2: Automata Theory** | Q2: Guided Discovery — Finite Automata | 12 |
+| | Q3: Guided Discovery — PDAs + Hierarchy | 13 |
+| **Part 3: Computability Theory** | Q4: The Diagonal Argument (Guided Proof) | 15 |
+| | Q5: Machine Capabilities Across the Hierarchy | 10 |
+| **Part 4: Complexity Theory** | Q6: Reducibility and Formalizing Complexity | 15 |
+| **Part 5: Language Pragmatics** | Q7: Paradigmatic Friction (Research) | 12 |
+| | Q8: Pragmatic Principles in the Wild | 8 |
+| **Total** | | **100** |

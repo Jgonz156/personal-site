@@ -376,7 +376,7 @@ const allEvents: CourseEvent[] = [
     availableDate: schedule.getSpecificDate(2026, 2, 20, "5850-hw3-available"),
     dueTime: "11:59 PM",
     description:
-      "In this homework you will practice reasoning about the four foundational theories of computation and how they relate to the classification of programming languages!",
+      "In this homework you will explore the four foundational theories of computation, discover new computational models, reason about the limits of computation, and analyze how pragmatic design choices shape programming languages.",
     courseId: "cmsi-5850",
     standard: "Syntax",
     contentUrl: "/cmsi-5850/hw3",
@@ -385,6 +385,7 @@ const allEvents: CourseEvent[] = [
       "Automata Theory",
       "Computability Theory",
       "Complexity Theory",
+      "Language Pragmatics",
     ],
     hwPoints: { written: 100, programming: 0, optional: 0 },
     hwGithubClassroomUrl: "",
