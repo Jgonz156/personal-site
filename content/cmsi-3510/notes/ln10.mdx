@@ -1,0 +1,416 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ManagerTag } from "@/components/manager-tag"
+import { ContextSwitchAnimation } from "@/components/context-switch-animation"
+import { InterleavedExecution } from "@/components/interleaved-execution"
+import { ProcessStateDiagram } from "@/components/process-state-diagram"
+import { SystemTypeComparison } from "@/components/system-type-comparison"
+
+## Recap
+
+In LN9, we discovered that a process isn't a single thing — it's a **coordination** of many management perspectives:
+
+- <ManagerTag manager="pcb">PCB</ManagerTag> — The OS's management struct (PID, state, register snapshot, I/O, scheduling info)
+- <ManagerTag manager="pas">PAS</ManagerTag> — The memory sandbox (text, static, stack, heap)
+- <ManagerTag manager="pec">PEC</ManagerTag> — The CPU's minimal execution state (PC, registers, SP, flags)
+- <ManagerTag manager="scheduler">State</ManagerTag> — The scheduler's view (New, Ready, Running, Blocked, Terminated)
+- <ManagerTag manager="ipc">IPC</ManagerTag> — How processes communicate (pipes, queues, shared memory, sockets)
+- <ManagerTag manager="hierarchy">Hierarchy</ManagerTag> — How processes relate (UNIX tree vs Windows graph)
+- <ManagerTag manager="security">Security</ManagerTag> — What's allowed (Ring 0/3, syscall gateway)
+
+And we saw how these perspectives come together in a **context switch** — the quicksave/quickload that swaps one process's <ManagerTag manager="pec">PEC</ManagerTag> into the <ManagerTag manager="pcb">PCB</ManagerTag> and loads another:
+
+<ContextSwitchAnimation showCycles />
+
+That animation raises a critical question: **when should we perform that switch?** That's today's topic.
+
+---
+
+## Today's Agenda
+
+1. **The Scheduling Problem** — The central question and its three concerns
+2. **The Processes** — Compute-bound vs I/O-bound
+3. **Mandatory Context Switches** — When we *must* switch
+4. **Cooperative vs Preemptive Scheduling** — Two philosophies
+5. **System Expectations** — Fairness, policy enforcement, and balance
+6. **Three System Types** — Batch, Interactive, and Real-Time
+7. **Looking Ahead** — Tease the scheduling algorithms of LN11
+
+> **💡 Key Framing:** Scheduling is fundamentally about **when to switch from one process to another**. Getting this right requires understanding the processes we're managing, the expectations of the users we're serving, and the hardware we're working with.
+
+---
+
+## The Scheduling Problem
+
+<DefinitionBox term="The Scheduling Problem">
+
+**When do we switch from one process to another?** This is the central question of CPU scheduling. Every scheduling algorithm is an attempt to answer it well, given the constraints of the system.
+
+</DefinitionBox>
+
+Three major concerns drive the answer:
+
+### 1. Computation Is a Service
+
+We are providing computation to users — whether those users are humans clicking buttons, automated batch jobs, or safety-critical embedded systems. Like any service, we must **meet demand**. A restaurant that seats you but never brings your food has failed, no matter how efficient its kitchen is.
+
+### 2. Hardware Resources Are Limited
+
+We have a finite number of CPU cores, a finite amount of RAM, and finite I/O bandwidth. Multiple processes compete for these resources simultaneously. We must **share optimally** — giving each process what it needs without starving the others.
+
+### 3. Efficiency Is Paramount
+
+Any hardware sitting idle is hardware being **wasted**. A CPU core doing nothing while processes wait in the queue is unacceptable. We must keep our resources as busy as possible, extracting maximum value from the hardware we have.
+
+### The Three Players
+
+To tackle these concerns, we need to understand three "players":
+
+| Player | Question It Answers |
+| :--- | :--- |
+| **The Processes** | What needs to run? What are its characteristics? |
+| **System Expectations / Users** | What are we optimizing for? What does "good" look like? |
+| **The Hardware** | What do we have to work with? (Covered in LN11 with algorithms) |
+
+Let's examine each in turn.
+
+---
+
+## The Processes: Compute-Bound vs I/O-Bound
+
+While there are many ways to categorize processes, the most important distinction for scheduling is between **compute-bound** and **I/O-bound** processes.
+
+<DefinitionBox term="Compute-Bound Process">
+
+A **compute-bound** process spends the majority of its lifetime performing CPU computation. Its bottleneck is the CPU — to finish faster, it just needs more CPU time. Its needs are **centralized** almost entirely in the processor.
+
+</DefinitionBox>
+
+<DefinitionBox term="I/O-Bound Process">
+
+An **I/O-bound** process spends the majority of its lifetime waiting for non-CPU devices (disk, network, user input) to deliver data. Its bottleneck is external — the CPU often sits idle waiting. Its needs are **decentralized** across many components outside the CPU.
+
+</DefinitionBox>
+
+### Visualizing the Difference
+
+Here's what each process type looks like over time. Filled blocks mean the process is using the CPU; gaps mean it's waiting for I/O:
+
+<InterleavedExecution
+  programs={[
+    {
+      name: "Compute-Bound",
+      color: "#3B82F6",
+      timeline: ["run", "run", "run", "run", "io", "run", "run", "run", "run", "run", "io", "run", "run", "run"],
+    },
+    {
+      name: "I/O-Bound",
+      color: "#22C55E",
+      timeline: ["run", "io", "io", "io", "run", "io", "io", "io", "io", "run", "io", "io", "run", "io"],
+    },
+  ]}
+  showCPURow={false}
+  animated={false}
+/>
+
+The compute-bound process (blue) is almost entirely filled — it's constantly crunching numbers. The I/O-bound process (green) has tiny bursts of CPU work separated by long waits — it's constantly waiting for data from elsewhere.
+
+### The CPU Burst Cycle
+
+Every process alternates between **CPU bursts** (periods of computation) and **I/O bursts** (periods of waiting). This is called the **CPU burst cycle**:
+
+```
+┌───────────┐    ┌──────────┐    ┌───────────┐    ┌──────────┐
+│ CPU Burst │───▶│ I/O Burst│───▶│ CPU Burst │───▶│ I/O Burst│──▶ ...
+└───────────┘    └──────────┘    └───────────┘    └──────────┘
+```
+
+| Process Type | CPU Bursts | I/O Bursts |
+| :--- | :--- | :--- |
+| **Compute-bound** | Long, frequent | Short, rare |
+| **I/O-bound** | Short, rare | Long, frequent |
+
+This distinction matters enormously for scheduling because I/O bursts represent **opportunities to interleave** — when one process is waiting, the CPU can work on another.
+
+> **📌 Key Reality:** In practice, the **vast majority** of real-world processes are I/O-bound. Your web browser, text editor, email client, Spotify, Slack — they all spend most of their time waiting for user input, network responses, or disk reads. The CPU is usually available; the goal is to respond quickly when a burst arrives. This is why interactive scheduling matters so much.
+
+### Why This Distinction Matters
+
+Without distinguishing compute-bound from I/O-bound processes, early schedulers had a problem: during I/O bursts, the CPU simply executed **NOP instructions** — literally doing nothing. The CPU was idle while perfectly good work sat waiting in the queue.
+
+Once **interleaving** emerged (recall the multiprogramming era from LN6), schedulers could identify I/O gaps as locations to run other processes. But interleaving alone isn't enough — we also need to decide **when** to force a switch.
+
+---
+
+## Mandatory Context Switches
+
+There are specific scenarios where a context switch is required (or strongly recommended):
+
+| Scenario | Mandatory? | Why |
+| :--- | :--- | :--- |
+| **New process created** | Yes | The CPU must set up the new <ManagerTag manager="pcb">PCB</ManagerTag>, <ManagerTag manager="pas">PAS</ManagerTag>, and <ManagerTag manager="pec">PEC</ManagerTag> — a high-priority operation that prevents system instability |
+| **Process terminates** | Yes | Memory (<ManagerTag manager="pas">PAS</ManagerTag>) and management resources (<ManagerTag manager="pcb">PCB</ManagerTag>) must be reclaimed — "taking out the trash" prevents running out of space |
+| **Process becomes blocked** | Strongly recommended | In simple systems this isn't mandatory, but in interleaved systems the CPU would otherwise idle during the I/O wait |
+| **I/O interrupt arrives** | Strongly recommended | Without handling interrupts, the CPU can get stuck and the user experiences system freezes |
+
+The first two are truly mandatory — skipping them leads to system instability or memory exhaustion. The latter two are "strongly recommended" — early non-interleaved systems survived without them, but modern systems can't afford the waste.
+
+> **💡 Connection to LN8 — The Timer Interrupt:** The hardware timer interrupt we covered in LN8 is what makes preemptive scheduling physically possible. Without that timer firing periodically, the OS would have **no mechanism** to take control back from a running process. The hardware player is already shaping our scheduling options before we even choose an algorithm.
+
+---
+
+## Cooperative vs Preemptive Scheduling
+
+Given these mandatory switch points, we have two fundamental philosophies for scheduling: let the process decide, or let the OS decide.
+
+### Cooperative Scheduling: "Let the Process Do Its Thing"
+
+<DefinitionBox term="Cooperative Scheduling">
+
+In **cooperative scheduling**, a process runs as long as it wants. Context switches are **voluntary** — the process explicitly yields control when it decides it's a good time to let others run.
+
+</DefinitionBox>
+
+The process controls when switching happens. It might yield after completing a major unit of work, or when it enters an I/O wait. The key: **the programmer decides**.
+
+**Strengths:**
+- Simple to implement — the scheduler is lightweight
+- Less management overhead means more CPU time for actual computation (remember: time spent scheduling is time *not* computing)
+- Extremely efficient when all processes are designed to cooperate
+
+**Weaknesses:**
+- A single buggy or selfish process can **freeze the entire system** by never yielding
+- Human error can produce poor schedules — programmers may not yield at optimal times
+- Processes not designed to work together clash and cause poor performance
+
+> **📚 Historical Example — Mac OS Classic and Windows 3.1:** Both used cooperative scheduling. The result? One misbehaving application could hang the entire computer. The infamous "spinning beach ball" on pre-OS X Macs and the "hourglass of death" on Windows 3.1 were direct consequences of cooperative scheduling — a process that never yielded held the CPU hostage, and there was nothing the OS could do about it.
+
+### Preemptive Scheduling: "Don't Trust the Process"
+
+<DefinitionBox term="Preemptive Scheduling">
+
+In **preemptive scheduling**, each process is given a **time quantum (time slice)** to operate within. When the slice expires, a hardware timer interrupt fires and the OS **forcibly** switches to another process. The switch is **involuntary**.
+
+</DefinitionBox>
+
+The OS controls when switching happens. Programmers and their programs cannot be trusted to manage CPU time well — process isolation means each program is trying to solve *its own* problem without regard to others. So the OS steps in as the impartial arbiter.
+
+**Strengths:**
+- Robust against selfish, buggy, or malicious processes
+- No single process can freeze the system (the timer interrupt always fires)
+- Efficiently schedules processes that aren't designed to work together
+
+**Weaknesses:**
+- More complex to implement
+- More management overhead (timer handling, forced saves/loads)
+- The time quantum must be carefully chosen (too short = too much switching overhead, too long = poor responsiveness)
+
+> **📚 Historical Turning Point — Windows 3.1 vs Windows 95:** This is perhaps the single most impactful scheduling change in consumer computing history. Windows 3.1 used cooperative scheduling — one misbehaving app could hang the system. Windows 95 introduced preemptive scheduling for 32-bit applications. The result? Windows 95 felt **dramatically more responsive** even on the same hardware. Users could kill stuck applications, the mouse cursor always responded, and the system remained usable even under load. The improvement was so stark that it cemented preemptive scheduling as the standard for all general-purpose operating systems.
+
+### Comparison
+
+| Property | Cooperative | Preemptive |
+| :--- | :--- | :--- |
+| **Switch trigger** | Process yields voluntarily | Timer interrupt forces switch |
+| **Implementation** | Simple, lightweight | Complex, more overhead |
+| **Trust model** | Trusts the programmer | Trusts the OS scheduler |
+| **Failure mode** | One bad process freezes everything | Management overhead reduces throughput |
+| **Best for** | Embedded systems, trusted code | General-purpose, untrusted code |
+| **Historical examples** | Mac OS Classic, Windows 3.1 | Unix, Windows 95+, all modern OSes |
+
+> **💡 Connection to LN6 — Cooperative Is Making a Comeback:** Here's an interesting twist: `async/await` (Tokio in Rust, from LN6) is essentially **cooperative scheduling at the application level**. Green threads yield at `await` points voluntarily — the programmer decides when to yield, just like cooperative scheduling. The crucial difference: the **OS still uses preemptive scheduling underneath**. So a misbehaving async task can only freeze its own runtime, not the entire OS. We get the efficiency of cooperative scheduling within the safety net of preemptive scheduling. The best of both worlds!
+
+---
+
+## System Expectations
+
+The scheduling technique we choose is heavily reliant on the **expectations** of the users and the system we're managing. There are three universal expectations that are often in tension with each other:
+
+### 1. Fairness
+
+When providing computation as a service, users must not become frustrated with how we allocate resources. All comparable processes should receive a **comparable share** of compute time.
+
+Your browser, Spotify, email client, and video game should each get a reasonable share of the CPU. But defining "reasonable" is the hard part — fairness doesn't mean **equal**. A video rendering job has fundamentally different needs than a text editor's blinking cursor.
+
+### 2. Policy Enforcement (System Invariants)
+
+System **invariants** are requirements that must be maintained beyond those required by direct computational needs. Think of them like test constraints: completing a math test requires knowledge of integrals (computational need), but you also must finish within the allotted time and use only one page per problem (invariants).
+
+Invariants and fairness are often **at odds**. Consider the International Space Station: the process running **life support** is far more important than the process running the **coffee maker**, even if "fairness" would allocate them equal CPU time. The invariant — *keeping astronauts alive* — overrides all fairness concerns.
+
+### 3. Balance
+
+All available hardware must be kept as **utilized as possible**. Idle hardware is wasted hardware. A GPU sitting unused while the CPU struggles with graphics rendering is a scheduling failure. A 128-core server running everything on one core is an even worse one.
+
+The scheduler should distribute work across available hardware to maximize the system's total throughput.
+
+> **📚 The Tragedy of the Commons:** These three expectations mirror the classic economic problem. **Fairness** represents individual rights, **policy enforcement** represents regulations, and **balance** represents resource optimization. When each process optimizes for itself (process isolation!), the shared resource (CPU) can be misused. The scheduler is the "government" that prevents the tragedy — balancing individual needs against collective efficiency.
+
+---
+
+## Three System Types
+
+These expectations don't carry equal weight in every system. The **type of system** determines which concerns take priority and how we should schedule. There are three major types:
+
+<SystemTypeComparison />
+
+### Batch Systems — "Set It and Forget It"
+
+Batch systems are **compute clusters** — no interactive users, just a queue of jobs to chew through as fast as possible. Think of ILM's render farm processing movie frames or a research lab running overnight simulations.
+
+**What matters:**
+- **Throughput** — maximize jobs completed per hour
+- **Turnaround time** — minimize the delay from job submission to job completion
+- **CPU utilization** — keep it at 100%. Every idle cycle is a wasted cycle.
+
+**What doesn't matter as much:**
+- Response time (nobody is watching)
+- Fairness (jobs wait their turn in the queue)
+
+These systems often use **cooperative or non-preemptive scheduling** — there's no interactive user to interrupt for, so letting each job run to completion (or to its next I/O burst) is efficient.
+
+### Interactive Systems — "Always Responsive"
+
+Interactive systems are what most of us use daily — laptops, phones, desktops. Active users are **watching and waiting** for responses. The system must feel fast and fair.
+
+**What matters:**
+- **Response time** — how quickly does the system react to a click, keystroke, or request?
+- **Proportionality** — simple tasks should *feel* fast, complex tasks should *feel* appropriately slower. If a user "thinks" opening a text file should be instant, it should be.
+- **Fairness** — users get frustrated if one app hogs the system at the expense of others
+
+**What doesn't matter as much:**
+- Raw throughput (users care about their experience, not jobs/hour)
+- Deadline adherence (nothing catastrophic happens if Spotify skips a beat)
+
+These systems **must** use preemptive scheduling — we can't let one application freeze the entire UI. User *perception* matters as much as actual performance.
+
+### Real-Time Systems — "Never Miss a Deadline"
+
+Real-time systems are designed around **timing deadlines**. Missing a computation isn't just annoying — it can be catastrophic.
+
+**What matters:**
+- **Deadline adherence** — every computation must complete before its deadline
+- **Predictability** — the system's behavior must be deterministic and reliable
+
+**What doesn't matter as much:**
+- Throughput (completing jobs fast is less important than completing them *on time*)
+- Fairness (the flight controller always beats the cabin temperature sensor)
+- CPU utilization — intentionally kept **low** to ensure spare capacity for urgent tasks. A stressed system is more likely to miss deadlines.
+
+**Examples:** flight computers, car engine ECUs, medical device controllers, industrial robots, anti-lock braking systems.
+
+### Comparison
+
+| Property | Batch | Interactive | Real-Time |
+| :--- | :--- | :--- | :--- |
+| **Users** | None (automated) | Active humans | Timing constraints |
+| **Optimize for** | Throughput, turnaround | Response time, proportionality | Deadline adherence |
+| **Fairness** | Queue order | Proportional perception | Irrelevant (priority rules) |
+| **CPU utilization** | Maximum (100%) | Balanced (room for bursts) | Intentionally low |
+| **Scheduling** | Cooperative / non-preemptive | Preemptive (time-sliced) | Deadline-driven |
+
+> **📌 Hybrid Systems:** Most real-world systems are actually **hybrids**. A cloud server might run batch ML training jobs alongside interactive web API requests, with some real-time SLA constraints. Modern schedulers like Linux's CFS (Completely Fair Scheduler) attempt to balance all three concerns simultaneously. This is part of what makes scheduling algorithms so complex — and why LN11 will be so interesting.
+
+> **💀 The Mars Pathfinder Priority Inversion (1997):** A real-time scheduling bug on the Mars Pathfinder rover nearly ended the mission. A **low-priority** meteorological task held a mutex (shared resource lock) that a **high-priority** information bus task needed. But a **medium-priority** communication task kept preempting the low-priority task, preventing it from releasing the mutex. Result: the high-priority task **starved** and the rover rebooted repeatedly.
+>
+> The fix was **priority inheritance** — temporarily boosting the low-priority task's priority so it could finish and release the lock. This is the canonical real-time scheduling failure, and it directly connects to LN7's synchronization concern and LN9's <ManagerTag manager="scheduler">scheduler</ManagerTag>/<ManagerTag manager="security">security</ManagerTag> interaction. It demonstrates that even with a "correct" scheduling algorithm, interactions between processes sharing resources can create catastrophic failures.
+
+---
+
+## Looking Ahead
+
+We now understand two of the three major players in scheduling:
+
+1. **The Processes** — Compute-bound (long CPU bursts, short I/O bursts) vs I/O-bound (short CPU bursts, long I/O bursts)
+2. **The System Expectations** — Fairness, policy enforcement, and balance, prioritized differently by batch, interactive, and real-time systems
+
+Next time in LN11, we'll develop the **specific scheduling algorithms** that each system type uses to manage these concerns — from simple First-Come-First-Served (FCFS) queues to Shortest Job First, Round Robin with time quanta, multi-level feedback queues, and even lottery-based scheduling. We'll see how each algorithm handles compute-bound and I/O-bound processes differently, and why no single algorithm is best for all system types.
+
+---
+
+## Summary
+
+| Concept | Key Point |
+| :--- | :--- |
+| **Scheduling Problem** | When do we switch from one process to another? |
+| **Three Concerns** | Meet user demand, share limited resources, maximize efficiency |
+| **Compute-bound** | Long CPU bursts, short I/O bursts — needs more CPU time |
+| **I/O-bound** | Short CPU bursts, long I/O bursts — needs responsive scheduling |
+| **CPU Burst Cycle** | Every process alternates between CPU bursts and I/O bursts |
+| **Cooperative** | Process yields voluntarily — simple but fragile |
+| **Preemptive** | OS forces switch via timer — robust but more overhead |
+| **Fairness** | Comparable processes get comparable resources |
+| **Policy Enforcement** | System invariants override fairness (life support > coffee maker) |
+| **Balance** | All hardware should be utilized — idle hardware is waste |
+| **Batch** | Maximize throughput, 100% CPU utilization, no interactivity |
+| **Interactive** | Minimize response time, proportional fairness, preemptive |
+| **Real-Time** | Meet deadlines, predictable, intentionally low utilization |
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Scheduling Problem** | When to switch from one process to another |
+| **Compute-bound** | Process whose bottleneck is CPU time (long CPU bursts) |
+| **I/O-bound** | Process whose bottleneck is external devices (long I/O waits) |
+| **CPU Burst Cycle** | Alternation between CPU computation and I/O waiting |
+| **Cooperative Scheduling** | Process voluntarily yields CPU control |
+| **Preemptive Scheduling** | OS forcibly switches via timer interrupt |
+| **Time Quantum** | The time slice allotted to a process before forced switch |
+| **Fairness** | Comparable processes receive comparable resource allocation |
+| **System Invariants** | Requirements beyond computational needs that must be maintained |
+| **Batch System** | Optimizes throughput and turnaround, no interactive users |
+| **Interactive System** | Optimizes response time and proportionality for active users |
+| **Real-Time System** | Optimizes deadline adherence and predictability |
+
+**Process Types:**
+
+```
+Compute-bound:  ████████░████████░████████░████████
+I/O-bound:      ██░░░░░░██░░░░░░░░██░░░░░░██░░░░░░
+```
+
+**Scheduling Philosophies:**
+
+| Cooperative | Preemptive |
+| :--- | :--- |
+| Process yields | Timer forces switch |
+| Simple, lightweight | Complex, robust |
+| Trusts programmer | Trusts OS |
+| Fragile (one bad actor = freeze) | Resilient |
+
+**System Types Priority:**
+
+```
+Batch:       Throughput ████████  Response ██        Deadline ██
+Interactive: Throughput ████      Response ████████  Deadline ████
+Real-Time:   Throughput ██        Response ████      Deadline ████████
+```
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [Operating Systems: Three Easy Pieces — Ch. 7: Scheduling Introduction](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Covers exactly the scheduling problem setup we discussed today
+- [Modern Operating Systems (Tanenbaum) — Ch. 2.4: Scheduling](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — Detailed coverage of scheduling concepts
+- [Computer Systems: A Programmer's Perspective (Bryant & O'Hallaron)](https://csapp.cs.cmu.edu/) — The process model from a programmer's viewpoint
+
+### Historical References
+
+- [The Mars Pathfinder Bug (IEEE)](https://www.cs.cmu.edu/~rdriley/487/papers/Thompson_1984_ResearchInRealTime.pdf) — The priority inversion incident that nearly ended the Mars mission
+- [What Really Happened on Mars (Microsoft Research)](https://www.microsoft.com/en-us/research/publication/what-really-happened-on-mars/) — Detailed post-mortem of the Pathfinder scheduling failure
+- [Windows 3.1 to 95: The Preemptive Revolution](https://en.wikipedia.org/wiki/Windows_95) — How preemptive scheduling transformed consumer computing
+- [The Multics Scheduler](https://multicians.org/) — Early multi-level feedback queue design
+
+### Rust Concurrency
+
+- [Tokio: Cooperative Scheduling in Async Rust](https://tokio.rs/tokio/tutorial) — Modern cooperative scheduling within a preemptive OS
+- [The Rust Book: Fearless Concurrency](https://doc.rust-lang.org/book/ch16-00-concurrency.html) — Threading and scheduling from Rust's perspective
+
+</LectureResources>
