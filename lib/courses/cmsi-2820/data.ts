@@ -443,14 +443,7 @@ const allEvents: CourseEvent[] = [
     standard: "Functions",
     contentUrl: "/cmsi-2820/ln12",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/2-LIWvNpdk5v4Fx12g5RbUWyC42f2mZWYjVAyUrpJkp5wrBJvwqeCZNY_t6bz5jN.GZDnU6XdxH7wk50S",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/4b_pdY7mS5U9EN_krOvusBTFe2ofZt5u_41PBfVr7pmfF8ciFFNpnfGNTv8kbkg4.AOXcuNPBbxtSDCes",
-      },
+
     ],
   },
   {
@@ -464,14 +457,7 @@ const allEvents: CourseEvent[] = [
     standard: "Functions",
     contentUrl: "/cmsi-2820/ln13",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/drWYcEtyEQQ1egPoy-cyxmVrMr9lKf6E4rTG0jLtfikJu8FJJ8Z69H_FteeZg09m._5l6Z5YAQmGjU131",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/C7oyRK8CO8yVJbz2Q34hBI41ENOuQIvdkFpcIGF76K3lTUxCnM-hP5dQlXlDrcZ6.oDTYaM4ODOYmHkXy",
-      },
+
     ],
   },
   {
@@ -485,14 +471,7 @@ const allEvents: CourseEvent[] = [
     standard: "Functions",
     contentUrl: "/cmsi-2820/ln14",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/hi13d34BW1RjU67HNXfY8q-wVd9-vgr1Vwn2gHAW7H0knMeC9xxZh2dhSUs5X8oa.lGfBIvGvpb5O9nIc",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/IWbl4i3meT8kQ0qNIsWmUqubDC9btr0dD5oPH09VtcmwXuBUC--QSKRcRodoZXM.of_tddulAtDJeTTz",
-      },
+
     ],
   },
   {
@@ -506,14 +485,7 @@ const allEvents: CourseEvent[] = [
     standard: "Functions",
     contentUrl: "/cmsi-2820/ln15",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/fDtSCZFBvPiv5jGudSD5GiPtqcex-9-QD6ALLg7p4hBiS07EvkGD6ColRm8A79B5.EvrqVXEO7jxgpBlV",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/6BfTlhf5Ow8bpsz8LCMal6aePJkNcokdTDnQ_gpPrKCgweNBzWUEqFRmHx_sbzDg.vQbcMIKDK3pG3QpG",
-      },
+
     ],
   },
   {

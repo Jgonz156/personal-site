@@ -1,0 +1,621 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { QuestionBox } from "@/components/question-box"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ReductionStepper } from "@/components/reduction-stepper"
+import { CodeComparison } from "@/components/code-comparison"
+
+## Recap
+
+Last time we introduced **relations** — operators that return booleans and test relationships between their inputs. We upgraded our logical toolkit with the **existential** and **universal quantifiers**, explored relational properties (reflexivity, symmetry, antisymmetry, transitivity, totality), and discovered that combining these properties defines fundamental concepts: **equivalence relations** and **partial/total orders**.
+
+We also connected everything to Python: dunder methods are relations, `sorted()` requires a total order, and hashability is a formal contract built on equivalence relations.
+
+---
+
+## Today's Agenda
+
+We've spent the last eight lectures building up logic, numbers, and collections. Now we begin a new chapter: **Functions**. And we'll do it by learning a formal system that's simultaneously one of the simplest and most powerful ever invented.
+
+- **The Problem with Operators** — Why set-builder definitions feel wrong
+- **A Brief History** — Alonzo Church and the quest to define computation
+- **Lambda Calculus: First Contact** — Functions in Python vs LC
+- **Calling Functions** — Juxtaposition means application
+- **Currying** — One parameter at a time
+- **First-Class Functions** — Functions as values
+- **The Art of Substitution** — Why we study math at all
+- **The Three Reductions** — Alpha, Beta, Eta
+
+---
+
+## The Problem with Operators-as-Sets
+
+Before we learn our new tool, let's appreciate *why* we need it.
+
+Up to now, we've been defining operators using set builder notation — collecting all valid input-output pairs into a set. Addition "is" the set of all triples $(a, b, a + b)$. Less-than "is" the set of all pairs where the first is smaller than the second.
+
+In set-builder notation, that looks like this:
+
+<DisplayMath formula="+ \;=\; \{(a, b, c) \in \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \mid a + b = c\}" />
+
+Equivalently: $\{(a, b, a+b) \mid a, b \in \mathbb{Z}\}$. And for multiplication:
+
+<DisplayMath formula="\times \;=\; \{(a, b, c) \in \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \mid a \times b = c\}" />
+
+Equivalently: $\{(a, b, a \cdot b) \mid a, b \in \mathbb{Z}\}$. Notice how multiplication is just another infinite lookup table — no process, no steps.
+
+But think about that for a moment. **When have you ever thought about addition by listing all possible results?** That's not computation — that's an encyclopedia. You'd need infinitely many entries just for integer addition!
+
+Here's what's going on: mathematicians like to interact with math in a way that reflects its **"out of time" nature**. The statement $1 + 1 = 2$ says nothing about how long it takes, what steps you perform, or what order you do them in. It just *is*. Mathematical facts exist outside of time — they're eternal truths.
+
+But that's not how **we** exist! We exist *in* time. Every step matters. When you add $347 + 289$, you carry the one, you work digit by digit — there's a *process*. And that process is invisible in the set-builder definition.
+
+Think back to truth tables. They work because you **memorize all the pairs**. As long as you have the full table, you never need to understand *how* the operation actually works. The same is true for set-builder definitions: they describe all the outputs without ever explaining *how to compute them*.
+
+> **📌 Key Insight:** Truth tables work because you memorize all the pairs. Set builder definitions work because you describe all the outputs. But neither captures the *process* of computing. We need a way to represent operators as **finite sequences of steps** — recipes, not encyclopedias.
+
+This is exactly what we're about to learn.
+
+---
+
+## A Brief History
+
+In the 1930s, mathematicians were grappling with a fundamental question: **what does it mean to "compute" something?**
+
+**Alonzo Church** (1903-1995) answered this question by inventing the **lambda calculus** — a formal system that represents computation as step-by-step symbol manipulation. Around the same time, **Alan Turing** independently answered the same question with the **Turing machine** — a theoretical device that reads and writes symbols on a tape.
+
+Remarkably, they proved that their two very different approaches were **equivalent** — anything computable by one is computable by the other. This equivalence is known as the **Church-Turing thesis**, and it defines the boundary of what's computable.
+
+The lambda calculus went on to become the foundation of **functional programming**: Lisp (1958), Haskell, Clojure (remember from LN8?), and even Python's functions all descend from Church's invention.
+
+> **💡 Side Note:** The lambda symbol ($\lambda$) has no deep mathematical meaning! Church originally used a caret ($\hat{x}$), but the typesetter couldn't render it properly and ended up producing $\lambda x$. The symbol stuck, and now it's iconic.
+
+---
+
+## Lambda Calculus: First Contact
+
+Let's jump in. The lambda calculus represents functions using a simple syntax: the $\lambda$ symbol, a parameter, a dot, and a body. Let's see it side by side with Python.
+
+### Example 1: Squaring with Exponentiation
+
+<CodeComparison
+  left={{
+    title: "Python",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">square</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x ** 2</span>'
+  }}
+  right={{
+    title: "Lambda Calculus",
+    code: '(<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> <span style="color: #3b82f6">x²</span>)'
+  }}
+  annotations={[
+    { label: "Parameter", color: "#f59e0b" },
+    { label: "Body", color: "#3b82f6" },
+    { label: "Structure", color: "#9ca3af" }
+  ]}
+  caption="The same function in two notations. The lambda calculus strips away everything but the essentials."
+/>
+
+### Example 2: Squaring with Multiplication
+
+<CodeComparison
+  left={{
+    title: "Python",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">square</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x * x</span>'
+  }}
+  right={{
+    title: "Lambda Calculus",
+    code: '(<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> <span style="color: #3b82f6">x × x</span>)'
+  }}
+  annotations={[
+    { label: "Parameter", color: "#f59e0b" },
+    { label: "Body", color: "#3b82f6" }
+  ]}
+  caption="Same function, different body — multiplication instead of exponentiation."
+/>
+
+### Key Differences
+
+Let's break down what makes these two notations different:
+
+**1. One line vs many lines.** Lambda calculus is always a single expression. Python splits things across lines for readability, but the LC doesn't have that luxury — everything lives in one compact notation.
+
+**2. Body boundaries.** In Python, the body starts after the colon and ends with a dedentation. In the lambda calculus, everything after the **dot** until the closing parenthesis is the body. This should feel familiar — it's the exact same pattern as our quantifiers: $\forall x.$ (everything after the dot is the scope) and $\exists x.$ (same idea).
+
+**3. No names!** Lambda calculus functions are **anonymous**. They're defined entirely by their bodies — there's no `square` label attached. In Python, you can define two functions with identical bodies but different names. In LC, two functions with the same body *are* the same function. The name is just a convenience.
+
+### Example 3: An Increment Function
+
+<CodeComparison
+  left={{
+    title: "Python",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">add_one</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x + 1</span>'
+  }}
+  right={{
+    title: "Lambda Calculus",
+    code: '(<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> <span style="color: #3b82f6">x + 1</span>)'
+  }}
+  annotations={[
+    { label: "Parameter", color: "#f59e0b" },
+    { label: "Body", color: "#3b82f6" }
+  ]}
+/>
+
+### Example 4: A Boolean Negation
+
+<CodeComparison
+  left={{
+    title: "Python",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">negate</span>(<span style="color: #f59e0b">p</span>):\n    <span style="color: #9ca3af">return </span> <span style="color: #3b82f6">not p</span>'
+  }}
+  right={{
+    title: "Lambda Calculus",
+    code: '(<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">p</span><span style="color: #9ca3af">.</span> <span style="color: #3b82f6">¬p</span>)'
+  }}
+  annotations={[
+    { label: "Parameter", color: "#f59e0b" },
+    { label: "Body", color: "#3b82f6" }
+  ]}
+  caption="Functions aren't just about numbers — they work on any type."
+/>
+
+---
+
+## Calling Functions
+
+Now that we can write functions, how do we **use** them? In Python, you call `square(5)` and Python handles the rest. But in the lambda calculus, **you** have to perform all the work.
+
+### Juxtaposition Means Application
+
+In the lambda calculus, **two things next to each other means function application**. This is NOT multiplication! It's the most fundamental operation in the system.
+
+<DisplayMath formula="(\lambda x.\; x \times x) \;\; 5" />
+
+reads as: "apply the function $(\lambda x.\; x \times x)$ to the argument $5$."
+
+<ReductionStepper
+  title="Calling square(5) by hand"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda x.\\; x \\times x)} \\;\\; \\textcolor{blue}{5}", description: "We have a function (orange) applied to an argument (blue)" },
+    { formula: "\\textcolor{blue}{5} \\times \\textcolor{blue}{5}", description: "Replace every x in the body with 5" },
+    { formula: "25", description: "Compute the result" }
+  ]}
+/>
+
+Let's do a few more:
+
+<ReductionStepper
+  title="Calling add_one(7) by hand"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda x.\\; x + 1)} \\;\\; \\textcolor{blue}{7}", description: "Apply the increment function to 7" },
+    { formula: "\\textcolor{blue}{7} + 1", description: "Replace x with 7" },
+    { formula: "8", description: "Compute the result" }
+  ]}
+/>
+
+<ReductionStepper
+  title="Calling a doubling function on 6"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda n.\\; n \\times 2)} \\;\\; \\textcolor{blue}{6}", description: "Apply the doubling function to 6" },
+    { formula: "\\textcolor{blue}{6} \\times 2", description: "Replace n with 6" },
+    { formula: "12", description: "Done!" }
+  ]}
+/>
+
+> **📌 Key Insight:** In Python, you never "call" a function yourself — Python handles the substitution internally. In the lambda calculus, YOU do all the substitution work. This is what makes it a model of computation: you can see every step of the process.
+
+---
+
+## Currying
+
+Let's try something harder: a function that takes **two** inputs.
+
+In Python, multi-parameter functions are easy:
+
+```python
+def add(x, y):
+    return x + y
+
+add(3, 5)  # => 8
+```
+
+But the lambda calculus only allows **one parameter at a time**. So how do we handle two inputs?
+
+The answer: **a function that returns another function!**
+
+<CodeComparison
+  left={{
+    title: "Python (multi-parameter)",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">add</span>(<span style="color: #f59e0b">x</span>, <span style="color: #a855f7">y</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x + y</span>'
+  }}
+  right={{
+    title: "Lambda Calculus (curried)",
+    code: '(<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> (<span style="color: #9ca3af">λ</span><span style="color: #a855f7">y</span><span style="color: #9ca3af">.</span> <span style="color: #3b82f6">x + y</span>))'
+  }}
+  annotations={[
+    { label: "First parameter", color: "#f59e0b" },
+    { label: "Second parameter", color: "#a855f7" },
+    { label: "Body", color: "#3b82f6" }
+  ]}
+  caption="The LC version is a function that returns another function — this is called currying."
+/>
+
+The LC version reads: "a function that takes $x$ and returns *another function* that takes $y$ and returns $x + y$."
+
+This technique is called **currying** (named after logician Haskell Curry). Let's see what this looks like reflected back into Python:
+
+```python
+def add(x):
+    def inner(y):
+        return x + y
+    return inner
+
+add(3)(5)  # => 8 — a function returning a function, chained!
+```
+
+And here's the step-by-step evaluation in the lambda calculus:
+
+<ReductionStepper
+  title="Curried addition: (λx. λy. x + y) 3 5"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda x.\\; \\lambda y.\\; x + y)} \\;\\; \\textcolor{blue}{3} \\;\\; 5", description: "Apply the outer function (orange) to 3 (blue) first" },
+    { formula: "\\textcolor{orange}{(\\lambda y.\\; 3 + y)} \\;\\; \\textcolor{blue}{5}", description: "Replace x with 3 — we get a new function waiting for y" },
+    { formula: "3 + 5", description: "Replace y with 5" },
+    { formula: "8", description: "Compute the result" }
+  ]}
+/>
+
+Notice step 2: after substituting $x = 3$, we get $(\lambda y.\; 3 + y)$ — a brand new function! This intermediate function "remembers" that $x$ was 3 and is now waiting for $y$.
+
+### Another Currying Example: Multiplication
+
+<CodeComparison
+  left={{
+    title: "Python (multi-parameter)",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">multiply</span>(<span style="color: #f59e0b">x</span>, <span style="color: #a855f7">y</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x * y</span>'
+  }}
+  right={{
+    title: "Lambda Calculus (curried)",
+    code: '(<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> (<span style="color: #9ca3af">λ</span><span style="color: #a855f7">y</span><span style="color: #9ca3af">.</span> <span style="color: #3b82f6">x × y</span>))'
+  }}
+  annotations={[
+    { label: "First parameter", color: "#f59e0b" },
+    { label: "Second parameter", color: "#a855f7" },
+    { label: "Body", color: "#3b82f6" }
+  ]}
+/>
+
+```python
+def multiply(x):
+    def inner(y):
+        return x * y
+    return inner
+
+multiply(4)(7)  # => 28
+```
+
+<ReductionStepper
+  title="Curried multiplication: (λx. λy. x × y) 4 7"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda x.\\; \\lambda y.\\; x \\times y)} \\;\\; \\textcolor{blue}{4} \\;\\; 7", description: "Apply the outer function to 4" },
+    { formula: "\\textcolor{orange}{(\\lambda y.\\; 4 \\times y)} \\;\\; \\textcolor{blue}{7}", description: "Replace x with 4 — now waiting for y" },
+    { formula: "4 \\times 7", description: "Replace y with 7" },
+    { formula: "28", description: "Done!" }
+  ]}
+/>
+
+> **💡 Key Insight:** Calling the curried `add(3)(5)` is just Python's multi-parameter `add(3, 5)` but with the tuple-argument split into separate applications. Multi-parameter functions are a **convenience**, not a necessity! The lambda calculus proves that one parameter at a time is all you need.
+
+---
+
+## First-Class Functions
+
+Here's where things get really interesting. What if a function takes **another function** as its input?
+
+### The `twice` Function
+
+Let's define a function that takes a function $f$ and a value $x$, and applies $f$ twice:
+
+```python
+def twice(f, x):
+    return f(f(x))
+```
+
+Now let's use it with some simple functions:
+
+```python
+def add_one(x):
+    return x + 1
+
+def multiply_by_two(x):
+    return x * 2
+
+twice(add_one, 5)           # => 7   (5 → 6 → 7)
+twice(multiply_by_two, 3)   # => 12  (3 → 6 → 12)
+twice(add_one, 0)           # => 2   (0 → 1 → 2)
+twice(multiply_by_two, 1)   # => 4   (1 → 2 → 4)
+```
+
+Wait — we're passing a **function** as an argument to another function. Is that weird?
+
+Actually, you already do this all the time! Calling `print` inside your own function is using one function inside another. Recursion — calling yourself — is even weirder, and you've survived that. Passing a function as an argument is the same idea: functions are just **values** you can hand around.
+
+> **💡 Side Note for Web Dev Students:** This is what **callbacks** are! When you write `button.addEventListener("click", handleClick)`, you're passing `handleClick` as an argument — that's a first-class function. It's why web dev programming can feel different: functions fly around as values constantly.
+
+### `twice` in the Lambda Calculus
+
+Let's write `twice` in the lambda calculus and watch it work. Since LC only has one parameter, we'll curry it:
+
+<DisplayMath formula="\text{twice} = (\lambda f.\; \lambda x.\; f\;(f\;x))" />
+<DisplayMath formula="\text{add_one} = (\lambda x.\; x + 1)" />
+
+Now let's apply `twice` to `add_one` and `5`:
+
+<ReductionStepper
+  title="twice add_one 5 — calling by hand"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda f.\\; \\lambda x.\\; f\\;(f\\;x))} \\;\\; \\textcolor{blue}{(\\lambda x.\\; x + 1)} \\;\\; 5", description: "Apply twice (orange) to add_one (blue) and 5" },
+    { formula: "\\textcolor{orange}{(\\lambda x.\\; (\\lambda x.\\; x + 1)\\;((\\lambda x.\\; x + 1)\\;x))} \\;\\; \\textcolor{blue}{5}", description: "Replace f with add_one — now apply to 5" },
+    { formula: "(\\lambda x.\\; x + 1)\\;\\textcolor{orange}{((\\lambda x.\\; x + 1)\\;5)}", description: "Replace x with 5 — evaluate inner call first" },
+    { formula: "(\\lambda x.\\; x + 1)\\;\\textcolor{orange}{6}", description: "Inner call: 5 + 1 = 6" },
+    { formula: "6 + 1", description: "Outer call: replace x with 6" },
+    { formula: "7", description: "Done! twice add_one 5 = 7" }
+  ]}
+/>
+
+We just "called by hand" through a higher-order function application. Every step is visible — nothing is hidden inside a black box.
+
+---
+
+## The Art of Substitution
+
+Let's pause for a moment and ask: **why did we learn algebra, calculus, logic, and all this operational mathematics in the first place?**
+
+Because we learned to **manipulate one arrangement of symbols into another more desirable one of the same meaning**.
+
+When a math test says "solve this integral" or "find $x$ given these equations," here's what you're really doing: you're not *changing* anything. The meaning stays the same the whole time. You're just **uncovering a better look at the same information**. A huge definite integral and the number 12 can mean the same thing — you just need to perform the right transformations to reveal it.
+
+The whole point of "solving" is finding equivalent but more useful forms. And this requires a litany of **substitution rules**:
+
+| Field | Rules You've Memorized |
+| :--- | :--- |
+| Algebra | Multiplying by 1, adding zero, FOIL, distributive property |
+| Calculus | Power rule, chain rule, u-substitution, integration by parts |
+| Boolean Algebra | De Morgan's laws, double negation, absorption |
+| Set Theory | The logic-set bridge (LN10), inclusion-exclusion |
+
+Here's what that looks like in symbols — notice how each field has its own notation and rules:
+
+**Algebra:** $a \cdot 1 = a$, $a + 0 = a$; $(a+b)(c+d) = ac + ad + bc + bd$ (FOIL); $a(b+c) = ab + ac$ (distributive).
+
+**Calculus:** Power rule $\frac{d}{dx}x^n = nx^{n-1}$; chain rule $\frac{d}{dx}[f(g(x))] = f'(g(x)) \cdot g'(x)$; u-substitution $\int f(g(x))\,g'(x)\,dx = \int f(u)\,du$.
+
+**Boolean Algebra:** De Morgan $\neg(p \land q) \equiv \neg p \lor \neg q$; double negation $\neg\neg p \equiv p$.
+
+**Set Theory:** Logic-set bridge $A \cup B = \{x \mid x \in A \lor x \in B\}$; inclusion-exclusion $|A \cup B| = |A| + |B| - |A \cap B|$.
+
+The thing that makes math *difficult* is needing to cram all these substitution rules into your head!
+
+So here's the good news about the lambda calculus: **it has only three substitution rules**. That's it. Three reductions to learn, and you can "solve" everything in this system. Let's meet them.
+
+---
+
+## Alpha Reduction: Renaming Parameters
+
+<DefinitionBox term="Alpha Reduction (α-reduction)">
+
+**Alpha reduction** is renaming parameters without changing the function's meaning. If two functions differ only in parameter names, they are the same function.
+
+</DefinitionBox>
+
+This is something you do all the time! Changing variable names to be more readable is alpha reduction.
+
+<CodeComparison
+  left={{
+    title: "Before",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">subtract</span>(<span style="color: #f59e0b">a</span>, <span style="color: #a855f7">b</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #f59e0b">a</span> - <span style="color: #a855f7">b</span>\n\n<span style="color: #6b7280">LC: (λa. λb. a - b)</span>'
+  }}
+  right={{
+    title: "After α-reduction",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">subtract</span>(<span style="color: #f59e0b">x</span>, <span style="color: #a855f7">y</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #f59e0b">x</span> - <span style="color: #a855f7">y</span>\n\n<span style="color: #6b7280">LC: (λx. λy. x - y)</span>'
+  }}
+  annotations={[
+    { label: "First param: a → x", color: "#f59e0b" },
+    { label: "Second param: b → y", color: "#a855f7" }
+  ]}
+  caption="Same function! We just renamed the parameters. The mapping is preserved: first parameter minus second parameter."
+/>
+
+**The key rule:** you must maintain the same mapping. If `a` was the first parameter, then whatever you rename `a` to must also be the first parameter. Every occurrence of the old name gets the new name consistently.
+
+Here's another example:
+
+<DisplayMath formula="(\lambda m.\; m \times m) \;\;\xrightarrow{\alpha}\;\; (\lambda z.\; z \times z)" />
+
+Same function — squaring — just with a different parameter name. That's 1 of 3 reductions learned!
+
+---
+
+## Beta Reduction: Calling by Hand
+
+<DefinitionBox term="Beta Reduction (β-reduction)">
+
+**Beta reduction** is applying a function to an argument by **substituting** the argument for the parameter throughout the body. This is "calling a function by hand."
+
+</DefinitionBox>
+
+We've actually been doing this the entire lecture! Every time we used the `ReductionStepper`, we were performing beta reduction.
+
+Let's make it explicit with addition:
+
+<CodeComparison
+  left={{
+    title: "Python (automatic)",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">add</span>(<span style="color: #f59e0b">x</span>, <span style="color: #a855f7">y</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x + y</span>\n\nadd(3, 5)  <span style="color: #6b7280"># Python does the work for you!</span>\n<span style="color: #6b7280"># => 8</span>'
+  }}
+  right={{
+    title: "Lambda Calculus (by hand)",
+    code: '(λx. λy. x + y) 3 5\n\n<span style="color: #6b7280">You do the substitutions!</span>'
+  }}
+  caption="Python calls automatically. In LC, you perform every substitution step yourself."
+/>
+
+<ReductionStepper
+  title="β-reduction: (λx. λy. x + y) 3 5"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda x.\\; \\lambda y.\\; x + y)} \\;\\; \\textcolor{blue}{3} \\;\\; 5", description: "Apply the outer function (orange) to 3 (blue)" },
+    { formula: "\\textcolor{orange}{(\\lambda y.\\; 3 + y)} \\;\\; \\textcolor{blue}{5}", description: "Replace x with 3 — now apply the inner function to 5" },
+    { formula: "3 + 5", description: "Replace y with 5" },
+    { formula: "8", description: "Done!" }
+  ]}
+/>
+
+Let's do a more complex one — applying `twice` to `multiply_by_two` and `3`:
+
+<DisplayMath formula="\text{twice} = (\lambda f.\; \lambda x.\; f\;(f\;x)) \quad \text{multiply_by_two} = (\lambda x.\; x \times 2)" />
+
+<ReductionStepper
+  title="β-reduction: twice multiply_by_two 3"
+  steps={[
+    { formula: "\\textcolor{orange}{(\\lambda f.\\; \\lambda x.\\; f\\;(f\\;x))} \\;\\; \\textcolor{blue}{(\\lambda x.\\; x \\times 2)} \\;\\; 3", description: "Apply twice (orange) to multiply_by_two (blue) and 3" },
+    { formula: "(\\lambda x.\\; (\\lambda x.\\; x \\times 2)\\;((\\lambda x.\\; x \\times 2)\\;x)) \\;\\; \\textcolor{blue}{3}", description: "Replace f with the multiplier — now apply to 3" },
+    { formula: "(\\lambda x.\\; x \\times 2)\\;\\textcolor{orange}{((\\lambda x.\\; x \\times 2)\\;3)}", description: "Replace x with 3 — evaluate inner call" },
+    { formula: "(\\lambda x.\\; x \\times 2)\\;\\textcolor{orange}{6}", description: "Inner: 3 × 2 = 6" },
+    { formula: "6 \\times 2", description: "Outer: replace x with 6" },
+    { formula: "12", description: "Done! twice multiply_by_two 3 = 12" }
+  ]}
+/>
+
+That's 2 of 3 reductions — and this one is just "function calling by hand"!
+
+---
+
+## Eta Reduction: Removing Useless Layers
+
+<DefinitionBox term="Eta Reduction (η-reduction)">
+
+**Eta reduction** is removing unnecessary function wrappers — peeling off layers that don't add anything to the computation.
+
+</DefinitionBox>
+
+This one is the trickiest, but the idea is simple. Due to currying, we sometimes accidentally create more layers than we need. Consider this expression:
+
+<DisplayMath formula="(\lambda x.\; (\lambda y.\; (\lambda z.\; z + 1)\; y)\; x)" />
+
+This looks complicated, but let's trace through it with beta reductions:
+
+<ReductionStepper
+  title="η-reduction: peeling off useless layers"
+  steps={[
+    { formula: "(\\lambda x.\\; \\textcolor{orange}{(\\lambda y.\\; (\\lambda z.\\; z + 1)\\; y)} \\;\\; \\textcolor{blue}{x})", description: "The outer function receives x and passes it to the middle layer..." },
+    { formula: "(\\lambda x.\\; \\textcolor{orange}{(\\lambda z.\\; z + 1)} \\;\\; \\textcolor{blue}{x})", description: "Middle layer receives x as y, passes it to the inner layer..." },
+    { formula: "(\\lambda x.\\; x + 1)", description: "Inner layer receives x as z — the outer two layers did nothing!" },
+    { formula: "\\textcolor{green}{(\\lambda z.\\; z + 1)}", description: "By α-reduction, this is the same as the innermost function all along!" }
+  ]}
+/>
+
+The outer two layers just passed their argument through unchanged — they were **useless wrappers**! The whole expression was just $(\lambda z.\; z + 1)$ all along.
+
+In Python, this is equivalent to:
+
+```python
+def useless_wrapper(x):
+    return add_one(x)
+
+# useless_wrapper IS add_one — the wrapper does nothing!
+# Eta reduction says: just use add_one directly.
+```
+
+Here's another example:
+
+<DisplayMath formula="(\lambda x.\; \text{square}\; x) \;\;\xrightarrow{\eta}\;\; \text{square}" />
+
+If all a function does is take an argument and immediately pass it to another function, the wrapper is unnecessary. Just use the inner function directly!
+
+And that's all three reductions! Let's summarize.
+
+---
+
+## The Three Reductions: Summary
+
+| Reduction | Informal Name | What It Does | Python Equivalent |
+| :--- | :--- | :--- | :--- |
+| $\alpha$ (Alpha) | "Rename parameters" | Change parameter names consistently | Refactoring variable names |
+| $\beta$ (Beta) | "Call by hand" | Substitute argument for parameter in body | Calling a function |
+| $\eta$ (Eta) | "Remove useless layers" | Peel off unnecessary function wrappers | Removing trivial wrapper functions |
+
+> **🌟 Big Picture:** Mathematics is a vast collection of substitution rules — algebraic identities, derivative formulas, logical equivalences, set laws. Each field has dozens. The lambda calculus has exactly **three**. That's the beauty: with just alpha, beta, and eta, you can express and simplify any computable function. The simplicity is the power.
+
+<QuestionBox>
+
+Why does the lambda calculus only need three reductions?
+
+Because it strips computation down to its absolute essence: functions that take one input and produce one output. There are only three things you can *do* with such functions: rename their parameters (alpha), apply them to arguments (beta), and remove redundant wrappers (eta). Everything else — multi-parameter functions, data structures, loops, conditionals — gets *encoded* using these primitives. We'll see how in the coming lectures.
+
+</QuestionBox>
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Lambda Calculus** — A formal system for representing computation as step-by-step symbol manipulation, invented by Alonzo Church in the 1930s
+- **Lambda Abstraction** — $(\lambda x.\; \text{body})$: a function with parameter $x$ and body
+- **Application (Juxtaposition)** — $f\;x$: applying function $f$ to argument $x$; two things next to each other means "apply"
+- **Currying** — Representing multi-parameter functions as chains of single-parameter functions: $(\lambda x.\; \lambda y.\; \text{body})$
+- **First-Class Functions** — Functions that can be passed as arguments to other functions
+- **Alpha Reduction** ($\alpha$) — Renaming parameters consistently
+- **Beta Reduction** ($\beta$) — Substituting an argument for a parameter in the body ("calling by hand")
+- **Eta Reduction** ($\eta$) — Removing unnecessary function wrappers
+
+**The Three Reductions:**
+
+| Reduction | Rule | Example |
+| :--- | :--- | :--- |
+| Alpha ($\alpha$) | Rename parameters | $(\lambda a.\; a + 1) \to (\lambda x.\; x + 1)$ |
+| Beta ($\beta$) | Substitute argument | $(\lambda x.\; x + 1)\; 5 \to 5 + 1 \to 6$ |
+| Eta ($\eta$) | Remove wrappers | $(\lambda x.\; f\; x) \to f$ |
+
+**Python-LC Correspondence:**
+
+| Python | Lambda Calculus |
+| :--- | :--- |
+| `def f(x): return body` | $(\lambda x.\; \text{body})$ |
+| `f(5)` | $f\;\;5$ |
+| `def f(x, y): return body` | $(\lambda x.\; \lambda y.\; \text{body})$ |
+| `f(3, 5)` or `f(3)(5)` | $f\;\;3\;\;5$ |
+| `def twice(f, x): return f(f(x))` | $(\lambda f.\; \lambda x.\; f\;(f\;x))$ |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Computerphile: "Lambda Calculus"](https://www.youtube.com/watch?v=eis11j_iGMs) — Professor Graham Hutton's clear introduction
+- [Numberphile: "Lambda Calculus"](https://www.youtube.com/watch?v=3VQ382QG-y4) — Accessible overview of the core ideas
+
+### Further Reading
+
+- [Wikipedia: Lambda Calculus](https://en.wikipedia.org/wiki/Lambda_calculus) — Comprehensive formal treatment
+- [Stanford Encyclopedia of Philosophy: Lambda Calculus](https://plato.stanford.edu/entries/lambda-calculus/) — Historical and philosophical context
+- [Wikipedia: Church-Turing Thesis](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis) — The equivalence of LC and Turing machines
+
+### Historical Context
+
+- **Alonzo Church** (1903-1995) — Invented the lambda calculus in the 1930s to formalize computation
+- **Alan Turing** (1912-1954) — Independently formalized computation with the Turing machine; proved equivalence with Church's system
+- **Haskell Curry** (1900-1982) — Currying is named after him; also contributed to combinatory logic
+- **The lambda symbol** — Church originally used a caret, then a hat; the typesetter produced lambda, and it stuck
+
+### Connection to Programming
+
+- Python's `def` functions descend from lambda calculus abstractions
+- Currying appears in functional languages (Haskell, OCaml) and JavaScript's `.bind()` / arrow functions
+- First-class functions (callbacks, higher-order functions) are direct applications of LC's ability to pass functions as values
+- Lisp (1958), Haskell, Clojure, and Scheme are programming languages built directly on the lambda calculus
+
+</LectureResources>
