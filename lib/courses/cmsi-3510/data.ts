@@ -370,7 +370,7 @@ const allEvents: CourseEvent[] = [
     recordings: [
       {
         name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/jDlhy3kixB8J0_Dz-aTtfGdkARbiQuPNZ0kbXUUhA25_m3YeI4SAAehAHLAUKSZq.L3OGAGKkPunXPJf2"
+        url: "https://lmula.zoom.us/rec/share/AAJ-JNpY34VBUYD4tJl_MjVt4FKH9p9d71CLigmRa0ksqlddqYH2OH36-CNLG_m1.CsHHkuemPgBYP6yo"
       }
     ],
   },
