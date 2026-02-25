@@ -1,0 +1,803 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ScheduleTag, ScheduleTagLegend } from "@/components/schedule-tag"
+import { JobQueueTape } from "@/components/job-queue-tape"
+import { RoundRobinDemo } from "@/components/round-robin-demo"
+import { SchedulabilityCalculator } from "@/components/schedulability-calculator"
+import { RealtimeScheduleChart } from "@/components/realtime-schedule-chart"
+import { MLFQDiagram } from "@/components/mlfq-diagram"
+import { LotteryScheduler } from "@/components/lottery-scheduler"
+import { RedBlackTreeDiagram } from "@/components/red-black-tree-diagram"
+import { DisplayMath, InlineMath } from "@/components/math"
+
+## Recap
+
+In LN10, we framed the scheduling problem around three concerns:
+
+- **Computation is a service** — we must meet user demands
+- **Hardware resources are limited** — we must share optimally
+- **Efficiency is paramount** — any underutilization is unacceptable
+
+We identified two of the three major players:
+
+1. **The Processes** — Compute-bound (long CPU bursts) vs I/O-bound (long I/O waits)
+2. **System Expectations** — Fairness, policy enforcement, and balance, prioritized differently by Batch, Interactive, and Real-Time systems
+
+Today we introduce the third player: **the hardware and the algorithms it enables**. Each algorithm reflects different tradeoffs, and the hardware you have determines which ones work well.
+
+---
+
+## Today's Agenda
+
+1. **Batch System Algorithms** — FCFS, SJF, SRTN
+2. **Interactive System Algorithms** — Round Robin, Priority, MLFQ, SPN, Guaranteed, Lottery
+3. **Real-Time System Algorithms** — Schedulability analysis, RMS, EDF
+4. **Real-World Schedulers** — Linux CFS and Windows deep dive
+5. **Beyond Basic Scheduling** — Policy vs mechanism, thread scheduling, three-level scheduling
+
+Throughout this lecture, we'll color-code terminology by process state and key algorithmic features:
+
+<ScheduleTagLegend />
+
+---
+
+## Batch System Algorithms
+
+Batch systems optimize for **throughput** (jobs/hour) and **turnaround time** (submission to completion) at the cost of response time and fairness. These algorithms work best when left alone — no interactive users watching.
+
+### First Come First Serve (FCFS)
+
+The most straightforward scheduling algorithm: a single <ScheduleTag type="feature">FIFO Queue</ScheduleTag>.
+
+<DefinitionBox term="First Come First Serve (FCFS)">
+
+Processes are served in the order they arrive. New processes join the back of the <ScheduleTag type="feature">queue</ScheduleTag>. The <ScheduleTag type="running">running</ScheduleTag> process is always the one dequeued from the front. <ScheduleTag type="blocked">Blocked</ScheduleTag> processes are set aside and rejoin the back of the <ScheduleTag type="ready">ready</ScheduleTag> queue when their I/O completes.
+
+</DefinitionBox>
+
+FCFS can have both a cooperative flavor (processes run to completion or self-block) and a preemptive flavor (processes are put back in the <ScheduleTag type="ready">ready</ScheduleTag> queue at the end of a time quantum).
+
+<JobQueueTape
+  jobs={[
+    { name: "P1", runtime: 3, color: "#3B82F6" },
+    { name: "P2", runtime: 8, color: "#22C55E" },
+    { name: "P3", runtime: 2, color: "#F59E0B" },
+    { name: "P4", runtime: 5, color: "#EF4444" },
+    { name: "P5", runtime: 1, color: "#8B5CF6" },
+  ]}
+  label="FCFS — Arrival Order"
+  animated
+/>
+
+Simple, fast, and straightforward. But it has one devastating weakness.
+
+#### The Convoy Effect
+
+Imagine you're at Starbucks. You have a simple coffee order — 30 seconds. But the person in front of you is ordering 15 custom drinks for their office. You wait. And wait. And everyone behind you waits too.
+
+<JobQueueTape
+  jobs={[
+    { name: "BIG", runtime: 20, color: "#EF4444" },
+    { name: "p1", runtime: 1, color: "#3B82F6" },
+    { name: "p2", runtime: 2, color: "#22C55E" },
+    { name: "p3", runtime: 1, color: "#F59E0B" },
+    { name: "p4", runtime: 1, color: "#8B5CF6" },
+    { name: "p5", runtime: 2, color: "#EC4899" },
+  ]}
+  label="Convoy Effect — BIG job starves small ones"
+  animated
+  highlightIndex={0}
+/>
+
+Large, CPU-hungry processes **starve** smaller processes by forcing them to wait. All those tiny jobs back up behind the large one, inflating their turnaround times massively even though they could complete in seconds.
+
+> **📚 Head-of-Line Blocking:** The convoy effect isn't unique to CPU scheduling. The exact same problem appears in **networking** (TCP head-of-line blocking, which HTTP/2 was designed to solve), grocery checkout lines, and traffic engineering. Recognizing it as a general pattern — **head-of-line blocking** — helps you spot it everywhere in systems design.
+
+If only we knew ahead of time who has a huge order, we could let people with tiny orders go first...
+
+---
+
+### Shortest Job First (SJF)
+
+That intuition leads directly to SJF: sort by runtime, then execute in order.
+
+<DefinitionBox term="Shortest Job First (SJF)">
+
+Assuming runtimes are known in advance, use a <ScheduleTag type="feature">Priority Queue sorted by runtime</ScheduleTag> for the <ScheduleTag type="ready">ready</ScheduleTag> queue. The shortest job always becomes <ScheduleTag type="running">running</ScheduleTag> first. This is cooperative only — runtimes must be known statically.
+
+</DefinitionBox>
+
+Let's compare the same jobs in three orderings. Each tape shows execution order — the **total time is identical** (19u) in all three, but turnaround times differ dramatically:
+
+<div className="space-y-4 my-6">
+  <JobQueueTape
+    jobs={[
+      { name: "P2", runtime: 8, color: "#22C55E" },
+      { name: "P4", runtime: 5, color: "#EF4444" },
+      { name: "P1", runtime: 3, color: "#3B82F6" },
+      { name: "P5", runtime: 1, color: "#8B5CF6" },
+      { name: "P3", runtime: 2, color: "#F59E0B" },
+    ]}
+    label="Random FCFS Order"
+  />
+  <JobQueueTape
+    jobs={[
+      { name: "P5", runtime: 1, color: "#8B5CF6" },
+      { name: "P3", runtime: 2, color: "#F59E0B" },
+      { name: "P1", runtime: 3, color: "#3B82F6" },
+      { name: "P4", runtime: 5, color: "#EF4444" },
+      { name: "P2", runtime: 8, color: "#22C55E" },
+    ]}
+    label="SJF — Shortest First (Best Turnaround)"
+  />
+  <JobQueueTape
+    jobs={[
+      { name: "P2", runtime: 8, color: "#22C55E" },
+      { name: "P4", runtime: 5, color: "#EF4444" },
+      { name: "P1", runtime: 3, color: "#3B82F6" },
+      { name: "P3", runtime: 2, color: "#F59E0B" },
+      { name: "P5", runtime: 1, color: "#8B5CF6" },
+    ]}
+    label="Reverse — Longest First (Worst Turnaround)"
+  />
+</div>
+
+#### Computing Average Turnaround Time
+
+| Ordering | Turnaround Times | Sum | Average |
+| :--- | :--- | :--- | :--- |
+| **Random FCFS** | 8 + 13 + 16 + 17 + 19 | 73 | **14.6u** |
+| **SJF (Shortest First)** | 1 + 3 + 6 + 11 + 19 | 40 | **8.0u** ✓ |
+| **Reverse (Longest First)** | 8 + 13 + 16 + 18 + 19 | 74 | **14.8u** |
+
+SJF achieves **8.0u** average turnaround — nearly **half** of the random ordering! The total runtime is always 19u, but the short jobs complete much earlier, dramatically improving the average.
+
+#### The Proof (Exchange Argument)
+
+SJF's optimality can be shown with a simple exchange argument: if any two adjacent jobs are out of order (longer before shorter), swapping them **improves** the average turnaround without affecting total time. Repeating this swap for every out-of-order pair produces the shortest-first ordering. This is provably optimal.
+
+#### "Optimal But Impossible"
+
+Here's the catch: SJF requires **knowing runtimes in advance**. This is only feasible in very controlled environments — batch systems or embedded systems whose programs are designed from the ground up to report their runtime to the OS.
+
+> **📚 A Recurring OS Theme:** SJF requires knowing the future, just like **Belady's optimal page replacement algorithm** (which we'll see in memory management). Both are theoretically optimal but practically impossible, motivating the heuristic approaches (SRTN, LRU) that follow. This pattern recurs throughout OS design: the optimal solution requires omniscience, so we approximate.
+
+---
+
+### Shortest Remaining Time Next (SRTN)
+
+What if we can't get exact runtimes ahead of time, but we can get them **when a process shows up**? Maybe the compiler could estimate runtime for each binary. Then we could maintain a dynamically updating <ScheduleTag type="feature">Priority Queue sorted by remaining time</ScheduleTag>.
+
+<DefinitionBox term="Shortest Remaining Time Next (SRTN)">
+
+The dynamic, preemptive descendant of SJF. When a new short process arrives while a long one is <ScheduleTag type="running">running</ScheduleTag>, the new process can **preempt** and cut the line. The <ScheduleTag type="ready">ready</ScheduleTag> queue is always sorted by remaining runtime.
+
+</DefinitionBox>
+
+Consider this situation: we're running a long process when a tiny one suddenly arrives:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+  <JobQueueTape
+    jobs={[
+      { name: "P1", runtime: 5, color: "#3B82F6" },
+      { name: "P2", runtime: 10, color: "#22C55E" },
+      { name: "P3", runtime: 15, color: "#F59E0B" },
+      { name: "email", runtime: 1, color: "#EF4444" },
+    ]}
+    label="FCFS — email waits 30u!"
+  />
+  <JobQueueTape
+    jobs={[
+      { name: "P1", runtime: 5, color: "#3B82F6" },
+      { name: "P2", runtime: 10, color: "#22C55E" },
+      { name: "P3'", runtime: 7, color: "#F59E0B" },
+      { name: "email", runtime: 1, color: "#EF4444" },
+      { name: "P3''", runtime: 8, color: "#F59E0B" },
+    ]}
+    label="SRTN — email cuts in line!"
+  />
+</div>
+
+With FCFS, the email refresh waits behind everything. With SRTN, when the 1u email process arrives mid-P3, it **preempts P3**, splitting it into P3' and P3''. The email completes almost instantly while P3 barely notices the interruption.
+
+#### Exponential Averaging for Runtime Estimation
+
+In practice, runtime estimation uses **exponential averaging** — a weighted moving average that tracks changing burst patterns:
+
+<DisplayMath formula="\tau_{n+1} = \alpha \cdot t_n + (1 - \alpha) \cdot \tau_n" />
+
+Where <InlineMath formula="\tau_{n+1}" /> is the predicted next burst, <InlineMath formula="t_n" /> is the actual last burst, <InlineMath formula="\tau_n" /> is the previous prediction, and <InlineMath formula="\alpha" /> controls how much weight we give to recent observations (typically <InlineMath formula="\alpha = 0.5" />).
+
+**Worked example** with <InlineMath formula="\alpha = 0.5" /> and initial prediction <InlineMath formula="\tau_0 = 10" />:
+
+| Burst # | Actual (<InlineMath formula="t_n" />) | Previous Prediction (<InlineMath formula="\tau_n" />) | New Prediction (<InlineMath formula="\tau_{n+1}" />) | Computation |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 10 | 10 | **10.0** | 0.5 * 10 + 0.5 * 10 |
+| 2 | 8 | 10.0 | **9.0** | 0.5 * 8 + 0.5 * 10 |
+| 3 | 6 | 9.0 | **7.5** | 0.5 * 6 + 0.5 * 9 |
+| 4 | 4 | 7.5 | **5.75** | 0.5 * 4 + 0.5 * 7.5 |
+
+The prediction converges toward the downward trend — the system **learns** that this process's bursts are getting shorter. This is essentially a simple **predictive ML model** decades before the term existed!
+
+---
+
+## Interactive System Algorithms
+
+Interactive systems optimize for **response time** and **fairness** at the cost of raw throughput. Our devices need to *feel* fast — not necessarily complete jobs as quickly as possible.
+
+### Round Robin
+
+<DefinitionBox term="Round Robin">
+
+A "merry-go-round" of processes. Maintain an FCFS <ScheduleTag type="feature">Queue</ScheduleTag> but set a <ScheduleTag type="feature">Time Quantum</ScheduleTag> — a fixed time slice. When the timer expires, the <ScheduleTag type="running">running</ScheduleTag> process is forcibly moved back to <ScheduleTag type="ready">ready</ScheduleTag>, and the next process in the queue becomes <ScheduleTag type="running">running</ScheduleTag>. Inherently preemptive.
+
+</DefinitionBox>
+
+This guarantees that every process gets the CPU within a bounded time — excellent for response time. It's simple and fair: every job receives the same amount of CPU time per cycle.
+
+But the time quantum creates a fundamental tradeoff. Explore it with the slider below:
+
+<RoundRobinDemo
+  jobs={[
+    { name: "P1", runtime: 12, color: "#3B82F6" },
+    { name: "P2", runtime: 8, color: "#22C55E" },
+    { name: "P3", runtime: 15, color: "#F59E0B" },
+    { name: "P4", runtime: 5, color: "#EF4444" },
+  ]}
+  contextSwitchCost={1}
+/>
+
+#### The Quantum Tradeoff
+
+Assume a context switch costs 1u:
+
+| Time Quantum | Overhead | What It Feels Like |
+| :--- | :--- | :--- |
+| 100u (large) | ~1% | Basically FCFS — convoy effect returns |
+| 10u | ~9% | Good balance — responsive and efficient |
+| 1u | **50%** | Half the time is spent switching! |
+| 0.5u | **67%** | System spends most of its time doing nothing useful |
+
+The irony: a system that is **perfectly responsive** to all work is one that **doesn't compute**, because it spends all its time switching! And a system that maximizes computation completely **ignores you**. The sweet spot is in between, and finding it for specific workloads is an active area of engineering.
+
+> **📌 Key Insight:** FCFS actually **minimizes** context switches (zero if all jobs run to completion). FCFS occurs when your time quantum is larger than the runtime of all jobs!
+
+#### The I/O-Bound Paradox
+
+Counterintuitively, Round Robin actually **favors compute-bound processes**. I/O-bound processes naturally yield before their quantum expires (they become <ScheduleTag type="blocked">blocked</ScheduleTag> for I/O), so they only use a fraction of their slice. Compute-bound processes consume the entire quantum every time. Over time, compute-bound processes accumulate more total CPU time.
+
+**Virtual Round Robin** fixes this by giving I/O-bound processes a "bonus" quantum when they return from <ScheduleTag type="blocked">blocked</ScheduleTag> to <ScheduleTag type="ready">ready</ScheduleTag>, compensating for the time they didn't use.
+
+---
+
+### Priority Scheduling
+
+<DefinitionBox term="Priority Scheduling">
+
+Each process is assigned a <ScheduleTag type="feature">Priority</ScheduleTag> value. The <ScheduleTag type="ready">ready</ScheduleTag> process with the highest <ScheduleTag type="feature">priority</ScheduleTag> always becomes <ScheduleTag type="running">running</ScheduleTag>. Priorities can be static (fixed for the lifetime) or dynamic (adjusted by the OS based on behavior).
+
+</DefinitionBox>
+
+This is excellent for maintaining system invariants. Sometimes we can't compute why something is more important — we just assign it an importance value directly.
+
+Compare FCFS arrival order with priority-sorted order — notice the sorting is by **priority**, not runtime:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+  <JobQueueTape
+    jobs={[
+      { name: "P1 pri=3", runtime: 6, color: "#3B82F6" },
+      { name: "P2 pri=1", runtime: 4, color: "#22C55E" },
+      { name: "P3 pri=5", runtime: 8, color: "#F59E0B" },
+      { name: "P4 pri=2", runtime: 3, color: "#EF4444" },
+    ]}
+    label="FCFS — Arrival Order"
+  />
+  <JobQueueTape
+    jobs={[
+      { name: "P2 pri=1", runtime: 4, color: "#22C55E" },
+      { name: "P4 pri=2", runtime: 3, color: "#EF4444" },
+      { name: "P1 pri=3", runtime: 6, color: "#3B82F6" },
+      { name: "P3 pri=5", runtime: 8, color: "#F59E0B" },
+    ]}
+    label="Priority — Sorted by Importance"
+  />
+</div>
+
+Notice that **SJF and SRTN are special cases** of priority scheduling where the priority is the inverse of the runtime!
+
+**Static priorities** are simple but rigid. **Dynamic priorities** allow the OS to:
+- **Reduce** the priority of processes that have consumed a lot of CPU time (preventing starvation)
+- **Raise** the priority of processes that have been waiting too long (aging)
+- **Boost** I/O-bound processes that return from <ScheduleTag type="blocked">blocked</ScheduleTag> (better response time)
+
+Programmers generally shouldn't set their own priority — they'll always be either too nice or too greedy. The OS should handle it.
+
+> **💻 The `nice` Command:** In Unix, users interact with priority through `nice`: `nice -n 19 ./slow_task` gives a process the lowest priority. The name "nice" literally means "be nice to other processes by taking less priority." Try it in your terminal!
+
+#### Starvation vs Deadlock
+
+Two distinct scheduling failures worth distinguishing clearly:
+
+| Failure | What It Is | Cause |
+| :--- | :--- | :--- |
+| **Starvation** | Process could run but never gets selected | Bad scheduling policy (low priority forever) |
+| **Deadlock** | Processes can't proceed at all | Circular resource dependency |
+
+Starvation is a **policy problem** (the scheduler is unfair). Deadlock is a **resource contention problem** (processes hold resources each other needs). We'll dive deep into deadlock in LN12.
+
+---
+
+### Multi-Level Feedback Queue (MLFQ)
+
+This is arguably the **most important practical scheduling algorithm** — the basis for BSD Unix, Solaris, and early Windows NT schedulers.
+
+<DefinitionBox term="Multi-Level Feedback Queue (MLFQ)">
+
+Maintain <ScheduleTag type="feature">multiple priority queues</ScheduleTag> at different levels. Processes move between queues based on their behavior. Each queue can use a different internal algorithm (e.g., top queue = Round Robin with tiny quantum, bottom queue = FCFS for batch throughput).
+
+</DefinitionBox>
+
+#### The MLFQ Rules
+
+1. New jobs enter the **highest-priority** <ScheduleTag type="feature">queue</ScheduleTag>
+2. If a job uses its **entire quantum**, it **demotes** to the next lower queue
+3. If a job **yields** before the quantum expires (I/O), it **stays** in its current queue
+4. Periodically, **boost ALL** processes back to the top queue (prevents starvation)
+
+<MLFQDiagram />
+
+#### The Beauty of MLFQ
+
+MLFQ **automatically separates** compute-bound and I/O-bound processes **without needing to know anything in advance**:
+
+- I/O-bound processes yield quickly (they go <ScheduleTag type="blocked">blocked</ScheduleTag> for I/O) and **stay in high-priority queues** — great response time
+- Compute-bound processes use full quanta and **sink to lower queues** — they get throughput but don't block interactive work
+- The algorithm **learns process type through behavior**, not configuration
+
+This is why MLFQ was so revolutionary: it combines the responsiveness of Round Robin for interactive tasks with the throughput of FCFS for batch tasks, all in one scheduler.
+
+The queues can also map to system concerns:
+- A new-process queue that always pops first (fast startup)
+- <ScheduleTag type="blocked">Blocked</ScheduleTag> processes returning to different queues based on *why* they blocked (device request vs RAM call vs cache miss)
+- Queues for different security levels or scheduling tiers (premium vs free)
+
+---
+
+### Shortest Process Next (SPN)
+
+<DefinitionBox term="Shortest Process Next (SPN)">
+
+The most general form of the "shortest first" family. No runtime is known in advance, but we track <ScheduleTag type="feature">CPU burst history</ScheduleTag> and use exponential averaging to estimate when a process will next yield. This is called **aging** a process.
+
+</DefinitionBox>
+
+We *wish* we had SJF, but we don't know runtimes. SPN approximates it by tracking burst history and estimating future behavior using the same exponential averaging formula from SRTN:
+
+**Example: Estimating runtimes for 3 processes**
+
+| Process | Burst History | Estimated Next Burst |
+| :--- | :--- | :--- |
+| P1 | [10, 8, 6, 4] | 5.75u (trending down) |
+| P2 | [2, 3, 2, 3] | 2.5u (stable) |
+| P3 | [20, 18, 22] | 20.5u (stable, long) |
+
+With these estimates, SPN sorts the <ScheduleTag type="ready">ready</ScheduleTag> queue by estimated burst:
+
+<JobQueueTape
+  jobs={[
+    { name: "P2 (~2.5u)", runtime: 3, color: "#22C55E" },
+    { name: "P1 (~5.8u)", runtime: 4, color: "#3B82F6" },
+    { name: "P3 (~20.5u)", runtime: 22, color: "#F59E0B" },
+  ]}
+  label="SPN — Sorted by Estimated Runtime"
+/>
+
+SPN is the weakest but most practical version of SJF. It leverages the formal backing and speed gains of shortest-first scheduling in a completely general context — no cooperation or foreknowledge required.
+
+---
+
+### Guaranteed / Promise Scheduling
+
+<DefinitionBox term="Guaranteed Scheduling">
+
+Start from <ScheduleTag type="feature">invariant promises</ScheduleTag> and build scheduling mechanisms to sustain them. Policy-first, mechanism-second. This includes **fair-share scheduling**, where the promises are about sharing resources fairly at the user or role level.
+
+</DefinitionBox>
+
+A promise might be: "every user gets equal CPU time," "if you pay $X, you get Y% of the CPU," "user privilege level maps to queue priority," or "admin processes always run before intern processes."
+
+The key insight is that guaranteed scheduling **composes** other algorithms to maintain promises. For example:
+
+**Promise:** "Kernel operations always run first. Users share remaining CPU fairly by security level."
+
+This can be implemented as a modified MLFQ:
+
+| Queue | Policy | Internal Algorithm |
+| :--- | :--- | :--- |
+| Q0 (highest) | Kernel ops only | FCFS — always runs first |
+| Q1 | Admin user processes | Round Robin q=4u |
+| Q2 (lowest) | Normal user processes | Round Robin q=8u |
+
+This is like parameterizing a constructor: the **policy** defines the contract ("be fair by role"), and the **mechanism** (MLFQ with specific queue rules) is chosen to fulfill it. In Linux, this is implemented via the process hierarchy — root's process tree gets scheduling priority since it's the hierarchy root, and `cgroups` allow even finer-grained resource allocation at the user and container level.
+
+---
+
+### Lottery Scheduling
+
+<DefinitionBox term="Lottery Scheduling">
+
+Create a finite pool of <ScheduleTag type="feature">tickets</ScheduleTag>. Each <ScheduleTag type="ready">ready</ScheduleTag> process holds some tickets. To select the next <ScheduleTag type="running">running</ScheduleTag> process, draw a random ticket — the holder wins. Holding X% of the tickets = X% of CPU time over the long run.
+
+</DefinitionBox>
+
+Most scheduling algorithms make it difficult to analyze what **percentage** of CPU time a process actually receives. Lottery scheduling makes it trivially analyzable: your ticket share IS your CPU share.
+
+Try it yourself — assign tickets and watch the schedule build:
+
+<LotteryScheduler />
+
+**Ticket transfer:** Cooperating processes can share tickets. A parent might send tickets to a valuable child process, or vice versa. This allows cooperative benefits to emerge in a preemptive system without starvation risks.
+
+**Ticket currencies:** Each user/group gets its own currency with an exchange rate to global tickets. Department A has 100 local tickets, Department B has 50. The conversion handles proportional fairness automatically without global coordination.
+
+**Compensation tickets:** If a process yields early (used only 20% of its quantum), it receives a 5x ticket boost for the next lottery. This naturally helps I/O-bound processes — they yield early, get boosted, and respond faster.
+
+---
+
+## Real-Time System Algorithms
+
+Real-time systems don't optimize for speed or fairness — they optimize for **meeting deadlines**. Missing one can mean system failure, injury, or death.
+
+### Foundations
+
+Two critical distinctions:
+
+| Type | Deadlines | Consequences of Missing |
+| :--- | :--- | :--- |
+| **Soft real-time** | Can be missed occasionally | Degraded quality (video stutter, audio glitch) |
+| **Hard real-time** | Must never be missed | System failure, potential injury/death |
+
+Processes in real-time systems carry additional metadata:
+
+| Property | Description |
+| :--- | :--- |
+| **Periodic** | Occurs at regular intervals (e.g., sensor reading every 10ms) |
+| **Aperiodic** | Occurs unpredictably (e.g., emergency brake signal) |
+| **Cost** | CPU time required to complete one execution |
+| **Period** | Time between recurring executions |
+| **Deadline** | Time by which execution must complete |
+
+### Schedulability Analysis
+
+Given a set of periodic processes, can we even schedule them all? If the total CPU demand exceeds 100%, **no algorithm can help** — we need to redesign the system.
+
+<DefinitionBox term="Schedulability Test">
+
+For <InlineMath formula="m" /> periodic processes, where <InlineMath formula="C_i" /> is the cost and <InlineMath formula="P_i" /> is the period of the <InlineMath formula="i" />-th process:
+
+<DisplayMath formula="\sum_{i=1}^{m} \frac{C_i}{P_i} \leq 1" />
+
+Each ratio <InlineMath formula="C_i / P_i" /> is the **fraction of time** that process consumes. If the sum exceeds 1 (100%), the processes demand more CPU than exists — no valid schedule is possible. If the sum is at or below 1, "wiggle room" exists to organize the schedule.
+
+</DefinitionBox>
+
+Try it yourself — edit the values to explore what's schedulable:
+
+<SchedulabilityCalculator
+  initialProcesses={[
+    { name: "A", cost: 50, period: 100 },
+    { name: "B", cost: 30, period: 200 },
+    { name: "C", cost: 100, period: 500 },
+  ]}
+/>
+
+With those defaults: 50/100 + 30/200 + 100/500 = 0.50 + 0.15 + 0.20 = **0.85**. We have 15% wiggle room — schedulable!
+
+### Rate-Monotonic Scheduling (RMS)
+
+<DefinitionBox term="Rate-Monotonic Scheduling (RMS)">
+
+A static algorithm that assigns <ScheduleTag type="feature">fixed priority based on period frequency</ScheduleTag>. Processes that occur more frequently get higher priority. It is provably **optimal among all fixed-priority algorithms**.
+
+</DefinitionBox>
+
+**Requirements:**
+- All information known ahead of time (static)
+- Each periodic process completes within its period
+- No inter-process dependencies
+- Constant cost per period
+- Aperiodic processes have no deadlines
+- Context-switch overhead is idealized as zero
+
+**How it works:** Divide cost by period for each process, then assign priority proportional to occurrence frequency. A process occurring 33 times/second gets higher priority than one occurring 20 times/second.
+
+<RealtimeScheduleChart
+  processes={[
+    { name: "A", cost: 10, period: 30, deadline: 30, color: "#3B82F6" },
+    { name: "B", cost: 10, period: 40, deadline: 40, color: "#22C55E" },
+    { name: "C", cost: 5, period: 50, deadline: 50, color: "#F59E0B" },
+  ]}
+  schedules={[
+    {
+      name: "RMS",
+      slots: [
+        { processIndex: 0, start: 0, end: 10 },
+        { processIndex: 1, start: 10, end: 20 },
+        { processIndex: 2, start: 20, end: 25 },
+        { processIndex: 0, start: 30, end: 40 },
+        { processIndex: 1, start: 40, end: 50 },
+        { processIndex: 2, start: 50, end: 55 },
+        { processIndex: 0, start: 60, end: 70 },
+        { processIndex: 1, start: 80, end: 90 },
+        { processIndex: 0, start: 90, end: 100 },
+        { processIndex: 2, start: 100, end: 105 },
+      ],
+    },
+  ]}
+  totalTime={120}
+/>
+
+In RMS, A has the highest priority (period=30, rate=33/sec), B is next (period=40, rate=25/sec), and C is lowest (period=50, rate=20/sec). A **lower-priority process never preempts a higher-priority one** — when A's period arrives, it always takes precedence over B and C.
+
+#### The 69.3% Utilization Ceiling
+
+RMS has a provable upper bound on utilization:
+
+<DisplayMath formula="U_{RMS} = n \cdot (2^{1/n} - 1)" />
+
+As the number of processes <InlineMath formula="n" /> grows, this approaches <InlineMath formula="\ln(2) \approx 0.693" />. Even if the schedulability test says total utilization is 0.85, RMS might **not** find a valid schedule! Only up to ~69.3% utilization is guaranteed.
+
+> **📌 Harmonic Period Optimization:** If all periods are multiples of each other (e.g., 10ms, 20ms, 40ms), RMS can handle up to 100% utilization. Embedded systems engineers often choose periods to be harmonic specifically for this reason.
+
+### Earliest Deadline First (EDF)
+
+<DefinitionBox term="Earliest Deadline First (EDF)">
+
+A dynamic algorithm. Maintain a <ScheduleTag type="feature">priority queue sorted by earliest deadline</ScheduleTag>. When a new process arrives with an earlier deadline than the <ScheduleTag type="running">running</ScheduleTag> process, preempt immediately. Guaranteed to find a valid schedule if one exists — can handle up to **100% utilization**.
+
+</DefinitionBox>
+
+EDF's only requirement: processes announce their deadline on arrival. It doesn't need processes to be periodic.
+
+<RealtimeScheduleChart
+  processes={[
+    { name: "A", cost: 10, period: 30, deadline: 30, color: "#3B82F6" },
+    { name: "B", cost: 10, period: 40, deadline: 40, color: "#22C55E" },
+    { name: "C", cost: 5, period: 50, deadline: 50, color: "#F59E0B" },
+  ]}
+  schedules={[
+    {
+      name: "EDF",
+      slots: [
+        { processIndex: 0, start: 0, end: 10 },
+        { processIndex: 1, start: 10, end: 20 },
+        { processIndex: 2, start: 20, end: 25 },
+        { processIndex: 0, start: 30, end: 40 },
+        { processIndex: 1, start: 40, end: 50 },
+        { processIndex: 2, start: 50, end: 55 },
+        { processIndex: 0, start: 60, end: 70 },
+        { processIndex: 1, start: 80, end: 90 },
+        { processIndex: 0, start: 90, end: 100 },
+        { processIndex: 2, start: 100, end: 105 },
+      ],
+    },
+  ]}
+  totalTime={120}
+/>
+
+In EDF, the process with the **nearest upcoming deadline** always runs. When multiple processes have periods starting at the same time, EDF picks the one whose deadline is soonest. Context switches happen dynamically as new deadlines emerge.
+
+#### The Domino Effect Under Overload
+
+EDF has a dangerous failure mode. When utilization exceeds 100% (overload), EDF can cause a **domino effect** where ALL deadlines are missed — not just some. The scheduler keeps chasing the nearest deadline, abandoning partially completed work each time a nearer deadline appears.
+
+RMS degrades more gracefully: low-priority tasks miss deadlines first, while high-priority ones are still met.
+
+> **⚠️ This is why hard real-time systems often prefer RMS** despite its lower utilization bound. **Predictable failure is safer than catastrophic failure.** In aviation and medicine, knowing *which* tasks will fail is more valuable than maximizing utilization.
+
+### RMS vs EDF Comparison
+
+| Property | RMS | EDF |
+| :--- | :--- | :--- |
+| Scheduling | Static (fixed priority) | Dynamic (deadline-based) |
+| Max utilization | ~69.3% (ln 2) | 100% |
+| Overload behavior | Graceful (low-priority fails first) | Catastrophic (domino effect) |
+| Context switches | Fewer | More |
+| Implementation | Simpler | More complex |
+| Best for | Hard real-time, safety-critical | Soft real-time, high utilization |
+
+---
+
+## Real-World Schedulers: Linux CFS and Windows
+
+The algorithms above are building blocks. Real-world schedulers combine multiple techniques. Let's look at the two most widely deployed interactive schedulers.
+
+### Linux: The Completely Fair Scheduler (CFS)
+
+CFS has been the default Linux scheduler since kernel 2.6.23 (2007), designed by Ingo Molnar. It implements **fair-share scheduling** using an elegant data structure.
+
+#### Core Idea: Virtual Runtime
+
+Every process has a <ScheduleTag type="feature">virtual runtime (vruntime)</ScheduleTag> — the total CPU time it has received, weighted by its priority. CFS always selects the process with the **lowest vruntime** — the one that has received the least CPU time relative to its fair share.
+
+This naturally implements proportional fairness: processes that haven't gotten their share are always prioritized.
+
+#### The Red-Black Tree
+
+All runnable processes are stored in a **red-black tree** (a self-balancing BST) keyed by vruntime:
+- Selecting the next process = picking the **leftmost node** = O(log n)
+- Inserting/removing a process = O(log n)
+
+If you've taken a data structures course, this is a direct, critical, real-world application of balanced BSTs.
+
+<RedBlackTreeDiagram />
+
+#### Nice Values and Weights
+
+The `nice` command sets a value from -20 (highest priority) to +19 (lowest priority). Each nice level maps to a weight; lower nice = higher weight = vruntime accumulates slower = gets scheduled more. A nice -20 process gets roughly **82,000x** more CPU than a nice +19 process.
+
+#### CFS vs the O(1) Scheduler
+
+Before CFS, Linux used the **O(1) scheduler** (kernels 2.6.0 through 2.6.22). It used bitmaps and per-CPU run queues for O(1) scheduling decisions — no matter how many processes existed.
+
+But O(1) was **unfair**: interactive processes sometimes got poor response times. CFS traded O(1) for O(log n) but gained true proportional fairness. The lesson: **algorithmic complexity isn't the only metric that matters**.
+
+#### cgroups and Container Scheduling
+
+Linux's **cgroups** (control groups) extend CFS to group processes hierarchically. Docker containers and Kubernetes pods use cgroups to get isolated CPU shares. Each cgroup receives a proportion of CPU time, and CFS schedules within each group.
+
+This is **fair-share scheduling deployed at cloud scale** — the same theoretical concept from earlier in this lecture, running billions of containers worldwide.
+
+### Windows: The Dispatcher
+
+Windows uses a preemptive, **priority-based scheduler** with 32 levels.
+
+#### Priority Levels
+
+| Range | Class | Use |
+| :--- | :--- | :--- |
+| 0 | Zero page thread | System idle |
+| 1-15 | Variable priority | Normal user processes |
+| 16-31 | Real-time priority | Critical system processes |
+
+#### Dynamic Priority Boosting
+
+Windows dynamically boosts priority for:
+- Processes whose **window is in the foreground** (responsiveness to the active app)
+- Processes that just completed **I/O** (favoring I/O-bound processes)
+- Processes that have been **starved** (anti-starvation aging)
+
+Priority decays back to the base level after each quantum is consumed.
+
+#### User-Mode Scheduling (UMS)
+
+Windows 7+ allows applications to manage their own thread scheduling in user space — similar to green threads (Tokio from LN6) but at the OS level. Used by SQL Server and other high-performance applications that need tighter control over scheduling than the kernel provides.
+
+### CFS vs Windows Comparison
+
+| Aspect | Linux CFS | Windows Dispatcher |
+| :--- | :--- | :--- |
+| Core algorithm | Fair-share (vruntime) | Priority-based (32 levels) |
+| Data structure | Red-black tree, O(log n) | Bitmap + linked lists, O(1) |
+| Fairness model | Proportional (weighted by nice) | Priority classes + dynamic boosting |
+| I/O handling | Naturally low vruntime | Explicit I/O completion boost |
+| Container support | cgroups | Job objects |
+| Foreground boost | No special treatment | Active window gets priority boost |
+
+### Multiprocessor Scheduling
+
+Both Linux and Windows must handle multi-core systems. Three key concepts:
+
+- **Affinity scheduling:** Keep a process on the same core to preserve warm L1/L2 cache. Migrating means cold cache misses and wasted time rebuilding.
+- **Gang scheduling:** Schedule all threads of a related process together so they can communicate via shared memory without blocking. Critical for parallel applications.
+- **Work stealing:** Idle cores steal tasks from busy cores' run queues. Used by Linux CFS across per-CPU queues, and by Rust's **Rayon** library (from LN7!).
+
+---
+
+## Beyond Basic Scheduling
+
+### Policy vs Mechanism
+
+Up until now, the scheduler works alone. But what if the **process provides input** to the scheduling decision?
+
+The scheduler maintains an overall **policy** (e.g., "prioritize short bursts"), parameterized by information each process provides (e.g., estimated runtime). Different processes produce different **mechanisms** — like upgrading a class from a no-argument constructor to one with parameters that produce varied instances.
+
+### Thread Scheduling
+
+We've been scheduling processes, but processes are made of threads. Why not schedule threads instead? Thread scheduling operates at two levels:
+- **User-level:** The runtime (like Tokio) schedules green threads cooperatively
+- **Kernel-level:** The OS schedules kernel threads preemptively
+
+Both LN6's green threads and the Windows UMS concept are thread-level scheduling in action.
+
+### Three-Level Scheduling
+
+Scheduling isn't just a CPU problem. "Zooming out" reveals three levels:
+
+| Level | Scheduler | Role |
+| :--- | :--- | :--- |
+| **Admission** | Long-term | Queue processes from storage to RAM. Admits a good mix of I/O and compute-bound. Can evict processes back to storage if RAM is full. |
+| **Memory** | Medium-term | Manage the degree of multiprogramming (how many processes in RAM). Balance liveliness, memory footprint, and priority. |
+| **CPU** | Short-term | What we've been discussing: which <ScheduleTag type="ready">ready</ScheduleTag> process gets the CPU next. |
+
+The admission scheduler feeds the memory scheduler, which feeds the CPU scheduler. Each level has its own concerns and constraints.
+
+---
+
+## Summary
+
+| Algorithm | System | Key Feature | Type | Strengths | Weaknesses |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **FCFS** | Batch | FIFO Queue | Coop/Pre | Simple, minimal overhead | Convoy effect |
+| **SJF** | Batch | Priority Queue (runtime) | Cooperative | Optimal turnaround | Requires future knowledge |
+| **SRTN** | Batch | Dynamic PQ (remaining) | Preemptive | Good turnaround, dynamic | Requires runtime estimates |
+| **Round Robin** | Interactive | Time Quantum | Preemptive | Fair, responsive | Context switch overhead |
+| **Priority** | Interactive | Priority Value | Both | Maintains invariants | Starvation risk |
+| **MLFQ** | Interactive | Multi-Queue + Demotion | Preemptive | Auto-separates process types | Complex to tune |
+| **SPN** | Interactive | CPU History / Aging | Preemptive | General shortest-first | Weak estimates |
+| **Guaranteed / Fair-Share** | Interactive | Promises + User Roles | Both | Policy-driven, composable | Requires monitoring |
+| **Lottery** | Interactive | Tickets | Preemptive | Analyzable CPU share | Probabilistic |
+| **RMS** | Real-Time | Period Frequency | Static | Optimal fixed-priority | 69.3% ceiling |
+| **EDF** | Real-Time | Earliest Deadline | Dynamic | 100% utilization | Domino effect |
+| **CFS** | Real-World | Virtual Runtime (RBT) | Preemptive | True proportional fairness | O(log n) not O(1) |
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **FCFS** | First Come First Serve — FIFO queue, simple but convoy-prone |
+| **SJF** | Shortest Job First — optimal turnaround, requires future knowledge |
+| **SRTN** | Shortest Remaining Time Next — dynamic preemptive SJF |
+| **Round Robin** | Fixed time quantum, fair but overhead tradeoff |
+| **MLFQ** | Multi-Level Feedback Queue — auto-separates process types through behavior |
+| **Lottery** | Ticket-based proportional CPU share |
+| **Guaranteed / Fair-Share** | Promise-driven scheduling, composable algorithms, user-role fairness |
+| **RMS** | Rate-Monotonic Scheduling — static, fixed-priority, 69.3% ceiling |
+| **EDF** | Earliest Deadline First — dynamic, 100% utilization, domino risk |
+| **CFS** | Completely Fair Scheduler — Linux's vruntime + red-black tree |
+| **Convoy Effect** | Large jobs starving small ones in FCFS (head-of-line blocking) |
+| **Starvation** | Process could run but never gets selected (policy failure) |
+| **Schedulability** | Sum of (Cost/Period) must not exceed 1 for valid real-time schedules |
+
+**Algorithm Selection Guide:**
+
+```
+Need throughput?          → SJF / SRTN (Batch)
+Need responsiveness?      → Round Robin / MLFQ (Interactive)
+Need deadlines?           → RMS / EDF (Real-Time)
+Need analyzable shares?   → Lottery / CFS (Fair-Share)
+Need safety-critical?     → RMS (predictable failure over domino)
+Need policy-driven?       → Guaranteed / Fair-Share (compose algorithms)
+```
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 7-9: Scheduling](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free textbook covering FCFS, SJF, RR, MLFQ in depth
+- [Modern Operating Systems (Tanenbaum) Ch. 2.4](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — Comprehensive scheduling coverage
+- [Lottery Scheduling Paper (Waldspurger & Weihl, 1994)](https://www.usenix.org/legacy/publications/library/proceedings/osdi/full_papers/waldspurger.pdf) — The original lottery scheduling paper
+
+### Real-World Scheduler References
+
+- [Linux CFS Documentation](https://docs.kernel.org/scheduler/sched-design-CFS.html) — Official CFS design document
+- [Understanding the Linux Kernel (Bovet & Cesati)](https://www.oreilly.com/library/view/understanding-the-linux/0596005652/) — Deep dive into Linux internals
+- [Windows Internals (Russinovich et al.)](https://learn.microsoft.com/en-us/sysinternals/resources/windows-internals) — Windows scheduler architecture
+
+### Real-Time Systems
+
+- [Rate-Monotonic Analysis (SEI/CMU)](https://resources.sei.cmu.edu/library/asset-view.cfm?assetid=5123) — RMS formal analysis
+- [What Really Happened on Mars (Microsoft Research)](https://www.microsoft.com/en-us/research/publication/what-really-happened-on-mars/) — The Pathfinder priority inversion story
+
+### Historical References
+
+- [The O(1) Scheduler (Linux 2.6)](https://lwn.net/Articles/15505/) — The scheduler CFS replaced
+- [MLFQ: A Multi-Level Feedback Queue](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-mlfq.pdf) — OSTEP's excellent MLFQ chapter
+
+</LectureResources>
