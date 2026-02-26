@@ -178,8 +178,8 @@ reads as: "apply the function $(\lambda x.\; x \times x)$ to the argument $5$."
 <ReductionStepper
   title="Calling square(5) by hand"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda x.\\; x \\times x)} \\;\\; \\textcolor{blue}{5}", description: "We have a function (orange) applied to an argument (blue)" },
-    { formula: "\\textcolor{blue}{5} \\times \\textcolor{blue}{5}", description: "Replace every x in the body with 5" },
+    { formula: "(\\lambda x.\\; x \\times x) \\;\\; 5", description: "We have a function (orange) applied to an argument (blue)" },
+    { formula: "5 \\times 5", description: "Replace every x in the body with 5" },
     { formula: "25", description: "Compute the result" }
   ]}
 />
@@ -189,8 +189,8 @@ Let's do a few more:
 <ReductionStepper
   title="Calling add_one(7) by hand"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda x.\\; x + 1)} \\;\\; \\textcolor{blue}{7}", description: "Apply the increment function to 7" },
-    { formula: "\\textcolor{blue}{7} + 1", description: "Replace x with 7" },
+    { formula: "(\\lambda x.\\; x + 1) \\;\\; 7", description: "Apply the increment function to 7" },
+    { formula: "7 + 1", description: "Replace x with 7" },
     { formula: "8", description: "Compute the result" }
   ]}
 />
@@ -198,8 +198,8 @@ Let's do a few more:
 <ReductionStepper
   title="Calling a doubling function on 6"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda n.\\; n \\times 2)} \\;\\; \\textcolor{blue}{6}", description: "Apply the doubling function to 6" },
-    { formula: "\\textcolor{blue}{6} \\times 2", description: "Replace n with 6" },
+    { formula: "(\\lambda n.\\; n \\times 2) \\;\\; 6", description: "Apply the doubling function to 6" },
+    { formula: "6 \\times 2", description: "Replace n with 6" },
     { formula: "12", description: "Done!" }
   ]}
 />
@@ -260,8 +260,8 @@ And here's the step-by-step evaluation in the lambda calculus:
 <ReductionStepper
   title="Curried addition: (λx. λy. x + y) 3 5"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda x.\\; \\lambda y.\\; x + y)} \\;\\; \\textcolor{blue}{3} \\;\\; 5", description: "Apply the outer function (orange) to 3 (blue) first" },
-    { formula: "\\textcolor{orange}{(\\lambda y.\\; 3 + y)} \\;\\; \\textcolor{blue}{5}", description: "Replace x with 3 — we get a new function waiting for y" },
+    { formula: "(\\lambda x.\\; \\lambda y.\\; x + y) \\;\\; 3 \\;\\; 5", description: "Apply the outer function (orange) to 3 (blue) first" },
+    { formula: "(\\lambda y.\\; 3 + y) \\;\\; 5", description: "Replace x with 3 — we get a new function waiting for y" },
     { formula: "3 + 5", description: "Replace y with 5" },
     { formula: "8", description: "Compute the result" }
   ]}
@@ -299,8 +299,8 @@ multiply(4)(7)  # => 28
 <ReductionStepper
   title="Curried multiplication: (λx. λy. x × y) 4 7"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda x.\\; \\lambda y.\\; x \\times y)} \\;\\; \\textcolor{blue}{4} \\;\\; 7", description: "Apply the outer function to 4" },
-    { formula: "\\textcolor{orange}{(\\lambda y.\\; 4 \\times y)} \\;\\; \\textcolor{blue}{7}", description: "Replace x with 4 — now waiting for y" },
+    { formula: "(\\lambda x.\\; \\lambda y.\\; x \\times y) \\;\\; 4 \\;\\; 7", description: "Apply the outer function to 4" },
+    { formula: "(\\lambda y.\\; 4 \\times y) \\;\\; 7", description: "Replace x with 4 — now waiting for y" },
     { formula: "4 \\times 7", description: "Replace y with 7" },
     { formula: "28", description: "Done!" }
   ]}
@@ -356,10 +356,10 @@ Now let's apply `twice` to `add_one` and `5`:
 <ReductionStepper
   title="twice add_one 5 — calling by hand"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda f.\\; \\lambda x.\\; f\\;(f\\;x))} \\;\\; \\textcolor{blue}{(\\lambda x.\\; x + 1)} \\;\\; 5", description: "Apply twice (orange) to add_one (blue) and 5" },
-    { formula: "\\textcolor{orange}{(\\lambda x.\\; (\\lambda x.\\; x + 1)\\;((\\lambda x.\\; x + 1)\\;x))} \\;\\; \\textcolor{blue}{5}", description: "Replace f with add_one — now apply to 5" },
-    { formula: "(\\lambda x.\\; x + 1)\\;\\textcolor{orange}{((\\lambda x.\\; x + 1)\\;5)}", description: "Replace x with 5 — evaluate inner call first" },
-    { formula: "(\\lambda x.\\; x + 1)\\;\\textcolor{orange}{6}", description: "Inner call: 5 + 1 = 6" },
+    { formula: "(\\lambda f.\\; \\lambda x.\\; f\\;(f\\;x)) \\;\\; (\\lambda x.\\; x + 1) \\;\\; 5", description: "Apply twice (orange) to add_one (blue) and 5" },
+    { formula: "(\\lambda x.\\; (\\lambda x.\\; x + 1)\\;((\\lambda x.\\; x + 1)\\;x)) \\;\\; 5", description: "Replace f with add_one — now apply to 5" },
+    { formula: "(\\lambda x.\\; x + 1)\\;((\\lambda x.\\; x + 1)\\;5)", description: "Replace x with 5 — evaluate inner call first" },
+    { formula: "(\\lambda x.\\; x + 1)\\;6", description: "Inner call: 5 + 1 = 6" },
     { formula: "6 + 1", description: "Outer call: replace x with 6" },
     { formula: "7", description: "Done! twice add_one 5 = 7" }
   ]}
@@ -465,8 +465,8 @@ Let's make it explicit with addition:
 <ReductionStepper
   title="β-reduction: (λx. λy. x + y) 3 5"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda x.\\; \\lambda y.\\; x + y)} \\;\\; \\textcolor{blue}{3} \\;\\; 5", description: "Apply the outer function (orange) to 3 (blue)" },
-    { formula: "\\textcolor{orange}{(\\lambda y.\\; 3 + y)} \\;\\; \\textcolor{blue}{5}", description: "Replace x with 3 — now apply the inner function to 5" },
+    { formula: "(\\lambda x.\\; \\lambda y.\\; x + y) \\;\\; 3 \\;\\; 5", description: "Apply the outer function (orange) to 3 (blue)" },
+    { formula: "(\\lambda y.\\; 3 + y) \\;\\; 5", description: "Replace x with 3 — now apply the inner function to 5" },
     { formula: "3 + 5", description: "Replace y with 5" },
     { formula: "8", description: "Done!" }
   ]}
@@ -479,10 +479,10 @@ Let's do a more complex one — applying `twice` to `multiply_by_two` and `3`:
 <ReductionStepper
   title="β-reduction: twice multiply_by_two 3"
   steps={[
-    { formula: "\\textcolor{orange}{(\\lambda f.\\; \\lambda x.\\; f\\;(f\\;x))} \\;\\; \\textcolor{blue}{(\\lambda x.\\; x \\times 2)} \\;\\; 3", description: "Apply twice (orange) to multiply_by_two (blue) and 3" },
-    { formula: "(\\lambda x.\\; (\\lambda x.\\; x \\times 2)\\;((\\lambda x.\\; x \\times 2)\\;x)) \\;\\; \\textcolor{blue}{3}", description: "Replace f with the multiplier — now apply to 3" },
-    { formula: "(\\lambda x.\\; x \\times 2)\\;\\textcolor{orange}{((\\lambda x.\\; x \\times 2)\\;3)}", description: "Replace x with 3 — evaluate inner call" },
-    { formula: "(\\lambda x.\\; x \\times 2)\\;\\textcolor{orange}{6}", description: "Inner: 3 × 2 = 6" },
+    { formula: "(\\lambda f.\\; \\lambda x.\\; f\\;(f\\;x)) \\;\\; (\\lambda x.\\; x \\times 2) \\;\\; 3", description: "Apply twice (orange) to multiply_by_two (blue) and 3" },
+    { formula: "(\\lambda x.\\; (\\lambda x.\\; x \\times 2)\\;((\\lambda x.\\; x \\times 2)\\;x)) \\;\\; 3", description: "Replace f with the multiplier — now apply to 3" },
+    { formula: "(\\lambda x.\\; x \\times 2)\\;((\\lambda x.\\; x \\times 2)\\;3)", description: "Replace x with 3 — evaluate inner call" },
+    { formula: "(\\lambda x.\\; x \\times 2)\\;6", description: "Inner: 3 × 2 = 6" },
     { formula: "6 \\times 2", description: "Outer: replace x with 6" },
     { formula: "12", description: "Done! twice multiply_by_two 3 = 12" }
   ]}
@@ -509,10 +509,10 @@ This looks complicated, but let's trace through it with beta reductions:
 <ReductionStepper
   title="η-reduction: peeling off useless layers"
   steps={[
-    { formula: "(\\lambda x.\\; \\textcolor{orange}{(\\lambda y.\\; (\\lambda z.\\; z + 1)\\; y)} \\;\\; \\textcolor{blue}{x})", description: "The outer function receives x and passes it to the middle layer..." },
-    { formula: "(\\lambda x.\\; \\textcolor{orange}{(\\lambda z.\\; z + 1)} \\;\\; \\textcolor{blue}{x})", description: "Middle layer receives x as y, passes it to the inner layer..." },
+    { formula: "(\\lambda x.\\; (\\lambda y.\\; (\\lambda z.\\; z + 1)\\; y) \\;\\; x)", description: "The outer function receives x and passes it to the middle layer..." },
+    { formula: "(\\lambda x.\\; (\\lambda z.\\; z + 1) \\;\\; x)", description: "Middle layer receives x as y, passes it to the inner layer..." },
     { formula: "(\\lambda x.\\; x + 1)", description: "Inner layer receives x as z — the outer two layers did nothing!" },
-    { formula: "\\textcolor{green}{(\\lambda z.\\; z + 1)}", description: "By α-reduction, this is the same as the innermost function all along!" }
+    { formula: "(\\lambda z.\\; z + 1)", description: "By α-reduction, this is the same as the innermost function all along!" }
   ]}
 />
 

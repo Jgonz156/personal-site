@@ -1,0 +1,650 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ReductionStepper } from "@/components/reduction-stepper"
+import { CodeComparison } from "@/components/code-comparison"
+
+## Recap
+
+Last time we introduced **the lambda calculus** — a formal system for representing computation as step-by-step symbol manipulation. We saw how Python functions map directly to LC expressions, learned that **currying** lets us handle multiple parameters one at a time, and discovered that functions can be passed as arguments to other functions (first-class functions).
+
+Most importantly, we met the **three reductions** — the only substitution rules we'll ever need:
+
+| Reduction | What It Does |
+| :--- | :--- |
+| $\alpha$ (Alpha) | Rename parameters consistently |
+| $\beta$ (Beta) | Substitute argument for parameter in body ("call by hand") |
+| $\eta$ (Eta) | Remove unnecessary function wrappers |
+
+We practiced each one informally. Today, we're going to stress-test them by exploring what happens when they go **wrong**.
+
+---
+
+## Today's Agenda
+
+- **When Alpha Goes Wrong** — Renaming into disaster
+- **When Beta Goes Wrong** — Mismapping arguments
+- **When Eta Goes Wrong** — Peeling off too much or too little
+- **The Common Thread** — Why every failure is the same kind of mistake
+- **Free and Bound Variables** — The diagnostic tool we need
+- **Proper Substitution** — The only operator on lambda expressions
+
+---
+
+## When Alpha Reduction Goes Wrong
+
+Let's start with a key premise: **the entire point of a reduction is to not change the underlying meaning.** Alpha reduction renames parameters — and when done correctly, the function behaves identically before and after.
+
+When renaming a parameter, there are **infinitely many** valid choices. You could rename $x$ to $z$, to $w$, to $\text{potato}$ — any name that doesn't cause a conflict. But here's the interesting part: there are only a **finite** number of ways to mess it up! The bad choices are exactly the variable names that already appear in the expression.
+
+### Example 1: The Constant Function Becomes the Identity
+
+Consider $(\lambda x.\; y)$ — the function that **ignores** its argument and always returns the external value $y$.
+
+What if we rename $x$ to $y$?
+
+<ReductionStepper
+  title="❌ Failed α-reduction: renaming x to y"
+  steps={[
+    { formula: "(\\lambda x.\\; y)", description: "Original: ignores its parameter (orange) and always returns the external value y (blue)" },
+    { formula: "(\\lambda y.\\; y)", description: "❌ After renaming x → y: now returns its own parameter! This is the identity function — completely different!" }
+  ]}
+/>
+
+The original function always returns the external $y$ no matter what you pass in. The "renamed" version returns whatever you give it. Let's see this in Python:
+
+<CodeComparison
+  left={{
+    title: "Before (constant function)",
+    code: '<span style="color: #f59e0b">y</span> = 10\n\n<span style="color: #9ca3af">def</span> <span style="color: #22c55e">f</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">y</span>  <span style="color: #6b7280"># always returns external y</span>\n\nf(999)  <span style="color: #6b7280"># => 10</span>'
+  }}
+  right={{
+    title: "After bad rename (identity!)",
+    code: '<span style="color: #f59e0b">y</span> = 10\n\n<span style="color: #9ca3af">def</span> <span style="color: #22c55e">g</span>(<span style="color: #f59e0b">y</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">y</span>  <span style="color: #6b7280"># returns its own parameter!</span>\n\ng(999)  <span style="color: #6b7280"># => 999 — different!</span>'
+  }}
+  annotations={[
+    { label: "Parameter", color: "#f59e0b" },
+    { label: "Returned value", color: "#3b82f6" }
+  ]}
+  caption="The parameter name 'y' shadowed the outer variable 'y', completely changing the function's behavior."
+/>
+
+### Example 2: Curried Addition Becomes Doubling
+
+Now a more complex case. Consider $(\lambda x.\; \lambda y.\; x + y)$ — curried addition that takes two arguments and adds them.
+
+What if we rename the outer parameter $x$ to $y$?
+
+<ReductionStepper
+  title="❌ Failed α-reduction: outer parameter clashes with inner"
+  steps={[
+    { formula: "(\\lambda x.\\; \\lambda y.\\; x + y)", description: "Original: takes x (orange) and y (blue), returns their sum" },
+    { formula: "(\\lambda y.\\; \\lambda y.\\; y + y)", description: "❌ After renaming x → y: both parameters are 'y'! The inner y shadows the outer y..." },
+    { formula: "(\\lambda y.\\; \\lambda y.\\; y + y)", description: "This now doubles the inner argument, ignoring the outer one entirely!" }
+  ]}
+/>
+
+<CodeComparison
+  left={{
+    title: "Before (addition)",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">add</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">def</span> <span style="color: #22c55e">inner</span>(<span style="color: #3b82f6">y</span>):\n        <span style="color: #9ca3af">return</span> <span style="color: #f59e0b">x</span> + <span style="color: #3b82f6">y</span>\n    <span style="color: #9ca3af">return</span> inner\n\nadd(3)(5)  <span style="color: #6b7280"># => 8</span>'
+  }}
+  right={{
+    title: "After bad rename (doubling!)",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">add</span>(<span style="color: #f59e0b">y</span>):\n    <span style="color: #9ca3af">def</span> <span style="color: #22c55e">inner</span>(<span style="color: #3b82f6">y</span>):\n        <span style="color: #9ca3af">return</span> <span style="color: #f59e0b">y</span> + <span style="color: #3b82f6">y</span>\n    <span style="color: #9ca3af">return</span> inner\n\nadd(3)(5)  <span style="color: #6b7280"># => 10, not 8!</span>'
+  }}
+  annotations={[
+    { label: "First parameter", color: "#f59e0b" },
+    { label: "Second parameter", color: "#3b82f6" }
+  ]}
+  caption="The inner 'y' shadows the outer 'y', so the first argument (3) is completely ignored."
+/>
+
+### The Pattern
+
+Notice that the finite ways to "mess up" alpha reduction all involve **clashes between variable names**. When we rename a parameter to a name that already exists in the expression, variables can suddenly change their role:
+
+- A **free** variable (one that referred to something outside) becomes **bound** (captured by the new parameter name)
+- A **bound** variable (owned by a specific lambda) can lose its connection when its lambda's parameter changes
+
+> **📌 Key Insight:** Alpha reduction fails when the new name collides with an existing variable, causing it to either gain or lose its connection to a lambda. The variable's **scope** gets altered.
+
+---
+
+## When Beta Reduction Goes Wrong
+
+Beta reduction is "calling a function by hand" — substituting the argument for the parameter throughout the body. How do we mess up calling a function? By **mismapping** the argument into the body. There are several ways this can happen.
+
+### Example 1: Under-Matching (Missing a Substitution)
+
+Consider $(\lambda x.\; x + x) \;\; 5$. The correct beta reduction replaces **every** $x$ in the body with $5$:
+
+<ReductionStepper
+  title="❌ Failed β-reduction: under-matching"
+  steps={[
+    { formula: "(\\lambda x.\\; x + x) \\;\\; 5", description: "Apply the squaring-by-addition function (orange) to 5 (blue)" },
+    { formula: "5 + x", description: "❌ Only replaced one x! The other x is now undefined — it lost its definition" },
+    { formula: "5 + 5 = 10", description: "✅ Correct: replace ALL occurrences → 5 + 5 = 10" }
+  ]}
+/>
+
+<CodeComparison
+  left={{
+    title: "Correct substitution",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">double_add</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x + x</span>\n\ndouble_add(5)  <span style="color: #6b7280"># => 10</span>'
+  }}
+  right={{
+    title: "❌ Under-matching",
+    code: '<span style="color: #6b7280"># As if we only replaced one x:</span>\n<span style="color: #9ca3af">result =</span> <span style="color: #3b82f6">5</span> + <span style="color: #f59e0b">x</span>  <span style="color: #6b7280"># NameError! x is undefined</span>\n\n<span style="color: #6b7280"># The variable x was LOCAL to the function.</span>\n<span style="color: #6b7280"># Not replacing it "freed" it from its scope.</span>'
+  }}
+  annotations={[
+    { label: "Correctly replaced", color: "#3b82f6" },
+    { label: "Left behind (freed!)", color: "#f59e0b" }
+  ]}
+  caption="Under-matching leaves a variable that was locally scoped without its definition — it escapes its scope."
+/>
+
+When we under-match, a variable that had **local scope** (bound to the function's parameter) suddenly has no definition — it has been **freed** from its binding.
+
+### Example 2: Over-Matching (Replacing Too Much)
+
+Consider $(\lambda x.\; (\lambda x.\; x + 1) \;\; x) \;\; 5$. The outer $x$ should be replaced, but the inner $x$ belongs to a different lambda.
+
+<ReductionStepper
+  title="❌ Failed β-reduction: over-matching"
+  steps={[
+    { formula: "(\\lambda x.\\; (\\lambda x.\\; x + 1) \\;\\; x) \\;\\; 5", description: "Apply the outer function (orange) to 5 (blue)" },
+    { formula: "(\\lambda x.\\; 5 + 1) \\;\\; 5", description: "❌ Replaced the INNER x too! That x belongs to the inner lambda, not the outer one" },
+    { formula: "(\\lambda x.\\; x + 1) \\;\\; 5", description: "✅ Correct: only replace the outer x → apply inner function to 5 → 6" }
+  ]}
+/>
+
+<CodeComparison
+  left={{
+    title: "Correct substitution",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">outer</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">def</span> <span style="color: #22c55e">inner</span>(<span style="color: #3b82f6">x</span>):\n        <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x</span> + 1\n    <span style="color: #9ca3af">return</span> inner(<span style="color: #f59e0b">x</span>)\n\nouter(5)  <span style="color: #6b7280"># => 6</span>'
+  }}
+  right={{
+    title: "❌ Over-matching",
+    code: '<span style="color: #6b7280"># As if inner\'s x was also replaced:</span>\n<span style="color: #9ca3af">def</span> <span style="color: #22c55e">inner</span>(<span style="color: #3b82f6">x</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #f59e0b">5</span> + 1  <span style="color: #6b7280"># always 6, ignoring x!</span>\ninner(5)  <span style="color: #6b7280"># => 6 (looks right by coincidence)</span>\ninner(99) <span style="color: #6b7280"># => 6 (but this reveals the bug!)</span>'
+  }}
+  annotations={[
+    { label: "Outer x (should be replaced)", color: "#f59e0b" },
+    { label: "Inner x (should NOT be replaced)", color: "#3b82f6" }
+  ]}
+  caption="Over-matching ignores scope boundaries — the inner x was bound to the inner lambda, not the outer one."
+/>
+
+### Example 3: Variable Capture (A Free Variable Becomes Bound)
+
+This is the most subtle and dangerous case. Consider $(\lambda x.\; \lambda y.\; x \;\; y) \;\; y$:
+
+<ReductionStepper
+  title="❌ Failed β-reduction: variable capture"
+  steps={[
+    { formula: "(\\lambda x.\\; \\lambda y.\\; x \\;\\; y) \\;\\; y", description: "Apply function (orange) to the external variable y (blue)" },
+    { formula: "\\lambda y.\\; y \\;\\; y", description: "❌ Naive substitution: replaced x with y — but now the external y got captured by λy!" },
+    { formula: "\\lambda y.\\; y \\;\\; y", description: "❌ This is now self-application — a completely different function!" },
+    { formula: "\\lambda y.\\; y_{\\text{ext}} \\;\\; y", description: "✅ Correct result should preserve that the first y comes from outside" }
+  ]}
+/>
+
+<CodeComparison
+  left={{
+    title: "Correct behavior",
+    code: '<span style="color: #3b82f6">y</span> = "external"\n\n<span style="color: #9ca3af">def</span> <span style="color: #22c55e">apply_to</span>(<span style="color: #f59e0b">x</span>):\n    <span style="color: #9ca3af">def</span> <span style="color: #22c55e">inner</span>(<span style="color: #a855f7">y</span>):\n        <span style="color: #9ca3af">return</span> <span style="color: #f59e0b">x</span>(<span style="color: #a855f7">y</span>)  <span style="color: #6b7280"># x is the external y</span>\n    <span style="color: #9ca3af">return</span> inner\n\n<span style="color: #6b7280"># apply_to(y) should give a function</span>\n<span style="color: #6b7280"># that applies the EXTERNAL y to its argument</span>'
+  }}
+  right={{
+    title: "❌ After capture",
+    code: '<span style="color: #6b7280"># After naive substitution:</span>\n<span style="color: #9ca3af">def</span> <span style="color: #22c55e">inner</span>(<span style="color: #a855f7">y</span>):\n    <span style="color: #9ca3af">return</span> <span style="color: #a855f7">y</span>(<span style="color: #a855f7">y</span>)  <span style="color: #6b7280"># self-application!</span>\n\n<span style="color: #6b7280"># The external y got "captured" by</span>\n<span style="color: #6b7280"># the inner parameter y — totally wrong!</span>'
+  }}
+  annotations={[
+    { label: "External y (should stay external)", color: "#3b82f6" },
+    { label: "Inner parameter y", color: "#a855f7" }
+  ]}
+  caption="The free variable y in the argument was 'captured' by the inner λy, changing its meaning entirely."
+/>
+
+### The Pattern
+
+Beta reduction fails when the **scope** of variables is altered:
+
+- **Under-matching** frees a bound variable — a variable that was local to the function suddenly has no definition
+- **Over-matching** replaces a variable we shouldn't — ignoring that it belongs to a different scope
+- **Capture** binds a free variable — a globally scoped variable accidentally becomes local
+
+> **📌 Key Insight:** Beta reduction fails when the scope of our variables is altered, either **freeing a bound variable** or **capturing a free one**.
+
+---
+
+## When Eta Reduction Goes Wrong
+
+Eta reduction "peels off" unnecessary function wrappers. When it goes wrong, we either take **too little** or **too much**.
+
+### Example 1: Under-Removing (Leaving a Wrapper)
+
+Consider $(\lambda x.\; (\lambda y.\; f \;\; y) \;\; x)$. Both wrappers are useless — the expression is just $f$. But if we only remove the outer layer:
+
+<ReductionStepper
+  title="❌ Failed η-reduction: under-removing"
+  steps={[
+    { formula: "(\\lambda x.\\; (\\lambda y.\\; f \\;\\; y) \\;\\; x)", description: "Two unnecessary layers around f. Let's try eta-reducing..." },
+    { formula: "(\\lambda y.\\; f \\;\\; y)", description: "❌ Only removed the outer wrapper! This is still just f wrapped in a useless layer" },
+    { formula: "f", description: "✅ Correct: both layers are redundant — the whole thing is just f" }
+  ]}
+/>
+
+Under-removal isn't "wrong" exactly — $(\lambda y.\; f \;\; y)$ still has the same meaning as $f$ — but it's incomplete. We stopped simplifying too early. The function still has an unnecessary layer that should be peeled off.
+
+### Example 2: Over-Removing (Taking Too Much)
+
+Consider $(\lambda x.\; x \;\; x)$ — the **self-application** function. It takes an argument and applies it to itself.
+
+If we naively try to eta-reduce by "removing the wrapper":
+
+<ReductionStepper
+  title="❌ Failed η-reduction: over-removing"
+  steps={[
+    { formula: "(\\lambda x.\\; x \\;\\; x)", description: "Self-application: takes x and applies x to itself. Both x's are bound by the lambda." },
+    { formula: "x", description: "❌ Removed the lambda entirely! Now x is a bare, undefined variable — it escaped its binding!" },
+    { formula: "(\\lambda x.\\; x \\;\\; x)", description: "✅ Correct: this is NOT reducible! The lambda is essential — it binds x." }
+  ]}
+/>
+
+The original was a self-contained function. The "reduced" version is a bare variable $x$ — it **escaped** from its binding! A variable that was safely **bound** by the lambda became **free**.
+
+### The Pattern
+
+How do we recognize when we've taken too much or too little?
+
+- **Under-removal**: the remaining wrapper just passes its argument through unchanged — it's still a candidate for eta reduction
+- **Over-removal**: bound variables escape their lambda — they become undefined free variables
+
+> **📌 Key Insight:** Eta reduction is correct when what needs to be **bound** stays bound and what needs to be **free** stays free!
+
+---
+
+## The Common Thread
+
+Let's step back and look at all three failure types together:
+
+| Failure | What Happened | The Scope Problem |
+| :--- | :--- | :--- |
+| $\lambda x.\; y \;\not\Rightarrow\; \lambda y.\; y$ | Free $y$ became bound | Renamed $x$ to $y$, but $y$ was already used in the body |
+| $(\lambda x.\; \lambda y.\; x\; y)\; y \;\not\Rightarrow\; \lambda y.\; y\; y$ | Free $y$ in argument became bound | Substituting $y$ put it inside $\lambda y$, capturing it |
+| $\lambda x.\; x\; x \;\not\Rightarrow\; x$ | Bound $x$ became free | Removing the $\lambda$ freed a previously bound variable |
+
+Every single failure comes down to the same mistake: **accidentally altering the scope of a variable.** There are exactly two ways this can happen:
+
+1. **Capture** — a free variable becomes bound (it gets "trapped" by a lambda it didn't belong to)
+2. **Escape** — a bound variable becomes free (it loses the lambda that was defining it)
+
+An advantage of the lambda calculus, which initially felt like a disadvantage, is that since we only have **single-parameter functions**, the only way these reductions can go wrong is by altering **only one variable's scope** at a time! This makes errors much easier to diagnose than in a language with multi-parameter functions.
+
+So to get really good at the reductions, all we need to do is **practice identifying the scope of every variable in an LC expression and ensuring all their scopes stay the same after a reduction.**
+
+That means we need a precise way to talk about which variables are "owned" by a lambda and which reference something external. Enter: **free and bound variables**.
+
+---
+
+## Free and Bound Variables
+
+<DefinitionBox term="Bound and Free Variable Occurrences">
+
+A variable **occurrence** is **bound** if it appears within the body of a lambda ($\lambda$) that uses the same variable as its parameter. A variable occurrence is **free** if it is not bound by any enclosing lambda.
+
+</DefinitionBox>
+
+> **⚠️ Important:** The same variable *name* can appear both free and bound in the same expression. Always think about **occurrences**, not just names.
+
+Let's build intuition through examples. We'll mark free occurrences with a superscript ${}^f$ and leave bound occurrences unmarked.
+
+**Simple cases:**
+
+<DisplayMath formula="x^f" />
+
+Just a bare variable — it's free. No lambda binds it.
+
+<DisplayMath formula="\lambda x.\; x" />
+
+The $x$ in the body is bound — the lambda $\lambda x$ owns it.
+
+<DisplayMath formula="\lambda x.\; y^f" />
+
+The $y$ is free — there's a lambda, but it binds $x$, not $y$.
+
+**Medium: free and bound in the same expression**
+
+<DisplayMath formula="(\lambda x.\; x) \;\; x^f" />
+
+The first $x$ (inside the lambda body) is **bound**. The second $x$ (the argument) is **free**. Same name, different roles!
+
+<DisplayMath formula="(\lambda x.\; x \;\; y^f)" />
+
+The $x$ is bound by $\lambda x$. The $y$ is free — nothing binds it.
+
+**Complex: curried parameters and relative scope**
+
+<DisplayMath formula="(\lambda x.\; \lambda y.\; x + y)" />
+
+Both $x$ and $y$ are bound — each by their respective lambda.
+
+Now here's the tricky part. Look at $y$ relative to the *inner* lambda only:
+
+<DisplayMath formula="\lambda x.\; (\lambda y.\; \underbrace{x^f}_{free\;in\;inner!} + y)" />
+
+Relative to the inner lambda $(\lambda y.\; x + y)$, the variable $x$ is **free** — it's not bound by $\lambda y$. But zoom out to the full expression, and $x$ is bound by the outer $\lambda x$. A variable that is free relative to one lambda isn't necessarily free overall — it could be a **curried parameter** from an outer context!
+
+---
+
+### Scope in Python vs. Scope in LC
+
+This maps directly to Python's scope rules. Consider:
+
+```python
+def make_adder(n):
+    def inner(x):
+        return x + n
+    return inner
+
+add5 = make_adder(5)
+add5(3)  # => 8
+```
+
+In the inner function, $x$ is a **local variable** (bound — it's `inner`'s parameter). But $n$ is a **closure variable** — it comes from the enclosing scope. Relative to `inner`, $n$ is **free**. But relative to the whole `make_adder`, $n$ is **bound** (it's `make_adder`'s parameter).
+
+<CodeComparison
+  left={{
+    title: "Python",
+    code: '<span style="color: #9ca3af">def</span> <span style="color: #22c55e">make_adder</span>(<span style="color: #f59e0b">n</span>):      <span style="color: #6b7280"># n is BOUND</span>\n    <span style="color: #9ca3af">def</span> <span style="color: #22c55e">inner</span>(<span style="color: #3b82f6">x</span>):        <span style="color: #6b7280"># x is BOUND</span>\n        <span style="color: #9ca3af">return</span> <span style="color: #3b82f6">x</span> + <span style="color: #f59e0b">n</span>    <span style="color: #6b7280"># n is FREE in inner</span>\n    <span style="color: #9ca3af">return</span> inner'
+  }}
+  right={{
+    title: "Lambda Calculus",
+    code: '(<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">n</span><span style="color: #9ca3af">.</span> (<span style="color: #9ca3af">λ</span><span style="color: #3b82f6">x</span><span style="color: #9ca3af">.</span> <span style="color: #3b82f6">x</span> + <span style="color: #f59e0b">n</span>))\n\n<span style="color: #6b7280">n is free in (λx. x + n)</span>\n<span style="color: #6b7280">but bound in (λn. (λx. x + n))</span>'
+  }}
+  annotations={[
+    { label: "Outer parameter (n)", color: "#f59e0b" },
+    { label: "Inner parameter (x)", color: "#3b82f6" }
+  ]}
+  caption="Bound variables are parameters. Free variables are what closures capture from the enclosing scope."
+/>
+
+Here's another example showing how scope works across nested functions:
+
+```python
+z = 42
+
+def outer(x):
+    def middle(y):
+        def inner(w):
+            return w + x + y + z
+        return inner
+    return middle
+
+outer(1)(2)(3)  # => 3 + 1 + 2 + 42 = 48
+```
+
+In `inner`: $w$ is bound (its own parameter), $x$ and $y$ are free (closure variables from enclosing scopes), and $z$ is free (global variable). But zoom out: $x$ is bound by `outer`, $y$ is bound by `middle`. Only $z$ is truly free at the top level.
+
+---
+
+## Identifying Free and Bound Variables
+
+Now let's formalize this. We define $FV(E)$ (the set of **free** variables) and $BV(E)$ (the set of **bound** variables) recursively:
+
+| Expression | $FV$ | $BV$ |
+| :--- | :--- | :--- |
+| $k$ (constant) | $\varnothing$ | $\varnothing$ |
+| $x$ (variable) | $\{x\}$ | $\varnothing$ |
+| $\lambda x.\; M$ (only bound vars in body) | $\varnothing$ | $BV(M) \cup \{x\}$ |
+| $\lambda x.\; M$ (free vars in body) | $FV(M) - \{x\}$ | $BV(M) \cup \{x\}$ |
+| $E_1 \;\; E_2$ (application) | $FV(E_1) \cup FV(E_2)$ | $BV(E_1) \cup BV(E_2)$ |
+| $\lambda x.\; E$ (general case) | $FV(E) - \{x\}$ | $BV(E) \cup \{x\}$ |
+
+Let's read this table carefully:
+
+- **Constants** ($k$): No variables at all, so both sets are empty.
+- **Variables** ($x$): A bare variable is always free — nothing binds it.
+- **Lambda abstraction** ($\lambda x.\; E$): This is the **only** row where the sets change! The parameter $x$ moves from free to bound. Whatever was free inside $E$ stays free **except** $x$ (which the lambda now binds). Whatever was bound inside $E$ stays bound, **plus** $x$ joins the bound set.
+- **Application** ($E_1 \;\; E_2$): Just combine! The free variables of the whole application are the union of the free variables of both parts. Same for bound. Bringing two expressions together (before beta reduction) does **not** change what is free and what is bound.
+
+> **📌 Key Insight:** The only time the free/bound status of a variable can change is when we cross a **lambda boundary**. Application just unions everything. This is why all our reduction failures involved lambdas — they're the only construct that alters scope.
+
+---
+
+### Worked Examples
+
+Let's practice on increasingly complex expressions. For each, we'll identify $FV$ and $BV$ from the **global** perspective.
+
+**Example 1:** $\lambda x.\; x \;\; y$
+
+- Inside the body: $FV(x \;\; y) = \{x, y\}$, $BV(x \;\; y) = \varnothing$
+- The lambda binds $x$: $FV = \{x, y\} - \{x\} = \{y\}$, $BV = \varnothing \cup \{x\} = \{x\}$
+
+<DisplayMath formula="\lambda x.\; x \;\; y^f \qquad FV = \{y\}, \; BV = \{x\}" />
+
+**Example 2:** $(\lambda x.\; x) \;\; (\lambda y.\; y \;\; z)$
+
+- Left part: $FV = \varnothing$, $BV = \{x\}$
+- Right part: inside body $FV(y \;\; z) = \{y, z\}$. Lambda binds $y$: $FV = \{z\}$, $BV = \{y\}$
+- Application unions them: $FV = \varnothing \cup \{z\} = \{z\}$, $BV = \{x\} \cup \{y\} = \{x, y\}$
+
+<DisplayMath formula="(\\lambda x.\\; x) \\;\\; (\\lambda y.\\; y \\;\\; z) \\qquad FV = \\{z\\}, \\; BV = \\{x, y\\}" />
+
+**Example 3:** $(\lambda x.\; x \;\; y) \;\; (\lambda y.\; w \;\; (\lambda w.\; w \;\; z))$
+
+Let's work through this step by step:
+- Left: body is $x \;\; y$, so $FV_\text\{body\} = \{x, y\}$. Lambda binds $x$: $FV_L = \{y\}$, $BV_L = \{x\}$
+- Right: innermost body is $w \;\; z$, so $FV = \{w, z\}$, $BV = \varnothing$. $\lambda w$ binds $w$: $FV = \{z\}$, $BV = \{w\}$. Then the body of $\lambda y$ is $w \;\; (\lambda w.\; w \;\; z)$: $FV = \{w\} \cup \{z\} = \{w, z\}$, $BV = \{w\}$. $\lambda y$ binds $y$: $FV_R = \{w, z\} - \{y\} = \{w, z\}$, $BV_R = \{w\} \cup \{y\} = \{w, y\}$
+- Application: $FV = \{y\} \cup \{w, z\} = \{y, w, z\}$, $BV = \{x\} \cup \{w, y\} = \{x, w, y\}$
+
+<DisplayMath formula="(\\lambda x.\\; x \\;\\; y) \\;\\; (\\lambda y.\\; w \\;\\; (\\lambda w.\\; w \\;\\; z))" />
+
+<DisplayMath formula="FV = \{y, w, z\}, \quad BV = \{x, w, y\}" />
+
+Notice that $w$ and $y$ each appear in **both** sets! That's because different *occurrences* of the same variable name can play different roles. The $w$ in $\lambda y$'s body is free, while the $w$ inside $\lambda w$'s body is bound.
+
+---
+
+## Proper Substitution: The Only Operator
+
+Throughout this course, we've been exploring **instances** and their **operators**: numbers have addition and multiplication, sets have union and intersection, booleans have AND and OR. We've now been working with **functions** (lambda expressions) for two lectures — but we haven't identified any operators for them!
+
+It's important to note that while we constantly view "calling a function" as an operation, it is formally best understood as a **substitution rule** (beta reduction), not an operator. So are there any operators that actually **transform** lambda expressions?
+
+There is exactly one. It's called **proper substitution**.
+
+<DefinitionBox term="Proper Substitution">
+
+The notation $E[N/x]$ is read as: **"in the lambda expression $E$, substitute $N$ for every free occurrence of $x$."**
+
+"Proper" means the substitution avoids captures — no free variable in $N$ should become bound after substitution.
+
+</DefinitionBox>
+
+### The Find & Replace Analogy
+
+Think about "Find and Replace" in a text editor. If you have a variable called `count` and you naively find-and-replace it with `total`, you might accidentally change:
+
+- A **different** variable named `count` inside a nested function
+- The word "count" inside a string like `"character count"`
+- A variable in a completely different scope
+
+Proper substitution is the **smart Find & Replace** — like an IDE's "Rename Symbol" refactoring tool. It only replaces **free** occurrences of the target variable, respecting scope boundaries. It knows not to touch variables that happen to share a name but belong to a different scope.
+
+### Simple Examples
+
+Let's see proper substitution in action with some straightforward cases:
+
+<DisplayMath formula="\texttt{times}[2/x] = \texttt{times}" />
+
+A constant — nothing to substitute.
+
+<DisplayMath formula="x[2/x] = 2" />
+
+Direct replacement — $x$ is free, so we substitute.
+
+<DisplayMath formula="y[2/x] = y" />
+
+Wrong variable — $y$ is not $x$, so we leave it alone.
+
+<DisplayMath formula="(f \;\; x)[2/x] = f \;\; 2" />
+
+Substitute into the $x$ (it's free), leave $f$ alone.
+
+<DisplayMath formula="(x \;\; x)[z/x] = z \;\; z" />
+
+Both occurrences of $x$ are free, so both get replaced.
+
+---
+
+## The Full Definition
+
+Here is the complete, formal definition of proper substitution. It handles every possible form a lambda expression can take:
+
+| $M$ | $M[N/x]$ | Rationale |
+| :--- | :--- | :--- |
+| $k$ (constant) | $k$ | Nothing to substitute |
+| $x$ | $N$ | This *is* the variable we're replacing |
+| $y$ (where $y \neq x$) | $y$ | Not the variable we're replacing |
+| $(M_1 \;\; M_2)$ | $(M_1[N/x] \;\; M_2[N/x])$ | Substitute into both parts |
+| $\lambda x.\; M$ | $\lambda x.\; M$ | $x$ is bound here — don't touch it! |
+| $\lambda y.\; M$ (where $y \neq x$) | See below | This is the tricky case... |
+
+The first five rows are straightforward. It's the last row — a lambda that binds a *different* variable than $x$ — where things get interesting.
+
+For the last case ($\lambda y.\; M$ where $y \neq x$):
+
+- **If** $y \notin FV(N)$ or $x \notin FV(M)$: no capture risk, so $(\lambda y.\; M)[N/x] = \lambda y.\; M[N/x]$
+- **Otherwise**: $y$ would get captured! So first rename $y$ to a fresh variable $z$ (not free in $M$ or $N$), then substitute: $(\lambda y.\; M)[N/x] = \lambda z.\; (M[z/y])[N/x]$
+
+> **📌 The key idea:** whenever substitution would cause a capture, rename the offending bound variable first. This is exactly like renaming a local variable during a code refactor to avoid shadowing.
+
+---
+
+### Practice
+
+| Substitution | Result | Why |
+| :--- | :--- | :--- |
+| $\texttt{times}[2/x]$ | $\texttt{times}$ | Constant — nothing to substitute |
+| $x[2/x]$ | $2$ | Direct replacement |
+| $y[2/x]$ | $y$ | Wrong variable |
+| $(f \;\; x)[2/x]$ | $f \;\; 2$ | Substitute into the $x$ |
+| $(x \;\; x)[z/x]$ | $z \;\; z$ | Both occurrences are free |
+| $(g \;\; x \;\; x)[2/x]$ | $g \;\; 2 \;\; 2$ | Both $x$'s replaced |
+| $(\lambda x.\; f \;\; x \;\; y)[2/x]$ | $\lambda x.\; f \;\; x \;\; y$ | $x$ is bound — no substitution! |
+| $(\lambda y.\; f \;\; x \;\; y)[z/x]$ | $\lambda y.\; f \;\; z \;\; y$ | Safe: $y \notin FV(z)$ |
+| $(\lambda y.\; f \;\; x \;\; y)[y/x]$ | $\lambda z.\; f \;\; y \;\; z$ | Capture alert! Rename $y \to z$ first |
+
+That last one is critical. Without the rename, we'd get $\lambda y.\; f \;\; y \;\; y$ — a completely different function! The fresh variable $z$ prevents the capture, just like renaming a local variable in a refactor.
+
+---
+
+## Decomposing the Tricky Case
+
+Let's spend more time on that last row of the proper substitution definition. When we have $(\lambda y.\; M)[N/x]$ with $y \neq x$, the condition that determines safety is:
+
+<DisplayMath formula="y \notin FV(N) \;\;\lor\;\; x \notin FV(M)" />
+
+This **disjunction** tells you how to identify when you are **safe to substitute**. Read it as: "either the bound variable $y$ doesn't appear free in the replacement $N$, OR the target variable $x$ doesn't even appear free in the body $M$." If either condition holds, no capture can occur.
+
+Now let's apply **De Morgan's Law** to see the other perspective. The substitution is **unsafe** (capture will occur) when:
+
+<DisplayMath formula="\neg(y \notin FV(N) \;\;\lor\;\; x \notin FV(M)) \;\;\equiv\;\; y \in FV(N) \;\;\land\;\; x \in FV(M)" />
+
+This **conjunction** shows you how to directly identify when an **issue will occur**. Read it as: "the bound variable $y$ appears free in $N$, AND the target variable $x$ appears free in the body $M$." Both conditions must hold simultaneously for capture to happen.
+
+<DefinitionBox term="The Two Perspectives on Substitution Safety">
+
+**When is $(\lambda y.\; M)[N/x]$ safe?** (Disjunction — the "go ahead" check)
+
+$y \notin FV(N) \;\lor\; x \notin FV(M)$
+
+"I'm safe if the lambda's parameter doesn't appear in what I'm substituting in, **or** if the variable I'm targeting doesn't appear in the body."
+
+**When does $(\lambda y.\; M)[N/x]$ cause capture?** (Conjunction — the "danger" check)
+
+$y \in FV(N) \;\land\; x \in FV(M)$
+
+"Capture happens when the lambda's parameter **does** appear free in what I'm substituting in, **and** the target variable **does** appear free in the body."
+
+</DefinitionBox>
+
+When capture would occur, the fix is always the same: **alpha-reduce** the offending lambda first. Rename $y$ to a fresh variable $z$ that doesn't appear free in either $M$ or $N$, then proceed with the substitution safely.
+
+---
+
+## Coming Up Next
+
+We've built the diagnostic tools — free and bound variables — and the key operation — proper substitution — that let us reason precisely about scope. Next time, we'll use these tools to write the **formal definitions** of the alpha, beta, and eta conversion rules, guaranteeing that they always preserve meaning.
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Free Variable** — A variable occurrence not bound by any enclosing $\lambda$
+- **Bound Variable** — A variable occurrence captured by an enclosing $\lambda$
+- **Capture** — A free variable accidentally becomes bound (the most common reduction error)
+- **Escape** — A bound variable accidentally becomes free (loses its binding lambda)
+- **Proper Substitution** — $M[N/x]$: substitute $N$ for all free occurrences of $x$ in $M$, avoiding captures
+
+**Free and Bound Variable Rules:**
+
+| Expression | $FV$ | $BV$ |
+| :--- | :--- | :--- |
+| $k$ (constant) | $\varnothing$ | $\varnothing$ |
+| $x$ (variable) | $\{x\}$ | $\varnothing$ |
+| $(E_1 \;\; E_2)$ | $FV(E_1) \cup FV(E_2)$ | $BV(E_1) \cup BV(E_2)$ |
+| $(\lambda x.\; E)$ | $FV(E) - \{x\}$ | $BV(E) \cup \{x\}$ |
+
+**Proper Substitution (Complete):**
+
+| $M$ | $M[N/x]$ |
+| :--- | :--- |
+| $k$ | $k$ |
+| $x$ | $N$ |
+| $y$ ($y \neq x$) | $y$ |
+| $(M_1 \;\; M_2)$ | $(M_1[N/x] \;\; M_2[N/x])$ |
+| $\lambda x.\; M$ | $\lambda x.\; M$ |
+| $\lambda y.\; M$ ($y \neq x$, safe) | $\lambda y.\; M[N/x]$ |
+| $\lambda y.\; M$ ($y \neq x$, capture!) | $\lambda z.\; (M[z/y])[N/x]$ |
+
+**Safety check:** $(\lambda y.\; M)[N/x]$ is safe iff $y \notin FV(N) \lor x \notin FV(M)$
+
+**Failure Diagnosis:**
+
+| Reduction | Failure Mode | Scope Problem |
+| :--- | :--- | :--- |
+| Alpha | Renamed to existing name | Free variable captured |
+| Beta (under) | Missed a substitution | Bound variable freed |
+| Beta (over/capture) | Substituted into wrong scope | Free variable captured |
+| Eta | Removed binding lambda | Bound variable freed |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Computerphile: "Lambda Calculus"](https://www.youtube.com/watch?v=eis11j_iGMs) — Professor Graham Hutton covers free and bound variables
+- [Computerphile: "Lambda Calculus — Pair of Shoes"](https://www.youtube.com/watch?v=9T8A89jgeTI) — Substitution in action
+
+### Further Reading
+
+- [Wikipedia: Free Variables and Bound Variables](https://en.wikipedia.org/wiki/Free_variables_and_bound_variables) — Formal definitions across logic and lambda calculus
+- [Wikipedia: Lambda Calculus — Substitution](https://en.wikipedia.org/wiki/Lambda_calculus#Substitution) — The formal substitution rules
+- [Stanford Encyclopedia of Philosophy: Lambda Calculus](https://plato.stanford.edu/entries/lambda-calculus/) — Section on alpha-equivalence and substitution
+
+### Connection to Programming
+
+- Python's LEGB rule (Local, Enclosing, Global, Built-in) is the same concept as bound/free variable scoping in the lambda calculus
+- Variable shadowing bugs in Python and JavaScript are exactly alpha-conversion failures — a name clashes with an existing variable
+- IDE "Rename Symbol" refactoring tools implement proper substitution — they only rename free occurrences and avoid captures
+- Closure capture in Python, JavaScript, and Rust directly corresponds to free variables being captured by an enclosing lambda
+
+</LectureResources>
