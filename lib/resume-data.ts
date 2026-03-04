@@ -18,6 +18,9 @@ export interface Education {
   year: string
   focus: string
   thesis?: string
+  gpa: number
+  deansListSemesters?: number
+  transcriptDegreeId: string
 }
 
 export const education: Education[] = [
@@ -28,6 +31,8 @@ export const education: Education[] = [
     year: "2023-2024",
     focus: "Specialization in Operating Systems and Parallel Computing",
     thesis: "Heterogeneous Architecture and Efficient Scheduling Algorithms",
+    gpa: 4.0,
+    transcriptDegreeId: "ms",
   },
   {
     degree: "B.S. in Computer Science",
@@ -35,6 +40,9 @@ export const education: Education[] = [
     location: "Los Angeles, CA",
     year: "2019-2023",
     focus: "Minor in Applied Mathematics",
+    gpa: 3.46,
+    deansListSemesters: 5,
+    transcriptDegreeId: "bs",
   },
 ]
 
@@ -173,6 +181,13 @@ export interface PreviousExperience {
 }
 
 export const previousExperience: PreviousExperience[] = [
+  {
+    role: "CSSIx Pre-College Summer Program Participant",
+    organization: "Google & Loyola Marymount University",
+    period: "Summer 2019",
+    description:
+      "Completed Google's Computer Science Summer Institute extension program hosted at LMU, building web applications using Python, Google App Engine, and Jinja2 templating. Created an ASL learning platform and a recipe web app. Included visits to Google's Venice Beach offices and mentorship from Google engineers.",
+  },
   {
     role: "FRC Robotics - Manufacturing Lead",
     organization: "Team 4201 Vitruvian Bots, Da Vinci Science High School",
