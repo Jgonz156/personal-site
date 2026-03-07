@@ -14,7 +14,6 @@ import {
   User,
   Download,
   Award,
-  Users,
   ChevronDown,
   ExternalLink,
 } from "lucide-react"
@@ -39,11 +38,11 @@ import {
   education,
   experience,
   teachingInterests,
-  courseDevelopment,
   achievements,
-  independentStudies,
   previousExperience,
   technicalSkills,
+  type ExperienceSubSection,
+  type ExperienceSubItem,
 } from "@/lib/resume-data"
 import {
   transcript,
@@ -349,6 +348,104 @@ function GeneralEducationSection() {
   )
 }
 
+function ExperienceSubSectionBlock({
+  section,
+}: {
+  section: ExperienceSubSection
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          {section.title}
+        </span>
+        <Separator className="flex-1" />
+      </div>
+      <Accordion type="multiple" className="space-y-2">
+        {section.items.map((item, idx) => (
+          <AccordionItem
+            key={idx}
+            value={`${section.title}-${idx}`}
+            className="bg-muted/30 rounded-lg border border-border"
+          >
+            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+              <div className="w-full text-left">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-1">
+                  <div>
+                    <h4 className="font-semibold text-card-foreground">
+                      {item.title}
+                    </h4>
+                    {item.subtitle && (
+                      <p className="text-sm text-primary font-medium">
+                        {item.subtitle}
+                      </p>
+                    )}
+                  </div>
+                  {item.period && (
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {item.period}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  {item.description}
+                </p>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="space-y-3 pt-2">
+                <p className="text-sm text-muted-foreground">
+                  {item.description}
+                </p>
+                {item.highlights && item.highlights.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-foreground mb-1.5">
+                      Key Achievements:
+                    </p>
+                    <ul className="space-y-1.5 ml-4">
+                      {item.highlights.map((highlight, hidx) => (
+                        <li
+                          key={hidx}
+                          className="text-sm text-muted-foreground flex items-start"
+                        >
+                          <span className="text-primary mr-2 mt-0.5">•</span>
+                          <span>{highlight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {item.outcome && (
+                  <p className="text-sm text-primary font-medium italic">
+                    &rarr; {item.outcome}
+                  </p>
+                )}
+                {item.quotes && item.quotes.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-foreground mb-1.5">
+                      Student Feedback:
+                    </p>
+                    <div className="space-y-2 ml-4">
+                      {item.quotes.map((quote, qidx) => (
+                        <blockquote
+                          key={qidx}
+                          className="text-sm text-muted-foreground italic border-l-2 border-primary/40 pl-3"
+                        >
+                          &ldquo;{quote}&rdquo;
+                        </blockquote>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </div>
+  )
+}
+
 export default function ExperiencePage() {
   return (
     <div className="min-h-screen bg-background">
@@ -490,40 +587,74 @@ export default function ExperiencePage() {
             <Briefcase className="h-8 w-8 mr-3 text-primary" />
             Professional Experience
           </h2>
-          <div className="space-y-8">
-            {experience.map((exp, index) => (
-              <div
-                key={index}
-                className="bg-card rounded-lg p-6 shadow-md border border-border hover:shadow-lg transition-shadow"
+          <Accordion type="multiple" className="space-y-6">
+            {experience.map((exp) => (
+              <AccordionItem
+                key={exp.id}
+                value={exp.id}
+                className="bg-card rounded-lg shadow-md border border-border hover:shadow-lg transition-shadow overflow-hidden"
               >
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-card-foreground">
-                      {exp.title}
-                    </h3>
-                    <p className="text-lg text-primary font-semibold">
-                      {exp.institution}
-                    </p>
+                <AccordionTrigger className="px-6 py-5 hover:no-underline">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 w-full text-left pr-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-card-foreground">
+                        {exp.title}
+                      </h3>
+                      <p className="text-lg text-primary font-semibold">
+                        {exp.institution}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {exp.overview}
+                      </p>
+                      {exp.subSections && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {exp.subSections.map((section) => (
+                            <span
+                              key={section.title}
+                              className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-medium border border-primary/20"
+                            >
+                              {section.title}: {section.items.length}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="flex items-center text-muted-foreground font-medium">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {exp.period}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {exp.location}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center text-muted-foreground font-medium">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {exp.period}
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-6">
+                  <div className="space-y-6 pt-2">
+                    <ul className="space-y-2 ml-4">
+                      {exp.responsibilities.map((resp, idx) => (
+                        <li
+                          key={idx}
+                          className="text-muted-foreground flex items-start"
+                        >
+                          <span className="text-primary mr-2 mt-1">•</span>
+                          <span>{resp}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {exp.subSections?.map((section) => (
+                      <ExperienceSubSectionBlock
+                        key={section.title}
+                        section={section}
+                      />
+                    ))}
                   </div>
-                </div>
-                <ul className="space-y-2 ml-4">
-                  {exp.responsibilities.map((resp, idx) => (
-                    <li
-                      key={idx}
-                      className="text-muted-foreground flex items-start"
-                    >
-                      <span className="text-primary mr-2 mt-1">•</span>
-                      <span>{resp}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         </section>
 
         {/* Achievements & Competitions */}
@@ -558,81 +689,6 @@ export default function ExperiencePage() {
           </div>
         </section>
 
-        {/* Research & Mentorship */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center">
-            <Users className="h-8 w-8 mr-3 text-primary" />
-            Research & Mentorship
-          </h2>
-          <div className="space-y-6">
-            {independentStudies.map((study, index) => (
-              <div
-                key={index}
-                className="bg-card rounded-lg p-6 shadow-md border border-border hover:shadow-lg transition-shadow"
-              >
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-3">
-                  <div>
-                    <h3 className="text-xl font-bold text-card-foreground">
-                      {study.title}
-                    </h3>
-                    <p className="text-primary font-semibold">
-                      {study.student}
-                    </p>
-                  </div>
-                  <div className="flex items-center text-muted-foreground font-medium">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {study.period}
-                  </div>
-                </div>
-                <p className="text-muted-foreground mb-2">{study.description}</p>
-                {study.outcome && (
-                  <p className="text-sm text-primary font-medium italic">
-                    → {study.outcome}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Course Development */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center">
-            <BookOpen className="h-8 w-8 mr-3 text-primary" />
-            Course Development & Curriculum Design
-          </h2>
-          <div className="space-y-6">
-            {courseDevelopment.map((course, index) => (
-              <div
-                key={index}
-                className="bg-card rounded-lg p-6 shadow-md border border-border hover:shadow-lg transition-shadow"
-              >
-                <h3 className="text-xl font-bold text-card-foreground mb-3">
-                  {course.course}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {course.description}
-                </p>
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Key Achievements:
-                  </p>
-                  <ul className="space-y-2 ml-4">
-                    {course.highlights.map((highlight, idx) => (
-                      <li
-                        key={idx}
-                        className="text-muted-foreground flex items-start text-sm"
-                      >
-                        <span className="text-primary mr-2 mt-1">•</span>
-                        <span>{highlight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* Teaching Interests */}
         <section className="mb-16">

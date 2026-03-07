@@ -14,12 +14,22 @@ import {
   education,
   experience,
   teachingInterests,
-  courseDevelopment,
   achievements,
-  independentStudies,
   previousExperience,
   technicalSkills,
 } from "@/lib/resume-data"
+
+const vapExperience = experience.find((e) => e.id === "vap")
+const independentStudies =
+  vapExperience?.subSections
+    ?.find((s) => s.title === "Research & Mentorship")
+    ?.items.map((item) => ({
+      title: item.title,
+      student: item.subtitle ?? "",
+      period: item.period ?? "",
+      description: item.description,
+      outcome: item.outcome,
+    })) ?? []
 
 // Professional resume styles
 const styles = StyleSheet.create({
