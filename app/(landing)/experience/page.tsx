@@ -12,7 +12,6 @@ import {
   Lightbulb,
   Trophy,
   User,
-  Download,
   Award,
   ChevronDown,
   ExternalLink,
@@ -32,7 +31,6 @@ import {
 } from "@/components/ui/collapsible"
 import LandingNav from "@/components/landing-nav"
 import Footer from "@/components/footer"
-import { downloadResumePdf } from "@/components/resume-pdf"
 import {
   professionalSummary,
   education,
@@ -100,7 +98,7 @@ function CourseCards({ courses }: { courses: TranscriptCourse[] }) {
               <AccordionTrigger className="px-4 py-3 hover:no-underline">
                 <CourseCardContent course={course} />
               </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
+              <AccordionContent forceMount className="px-4 pb-4">
                 <div className="space-y-3 pt-2">
                   {course.projects.map((project, pidx) => (
                     <div
@@ -237,7 +235,7 @@ function GeneralEducationSection() {
           />
         </div>
       </CollapsibleTrigger>
-      <CollapsibleContent>
+      <CollapsibleContent forceMount className="data-[state=closed]:hidden">
         <div className="bg-card rounded-b-lg border border-t-0 border-border px-6 py-4 shadow-md">
           {coursesWithProjects.length > 0 && (
             <Accordion type="multiple" className="mb-3">
@@ -288,7 +286,7 @@ function GeneralEducationSection() {
                       )}
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
+                  <AccordionContent forceMount className="px-4 pb-4">
                     <div className="space-y-3 pt-2">
                       {course.projects!.map((project, pidx) => (
                         <div
@@ -392,7 +390,7 @@ function ExperienceSubSectionBlock({
                 </p>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4">
+            <AccordionContent forceMount className="px-4 pb-4">
               <div className="space-y-3 pt-2">
                 <p className="text-sm text-muted-foreground">
                   {item.description}
@@ -466,17 +464,6 @@ export default function ExperiencePage() {
                 From building championship robots to redesigning core CS
                 courses—here's my journey in education and technology.
               </p>
-            </div>
-            <div>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2"
-                onClick={downloadResumePdf}
-              >
-                <Download className="h-5 w-5" />
-                Download Resume
-              </Button>
             </div>
           </div>
         </div>
@@ -558,7 +545,7 @@ export default function ExperiencePage() {
                       </div>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6">
+                  <AccordionContent forceMount className="px-6 pb-6">
                     <div className="space-y-6 pt-2">
                       {coursesByTerm.map(({ term, courses }) => (
                         <div key={term}>
@@ -630,7 +617,7 @@ export default function ExperiencePage() {
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-6 pb-6">
+                <AccordionContent forceMount className="px-6 pb-6">
                   <div className="space-y-6 pt-2">
                     <ul className="space-y-2 ml-4">
                       {exp.responsibilities.map((resp, idx) => (
@@ -790,15 +777,6 @@ export default function ExperiencePage() {
             >
               <Mail className="h-5 w-5" />
               Get in Touch
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="gap-2"
-              onClick={downloadResumePdf}
-            >
-              <Download className="h-5 w-5" />
-              Download Resume
             </Button>
           </div>
         </section>
