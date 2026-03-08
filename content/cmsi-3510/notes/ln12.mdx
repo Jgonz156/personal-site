@@ -1,0 +1,851 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DeadlockTag, DeadlockTagLegend } from "@/components/deadlock-tag"
+import { ScheduleTag } from "@/components/schedule-tag"
+import { CoffmanConditionsPanel } from "@/components/coffman-conditions-panel"
+import { ResourceAllocationStepper } from "@/components/resource-allocation-stepper"
+import { DiningPhilosophersDemo } from "@/components/dining-philosophers-demo"
+import { BankersAlgorithm } from "@/components/bankers-algorithm"
+import { BankersBankAnalogy } from "@/components/bankers-bank-analogy"
+import { DeadlockSandbox } from "@/components/deadlock-sandbox"
+import { DisplayMath } from "@/components/math"
+
+## Recap
+
+In LN11, we armed ourselves with an arsenal of scheduling algorithms — from FCFS to CFS — to decide **when** processes run. Scheduling determines the order of execution. But today we face a darker question: **what happens when processes fight over shared resources?**
+
+Imagine a 4-way intersection with no traffic lights. Four cars arrive simultaneously, each occupying one lane. Each car needs the perpendicular lane to clear before they can proceed. But every lane is blocked by another car waiting for the same thing. Nobody moves. This is a **deadlock** — and it can happen in your operating system, your database, and your concurrent Rust code.
+
+Traffic lights are the "scheduler" that prevents this by imposing an ordering on who goes first. Today we formalize this problem and develop tools to detect, avoid, and prevent it.
+
+---
+
+## Today's Agenda
+
+1. **Sequential vs Concurrent Headaches** — New failure modes from concurrency
+2. **Resources** — What they are, how they're shared, and how they cause problems
+3. **Coffman's Four Conditions** — The formal foundation of deadlocking
+4. **Resource Allocation Graphs** — Using graph theory to detect deadlocks
+5. **The Dining Philosophers** — The canonical deadlock illustration
+6. **Deadlock Handling Techniques** — Detection, avoidance, prevention, and the ostrich
+7. **Rust Deadlock Examples** — From broken to fixed
+8. **Safety-Critical Stories** — When deadlocks kill
+9. **Extensions** — Distributed deadlocks, formal verification, and beyond
+
+Throughout this lecture, we color-code concepts by category:
+
+<DeadlockTagLegend />
+
+---
+
+## Sequential vs Concurrent Headaches
+
+As sequential programmers, you're already familiar with some infuriating bugs:
+
+| Sequential Issue | What Goes Wrong |
+| :--- | :--- |
+| **Infinite loops** | Control flow never terminates |
+| **Stack overflows** | Recursive calls exhaust the stack |
+| **Blocking I/O** | Program halts waiting for a slow device |
+| **Circular function calls** | A calls B calls A — infinite recursion |
+| **Incorrect FSMs** | State machine reaches an unrecoverable state |
+
+These all share one thing: a **single thread** gets stuck. But in a concurrent or parallel context, we gain access to entirely new classes of horror:
+
+| Concurrent Issue | What Goes Wrong |
+| :--- | :--- |
+| <DeadlockTag type="danger">Deadlock</DeadlockTag> | Multiple processes frozen, each waiting for the other |
+| <DeadlockTag type="danger">Livelock</DeadlockTag> | Processes actively running but making zero progress |
+| <DeadlockTag type="danger">Starvation</DeadlockTag> | Some processes progress, but one is perpetually ignored |
+| **Resource locking** | Contention for shared resources degrades performance |
+| **Lock-order inversion** | Acquiring locks in inconsistent orders creates cycles |
+| **Communication locking** | Message-passing channels become blocked in both directions |
+| **Distributed deadlocks** | Deadlocks spanning multiple machines with no global view |
+
+Unlike sequential bugs where nothing moves, concurrent systems can exhibit **lock-based inefficiencies that manifest only at runtime** — starvation and exhaustion let some work progress, but not all. These bugs are notoriously hard to reproduce because they depend on specific timing and scheduling decisions.
+
+### The Hallway Problem: Livelock
+
+<DefinitionBox term="Livelock">
+
+Two processes are actively executing but making no progress — like two people in a narrow hallway who keep stepping the same direction to let each other pass. Nobody is frozen (unlike deadlock), but nobody is getting anywhere either.
+
+</DefinitionBox>
+
+Ethernet's CSMA/CD protocol was specifically designed to solve livelock: when two devices transmit simultaneously and collide, each waits a **random** backoff time before retrying. The randomness breaks the symmetry. Without it, both devices would retry at the same instant forever — a livelock.
+
+### Deadlock vs Starvation vs Livelock
+
+| Failure Mode | Processes Moving? | All Blocked? | Cause | Example |
+| :--- | :--- | :--- | :--- | :--- |
+| <DeadlockTag type="danger">Deadlock</DeadlockTag> | No | Yes (in cycle) | Circular resource dependency | Two threads each hold one mutex, wait for the other |
+| <DeadlockTag type="danger">Livelock</DeadlockTag> | Yes (busy) | No | Reactive behavior without coordination | Two people dodging the same direction in a hallway |
+| <DeadlockTag type="danger">Starvation</DeadlockTag> | Partially | No | Unfair scheduling policy | Low-priority process never gets CPU time |
+
+> **📚 Historical Note:** Edsger Dijkstra first formalized deadlocks in 1965 alongside his invention of semaphores. In 1971, he introduced the Dining Philosophers problem as the canonical illustration. The term "deadly embrace" was used in early IBM documentation before "deadlock" became standard. Dijkstra's contributions to both the problem (deadlock formalism) and the solution (semaphores) make this lecture a direct continuation of his work.
+
+---
+
+## What Are Resources?
+
+<DefinitionBox term="Resource">
+
+A <DeadlockTag type="resource">resource</DeadlockTag> is an object whose access rights can be assigned exclusively to a single process at a time. Because access is exclusive, contention is inevitable.
+
+</DefinitionBox>
+
+Resources span hardware and software:
+
+| Category | Examples | Human Analogy |
+| :--- | :--- | :--- |
+| **Hardware** | CD drive, HDD, CPU core, GPU, printer | Restroom stall, car seat, parking spot |
+| **Software** | Database record, variable, file, directory, network port | License plate, phone number, SSN |
+
+### Preemptable vs Non-Preemptable
+
+Because resource allocation grants exclusive access, and processes can be preemptive or cooperative, resources inherit the same categories:
+
+| Type | Description | Examples |
+| :--- | :--- | :--- |
+| <DeadlockTag type="resource">Preemptable</DeadlockTag> | Can be reassigned mid-operation without harm | Memory (pages can be swapped), CPU time |
+| <DeadlockTag type="resource">Non-preemptable</DeadlockTag> | Cannot be interrupted mid-operation — will cause failure | Burning a CD, printing a page, database transaction |
+
+In human terms: doing dishes is preemptable (you can stop and start freely). Using the restroom is non-preemptable. Please don't think too hard about a preemptable porta-potty.
+
+### Resource Lifecycle
+
+Every resource follows the same lifecycle:
+
+1. **Request / Acquire** — The process asks for and receives the resource
+2. **In Use** — The process holds and operates on the resource
+3. **Release** — Voluntary or involuntary relinquishment
+
+This cycle repeats. The problem arises in step 1: **waiting**. If a process can never acquire what it needs, computation stalls.
+
+### Resource Instances
+
+Some <DeadlockTag type="resource">resources</DeadlockTag> have multiple identical instances — a system with 4 printers, 8 CPU cores, or 16 database connection slots. Deadlock analysis must account for this: a resource type with **k instances** requires **k+1 simultaneous requests** to guarantee that at least one process is blocked.
+
+### Rust Connection: `Mutex<T>` as a Resource
+
+Rust's `Mutex<T>` is the textbook <DeadlockTag type="resource">non-preemptable resource</DeadlockTag>. Combined with `Arc` for shared ownership across threads, it maps directly to the resource lifecycle:
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+let resource = Arc::new(Mutex::new(0)); // Create resource
+let r = Arc::clone(&resource);
+
+thread::spawn(move || {
+    let mut data = r.lock().unwrap(); // 1. Request & Acquire
+    *data += 1;                        // 2. In Use
+    // MutexGuard drops here           // 3. Release (RAII)
+});
+```
+
+The `MutexGuard` returned by `.lock()` implements Rust's RAII pattern — the lock is **automatically released** when the guard goes out of scope. This makes "forgetting to release" structurally impossible, unlike C/C++ where manual `unlock()` calls can be missed.
+
+### Semaphores: From Dijkstra to Rust
+
+Dijkstra invented both the deadlock formalism AND <DeadlockTag type="resource">semaphores</DeadlockTag> as a coordination solution. A **binary semaphore** (0 or 1) is equivalent to a mutex. A **counting semaphore** (initialized to k) naturally handles multi-instance resources — it allows up to k concurrent holders.
+
+The classic semaphore operations are **P** (proberen — "to test", decrements) and **V** (verhogen — "to increment"). These names come from Dutch, Dijkstra's native language. They're error-prone: nothing prevents you from calling V without P, or P twice without V.
+
+Rust's `Mutex<T>` with RAII `MutexGuard` is the modern evolution: the type system enforces correct acquire/release patterns at compile time. Language design has evolved to make deadlock-prone patterns **harder to write**.
+
+### Lock Granularity Spectrum
+
+How much should a single lock protect? This creates a fundamental engineering tradeoff:
+
+| Granularity | Strategy | Deadlock Risk | Parallelism | Example |
+| :--- | :--- | :--- | :--- | :--- |
+| **Coarse** | One lock for everything | None (no cycles possible) | None (fully serial) | Python's GIL |
+| **Fine** | One lock per resource | High (many locks = many cycle opportunities) | High | Linux kernel per-inode locks |
+| **Lock-free** | No locks at all | None (no locks to deadlock on) | Maximum | `std::sync::atomic` in Rust |
+
+The scheduling problem gave us the **quantum tradeoff** (too large = convoy, too small = overhead). The deadlock problem gives us the **granularity tradeoff** (too coarse = no parallelism, too fine = deadlock risk).
+
+#### Python's GIL — The Coarse Extreme in Practice
+
+Python's Global Interpreter Lock is a real-world case study of the coarsest possible lock granularity. CPython uses **a single mutex** that protects all interpreter state. Any thread executing Python bytecode must hold the GIL, meaning only one thread runs Python code at a time — even on a 128-core machine.
+
+This is <DeadlockTag type="technique">deadlock prevention</DeadlockTag> by construction: with one lock, <DeadlockTag type="condition">circular wait</DeadlockTag> is structurally impossible (you can't have a cycle with one node). But the cost is that Python threads can never achieve true parallelism on CPU-bound work — only concurrency via interleaving. This is exactly the distinction from LN7!
+
+CPython's developers chose the simplest possible solution to protect the interpreter's reference-counting garbage collector from race conditions. It prevented deadlocks on internal structures but became the single most notorious limitation of the language for parallel workloads. This is why:
+
+- `multiprocessing` exists (separate processes with separate GILs)
+- NumPy releases the GIL during C-level computation
+- PEP 703 ("nogil") is an ongoing effort to remove the GIL entirely
+
+Students who have written Python since day one now have the formal vocabulary to understand **exactly why** `threading` doesn't speed up CPU-bound code and why Rust doesn't have this problem — ownership + borrow checker replaces the GIL's role at compile time, with zero runtime cost.
+
+> **📚 Language Theory Connection:** The GIL is a *language runtime* design decision, not a language *specification* decision. Other Python implementations (Jython on the JVM, PyPy's STM experiments) prove that the GIL is not inherent to Python's semantics — it's an implementation tradeoff that traded parallelism for simplicity in CPython's memory management.
+
+---
+
+## Coffman's Four Conditions
+
+So is this problem like the halting problem? Are we doomed to never find a general solution? Must we always rest uneasy, knowing our code might deadlock?
+
+**Actually, no!** Unlike the halting problem, deadlocks are **solvable in general** for all programs — past, present, or future. Coffman's research (1971) led to an amazing discovery: deadlock occurs **if and only if** four conditions are met simultaneously. Break even one, and the system makes progress.
+
+<DefinitionBox term="Coffman's Four Conditions">
+
+A <DeadlockTag type="danger">deadlock</DeadlockTag> occurs if and only if ALL four of these conditions hold simultaneously:
+
+1. <DeadlockTag type="condition">Mutual Exclusion</DeadlockTag> — Only one process can hold a resource at a time
+2. <DeadlockTag type="condition">Hold and Wait</DeadlockTag> — A process currently holding a resource becomes blocked waiting for another
+3. <DeadlockTag type="condition">No Preemption</DeadlockTag> — No mechanism exists to forcibly free a resource from a process
+4. <DeadlockTag type="condition">Circular Wait</DeadlockTag> — A cycle exists in which each process is blocked waiting for a resource held by the next process in the chain
+
+</DefinitionBox>
+
+**The key insight:** Remove ANY ONE condition and deadlock is impossible. This is what makes deadlocks fundamentally different from the halting problem — we have a **complete, decidable characterization** of when they occur. All we need is linear algebra or graph theory!
+
+### "Not-Quite-Deadlock" Examples
+
+To reinforce that all 4 are necessary, consider what happens with only 3:
+
+| Missing Condition | What Happens | Why No Deadlock |
+| :--- | :--- | :--- |
+| No <DeadlockTag type="condition">Mutual Exclusion</DeadlockTag> | Resources are shared freely | No contention — everyone reads simultaneously |
+| No <DeadlockTag type="condition">Hold and Wait</DeadlockTag> | Processes request all resources atomically | Either get everything or nothing — no partial holding |
+| No <DeadlockTag type="condition">No Preemption</DeadlockTag> | OS can forcibly reclaim resources | Cycles are broken by preemption — the scheduler intervenes |
+| No <DeadlockTag type="condition">Circular Wait</DeadlockTag> | Resources are ordered; always acquired in sequence | Linear chains can't form cycles |
+
+Toggle the conditions below to see this in action:
+
+<CoffmanConditionsPanel />
+
+---
+
+## Resource Allocation Graphs
+
+We can formalize deadlock detection using **graph theory** — specifically, directed graphs. If you've taken discrete mathematics, the cycle-detection algorithms here are closely related to the spanning tree algorithms you already know.
+
+<DefinitionBox term="Resource Allocation Graph (RAG)">
+
+A directed graph with two types of nodes:
+- **Process nodes** (circles) — represent running processes
+- **Resource nodes** (squares) — represent resources, sometimes with dots indicating multiple instances
+
+And two types of directed edges:
+- **Request edge** (Process → Resource) — "this process wants this resource" (dashed)
+- **Assignment edge** (Resource → Process) — "this process holds this resource" (solid)
+
+For single-instance resources: **a cycle in the RAG = a deadlock**. Finding cycles is a DFS-based graph traversal — the same algorithms from your data structures course, deployed for OS safety.
+
+</DefinitionBox>
+
+> **⚠️ Multi-instance caveat:** With multiple resource instances (e.g., 3 printers), a cycle is *necessary* but not *sufficient* for deadlock. A **knot** — a strongly connected component with no outgoing edges — is required. For single-instance resources, cycle = deadlock.
+
+### Step-by-Step: From Safe to Deadlock
+
+Watch how a deadlock forms step by step. The Rust code on the right shows the corresponding thread operations at each stage:
+
+<ResourceAllocationStepper
+  scenarios={[
+    {
+      name: "No Deadlock",
+      steps: [
+        {
+          description: "Two threads and two mutexes exist. No requests yet.",
+          code: "let mutex_a = Arc::new(Mutex::new(0));\nlet mutex_b = Arc::new(Mutex::new(0));",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [],
+        },
+        {
+          description: "Thread 1 acquires Mutex A.",
+          code: "// Thread 1\nlet _a = mutex_a.lock().unwrap();",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [{ id: "e1", from: "A", to: "T1", type: "assignment" }],
+        },
+        {
+          description: "Thread 1 acquires Mutex B. Thread 1 holds both — no contention.",
+          code: "// Thread 1\nlet _a = mutex_a.lock().unwrap();\nlet _b = mutex_b.lock().unwrap();",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [
+            { id: "e1", from: "A", to: "T1", type: "assignment" },
+            { id: "e2", from: "B", to: "T1", type: "assignment" },
+          ],
+        },
+        {
+          description: "Thread 1 releases both. Thread 2 can now acquire freely. No deadlock!",
+          code: "// Thread 1 drops guards\n// Thread 2\nlet _a = mutex_a.lock().unwrap();\nlet _b = mutex_b.lock().unwrap();",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [
+            { id: "e3", from: "A", to: "T2", type: "assignment" },
+            { id: "e4", from: "B", to: "T2", type: "assignment" },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Deadlock!",
+      steps: [
+        {
+          description: "Two threads, two mutexes. They will acquire in OPPOSITE order.",
+          code: "// Thread 1: lock A then B\n// Thread 2: lock B then A\n// What could go wrong?",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [],
+        },
+        {
+          description: "Thread 1 acquires Mutex A.",
+          code: "// Thread 1\nlet _a = mutex_a.lock().unwrap();",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [{ id: "e1", from: "A", to: "T1", type: "assignment" }],
+        },
+        {
+          description: "Thread 2 acquires Mutex B. Both threads now hold one lock each.",
+          code: "// Thread 1 holds A\n// Thread 2\nlet _b = mutex_b.lock().unwrap();",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [
+            { id: "e1", from: "A", to: "T1", type: "assignment" },
+            { id: "e2", from: "B", to: "T2", type: "assignment" },
+          ],
+        },
+        {
+          description: "Thread 1 requests Mutex B (held by T2). Thread 2 requests Mutex A (held by T1). CYCLE!",
+          code: "// Thread 1\nlet _b = mutex_b.lock(); // BLOCKS!\n// Thread 2\nlet _a = mutex_a.lock(); // BLOCKS!",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [
+            { id: "e1", from: "A", to: "T1", type: "assignment" },
+            { id: "e2", from: "B", to: "T2", type: "assignment" },
+            { id: "e3", from: "T1", to: "B", type: "request" },
+            { id: "e4", from: "T2", to: "A", type: "request" },
+          ],
+          cycleEdges: ["e1", "e2", "e3", "e4"],
+        },
+      ],
+    },
+    {
+      name: "Avoided via Ordering",
+      steps: [
+        {
+          description: "Same threads, same mutexes — but BOTH acquire in the same order (A then B).",
+          code: "// Both threads: lock A first, then B\n// Resource ordering breaks circular wait!",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [],
+        },
+        {
+          description: "Thread 1 acquires A first (per the ordering rule).",
+          code: "// Thread 1\nlet _a = mutex_a.lock().unwrap();",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [{ id: "e1", from: "A", to: "T1", type: "assignment" }],
+        },
+        {
+          description: "Thread 2 also requests A first (same order). It blocks — but it's NOT holding B!",
+          code: "// Thread 2\nlet _a = mutex_a.lock(); // BLOCKS (T1 has A)\n// T2 does NOT hold B yet!",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [
+            { id: "e1", from: "A", to: "T1", type: "assignment" },
+            { id: "e2", from: "T2", to: "A", type: "request" },
+          ],
+        },
+        {
+          description: "Thread 1 acquires B, finishes work, releases both. Thread 2 proceeds. No cycle ever forms!",
+          code: "// Thread 1 finishes, drops both guards\n// Thread 2 now acquires A, then B\nlet _a = mutex_a.lock().unwrap();\nlet _b = mutex_b.lock().unwrap();",
+          nodes: [
+            { id: "T1", label: "T1", type: "process" },
+            { id: "T2", label: "T2", type: "process" },
+            { id: "A", label: "Mutex A", type: "resource", instances: 1 },
+            { id: "B", label: "Mutex B", type: "resource", instances: 1 },
+          ],
+          edges: [
+            { id: "e3", from: "A", to: "T2", type: "assignment" },
+            { id: "e4", from: "B", to: "T2", type: "assignment" },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
+
+Notice the third scenario: the **same processes, same resources, same work** — but a different acquisition order prevents the cycle entirely. This is exactly the insight behind resource ordering as a prevention technique, and it demonstrates how a scheduler could subtly reorder operations to avoid the deadlock altogether.
+
+### Build Your Own Deadlock
+
+Now try it yourself! Add processes and resources, draw edges, and watch the cycle detector respond in real-time:
+
+<DeadlockSandbox />
+
+---
+
+## The Dining Philosophers Problem
+
+Dijkstra's 1971 formulation is the canonical deadlock illustration:
+
+> Five philosophers sit at a round table. Between each pair is a single fork (5 forks total). To eat, a philosopher needs **both** adjacent forks. They alternate between thinking and eating.
+
+This maps perfectly to a resource allocation graph: philosophers are processes, forks are resources. If all five simultaneously pick up their left fork — <DeadlockTag type="condition">circular wait</DeadlockTag> — deadlock!
+
+The solutions preview the four handling techniques:
+- <DeadlockTag type="technique">Prevention (ordering)</DeadlockTag>: Number the forks; always pick up the lower-numbered fork first. This breaks circular wait.
+- <DeadlockTag type="technique">Prevention (atomic)</DeadlockTag>: Only pick up both forks simultaneously, or neither. This breaks hold-and-wait.
+- <DeadlockTag type="technique">Detection</DeadlockTag>: A monitor detects the cycle and forces one philosopher to put down their fork.
+
+<DiningPhilosophersDemo />
+
+---
+
+## Deadlock Handling Techniques
+
+Four major approaches, organized by a medical analogy:
+
+### Detection and Recovery — "The Emergency Room"
+
+<DefinitionBox term="Detection and Recovery">
+
+<DeadlockTag type="technique">Detection and Recovery</DeadlockTag>: Let deadlocks happen. When they occur, identify them and react forcefully to remove them. Reactive medicine — the ER of deadlock handling.
+
+</DefinitionBox>
+
+**Detection:** Run cycle detection on the RAG periodically or on every block event. This is standard DFS-based graph traversal — O(V+E) per check.
+
+**Recovery options** (in order of increasing violence):
+1. **Preempt a resource** — Roll back the process, checkpoint/restart. Least destructive but requires checkpointing support.
+2. **Kill a victim process** — Select the "cheapest" process to terminate (lowest priority? newest? least work done?).
+3. **Kill ALL deadlocked processes** — The nuclear option. Guaranteed to work.
+
+**Cost of detection:** Running cycle detection on every resource request is expensive. Amortized approaches run detection only when a process has been <ScheduleTag type="blocked">blocked</ScheduleTag> for suspiciously long — trading detection latency for efficiency.
+
+#### Timeout-Based Detection
+
+A pragmatic middle ground between formal graph analysis and ignoring the problem: if you can't acquire a <DeadlockTag type="resource">resource</DeadlockTag> within T time units, **release all held resources and retry**. This is how distributed systems (gRPC, HTTP clients, database connections) handle deadlock risk in practice.
+
+In Rust, this is `Mutex::try_lock()`:
+
+```rust
+use std::sync::Mutex;
+
+let lock = Mutex::new(42);
+match lock.try_lock() {
+    Ok(guard) => println!("Got the lock: {}", *guard),
+    Err(_) => println!("Couldn't acquire — backing off!"),
+}
+```
+
+**Real-world database detection:** PostgreSQL and MySQL InnoDB use **wait-for graphs** (a simplified RAG containing only processes, not resources) and kill the youngest transaction when a cycle is detected. You can actually trigger this and see the `ERROR: deadlock detected` message yourself!
+
+---
+
+### Deadlock Avoidance — "The Doctor's Diet"
+
+<DefinitionBox term="Deadlock Avoidance">
+
+<DeadlockTag type="technique">Deadlock Avoidance</DeadlockTag>: At each resource request, run an algorithm to check if granting it *could* lead to a deadlock. If the resulting state is unsafe, make the process wait. Preventive medicine — the doctor telling you to avoid certain foods.
+
+</DefinitionBox>
+
+Two key definitions:
+
+| State | Meaning |
+| :--- | :--- |
+| <DeadlockTag type="safe">Safe state</DeadlockTag> | There exists *some* ordering of processes that allows ALL to complete |
+| <DeadlockTag type="danger">Unsafe state</DeadlockTag> | No guaranteed ordering exists — deadlock is *possible* (but not certain) |
+
+#### The Banker's Algorithm
+
+The most famous avoidance algorithm, invented by Dijkstra (1965). Named because a banker must ensure they never loan out so much money that they can't satisfy all customers. The OS is the banker; resources are money; processes are customers with credit limits.
+
+Let's see this with actual money first. You're the bank manager. Each customer has deposited some cash and has a credit limit — the maximum they could ever request. The bank vault holds whatever cash hasn't been loaned out. Your job: never get into a state where a customer asks for their remaining credit and the vault is empty. Try adjusting the deposits, credit limits, and vault cash to see when the bank is safe vs. at risk:
+
+<BankersBankAnalogy />
+
+Notice the key insight: the bank doesn't need enough cash to cover *everyone at once* — it just needs enough to let *at least one* customer finish, get their deposit back, then use that to serve the next customer, and so on. A <DeadlockTag type="safe">safe state</DeadlockTag> is one where such an ordering exists. An <DeadlockTag type="danger">unsafe state</DeadlockTag> means no such ordering is guaranteed.
+
+**Generalizing beyond money.** In real operating systems, there isn't just one resource — there are multiple: memory pages, disk sectors, network sockets, printer queues, and more. The algorithm generalizes by tracking a *vector* of resources instead of a single dollar amount. Each process has an allocation vector (what it holds), a max vector (what it could ever need), and available becomes a vector of all free resources. The same "can at least one process finish?" check runs across *all* resource types simultaneously — a process can only proceed if its need is met in *every* dimension.
+
+The algorithm checks, at each request: "If I grant this, can I still guarantee a <DeadlockTag type="safe">safe sequence</DeadlockTag> where every process eventually gets what it needs?" If not, the request is denied.
+
+Try the full multi-resource version yourself — edit the values and watch the safety determination change:
+
+<BankersAlgorithm
+  initialProcesses={[
+    { name: "P0", allocation: [0, 1, 0], max: [7, 5, 3] },
+    { name: "P1", allocation: [2, 0, 0], max: [3, 2, 2] },
+    { name: "P2", allocation: [3, 0, 2], max: [9, 0, 2] },
+    { name: "P3", allocation: [2, 1, 1], max: [2, 2, 2] },
+    { name: "P4", allocation: [0, 0, 2], max: [4, 3, 3] },
+  ]}
+  resourceNames={["A", "B", "C"]}
+  initialAvailable={[3, 3, 2]}
+/>
+
+---
+
+### Deadlock Prevention — "An Ounce of Prevention"
+
+<DefinitionBox term="Deadlock Prevention">
+
+<DeadlockTag type="technique">Deadlock Prevention</DeadlockTag>: Architect the system so that one of Coffman's 4 conditions **cannot** hold, by design. This creates systems with varying capabilities — but they can never deadlock. An ounce of prevention is worth a pound of cure.
+
+</DefinitionBox>
+
+| Condition to Attack | Prevention Strategy | Tradeoff |
+| :--- | :--- | :--- |
+| <DeadlockTag type="condition">Mutual Exclusion</DeadlockTag> | Use spooling/virtualization (e.g., print spooler) | Not always possible — some resources are inherently exclusive |
+| <DeadlockTag type="condition">Hold and Wait</DeadlockTag> | Require all resources upfront (atomic acquisition) | Low utilization; process may not know all needs in advance |
+| <DeadlockTag type="condition">No Preemption</DeadlockTag> | Allow resource preemption (checkpoint and rollback) | Expensive; not always safe for non-preemptable resources |
+| <DeadlockTag type="condition">Circular Wait</DeadlockTag> | Impose a total ordering on resources | Restricts flexibility; must be enforced globally |
+
+#### Resource Ordering in Practice
+
+Linux kernel's `lockdep` tool automatically detects lock ordering violations at runtime. It builds a lock dependency graph and warns if a cycle is **possible**, even before a deadlock actually occurs. This is prevention via tooling — the system learns the correct ordering from observation and flags deviations.
+
+#### Rust's Compile-Time Prevention
+
+Rust's ownership and borrowing rules prevent entire classes of data races at compile time. `MutexGuard` with RAII ensures locks are always released. While Rust can't prevent **all** deadlocks statically (that would require solving the halting problem for lock orderings), it eliminates the most common causes — forgotten unlocks, use-after-free on locked resources, and data races.
+
+#### Lock-Free and Wait-Free Data Structures
+
+The ultimate form of prevention: eliminate locks entirely using atomic **compare-and-swap (CAS)** operations. Rust's `std::sync::atomic` module provides these primitives. CAS is a CPU instruction (connecting back to LN9's hardware lecture), and lock-free data structures attack <DeadlockTag type="condition">mutual exclusion</DeadlockTag> at the algorithmic level.
+
+> **⚠️ The ABA Problem:** Lock-free algorithms have their own subtle pitfall. A value changes from A to B and back to A. A CAS operation sees "still A" and incorrectly assumes nothing changed. Solutions include tagged pointers and hazard pointers — a whole subfield of concurrent data structures.
+
+---
+
+### The Ostrich Algorithm — "Head in the Sand"
+
+<DefinitionBox term="The Ostrich Algorithm">
+
+<DeadlockTag type="technique">The Ostrich Algorithm</DeadlockTag>: If deadlocks are rare enough, just ignore the problem. Named for the (mythical) behavior of ostriches burying their heads in the sand to avoid danger.
+
+</DefinitionBox>
+
+This sounds absurd — but **this is what Unix and Windows actually do** for most user-space resources. The reasoning is pure cost-benefit analysis:
+
+<DisplayMath formula="p \cdot C_r < C_p" />
+
+Where:
+
+<DisplayMath formula="p = \text{deadlock probability}, \quad C_r = \text{recovery cost}, \quad C_p = \text{continuous prevention cost}" />
+
+If the expected cost of rare deadlocks is less than the ongoing cost of preventing them, ignore them.
+
+Combined with preemptive scheduling (which naturally attacks the <DeadlockTag type="condition">No Preemption</DeadlockTag> condition), most interactive systems rarely deadlock in practice. When they do, a reboot is cheaper than the continuous overhead of formal prevention.
+
+> **📚 Engineering Risk Management:** This is the same principle used throughout engineering. Bridges are designed for 99.9% of expected loads, not 100%. Software reliability targets "five 9s" (99.999% uptime) — not 100%, because the cost of that last 0.001% is astronomical. The ostrich algorithm is mathematically justified risk management.
+
+So all this formal theory, all these algorithms — and the practical answer for most interactive systems is "don't worry about it, and use a preemptive scheduler." The formal tools become critical in safety-critical and real-time systems, where the cost of a deadlock is not a reboot but a catastrophe.
+
+---
+
+## Rust Deadlock Examples
+
+Let's see deadlock in Rust and fix it with the techniques we've learned.
+
+### The Deadlock
+
+Two threads acquiring two mutexes in **opposite order**:
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let a = Arc::new(Mutex::new(0));
+    let b = Arc::new(Mutex::new(0));
+
+    let a1 = Arc::clone(&a);
+    let b1 = Arc::clone(&b);
+    let t1 = thread::spawn(move || {
+        let _lock_a = a1.lock().unwrap(); // Acquires A
+        thread::sleep(std::time::Duration::from_millis(10));
+        let _lock_b = b1.lock().unwrap(); // Blocks waiting for B!
+    });
+
+    let a2 = Arc::clone(&a);
+    let b2 = Arc::clone(&b);
+    let t2 = thread::spawn(move || {
+        let _lock_b = b2.lock().unwrap(); // Acquires B
+        thread::sleep(std::time::Duration::from_millis(10));
+        let _lock_a = a2.lock().unwrap(); // Blocks waiting for A!
+    });
+
+    t1.join().unwrap(); // Hangs forever!
+    t2.join().unwrap();
+}
+```
+
+This program will **hang forever** — both threads are stuck waiting for the other's lock. All four Coffman conditions are met.
+
+### Fix 1: Resource Ordering (Prevention)
+
+Always acquire locks in the **same order**. This breaks <DeadlockTag type="condition">circular wait</DeadlockTag>:
+
+```rust
+// Both threads: always acquire A before B
+let t1 = thread::spawn(move || {
+    let _lock_a = a1.lock().unwrap(); // A first
+    let _lock_b = b1.lock().unwrap(); // B second
+});
+
+let t2 = thread::spawn(move || {
+    let _lock_a = a2.lock().unwrap(); // A first (same order!)
+    let _lock_b = b2.lock().unwrap(); // B second
+});
+```
+
+### Fix 2: `try_lock` with Backoff (Detection/Recovery)
+
+Use non-blocking lock attempts and retry on failure:
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
+
+let t1 = thread::spawn(move || {
+    loop {
+        let lock_a = a1.lock().unwrap();
+        match b1.try_lock() {
+            Ok(lock_b) => {
+                // Got both! Do work.
+                break;
+            }
+            Err(_) => {
+                drop(lock_a); // Release A and retry
+                thread::sleep(Duration::from_millis(1));
+            }
+        }
+    }
+});
+```
+
+This breaks <DeadlockTag type="condition">hold and wait</DeadlockTag> — if we can't get everything, we release what we have.
+
+### Fix 3: Message Passing (Eliminate Shared Resources)
+
+Use channels instead of shared memory — attacking <DeadlockTag type="condition">mutual exclusion</DeadlockTag> by eliminating the shared resource entirely:
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+let (tx, rx) = mpsc::channel();
+
+// Worker thread owns the data exclusively
+let worker = thread::spawn(move || {
+    let mut value = 0;
+    for msg in rx {
+        match msg {
+            "increment" => value += 1,
+            "get" => println!("Value: {}", value),
+            _ => break,
+        }
+    }
+});
+
+// Other threads send messages instead of locking
+tx.send("increment").unwrap();
+tx.send("get").unwrap();
+tx.send("quit").unwrap();
+worker.join().unwrap();
+```
+
+No mutexes, no locks, no deadlock. The data is owned by one thread, and others communicate via messages. This is the actor model — the same philosophy behind Erlang, Go's goroutines, and Rust's Tokio channels.
+
+---
+
+## Scheduling as Deadlock Avoidance
+
+Tying back to LN11: an unfair cooperative scheduler could **reorder the order processes run** to avoid the deadlock altogether. The "Avoided via Ordering" scenario in the RAG stepper above shows exactly this — same processes, same resources, different execution order, no cycle.
+
+However, modern systems often take the easier way out: **preemptive scheduling** naturally attacks the <DeadlockTag type="condition">No Preemption</DeadlockTag> condition, since the OS can forcibly reclaim CPU time from any process. This means losing some of the efficiency benefits of cooperative scheduling, but gaining a structural guarantee that one of Coffman's conditions is weakened.
+
+---
+
+## Safety-Critical Stories
+
+These techniques aren't academic exercises. When concurrent systems fail in safety-critical contexts, people get hurt.
+
+### The Therac-25 Incident (1985–1987)
+
+The Therac-25 was a radiation therapy machine controlled by software. Race conditions between the operator interface and beam-control hardware — a resource contention problem without proper synchronization — caused the machine to deliver **lethal radiation doses**. Three patients died and three were seriously injured.
+
+The root cause was exactly what we've been studying: shared resources (beam configuration state) accessed by multiple concurrent processes (operator interface and beam control) without proper mutual exclusion or synchronization. The developers had removed hardware safety interlocks that existed in previous models, trusting the software alone to manage the resources correctly. The software had a race condition that could set the beam to full power while the system believed it was in low-power mode.
+
+If Coffman's conditions are "how deadlocks happen," Therac-25 is "**why we must care**." Concurrent programming bugs don't just hang your program — in safety-critical systems, they can kill.
+
+### The Mars Pathfinder (1997)
+
+NASA's Mars Pathfinder rover kept randomly resetting on the Martian surface. The cause: **priority inversion** — a deadlock-adjacent problem.
+
+A high-priority task (the bus manager) was <ScheduleTag type="blocked">blocked</ScheduleTag> waiting for a <DeadlockTag type="resource">mutex</DeadlockTag> held by a low-priority task (the meteorological data collector). A medium-priority task (communications) preempted the low-priority task, preventing it from releasing the mutex. The high-priority task starved, the watchdog timer fired, and the system rebooted.
+
+The fix: **priority inheritance protocol** — temporarily boost the low-priority holder to the high-priority waiter's level so it can finish and release the resource. This was patched remotely from Earth via a C parameter change transmitted to Mars.
+
+> **📌 Connection:** Priority inversion combines elements of both deadlock (resource contention) and starvation (a high-priority process can't proceed). It's a reminder that the problems in this lecture interact with the scheduling problems from LN11 in subtle ways.
+
+---
+
+## Extensions
+
+### Distributed Deadlocks
+
+In distributed systems, no single node has the complete resource allocation graph. Detection requires either:
+- A **centralized coordinator** that collects lock information from all nodes (single point of failure)
+- **Distributed algorithms** like Chandy-Misra-Haas (1983) that propagate "probe" messages through the wait-for graph
+
+This is why microservice architectures overwhelmingly prefer **timeouts** over formal deadlock detection — it's impractical to maintain a global RAG across hundreds of services.
+
+### Convoy Effect Revisited
+
+The convoy effect from LN11 is actually a form of **resource-based starvation** when viewed through this lecture's framework. A long process "deadlocks" the <ScheduleTag type="ready">ready</ScheduleTag> queue by holding the CPU resource via <DeadlockTag type="condition">hold and wait</DeadlockTag>. The formal vocabulary we built today lets you see FCFS convoy as a special case of resource contention where the resource is CPU time itself.
+
+### Two-Phase Locking (2PL)
+
+A database technique where transactions acquire all locks in a "growing" phase, then release all in a "shrinking" phase. This attacks <DeadlockTag type="condition">hold and wait</DeadlockTag> — by the time you start releasing, you've already acquired everything you need. 2PL is the foundation of ACID transaction isolation in most relational databases. If you take a database course, you'll see this again.
+
+### Formal Verification
+
+Tools like **TLA+** (Leslie Lamport — also the creator of LaTeX!) and **SPIN** can *exhaustively* verify concurrent programs for deadlock before deployment. They enumerate all possible interleavings of concurrent operations and check for cycles in every reachable state. NASA uses these tools for spacecraft software — where the cost of a deadlock is not a reboot but mission failure.
+
+The graph-theoretic approach in this lecture scales directly to industrial verification. TLA+ models are essentially formal RAGs with state transitions — the same concepts, deployed at industrial scale.
+
+### Spinlocks vs Blocking Locks
+
+When a <DeadlockTag type="resource">resource</DeadlockTag> is contested, do you **spin** (busy-wait in a loop checking the lock) or **block** (context switch to another process)?
+
+- **Spinlocks** are efficient for very short critical sections (no context switch overhead) but waste CPU cycles and can cause livelock-like behavior on single-core systems
+- **Blocking locks** are efficient for long critical sections (CPU does useful work while waiting) but pay the context switch cost
+
+This connects back to LN11's scheduling concerns: spinlocks are essentially cooperative ("I'll keep checking"), while blocking locks delegate to the scheduler ("wake me when it's free"). The choice depends on the expected wait time relative to the context switch cost — yet another engineering tradeoff in the granularity spectrum.
+
+---
+
+## Summary
+
+| Technique | Medical Analogy | What It Does | When to Use |
+| :--- | :--- | :--- | :--- |
+| <DeadlockTag type="technique">Detection & Recovery</DeadlockTag> | Emergency Room | Find and break deadlocks after they occur | Databases, systems with checkpointing |
+| <DeadlockTag type="technique">Avoidance</DeadlockTag> | Doctor's Diet | Deny requests that could lead to unsafe states | Known resource bounds (Banker's) |
+| <DeadlockTag type="technique">Prevention</DeadlockTag> | Ounce of Prevention | Architect away Coffman conditions | Safety-critical systems, kernel design |
+| <DeadlockTag type="technique">Ostrich</DeadlockTag> | Ignore It | Assume deadlocks are too rare to worry about | Unix, Windows, most interactive systems |
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| <DeadlockTag type="resource">**Resource**</DeadlockTag> | An object whose access can be assigned exclusively to one process |
+| <DeadlockTag type="resource">**Preemptable**</DeadlockTag> | Resource that can be reassigned mid-operation without harm |
+| <DeadlockTag type="resource">**Non-preemptable**</DeadlockTag> | Resource that cannot be interrupted mid-operation |
+| <DeadlockTag type="resource">**Semaphore**</DeadlockTag> | Dijkstra's synchronization primitive (binary = mutex, counting = multi-instance) |
+| <DeadlockTag type="condition">**Mutual Exclusion**</DeadlockTag> | Only one process can hold a resource at a time |
+| <DeadlockTag type="condition">**Hold and Wait**</DeadlockTag> | Process holds resources while waiting for others |
+| <DeadlockTag type="condition">**No Preemption**</DeadlockTag> | Resources cannot be forcibly taken |
+| <DeadlockTag type="condition">**Circular Wait**</DeadlockTag> | Cycle in the wait-for graph |
+| <DeadlockTag type="danger">**Deadlock**</DeadlockTag> | All four Coffman conditions met — processes frozen |
+| <DeadlockTag type="danger">**Livelock**</DeadlockTag> | Processes running but making no progress |
+| <DeadlockTag type="danger">**Starvation**</DeadlockTag> | Process perpetually denied resources due to unfair policy |
+| <DeadlockTag type="safe">**Safe State**</DeadlockTag> | An ordering exists where all processes can complete |
+| <DeadlockTag type="technique">**Banker's Algorithm**</DeadlockTag> | Avoidance algorithm checking for safe states before granting requests |
+| **RAG** | Resource Allocation Graph — directed graph for deadlock detection |
+| **GIL** | Global Interpreter Lock — Python's single-mutex deadlock prevention |
+
+**Deadlock Handling Decision Guide:**
+
+```
+Safety-critical system?     → Prevention (resource ordering, atomic acquisition)
+Known resource bounds?      → Avoidance (Banker's Algorithm)
+Checkpointing available?    → Detection & Recovery (cycle detection + rollback)
+Interactive/general use?    → Ostrich (preemptive scheduler handles most cases)
+Distributed system?         → Timeouts (no global RAG available)
+Maximum performance?        → Lock-free data structures (eliminate locks entirely)
+```
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 32: Concurrency Bugs](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free textbook covering deadlock, livelock, and race conditions
+- [Modern Operating Systems (Tanenbaum) Ch. 6: Deadlocks](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — Comprehensive deadlock coverage including Banker's Algorithm
+- [The Dining Philosophers Problem (Dijkstra, 1971)](https://www.cs.utexas.edu/users/EWD/ewd03xx/EWD310.PDF) — Original formulation
+
+### Safety-Critical Case Studies
+
+- [What Really Happened on Mars (Microsoft Research)](https://www.microsoft.com/en-us/research/publication/what-really-happened-on-mars/) — The Pathfinder priority inversion story
+- [An Investigation of the Therac-25 Accidents (Leveson & Turner)](https://ieeexplore.ieee.org/document/274940) — Detailed analysis of the Therac-25 radiation incidents
+- [Software Engineering Code of Ethics](https://www.computer.org/education/code-of-ethics) — IEEE/ACM code for safety-critical software
+
+### Formal Verification
+
+- [TLA+ Home Page (Leslie Lamport)](https://lamport.azurewebsites.net/tla/tla.html) — Formal specification language for concurrent systems
+- [SPIN Model Checker](https://spinroot.com/spin/whatispin.html) — Exhaustive verification of concurrent programs
+
+### Rust Concurrency
+
+- [The Rustonomicon: Concurrency](https://doc.rust-lang.org/nomicon/concurrency.html) — Unsafe concurrency in Rust
+- [Rust Atomics and Locks (Mara Bos)](https://marabos.nl/atomics/) — Deep dive into lock-free programming in Rust
+- [Deadlock Detection in Rust (parking_lot)](https://docs.rs/parking_lot/latest/parking_lot/) — A Rust mutex library with built-in deadlock detection
+
+### Historical References
+
+- [Coffman et al. (1971): System Deadlocks](https://dl.acm.org/doi/10.1145/356586.356588) — The original four conditions paper
+- [Dijkstra's Semaphores (EWD 123)](https://www.cs.utexas.edu/users/EWD/ewd01xx/EWD123.PDF) — Original semaphore paper
+- [Python GIL Discussion (PEP 703)](https://peps.python.org/pep-0703/) — The ongoing effort to remove the GIL
+
+</LectureResources>
