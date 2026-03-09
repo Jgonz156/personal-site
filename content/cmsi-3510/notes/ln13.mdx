@@ -1,0 +1,330 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { MemoryTag, MemoryTagLegend } from "@/components/memory-tag"
+import { MemoryTechTable } from "@/components/memory-tech-table"
+import { AbstractionLayerDiagram } from "@/components/abstraction-layer-diagram"
+import { PASVerticalTape } from "@/components/pas-vertical-tape"
+import { MemoryHardwareTapes } from "@/components/memory-hardware-tapes"
+import { DisplayMath } from "@/components/math"
+
+## Recap
+
+In LN12, we wrestled with **deadlocks** — what happens when processes fight over resources so badly that everyone freezes. That lecture marks the end of our deep dive into the **CPU** and how the OS manages computation on it.
+
+Today, we shift from the CPU to the **other** fundamental piece of every computer: **memory**. Where the CPU performs computations, memory *stores* them. Every instruction, every variable, every process — it all lives in memory. But "memory" is not one thing. It is a hierarchy of wildly different technologies, each with its own physics, speed, cost, and tradeoffs.
+
+This lecture is about the **hardware** of memory. We will look at what memory *actually is*, what physical principles it exploits, and why modern systems use so many different kinds of it. In future lectures, we will investigate how the OS manages this hardware. But first, you have to understand what you are managing.
+
+---
+
+## What Memory Does
+
+<MemoryTagLegend />
+
+At the most fundamental level, memory provides the means by which we **store all our computations and information**. The CPU computes, but it needs somewhere to put the results, somewhere to read instructions from, and somewhere to hold the data being worked on. Memory is that "somewhere."
+
+But here is the critical insight: there is no single "perfect" memory. If there were, our jobs would be much simpler. Instead, we have a spectrum of technologies, each making different tradeoffs between **speed**, **capacity**, **cost**, and one property that is more fundamental than all of these:
+
+<DefinitionBox term="Volatility">
+
+<MemoryTag type="volatile">Volatility</MemoryTag> is the property that determines whether memory retains its data when power is removed. Memory is either **volatile** (data disappears without power), **non-volatile** (data persists), or **semi-volatile** (data persists for a limited time after power loss).
+
+</DefinitionBox>
+
+This single distinction — whether the hardware needs power to remember — shapes everything about modern computer architecture. Let's begin by examining each category.
+
+---
+
+## Volatile Memory — Data at Risk
+
+<MemoryTag type="volatile">Volatile memory</MemoryTag> is hardware that **requires constant power** to store information. The moment you cut power, everything stored in it vanishes. This sounds like a terrible property — why would anyone want this? Because volatile memory is *fast*. Extremely fast.
+
+### SRAM — Static Random Access Memory
+
+<DefinitionBox term="SRAM (Static Random Access Memory)">
+
+SRAM uses **6 transistors per bit** to form a stable bistable circuit (a flip-flop). As long as power is supplied, the circuit holds its state indefinitely without any refresh. SRAM is the fastest memory technology we have, used for **CPU registers** and **cache**.
+
+</DefinitionBox>
+
+The word "static" in SRAM does not mean "unchanging data" — it means the circuit is **statically stable**. Unlike its dynamic cousin, SRAM doesn't need to be constantly refreshed. The tradeoff? Six transistors per bit makes SRAM *expensive* and *physically large* relative to the data it stores. You cannot cheaply build terabytes of SRAM — you would need billions of transistors per byte.
+
+This is why SRAM is used only where speed is absolutely critical: the CPU's registers (the fastest memory in any system, operating at a single clock cycle) and the cache hierarchy (L1, L2, L3). Your CPU die is actually *mostly* cache — look back at those die shots from LN9 and notice how much silicon is dedicated to it.
+
+### DRAM — Dynamic Random Access Memory
+
+<DefinitionBox term="DRAM (Dynamic Random Access Memory)">
+
+DRAM uses just **1 transistor and 1 capacitor per bit**. The capacitor stores charge to represent a 1 or 0. Because capacitors leak charge, DRAM requires periodic **refresh cycles** (typically every ~64 ms) to re-charge each bit before it decays. DRAM is what most people mean when they say "RAM."
+
+</DefinitionBox>
+
+The word "dynamic" refers to the fact that the stored charge is constantly *draining away*. The memory controller must periodically read each bit and write it back to refresh the capacitor — a process that takes time and bandwidth. If the refresh doesn't happen fast enough, the bit "decoheres" and the data is lost, even while the system is powered on.
+
+Why use DRAM at all if it has this problem? Because 1 transistor + 1 capacitor is **dramatically** cheaper and smaller than 6 transistors. You can pack orders of magnitude more DRAM into the same silicon area. This makes DRAM suitable for **main memory** — those sticks of RAM you slot into a desktop motherboard. Modern DDR5 modules reach 4800–8400 MT/s (megatransfers per second) with on-die ECC (error correcting codes) to catch refresh-related bit flips.
+
+> **Key Insight:** SRAM vs. DRAM is the first taste of the central tension of memory engineering: **speed vs. density vs. cost**. You will see this tradeoff at every level of the hierarchy. It is inescapable.
+
+---
+
+## Non-Volatile Memory — Data That Persists
+
+<MemoryTag type="nonvolatile">Non-volatile memory</MemoryTag> retains its data **when unpowered**. This is generally what we think of when we imagine "storage" on a system. The physics behind persistence varies by technology — and each approach has profound implications for speed, durability, and cost.
+
+### ROM — Read-Only Memory
+
+<DefinitionBox term="ROM (Read-Only Memory)">
+
+ROM stores data that is **"baked in"** during manufacturing or via a special one-time programming process. It is used for boot firmware (BIOS/UEFI), system microcode, and embedded firmware. Old cartridge-based game consoles (NES, SNES, Game Boy) stored their games on ROM chips.
+
+</DefinitionBox>
+
+Despite the name "read-only," modern variants like EEPROM (Electrically Erasable Programmable ROM) *can* be rewritten — but not casually by the system during normal operation. Updating your BIOS firmware is an example of writing to ROM, and it requires a special "flashing" process precisely because the hardware is designed to resist normal writes. This makes it perfect for code that should *never* accidentally change, like the instructions your CPU executes before the OS even loads.
+
+### Flash Memory — The Modern Workhorse
+
+<DefinitionBox term="Flash Memory">
+
+Flash memory is **writable non-volatile** storage that uses a NAND or NOR gate architecture. It is managed by a dedicated controller chip and used in USB drives, SSDs, and virtually all portable storage devices.
+
+</DefinitionBox>
+
+The NAND/NOR naming is not coincidental — recall from your logic design and electrical engineering courses that NAND and NOR gates are **universal gates**. Either one alone can construct *any* other logic gate. This universality made it economically viable to mass-manufacture only one type of gate and use it to build everything, at the cost of needing more gates per circuit.
+
+Flash memory exploits a floating-gate transistor structure where electrons are trapped in an insulating layer. Charge = 1, no charge = 0 (or vice versa, depending on convention). Writing requires relatively high voltages to force electrons through the insulator. Reading is fast, but writing is slower and physically stresses the insulating layer — which is why flash storage has a limited number of **write cycles** before cells wear out. The controller chip handles **wear leveling** (distributing writes evenly), **garbage collection**, and **TRIM** operations to maximize the lifespan.
+
+Samsung and other manufacturers market SSDs with different endurance tiers based on how many bits are packed per cell:
+
+| Type | Bits/Cell | Endurance | Speed | Cost |
+| :--- | :--- | :--- | :--- | :--- |
+| SLC (Single-Level Cell) | 1 | Highest (~100K cycles) | Fastest | Most expensive |
+| MLC (Multi-Level Cell) | 2 | High (~10K cycles) | Fast | Moderate |
+| TLC (Triple-Level Cell) | 3 | Moderate (~3K cycles) | Moderate | Affordable |
+| QLC (Quad-Level Cell) | 4 | Lowest (~1K cycles) | Slowest flash | Cheapest |
+
+More bits per cell means higher density and lower cost — but also lower endurance and slower writes. This is the speed/density/cost tradeoff again, just within a single technology category.
+
+### Magnetic Memory
+
+Magnetic memory stores data by manipulating the **polarity of a magnetic medium**. The read/write head magnetizes tiny regions of a spinning platter (HDDs), a flexible strip (floppy disks), or a long reel (tape drives) in one of two directions to represent 0 or 1.
+
+This is one of the oldest data storage technologies — magnetic tape was used for computing in the 1950s and is *still in use today* for enterprise backup and cold archival storage. HDDs (Hard Disk Drives) spin metal platters at 5400–7200 RPM while a mechanical arm seeks to the correct track. The mechanical nature of HDDs is why they are orders of magnitude slower than SSDs for **random access** — the head physically has to *move* to the right spot on the platter.
+
+### Optical Memory
+
+Optical memory stores data by **physically altering the surface of a reflective disc** using a laser. CDs, DVDs, and Blu-ray discs all work on this principle. The term "burning" a CD is literal — a laser burns microscopic pits into a dye layer on the disc surface. A lower-power laser then reads these pits by detecting how light reflects differently from pitted vs. unpitted areas.
+
+| Format | Capacity | Laser Wavelength |
+| :--- | :--- | :--- |
+| CD | 700 MB | 780 nm (infrared) |
+| DVD | 4.7–8.5 GB | 650 nm (red) |
+| Blu-ray | 25–128 GB | 405 nm (blue-violet) |
+
+Shorter wavelengths focus more tightly, allowing smaller pits and higher density. This is literally why Blu-ray is called "Blu-ray" — it uses a blue laser instead of a red one.
+
+---
+
+## The Physics of Persistence
+
+To truly understand why <MemoryTag type="nonvolatile">non-volatile</MemoryTag> memory retains data without power, consider *what physical phenomenon* each technology manipulates:
+
+| Technology | Physical Basis |
+| :--- | :--- |
+| Magnetic (HDD, Tape) | **Magnetic polarity** of ferromagnetic material — domains are oriented N/S and stay that way |
+| Optical (CD, DVD, Blu-ray) | **Physical surface topology** — laser-burned pits in a reflective medium are permanent |
+| Flash (SSD, USB) | **Trapped electrons** in a floating-gate insulator — charge is retained without power |
+| ROM | **Hardwired circuit paths** or permanently blown fuses |
+
+Volatile memory, by contrast, relies on **active electrical state**: SRAM uses powered flip-flop circuits; DRAM uses capacitors that leak charge. The moment current stops flowing, the state is gone.
+
+---
+
+## Sleep Modes and Volatility
+
+Now that we understand what volatile and non-volatile mean physically, let's connect it to something you experience every day.
+
+**Thought experiment:** Imagine a laptop built with *only* non-volatile memory for everything — registers, cache, RAM, storage, all non-volatile. What happens when you shut it off and turn it back on? *Nothing changes.* Your system would simply stop mid-computation, and when powered back on, it would pick up **exactly** where it left off. No boot sequence, no OS restart — the bits never went anywhere.
+
+But that's not what happens on real systems, is it? Modern systems use <MemoryTag type="volatile">volatile</MemoryTag> memory for registers, cache, and RAM. When you power off, all of that is gone. The OS has to restart from whatever the non-volatile storage holds — your SSD or HDD. So every power cycle means rebooting the OS, reloading programs, and starting fresh.
+
+**What about sleep mode?** Here is where the distinction becomes tangible. If you have RGB RAM in your desktop, you can actually *see* this: when you put your system to sleep, the RAM stays lit because it is still powered. Sleep mode keeps your volatile RAM energized so you can wake up exactly where you were at the application layer. However, your CPU is powered down, so any in-progress computations are lost — applications need to re-enter their run loops, but their data (still in RAM) is immediately available.
+
+Different "sleep levels" correspond to which volatile layers remain powered:
+
+| Sleep Level | What Stays Powered | Wake Speed | Power Use |
+| :--- | :--- | :--- | :--- |
+| S0 (Active) | Everything | Instant | Full |
+| S1 (Power on Suspend) | CPU + RAM | Near-instant | High |
+| S3 (Suspend to RAM) | RAM only | Fast (~2–5 sec) | Low |
+| S4 (Hibernate) | Nothing (state saved to SSD) | Slow (~10–30 sec) | Zero |
+| S5 (Soft Off) | Nothing | Full boot | Zero |
+
+> **Fun fact — E-Ink and non-volatile displays:** This same tradeoff explains why E-Ink screens (used in Kindle and similar e-readers) are so power-efficient. E-Ink is a **non-volatile display technology** — once the ink particles are moved into position, they stay there without any power. The screen only needs energy *when it changes*. Traditional LCD/OLED screens are volatile — they need constant power to maintain the image. If we could have non-volatile everything, we would have the "perfect" low-power system.
+
+---
+
+## Semi-Volatile Memory — Bridging the Gap
+
+<DefinitionBox term="Semi-Volatile Memory">
+
+<MemoryTag type="semivolatile">Semi-volatile memory</MemoryTag> maintains data integrity for a **limited period** after power loss. It bridges volatile and non-volatile categories by combining the speed advantages of volatile architectures with non-volatile durability safeguards.
+
+</DefinitionBox>
+
+This category exists because some volatile technologies can be augmented with non-volatile backup mechanisms. For example, some enterprise DRAM modules include a small battery and flash chip — on power loss, the battery provides enough power to flush the DRAM contents to the flash chip, preserving data. When power returns, the data is restored.
+
+The SLC, TLC, and QLC distinctions you see marketed on consumer SSDs also reflect a form of this tradeoff. QLC flash stores 4 bits per cell by distinguishing 16 voltage levels — which means the margins between levels are thin, and data degrades faster. SLC uses only 2 voltage levels (1 bit per cell) with wide margins — the data is far more robust. More redundancy at the cell level translates to better durability, but higher cost per gigabyte.
+
+---
+
+## The Memory Hierarchy
+
+This is the heart of the lecture. Every technology we have discussed occupies a specific position in a hierarchy ordered by **distance from the CPU**. The closer to the CPU, the faster and more expensive. The further away, the slower and cheaper. This hierarchy is not a design choice — it is an economic and physical *inevitability*.
+
+<MemoryTechTable />
+
+### Understanding the Speed Column
+
+The <MemoryTag type="speed">speed</MemoryTag> column deserves special attention because the numbers span **ten orders of magnitude**. A CPU register access takes ~0.3 nanoseconds. A tape seek takes ~1 second. That is a factor of **3 billion**. Our brains are not wired to intuitively grasp differences this large, which is why the human time-scale toggle exists in the table above — use it.
+
+A useful mental model: think of the CPU as a video running at some frame rate. The **clock speed** is that frame rate — it represents the fastest possible transition from one state to the next, the speed of a single CPU cycle. On modern processors, one cycle is roughly 0.3–1 ns.
+
+Registers are the only memory that operates at **1 cycle** — they are to the CPU what thoughts are to a brain, instantly accessible. Every other memory tier requires the CPU to *wait*. And waiting is what we are trying to eliminate.
+
+> **📚 World Record:** The fastest a single CPU cycle has ever completed is approximately **0.1096 ns** (109.6 picoseconds), achieved by an overclocked Intel Core i9-14900KF running at **9,130.33 MHz** (9.13 GHz). At that speed, a single cycle takes about 110 trillionths of a second.
+
+For contrast, consider the **human brain**. A typical neuron fires at **10–100 Hz** (10–100 times per second), with specialized neurons reaching up to 1000 Hz. That means a neuron's "clock speed" is roughly **1–100 ms per cycle** — comparable to an HDD seek time. The brain compensates with massive parallelism: approximately **86 billion neurons** connected by **~150 trillion synapses**, collectively processing about **10 bits per second** consciously. (Recall our parallel programming lecture — the brain is the ultimate embarrassingly parallel system with a hilariously slow clock!)
+
+At **tape storage** (~1 second access time), computer latency finally enters human-perceivable timescales. Every tier above it happens so fast that without analogies, we cannot appreciate the differences.
+
+### Understanding the Cost Column
+
+<MemoryTag type="cost">Cost</MemoryTag> follows an almost perfect inverse relationship with speed. Register silicon is priceless (it is part of the CPU die itself). Tape is so cheap that companies like Amazon and Google store *exabytes* of cold data on tape libraries. The cheapest HDD storage runs about \$0.015/GB; the fastest NVMe SSDs cost ~\$0.10/GB. That is a 7x price premium for roughly a 400x speed improvement — which, in engineering terms, is an incredible deal. This is why SSDs have displaced HDDs for most consumer use cases.
+
+> **📚 Year-over-Year:** This table shifts every year. Just last year, RAM was slower and cheaper. Today, DDR5 prices have surged 200%+ in some configurations, driven by AI companies amassing massive memory pools for large language model training. Staying current on memory economics is part of being a systems engineer.
+
+---
+
+## The Universal Memory
+
+With this hierarchy laid out, it is worth reflecting on how mathematicians and computer scientists view memory. They operate with an idealized model: **the Universal Memory**.
+
+<DefinitionBox term="The Universal Memory">
+
+The Universal Memory is the theoretical ideal: memory that is **instantaneous** (1 cycle), **infinite** in capacity, **non-volatile** (retains data without power), and **free**. It is the limiting case toward which all memory engineering converges.
+
+</DefinitionBox>
+
+This might sound like a useless abstraction — a fantasy that ignores all the real-world constraints we just spent an entire lecture studying. But it represents something important about how memory architecture works compared to other fields of computer science.
+
+**Memory is a means to an end.** If we could afford to have only registers, we would. It is simply that, through practical considerations of space, cost, heat, and other real-world limitations, this field is shaped by **physical** constraints, not logical ones. There is no *computational* reason we need a memory hierarchy — no theorem of computation demands it. The halting problem is a logical impossibility; the Universal Memory is an *engineering* challenge. We march closer every year.
+
+Consider the trajectory: DDR3 RAM in ~2012 ran at ~100 ns access time. DDR5 in 2025 runs at ~6–14 ns. That is a 7–16x improvement in barely a decade. Flash storage went from spinning HDDs to NVMe SSDs, closing the gap to RAM by orders of magnitude. New technologies like **HBM3** (High Bandwidth Memory) stack DRAM in 3D to achieve RAM speeds with much higher bandwidth.
+
+The practical consequence is real: the architectures we study today are *temporary*. When memory gets faster and cheaper, our workarounds become unnecessary. More cache? Needed less if RAM gets closer to cache speed. In-place algorithms to minimize memory footprint? Less critical when memory is abundant. The massive AI models of today are "sloppy" with memory precisely because modern hardware lets them be. Systems engineering is always relative to the hardware of its era.
+
+---
+
+## Memory Through Abstraction Layers
+
+Everything we have discussed so far lives in the real, physical world of voltages, capacitors, and magnetic domains. But as programmers, we rarely think about any of that. The beauty — and the curse — of modern computing is that it is built from **layers of abstraction**, each hiding the complexity of the layer below.
+
+<AbstractionLayerDiagram />
+
+This layering is powerful but has a critical implication for optimization. Consider the API wall between each layer:
+
+- A **SQL developer** cannot optimize memory layout — they do not even see memory. They see tables and queries.
+- An **application developer** in Rust sees the stack and the heap. They can choose `Box` vs. stack allocation, `Vec` vs. array, but they do not see cache lines or TLB entries.
+- An **OS developer** sees the Process Address Space, page tables, and 64-bit instruction blocks. They can optimize for cache locality and page alignment, but they do not control individual transistors.
+- An **electrical engineer** sees voltage levels, gate delays, and capacitor charges. They can optimize the silicon itself.
+
+Your **optimization ceiling is your abstraction layer's floor**. You can only optimize for what your layer lets you see. When you provide an API to another developer — whether it is a library crate in Rust, a server API for web development, or an interface/trait — you are building a wall made of a promise: that *you* alone will optimize and support everything hidden behind it. Your users do not need to carry the mental load of what is beyond your abstraction.
+
+The OS is probably the single largest example of this: it takes the raw chaos of hardware and presents a clean, safe interface to every application above it.
+
+---
+
+## The Programmer's View of Memory
+
+Understanding what memory *looks like* is crucial to your optimizations as software engineers. You can only optimize for what you fully understand, and the abstraction layer we live in — the OS layer — gives us a very specific view.
+
+At the lowest level, we know it is all 1s and 0s flowing through gates. But that is the electrical engineer's view, not ours. The highest view is the application developer's: they only know of the stack and the heap. There are even layers beyond that — SQL developers who cannot control memory at all.
+
+Our view is that of **machine code via the ISA**. We do not read individual bits; we read **instructions**, one by one, as defined by our CPU's Instruction Set Architecture. So do not imagine a horizontal tape of 1s and 0s. Imagine a **vertical tape**, 64 bits wide, broken into discrete blocks — because that is what our instructions physically *are*. Each instruction is 64 bits wide (on a 64-bit system). It is like writing an essay on a roll of toilet paper as you unroll it — each line is exactly 64 characters wide, read from top to bottom.
+
+We group these machine instructions into **programs** and assign them to memory segments. Then we unroll a large blank section of the tape and subdivide it into the **Process Address Space** we discussed in LN10:
+
+<PASVerticalTape />
+
+Notice the structure: code and data sit together at the low end (top of the tape), then the heap grows downward from the code, and the stack grows upward from the bottom. The gap in between is where the two will eventually collide if you allocate too much — a **stack overflow** (the stack hits the heap) or **heap exhaustion** (the heap fills all available space).
+
+This is the view of memory that you, as an OS developer, will optimize. Not bits, not bytes — **64-bit instruction blocks** in a vertical tape that you must partition, protect, and manage for every running process.
+
+---
+
+## Memory Across Hardware
+
+There is one final visualization that ties everything together. We said memory is a hierarchy of different hardware, each with different speeds and capacities. Each of those hardware tiers can be thought of as its own "roll of toilet paper" — a finite tape. Registers are a tiny roll. Cache is small. RAM is medium. SSDs are large. HDDs are enormous.
+
+A running process does not live on just one of these rolls. Its **instructions** might be in cache (recently executed code), its **data** in RAM (active variables and heap objects), its **executable** on the SSD (the binary file), and its **logs** on the HDD (archival writes). A process *colors* parts of every roll simultaneously.
+
+<MemoryHardwareTapes />
+
+This is the complete picture: each component of your system that contains memory has one of these finite tapes, and the transfer of data, subdivisions, and processes *between* these tapes is what we as OS developers are here to manage. In the next several lectures, we will study exactly how the OS orchestrates this — virtual memory, paging, page replacement algorithms, and more.
+
+---
+
+## Summary
+
+- Memory is not one thing — it is a **hierarchy** of technologies trading off speed, capacity, cost, and volatility
+- <MemoryTag type="volatile">Volatile</MemoryTag> memory (SRAM, DRAM) is fast but requires constant power
+- <MemoryTag type="nonvolatile">Non-volatile</MemoryTag> memory (ROM, Flash, Magnetic, Optical) persists without power but is slower
+- <MemoryTag type="semivolatile">Semi-volatile</MemoryTag> memory bridges the gap with limited persistence after power loss
+- The memory hierarchy spans **10 orders of magnitude** in latency — from ~0.3 ns (registers) to ~1 second (tape)
+- <MemoryTag type="speed">Speed</MemoryTag> and <MemoryTag type="cost">cost</MemoryTag> have an almost perfect inverse relationship
+- The **Universal Memory** (instant, infinite, non-volatile, free) is the engineering endgame, not a logical impossibility
+- Your **optimization ceiling is your abstraction layer's floor** — you can only optimize what your layer exposes
+- From our OS perspective, memory is a **64-bit-wide vertical tape** partitioned into code, data, heap, and stack
+- Processes live **across all memory tiers simultaneously** — managing their footprint across hardware is the OS's job
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+1. Understand **volatility** before anything else — it determines the entire architecture of modern systems
+2. SRAM (6 transistors/bit) powers registers and cache; DRAM (1 transistor + 1 capacitor/bit) powers main memory — the speed/density/cost tradeoff is fundamental
+3. Non-volatile storage exploits different physics: magnetic polarity, laser-burned pits, trapped electrons, hardwired circuits
+4. The memory hierarchy is an **economic and physical inevitability**, not a design choice
+5. Sleep modes map directly to which volatile layers remain powered
+6. Your abstraction layer determines what optimizations are even visible to you
+7. Memory engineering advances yearly — the architectures we study are temporary solutions to the Universal Memory problem
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 13: Address Spaces](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free textbook covering memory virtualization and address spaces
+- [Modern Operating Systems (Tanenbaum) Ch. 3: Memory Management](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — Comprehensive memory management coverage
+- [Computer Organization and Design (Patterson & Hennessy)](https://www.elsevier.com/books/computer-organization-and-design/patterson/978-0-12-820109-1) — The memory hierarchy from a hardware perspective
+
+### Memory Technology Deep Dives
+
+- [How DRAM Works (Computerphile)](https://www.youtube.com/watch?v=7J7X7aZvMXQ) — Visual explanation of capacitor-based storage
+- [NAND Flash Architecture (AnandTech)](https://www.anandtech.com/show/5067/understanding-tlc-nand) — SLC, MLC, TLC, and QLC explained
+- [HBM3 and AI Memory (IEEE Spectrum)](https://spectrum.ieee.org/) — High-bandwidth memory for machine learning workloads
+
+### Historical Context
+
+- [The Memory Wall (Wulf & McKee, 1995)](https://dl.acm.org/doi/10.1145/216585.216588) — The seminal paper on the growing CPU-memory speed gap
+- [Magnetic Core Memory (Computer History Museum)](https://www.computerhistory.org/revolution/memory-storage) — Memory before semiconductors
+- [The First DRAM: Intel 1103 (1970)](https://en.wikipedia.org/wiki/Intel_1103) — The chip that killed magnetic core memory
+
+### Standards and Specifications
+
+- [JEDEC DDR5 SDRAM Standard](https://www.jedec.org/standards-documents/docs/jesd79-5) — The industry standard for modern RAM
+- [NVMe Specification](https://nvmexpress.org/specifications/) — The protocol powering modern SSDs
+- [LTO Consortium (Tape Storage)](https://www.lto.org/) — Linear Tape-Open standards for enterprise archival
+
+</LectureResources>
