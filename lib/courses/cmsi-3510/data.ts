@@ -419,10 +419,7 @@ const allEvents: CourseEvent[] = [
     standard: "CPU",
     contentUrl: "/cmsi-3510/ln12",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/T1ITG3-39HbeR-7X62CXlu5bM3vt0T2MiPb3m_CP7M0imBsZMogpBXK1plHJ0UQ7.1vhK88krGH428vX0",
-      },
+      
     ],
   },
   {
@@ -436,10 +433,7 @@ const allEvents: CourseEvent[] = [
     standard: "Memory",
     contentUrl: "/cmsi-3510/ln13",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/sKCR2P-dvKeY334YKsk51ImKRzafg7yCr4JHHwJ7BiEfqC0-SYS5UfhAZEndz8EL.g6ENsZyYvtnnuFDb",
-      },
+      
     ],
   },
   {
@@ -453,10 +447,7 @@ const allEvents: CourseEvent[] = [
     standard: "Memory",
     contentUrl: "/cmsi-3510/ln14",
     recordings: [
-      {
-        name: "Class Recording",
-        url: "https://lmula.zoom.us/rec/share/b8a-Mtt0DpwOXz1gFFOe3lm4Ot3RwjvRx3WWT8LX_mi5hnegYTk-0zYmI6TpSzwd.jN7qvZkP-hpbqHJl",
-      },
+      
     ],
   },
   {
@@ -512,14 +503,7 @@ const allEvents: CourseEvent[] = [
     standard: "Memory",
     contentUrl: "/cmsi-3510/ln15",
     recordings: [
-      {
-        name: "Last Semester's Video",
-        url: "https://lmula.zoom.us/rec/share/b7LYFJknPXpAvWfnbMN5yktMTiKYA-g2xeMc57mFT5UvnDQWqz4rGUXA1h_U_sn9.TdKdllpBDbnMuIwp",
-      },
-      {
-        name: "Class Video",
-        url: "https://lmula.zoom.us/rec/share/cp9_0TFGJph30fyjewwtLLMr0yNplIhH-CLvnhBCZII9cHuwQz5cDXaoyzZ3SwuS.2Wy4BytpJHYf8xKV",
-      },
+      
     ],
   },
   {
