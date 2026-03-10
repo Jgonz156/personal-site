@@ -1,0 +1,353 @@
+import { DisplayMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ReductionStepper } from "@/components/reduction-stepper"
+import { CodeComparison } from "@/components/code-comparison"
+import { QuestionBox } from "@/components/question-box"
+import { FunctionTaxonomyGrid } from "@/components/function-taxonomy-grid"
+
+## Recap
+
+Last time we built the diagnostic tools for reasoning about scope in the lambda calculus. We learned to identify **free** and **bound** variables, and we defined **proper substitution** — the notation $M[N/x]$ meaning "substitute $N$ for every free occurrence of $x$ in $M$, avoiding captures." We saw that the safety of substitution boils down to one check:
+
+<DisplayMath formula="(\lambda y.\; M)[N/x] \text{ is safe iff } y \notin FV(N) \;\lor\; x \notin FV(M)" />
+
+Today we put these tools to work: we'll formally define all three reductions, complete the lambda calculus, reveal Python's hidden lambdas, and start classifying functions from the outside.
+
+---
+
+## Today's Agenda
+
+- **Formal Alpha-Conversion** — Renaming with a safety guarantee
+- **Formal Beta-Conversion** — Calling functions via proper substitution
+- **Formal Eta-Conversion** — Removing wrappers without substitution
+- **The Complete Lambda Calculus** — Five pieces, one system
+- **The Python Lambda Reveal** — What we've been hiding from you
+- **Function Categories** — Suppliers, consumers, predicates, and procedures
+
+---
+
+## Formal Alpha-Conversion
+
+We know informally that alpha-conversion renames parameters without changing meaning. We also saw in the last lecture that it only fails when the new name collides with a free variable in the body — capturing it and changing the function's behavior.
+
+So the formal rule is straightforward: you can rename $x$ to $y$ as long as $y$ isn't already free in the body.
+
+<DefinitionBox term="Alpha-Conversion (Formal)">
+
+<DisplayMath formula="\lambda x.\; M \;\Longrightarrow_\alpha\; \lambda y.\; M[y/x] \quad \text{provided } y \notin FV(M)" />
+
+Rename the bound variable $x$ to $y$ throughout the body $M$, using proper substitution. The condition $y \notin FV(M)$ guarantees no free variable gets captured.
+
+</DefinitionBox>
+
+Let's verify this with examples. The key move each time: **check** $FV(M)$, **pick** a name not in it, **substitute**.
+
+<ReductionStepper
+  title="Alpha: λx. x + y — rename x to z"
+  steps={[
+    { formula: "\\lambda x.\\; x + y", description: "Body M = x + y. Compute FV(M) = {x, y}. We want to rename x to z." },
+    { formula: "FV(M) = \\{x, y\\}. \\quad z \\notin FV(M)? \\quad \\checkmark", description: "z is not free in the body — safe to proceed!" },
+    { formula: "\\lambda z.\\; (x + y)[z/x]", description: "Apply proper substitution: replace every free x with z" },
+    { formula: "\\lambda z.\\; z + y", description: "Done! The function behaves identically — just a different parameter name." }
+  ]}
+/>
+
+<ReductionStepper
+  title="Alpha: λa. λb. a + b — rename a to c"
+  steps={[
+    { formula: "\\lambda a.\\; \\lambda b.\\; a + b", description: "Body M = λb. a + b. Compute FV(M) = {a} (b is bound by the inner lambda)." },
+    { formula: "FV(M) = \\{a\\}. \\quad c \\notin FV(M)? \\quad \\checkmark", description: "c is not free in the body — safe!" },
+    { formula: "\\lambda c.\\; (\\lambda b.\\; a + b)[c/a]", description: "Substitute c for every free a in the body" },
+    { formula: "\\lambda c.\\; \\lambda b.\\; c + b", description: "Renamed successfully. Same curried addition, different outer parameter." }
+  ]}
+/>
+
+<ReductionStepper
+  title="Alpha BLOCKED: λx. x + y — trying to rename x to y"
+  steps={[
+    { formula: "\\lambda x.\\; x + y", description: "Body M = x + y. Compute FV(M) = {x, y}." },
+    { formula: "FV(M) = \\{x, y\\}. \\quad y \\notin FV(M)? \\quad \\times", description: "y IS free in the body — renaming x to y would capture it! BLOCKED." }
+  ]}
+/>
+
+Notice something powerful: there are infinitely many valid choices for the new name (anything not in $FV(M)$), but only finitely many bad ones. We can express the set of all valid alpha renamings with set-builder notation:
+
+<DisplayMath formula="\text{Valid}_\alpha(\lambda x.\; M) = \{ y \mid y \notin FV(M) \}" />
+
+This set is **co-finite** — it excludes only the finitely many free variables in $M$. So you'd have to be extraordinarily unlucky (or careless) to pick a bad name!
+
+---
+
+## Formal Beta-Conversion
+
+Beta-conversion is "calling a function by hand." Informally, we remove the lambda, and the parameter gets replaced by the argument throughout the body. But now that we have proper substitution, the formal definition is remarkably clean.
+
+Here's the key insight: when we strip off $\lambda x$ from $(\lambda x.\; M) \;\; N$, the variable $x$ that was bound by that lambda is now **free** in $M$. Proper substitution then replaces every free occurrence of $x$ with $N$ — exactly what we want!
+
+<DefinitionBox term="Beta-Conversion (Formal)">
+
+<DisplayMath formula="(\lambda x.\; M) \;\; N \;\Longrightarrow_\beta\; M[N/x]" />
+
+Apply a function by substituting the argument $N$ for the parameter $x$ throughout the body $M$, using proper substitution. The safety of proper substitution automatically prevents captures.
+
+</DefinitionBox>
+
+That's it — one line! All the complexity is handled by proper substitution's rules. Let's see it in action.
+
+<ReductionStepper
+  title="Beta: (λx. x + 1) 5"
+  steps={[
+    { formula: "(\\lambda x.\\; x + 1) \\;\\; 5", description: "A function applied to 5. Strip the lambda — x becomes free." },
+    { formula: "(x + 1)[5/x]", description: "Apply proper substitution: replace every free x with 5" },
+    { formula: "5 + 1 = 6", description: "Direct substitution — x was the only free variable." }
+  ]}
+/>
+
+<ReductionStepper
+  title="Beta: (λx. λy. x + y) 3 5"
+  steps={[
+    { formula: "(\\lambda x.\\; \\lambda y.\\; x + y) \\;\\; 3 \\;\\; 5", description: "Curried addition. Apply the outer function to 3 first." },
+    { formula: "(\\lambda y.\\; x + y)[3/x] \\;\\; 5", description: "Strip λx — now x is free in the body. Substitute 3 for x." },
+    { formula: "(\\lambda y.\\; 3 + y) \\;\\; 5", description: "First reduction done. Now apply this function to 5." },
+    { formula: "(3 + y)[5/y]", description: "Strip λy — now y is free. Substitute 5 for y." },
+    { formula: "3 + 5 = 8", description: "Two beta reductions, each just a proper substitution." }
+  ]}
+/>
+
+<ReductionStepper
+  title="Beta with capture avoidance: (λx. λy. x) y"
+  steps={[
+    { formula: "(\\lambda x.\\; \\lambda y.\\; x) \\;\\; y", description: "Apply a constant function to the argument y." },
+    { formula: "(\\lambda y.\\; x)[y/x]", description: "Strip λx. Now substitute y for x. But wait — y is bound by the inner λy!" },
+    { formula: "y \\in FV(y) \\;\\land\\; x \\in FV(\\lambda y.\\; x) \\;\\Rightarrow\\; \\text{capture!}", description: "Proper substitution detects the danger. Rename the inner parameter first." },
+    { formula: "(\\lambda z.\\; x)[y/x]", description: "Alpha-rename the inner λy to λz, then substitute safely." },
+    { formula: "\\lambda z.\\; y", description: "Safe result: a function that ignores its argument and returns the external y." }
+  ]}
+/>
+
+That last example is critical — without proper substitution's capture avoidance, we'd get $\lambda y.\; y$ (the identity), which is a completely different function!
+
+---
+
+## Formal Eta-Conversion
+
+Eta-conversion removes unnecessary function wrappers. Something interesting about formalizing this one: **no substitution occurs**. It's a pure removal operation. All we need to ensure is that peeling off the lambda doesn't accidentally free the parameter.
+
+<DefinitionBox term="Eta-Conversion (Formal)">
+
+<DisplayMath formula="\lambda x.\; M \;\; x \;\Longrightarrow_\eta\; M \quad \text{provided } x \notin FV(M)" />
+
+If a function just passes its argument straight to $M$, remove the wrapper and use $M$ directly. The condition $x \notin FV(M)$ ensures that removing $\lambda x$ doesn't free an $x$ that was being used independently in $M$.
+
+</DefinitionBox>
+
+The condition is strict: we can only unravel the layer if the parameter being removed has no other role inside $M$ beyond receiving the argument.
+
+<ReductionStepper
+  title="Eta: λx. f x — remove the wrapper"
+  steps={[
+    { formula: "\\lambda x.\\; f \\;\\; x", description: "This function just passes x to f. Check: x ∉ FV(f)?" },
+    { formula: "FV(f) = \\{f\\}. \\quad x \\notin FV(f)? \\quad \\checkmark", description: "x doesn't appear free in f — safe to remove the wrapper!" },
+    { formula: "f", description: "Done! λx. f x and f are the same function." }
+  ]}
+/>
+
+<ReductionStepper
+  title="Eta: λx. (λy. y + 1) x — remove the wrapper"
+  steps={[
+    { formula: "\\lambda x.\\; (\\lambda y.\\; y + 1) \\;\\; x", description: "Here M = (λy. y + 1). Check: x ∉ FV(M)?" },
+    { formula: "FV(\\lambda y.\\; y + 1) = \\varnothing. \\quad x \\notin \\varnothing? \\quad \\checkmark", description: "No free variables at all — definitely safe!" },
+    { formula: "\\lambda y.\\; y + 1", description: "The wrapper was useless. The inner function was the whole story." }
+  ]}
+/>
+
+<ReductionStepper
+  title="Eta BLOCKED: λx. x x — can't remove the wrapper"
+  steps={[
+    { formula: "\\lambda x.\\; x \\;\\; x", description: "Self-application. Here M = x. Check: x ∉ FV(M)?" },
+    { formula: "FV(x) = \\{x\\}. \\quad x \\notin FV(x)? \\quad \\times", description: "x IS free in M — removing λx would free a variable that needs to stay bound! BLOCKED." }
+  ]}
+/>
+
+That last example shows why the check is essential. If we naively reduced $\lambda x.\; x \;\; x$ to just $x$, a self-contained function would become a bare free variable — a completely different thing!
+
+---
+
+## The Complete Lambda Calculus
+
+We've now formally defined everything. The entire lambda calculus consists of just **five pieces**:
+
+| Piece | What It Defines |
+| :--- | :--- |
+| **Lambda Expressions** | Variables, constants, abstraction ($\lambda x.\; M$), application ($M \;\; N$) |
+| **Alpha-Conversion** | $\lambda x.\; M \Longrightarrow_\alpha \lambda y.\; M[y/x]$ provided $y \notin FV(M)$ |
+| **Beta-Conversion** | $(\lambda x.\; M) \;\; N \Longrightarrow_\beta M[N/x]$ |
+| **Eta-Conversion** | $\lambda x.\; M \;\; x \Longrightarrow_\eta M$ provided $x \notin FV(M)$ |
+| **Proper Substitution** | $M[N/x]$ — the single formal operation on lambda expressions |
+
+That's it. These five components are sufficient to define how modern programming languages use functions and computation in general. Every `def`, every `return`, every callback, every closure in Python, JavaScript, Rust, or any other language — they all trace back to these rules.
+
+> There are many more topics in the lambda calculus worth exploring: how to define recursion in pure mathematics (via fixed-point combinators like the Y combinator), how to investigate the evaluation order of functions (not all programming languages do this the same way!), and how to encode all of mathematics using nothing but functions. We'll leave those fascinating topics to graduate-level studies if you're interested.
+
+For now, let's shift our perspective. We've been looking at the **interior** of functions — their bodies, their substitutions, their reductions. It's time to step back and look at the **exterior**: how functions connect to the rest of our mathematics based on their inputs and outputs.
+
+---
+
+## The Python Lambda Reveal
+
+Before we move forward, there's something we need to come clean about.
+
+Throughout this course, we've seen that Python is essentially a copy-and-paste of formal mathematical tools developed nearly 100 years ago. Sets, tuples, relations, quantifiers — Python borrowed all of them. So... did they also borrow lambdas directly?
+
+**Yes. They literally added lambdas to Python.**
+
+We've been using `def` statements for all our Python examples — **statically declared, named functions**. But the lambda calculus uses **dynamic, expression-based, unnamed functions**. So what do Python's dynamic unnamed functions look like?
+
+<CodeComparison
+  left={{
+    title: "Lambda Calculus",
+    code: '<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> <span style="color: #f59e0b">x</span> + 1\n\n<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> <span style="color: #f59e0b">x</span> * <span style="color: #f59e0b">x</span>\n\n<span style="color: #9ca3af">λ</span><span style="color: #f59e0b">x</span><span style="color: #9ca3af">.</span> <span style="color: #9ca3af">λ</span><span style="color: #3b82f6">y</span><span style="color: #9ca3af">.</span> <span style="color: #f59e0b">x</span> + <span style="color: #3b82f6">y</span>'
+  }}
+  right={{
+    title: "Python Lambdas",
+    code: '<span style="color: #9ca3af">lambda</span> <span style="color: #f59e0b">x</span><span style="color: #9ca3af">:</span> <span style="color: #f59e0b">x</span> + 1\n\n<span style="color: #9ca3af">lambda</span> <span style="color: #f59e0b">x</span><span style="color: #9ca3af">:</span> <span style="color: #f59e0b">x</span> * <span style="color: #f59e0b">x</span>\n\n<span style="color: #9ca3af">lambda</span> <span style="color: #f59e0b">x</span><span style="color: #9ca3af">,</span> <span style="color: #3b82f6">y</span><span style="color: #9ca3af">:</span> <span style="color: #f59e0b">x</span> + <span style="color: #3b82f6">y</span>'
+  }}
+  annotations={[
+    { label: "Parameters", color: "#f59e0b" },
+    { label: "Second parameter", color: "#3b82f6" },
+    { label: "Syntax", color: "#9ca3af" }
+  ]}
+  caption="Python lambdas are a near-exact copy of lambda calculus syntax. The only difference: Python allows multiple parameters."
+/>
+
+They're practically identical! The word `lambda` replaces the symbol $\lambda$, a colon `:` replaces the dot `.`, and that's about it. The one real difference is that Python allows **multi-parameter lambdas** (`lambda x, y: x + y`), while the lambda calculus curries everything into single-parameter functions.
+
+The examples we've been showing you with `def` statements were actually the *more complex* version. Python's lambdas are so close to the real lambda calculus that we could have just taught you the math directly — which is exactly what we did!
+
+```python
+# These are equivalent:
+def add_one(x):
+    return x + 1
+
+add_one = lambda x: x + 1
+
+# And you can use them anywhere an expression is expected:
+sorted(names, key=lambda name: len(name))
+list(filter(lambda x: x > 0, numbers))
+list(map(lambda x: x ** 2, range(10)))
+```
+
+---
+
+## Function Categories and Nomenclature
+
+Now let's go back to the mathematician's view of a function: a **black box** with inputs going in and outputs coming out. We can't see the inside — we only know **what goes in** and **what comes out**.
+
+This "external view" lets us categorize functions by their **type signature** — the shape of their inputs and outputs. Let's build a vocabulary.
+
+We use the term **function** to properly refer to all functions that have both an input and an output. But not all functions are like this!
+
+- A **consumer** takes input(s) but produces **no output** — it just does something with what it receives
+- A **supplier** takes **no input** but produces output(s) — it generates something from nothing (or from the environment)
+
+We can further distinguish by how many inputs or outputs:
+
+- **Uni-** means one (one input for functions/consumers, one output for suppliers)
+- **Bi-** means two
+- **Tri-** means three
+
+And here's where **tuples** come back! Remember how we said single-parameter lambdas aren't actually a restriction because we can always pack multiple arguments into a tuple? The same idea works for outputs — a function can return a **tuple** to effectively return multiple things. Tuples are the formal bridge between single-value functions and multi-value interfaces.
+
+<FunctionTaxonomyGrid />
+
+### Predicates Revisited
+
+Notice that **predicates** aren't a new category — they're a **restricted type of function** whose output must be a boolean. A bi-predicate needs two inputs. A tri-predicate needs three. We've been using predicates since our very first lectures on logic and relations!
+
+### What About No Inputs AND No Outputs?
+
+<QuestionBox>
+
+Can a function have **no inputs and no outputs**? What would it do?
+
+They are real, and we do use them — they were just more common a long time ago. They used to be called **procedures**, **directives**, or **pragmas**. The terminology is somewhat confused nowadays because programming languages borrow these terms for what they call their functions, but the idea is clear: these are functions whose main purpose is **side effects**.
+
+We say a function has **side effects** when it mutates more than just its direct arguments into a direct output. Consider setup functions for libraries that alter state to change how other functions run!
+
+</QuestionBox>
+
+It is actually via side effects that `print` becomes so loved! It's a **consumer** — it takes input but returns `None`. But we use it to put things on the terminal, and as an external observation tool to peer into our Python code! The value of `print` isn't in its return value; it's in the side effect of displaying text on the screen.
+
+---
+
+## Coming Up Next
+
+We've formalized the lambda calculus and started classifying functions from the outside. Next time, we'll continue our external observation of functions by classifying them based on abstract algebraic patterns in their evaluation. We'll see **injective** (one-to-one), **surjective** (onto), and **bijective** (one-to-one and onto) functions — and discover why these distinctions matter for everything from encryption to database design!
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Alpha-Conversion** — $\lambda x.\; M \Longrightarrow_\alpha \lambda y.\; M[y/x]$ provided $y \notin FV(M)$
+- **Beta-Conversion** — $(\lambda x.\; M) \;\; N \Longrightarrow_\beta M[N/x]$
+- **Eta-Conversion** — $\lambda x.\; M \;\; x \Longrightarrow_\eta M$ provided $x \notin FV(M)$
+- **Proper Substitution** — $M[N/x]$: the single formal operation on lambda expressions
+- **Function** — has input(s) and output(s)
+- **Consumer** — has input(s), no output
+- **Supplier** — no input, has output(s)
+- **Predicate** — a function restricted to returning a boolean
+- **Procedure** — no input, no output; exists for side effects
+- **Side Effect** — when a function mutates more than just its direct arguments into a direct output
+
+**The Complete Lambda Calculus:**
+
+| Piece | Rule |
+| :--- | :--- |
+| Expressions | Variables, constants, $\lambda x.\; M$, $M \;\; N$ |
+| Alpha | $\lambda x.\; M \Longrightarrow_\alpha \lambda y.\; M[y/x]$ if $y \notin FV(M)$ |
+| Beta | $(\lambda x.\; M) \;\; N \Longrightarrow_\beta M[N/x]$ |
+| Eta | $\lambda x.\; M \;\; x \Longrightarrow_\eta M$ if $x \notin FV(M)$ |
+| Substitution | $M[N/x]$ (see LN13 for full table) |
+
+**Function Categories:**
+
+| Category | Type | Description |
+| :--- | :--- | :--- |
+| Uni-Function | $(A) \to B$ | One input, one output |
+| Bi-Function | $(A, B) \to C$ | Two inputs, one output |
+| Uni-Consumer | $(A) \to ()$ | One input, no output |
+| Uni-Supplier | $() \to A$ | No input, one output |
+| Uni-Predicate | $(A) \to \text{bool}$ | One input, boolean output |
+| Procedure | $() \to ()$ | No input, no output (side effects) |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Computerphile: "Lambda Calculus"](https://www.youtube.com/watch?v=eis11j_iGMs) — Professor Graham Hutton on the formal rules
+- [Computerphile: "Lambda Calculus — Pair of Shoes"](https://www.youtube.com/watch?v=9T8A89jgeTI) — Substitution and reduction in action
+
+### Further Reading
+
+- [Wikipedia: Lambda Calculus](https://en.wikipedia.org/wiki/Lambda_calculus) — Formal syntax and conversion rules
+- [Stanford Encyclopedia of Philosophy: Lambda Calculus](https://plato.stanford.edu/entries/lambda-calculus/) — Alpha, beta, eta with historical context
+- [Wikipedia: Lambda Calculus — Reduction](https://en.wikipedia.org/wiki/Lambda_calculus#Reduction) — Normal forms and evaluation strategies
+- [Python Docs: Lambda Expressions](https://docs.python.org/3/reference/expressions.html#lambda) — Python's lambda syntax
+
+### Connection to Programming
+
+- Python's `lambda` keyword is a direct descendant of Church's lambda calculus — the syntax is nearly identical
+- Alpha-conversion is what IDE "Rename Symbol" tools do — rename a variable without changing meaning
+- Beta-conversion is what happens every time you call a function — the compiler substitutes arguments for parameters
+- Eta-conversion is what linters flag as "unnecessary wrapper function" — `lambda x: f(x)` should just be `f`
+- The function category vocabulary (Consumer, Supplier, Predicate, etc.) comes from Java's `java.util.function` package, which formalized these distinctions for functional programming
+
+</LectureResources>
