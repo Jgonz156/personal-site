@@ -432,16 +432,34 @@ Let's practice on increasingly complex expressions. For each, we'll identify $FV
 - Right part: inside body $FV(y \;\; z) = \{y, z\}$. Lambda binds $y$: $FV = \{z\}$, $BV = \{y\}$
 - Application unions them: $FV = \varnothing \cup \{z\} = \{z\}$, $BV = \{x\} \cup \{y\} = \{x, y\}$
 
-<DisplayMath formula="(\\lambda x.\\; x) \\;\\; (\\lambda y.\\; y \\;\\; z) \\qquad FV = \\{z\\}, \\; BV = \\{x, y\\}" />
+<DisplayMath formula="(\lambda x.\; x) \;\; (\lambda y.\; y \;\; z) \qquad FV = \{z\}, \; BV = \{x, y\}" />
 
 **Example 3:** $(\lambda x.\; x \;\; y) \;\; (\lambda y.\; w \;\; (\lambda w.\; w \;\; z))$
 
-Let's work through this step by step:
-- Left: body is $x \;\; y$, so $FV_\text\{body\} = \{x, y\}$. Lambda binds $x$: $FV_L = \{y\}$, $BV_L = \{x\}$
-- Right: innermost body is $w \;\; z$, so $FV = \{w, z\}$, $BV = \varnothing$. $\lambda w$ binds $w$: $FV = \{z\}$, $BV = \{w\}$. Then the body of $\lambda y$ is $w \;\; (\lambda w.\; w \;\; z)$: $FV = \{w\} \cup \{z\} = \{w, z\}$, $BV = \{w\}$. $\lambda y$ binds $y$: $FV_R = \{w, z\} - \{y\} = \{w, z\}$, $BV_R = \{w\} \cup \{y\} = \{w, y\}$
-- Application: $FV = \{y\} \cup \{w, z\} = \{y, w, z\}$, $BV = \{x\} \cup \{w, y\} = \{x, w, y\}$
+This one has three nested lambdas. Let's take it layer by layer.
 
-<DisplayMath formula="(\\lambda x.\\; x \\;\\; y) \\;\\; (\\lambda y.\\; w \\;\\; (\\lambda w.\\; w \\;\\; z))" />
+**Left side:** $\lambda x.\; x \;\; y$
+
+- Body is $x \;\; y$, so $FV = \{x, y\}$, $BV = \varnothing$
+- $\lambda x$ binds $x$: $FV_L = \{y\}$, $BV_L = \{x\}$
+
+**Right side, innermost:** $\lambda w.\; w \;\; z$
+
+- Body is $w \;\; z$, so $FV = \{w, z\}$, $BV = \varnothing$
+- $\lambda w$ binds $w$: $FV = \{z\}$, $BV = \{w\}$
+
+**Right side, outer:** $\lambda y.\; w \;\; (\lambda w.\; w \;\; z)$
+
+- Body is $w \;\; (\lambda w.\; w \;\; z)$
+- The free $w$ (outside any lambda) unions with the inner result: $FV = \{w\} \cup \{z\} = \{w, z\}$, $BV = \{w\}$
+- $\lambda y$ binds $y$: $FV_R = \{w, z\} - \{y\} = \{w, z\}$, $BV_R = \{w\} \cup \{y\} = \{w, y\}$
+
+**Combine via application:**
+
+- $FV = \{y\} \cup \{w, z\} = \{y, w, z\}$
+- $BV = \{x\} \cup \{w, y\} = \{x, w, y\}$
+
+<DisplayMath formula="(\lambda x.\; x \;\; y) \;\; (\lambda y.\; w \;\; (\lambda w.\; w \;\; z))" />
 
 <DisplayMath formula="FV = \{y, w, z\}, \quad BV = \{x, w, y\}" />
 
