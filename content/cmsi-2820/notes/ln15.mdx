@@ -1,0 +1,534 @@
+import { DisplayMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { QuestionBox } from "@/components/question-box"
+import { FunctionMappingDiagram } from "@/components/function-mapping-diagram"
+
+## Recap
+
+Last time we put the finishing touches on the lambda calculus — formally defining alpha, beta, and eta conversion — and shifted our perspective to the **exterior** of functions. We categorized functions by their type signatures: **functions**, **consumers**, **suppliers**, **predicates**, and **procedures**. We saw that type information tells us what goes in and what comes out.
+
+Today we push further: what happens when we look at **all** the inputs and **all** the outputs of a function at once?
+
+---
+
+## Today's Agenda
+
+- **The Central Question** — Can you always reverse a function?
+- **Domain, Codomain, Image, Pre-image** — The vocabulary we need
+- **The Mapping Diagram** — A visual tool for investigation
+- **Case Studies** — Six functions under the microscope
+- **Four Patterns** — Tightening, loosening, both, and perfect matching
+- **Injective, Surjective, Bijective** — Formal definitions
+- **The Programmer's Checklist** — When do you want these properties?
+- **The Python Problem** — Why types matter more than you think
+
+---
+
+## The Central Question: Can You Always Reverse a Function?
+
+Here's a question that seems simple but turns out to be deep: **given a function's output, can you always figure out what the input was?**
+
+Consider `abs`:
+
+```python
+abs(-5)  # => 5
+abs(5)   # => 5
+```
+
+Given the output `5`, which was the input? Was it `-5`? Or `5`? You can't tell — **information was lost**.
+
+Now consider `chr`:
+
+```python
+chr(65)  # => 'A'
+chr(66)  # => 'B'
+```
+
+Given `'A'`, the input was definitely `65`. No ambiguity. Given `'B'`, it was `66`. Every output points back to exactly one input.
+
+This question — "can you reverse it?" — turns out to depend entirely on **how inputs pair with outputs**. To investigate this systematically, we need some vocabulary and a visual tool.
+
+---
+
+## Building the Vocabulary
+
+We've been using **type signatures** like $f : A \to B$ since last lecture. Now let's give proper names to the pieces.
+
+<DefinitionBox term="Domain and Codomain">
+
+The **domain** of a function is its input type — the set of all possible inputs. The **codomain** is its output type — the set of all anticipated outputs.
+
+In type notation $f : A \to B$, the domain is $A$ and the codomain is $B$.
+
+</DefinitionBox>
+
+Your **input** is the actual instance from the domain you choose to put through the function. It can only come from the domain, nowhere else. The **output** is the item produced — it's always paired with its input and must land somewhere in the codomain.
+
+But here's an important subtlety: **you don't have to use all of your domain or your codomain.** Consider division: we say its input types are integers, but we can't actually divide by zero. The domain is still the integers, and the codomain is still the reals, but we don't anticipate using zero as a denominator.
+
+Since we don't always use the full domain or codomain, we need names for the parts we actually use.
+
+<DefinitionBox term="Pre-image and Image (Range)">
+
+The **pre-image** is the set of inputs from the domain that are actually used.
+
+The **image** (also called the **range**) is the set of outputs in the codomain that are actually reached.
+
+The pre-image is always a subset of the domain. The image is always a subset of the codomain.
+
+</DefinitionBox>
+
+---
+
+## The Mapping Diagram
+
+To investigate how inputs pair with outputs, we'll use a **mapping diagram**. It shows the domain on the left, the codomain on the right, and draws arrows between them to represent input-output pairings.
+
+Let's start with a simple function and learn how to read it. The function $\lambda x.\; x + 1 : \{0, 1, 2\} \to \{1, 2, 3\}$ just adds one to its input.
+
+<FunctionMappingDiagram
+  lambda="λx. x + 1"
+  typeSignature={["Z", "Z"]}
+  domainLabel="Domain"
+  codomainLabel="Codomain"
+  domainElements={["0", "1", "2"]}
+  codomainElements={["1", "2", "3"]}
+  mappings={[[0, 0], [1, 1], [2, 2]]}
+  steps={[
+    { description: "Our function adds 1 to its input. Let's map each element.", mappingsRevealed: 0 },
+    { description: "0 maps to 1.", mappingsRevealed: 1 },
+    { description: "1 maps to 2.", mappingsRevealed: 2 },
+    { description: "2 maps to 3. Every input has a unique output, and every output is reached!", mappingsRevealed: 3 }
+  ]}
+/>
+
+Notice how the pre-image and image sets update as we step through. Now let's use this tool to investigate five different functions and see what patterns emerge.
+
+---
+
+## Case Study 1: Testing for Evenness
+
+<DisplayMath formula="\lambda x.\; x \bmod 2 = 0 \;:\; \mathbb{Z} \to \mathbb{B}" />
+
+This function takes an integer and returns whether it's even.
+
+<FunctionMappingDiagram
+  lambda="λx. x mod 2 == 0"
+  typeSignature={["Z", "B"]}
+  domainLabel="Z (integers)"
+  codomainLabel="B (booleans)"
+  domainElements={["0", "1", "2", "3", "4", "5"]}
+  codomainElements={["True", "False"]}
+  mappings={[[0, 0], [1, 1], [2, 0], [3, 1], [4, 0], [5, 1]]}
+  codomainFinite={true}
+  steps={[
+    { description: "Let's test each integer for evenness.", mappingsRevealed: 0 },
+    { description: "0 is even → True.", mappingsRevealed: 1 },
+    { description: "1 is odd → False.", mappingsRevealed: 2 },
+    { description: "2 is even → True. Notice: 0 and 2 both map to True!", mappingsRevealed: 3 },
+    { description: "3 is odd → False.", mappingsRevealed: 4 },
+    { description: "4 is even → True. Three inputs share the same output!", mappingsRevealed: 5 },
+    { description: "5 is odd → False. Multiple inputs collapse into each output — can you reverse this?", mappingsRevealed: 6 }
+  ]}
+/>
+
+**Can we reverse it?** No! Given `True`, was the input 0? 2? 4? We can't tell. The function **tightens** — it compresses many inputs into fewer outputs. Information is lost.
+
+Notice that the image covers the entire codomain (both `True` and `False` are reached), but many inputs map to the same output.
+
+---
+
+## Case Study 2: Self-Conjunction
+
+<DisplayMath formula="\lambda x.\; x \land x \;:\; \mathbb{B} \to \mathbb{B}" />
+
+What happens when you AND a boolean with itself?
+
+<FunctionMappingDiagram
+  lambda="λx. x ∧ x"
+  typeSignature={["B", "B"]}
+  domainLabel="B (booleans)"
+  codomainLabel="B (booleans)"
+  domainElements={["True", "False"]}
+  codomainElements={["True", "False"]}
+  mappings={[[0, 0], [1, 1]]}
+  domainFinite={true}
+  codomainFinite={true}
+  steps={[
+    { description: "AND-ing a boolean with itself. What will happen?", mappingsRevealed: 0 },
+    { description: "True ∧ True = True.", mappingsRevealed: 1 },
+    { description: "False ∧ False = False. A perfect one-to-one pairing!", mappingsRevealed: 2 }
+  ]}
+/>
+
+**Can we reverse it?** Yes! Given `True`, the input was definitely `True`. Given `False`, it was `False`. Every input has a unique output, and every output is reached. A **perfect matching**.
+
+> As a fun aside: $x \land x$ is logically equivalent to $x \lor x$, which is logically equivalent to just $x$! Both self-conjunction and self-disjunction reduce to the identity function on booleans.
+
+---
+
+## Case Study 3: Checking the First Element
+
+<DisplayMath formula="\lambda x.\; x \downarrow 0 = 1 \;:\; \text{Tuple} \to \mathbb{B}" />
+
+This function takes a tuple and checks whether its first element is 1.
+
+<FunctionMappingDiagram
+  lambda="λx. x↓0 == 1"
+  typeSignature={["Tuple", "B"]}
+  domainLabel="Tuples"
+  codomainLabel="B (booleans)"
+  domainElements={["(1,2)", "(1,5)", "(3,4)", "(0,1)", "(2,2)"]}
+  codomainElements={["True", "False"]}
+  mappings={[[0, 0], [1, 0], [2, 1], [3, 1], [4, 1]]}
+  codomainFinite={true}
+  steps={[
+    { description: "Check if the first element of each tuple is 1.", mappingsRevealed: 0 },
+    { description: "(1,2) — first element is 1 → True.", mappingsRevealed: 1 },
+    { description: "(1,5) — first element is 1 → True. Two tuples land on the same output!", mappingsRevealed: 2 },
+    { description: "(3,4) — first element is 3, not 1 → False.", mappingsRevealed: 3 },
+    { description: "(0,1) — first element is 0 → False.", mappingsRevealed: 4 },
+    { description: "(2,2) — first element is 2 → False. Again, many inputs collapse into each output.", mappingsRevealed: 5 }
+  ]}
+/>
+
+**Can we reverse it?** No — the same **tightening** pattern as Case 1. Given `True`, we can't distinguish which tuple had 1 in its first position.
+
+---
+
+## Case Study 4: Boolean to Integer Conversion
+
+In Python: `lambda x: int(x)`, where we only pass in booleans. Remember, the codomain is the full output **type** — all integers — not just the outputs we happen to reach.
+
+<FunctionMappingDiagram
+  lambda="λx. int(x)"
+  typeSignature={["B", "Z"]}
+  domainLabel="B (booleans)"
+  codomainLabel="Z (integers)"
+  domainColor="#3b82f6"
+  codomainColor="#22c55e"
+  domainElements={["False", "True"]}
+  codomainElements={["-2", "-1", "0", "1", "2", "3"]}
+  mappings={[[0, 2], [1, 3]]}
+  domainFinite={true}
+  steps={[
+    { description: "Converting booleans to integers. Note how large the codomain is!", mappingsRevealed: 0 },
+    { description: "False → 0. Only one of six shown integers is reached.", mappingsRevealed: 1 },
+    { description: "True → 1. Each input maps to a unique output — but most of the codomain is never reached!", mappingsRevealed: 2 }
+  ]}
+/>
+
+**Can we reverse it?** For the outputs we reach, yes — given `0` the input was `False`, given `1` it was `True`. Each input maps to a unique output, so no information is lost. But look at the codomain: most integers (like `-2`, `3`, `42`, ...) are never produced. The image is just `{0, 1}`, a tiny subset of the codomain $\mathbb{Z}$. The function **loosens** — it spreads into a much larger output space without covering it all.
+
+---
+
+## Case Study 5: Integer to Float Conversion
+
+In Python: `lambda x: float(x)`, where we only pass in integers.
+
+<FunctionMappingDiagram
+  lambda="λx. float(x)"
+  typeSignature={["Z", "R"]}
+  domainLabel="Z (integers)"
+  codomainLabel="R (floats)"
+  domainColor="#3b82f6"
+  codomainColor="#22c55e"
+  domainElements={["-2", "-1", "0", "1", "2"]}
+  codomainElements={["-2.0", "-1.5", "-1.0", "-0.5", "0.0", "0.5", "1.0", "1.5", "2.0"]}
+  mappings={[[0, 0], [1, 2], [2, 4], [3, 6], [4, 8]]}
+  steps={[
+    { description: "Converting integers to floats. Note: the codomain (floats) is much larger.", mappingsRevealed: 0 },
+    { description: "-2 → -2.0.", mappingsRevealed: 1 },
+    { description: "-1 → -1.0. So far each input goes to a unique output.", mappingsRevealed: 2 },
+    { description: "0 → 0.0.", mappingsRevealed: 3 },
+    { description: "1 → 1.0.", mappingsRevealed: 4 },
+    { description: "2 → 2.0. Every input is unique — but look at the codomain: -1.5, -0.5, 0.5, 1.5 are never reached!", mappingsRevealed: 5 }
+  ]}
+/>
+
+**Can we reverse it?** For the outputs we reach, yes — each one came from exactly one input. But many floats (like `-0.5`, `1.5`) have **no input that maps to them**. The function **loosens** — it spreads into a larger output space without covering it all.
+
+---
+
+## Case Study 6: Squaring Integers
+
+<DisplayMath formula="\lambda x.\; x^2 \;:\; \mathbb{Z} \to \mathbb{Z}" />
+
+This function squares an integer. Let's see what happens when both the domain and codomain are the integers.
+
+<FunctionMappingDiagram
+  lambda="λx. x²"
+  typeSignature={["Z", "Z"]}
+  domainLabel="Z (integers)"
+  codomainLabel="Z (integers)"
+  domainElements={["-2", "-1", "0", "1", "2"]}
+  codomainElements={["-2", "-1", "0", "1", "2", "3", "4"]}
+  mappings={[[0, 6], [1, 3], [2, 2], [3, 3], [4, 6]]}
+  steps={[
+    { description: "Squaring each integer. Watch both sides carefully.", mappingsRevealed: 0 },
+    { description: "(-2)² = 4.", mappingsRevealed: 1 },
+    { description: "(-1)² = 1.", mappingsRevealed: 2 },
+    { description: "0² = 0.", mappingsRevealed: 3 },
+    { description: "1² = 1. Wait — (-1) already mapped to 1! Two inputs share an output.", mappingsRevealed: 4 },
+    { description: "2² = 4. Again! (-2) and 2 both map to 4. And look: -2, -1, 3 in the codomain are never reached.", mappingsRevealed: 5 }
+  ]}
+/>
+
+**Can we reverse it?** No, and for two reasons. First, it **tightens**: both `-2` and `2` map to `4`, so given `4` we can't tell which was the input. Second, it **loosens**: negative integers in the codomain (like `-1`, `-2`) are never reached. This function is **neither injective nor surjective** — it loses information AND fails to cover its output type.
+
+---
+
+## Naming the Patterns
+
+Let's reflect on what we've seen across all six functions. Four distinct combinations emerged:
+
+| Pattern | What We Saw | Reversible? |
+| :--- | :--- | :--- |
+| **Tightening** | Multiple inputs mapped to the same output (Cases 1, 3) | No — information lost |
+| **Loosening** | Some outputs were never reached (Cases 4, 5) | Partially — can reverse on the image |
+| **Both tightening and loosening** | Information lost AND outputs unreached (Case 6) | No — worst of both worlds |
+| **Perfect matching** | Each input unique, every output reached (Case 2) | Yes — fully reversible |
+
+These patterns have formal names. And here's the key: **each one answers a different aspect of our central question about reversibility.**
+
+---
+
+## Formal Definitions
+
+<DefinitionBox term="Surjective (Onto)">
+
+A function $f : A \to B$ is **surjective** if every element of the codomain is reached by at least one input.
+
+<DisplayMath formula="\forall b \in B. \exists a \in A. f(a) = b" />
+
+Equivalently: the image equals the codomain. No output is wasted — the function "covers" its entire output type.
+
+</DefinitionBox>
+
+<DefinitionBox term="Injective (One-to-One)">
+
+A function $f : A \to B$ is **injective** if different inputs always produce different outputs.
+
+<DisplayMath formula="\forall a_1, a_2 \in A. \; f(a_1) = f(a_2) \implies a_1 = a_2" />
+
+Equivalently: every reached output has exactly one input. No information is lost — the function doesn't "tighten."
+
+</DefinitionBox>
+
+<DefinitionBox term="Bijective (One-to-One and Onto)">
+
+A function $f : A \to B$ is **bijective** if it is both injective AND surjective. We can construct this definition by simply conjuncting the two:
+
+<DisplayMath formula="(\forall b \in B. \; \exists a \in A. \; f(a) = b) \;\land\; (\forall a_1, a_2 \in A. \; f(a_1) = f(a_2) \implies a_1 = a_2)" />
+
+This can be written more compactly using the unique existential quantifier $\exists!$ — "there exists exactly one":
+
+<DisplayMath formula="\forall b \in B. \;\exists!\; a \in A. \; f(a) = b" />
+
+This is the ONLY case where the function is fully reversible. Every output is reached, and each is reached by exactly one input — a perfect correspondence.
+
+</DefinitionBox>
+
+---
+
+## Re-classifying Our Case Studies
+
+Now let's go back and label each of our six functions:
+
+| Function | Injective? | Surjective? | Bijective? |
+| :--- | :--- | :--- | :--- |
+| $x \bmod 2 = 0$ (is even) | No | Yes | No |
+| $x \land x$ (self-AND) | Yes | Yes | **Yes** |
+| $x \downarrow 0 = 1$ (first is 1) | No | Yes | No |
+| `int(bool)` | Yes | No | No |
+| `float(int)` | Yes | No | No |
+| $x^2$ on $\mathbb{Z}$ | No | No | No |
+
+A few observations:
+
+- Cases 1 and 3 are **surjective but not injective** — they cover all outputs but lose information (tightening)
+- Cases 4 and 5 are **injective but not surjective** — no information lost, but many outputs unreachable (loosening)
+- Case 6 is **neither injective nor surjective** — both tightening and loosening at once
+- Case 2 is **bijective** — perfect correspondence, fully reversible
+
+---
+
+## Connecting to Our Taxonomy
+
+Remember the function categories from last lecture? These new properties interact with them in interesting ways:
+
+- **Consumers** are trivially surjective — their codomain is empty (or `None`), which is vacuously "covered"
+- **Suppliers** are trivially injective — no inputs means "all inputs produce unique outputs" is vacuously true
+- Only **functions** (with both inputs and outputs) can be meaningfully **bijective**
+
+---
+
+## The Programmer's Checklist
+
+This is not just abstract taxonomy. These three properties answer questions you should ask **every time you write a function**.
+
+### Injective — "Can I build an undo/reverse for this?"
+
+If your function is injective, you can always write an inverse that recovers the original input (at least for outputs that were actually produced). Ask yourself this whenever you write:
+
+- A **serializer** (`to_json`, `serialize`): it MUST be injective, or two different objects produce the same serialization and `deserialize` can't tell them apart
+- An **ID generator**: if it's not injective, two different entities get the same ID — bugs guaranteed
+- Any **encoder or converter** you plan to reverse later
+- Even **alpha-conversion** from last lecture is injective — that's exactly why renaming preserves meaning!
+
+### Surjective — "Does my function actually reach every value in its return type?"
+
+If your function's return type is `bool` but it can only ever return `True`, the `False` branch is unreachable dead code. Ask yourself this whenever you write:
+
+- A **categorizer/classifier**: if some category is never produced, you have a dead branch
+- A **predicate** (returns bool): is it possible for BOTH `True` and `False` to be returned? If not, why is it a predicate?
+- A **random value generator** over a range: every value should be reachable, or some outcomes are impossible
+- A **builder/factory**: can it actually construct every variant of the output type?
+
+### Bijective — "Can I freely convert back and forth without loss?"
+
+This is the gold standard for round-trip safety. Ask yourself this whenever you write:
+
+- An **encode/decode pair**: the encoder must be bijective for the decoder to work perfectly
+- A **format converter** (e.g., Markdown to HTML to Markdown): lossless only if bijective
+- A **data migration**: old schema to new schema is only reversible if the mapping is bijective
+- **Alpha-conversion itself**: a bijective variable renaming, which is why it's safe
+
+> Injective means no information lost. Surjective means no outputs wasted. Bijective means both — perfect correspondence.
+
+---
+
+## Real-World Connections
+
+- **Encryption** MUST be bijective: if you can't reverse it, you can't decrypt
+- **Lossless compression** (ZIP) is bijective: decompress perfectly. **Lossy compression** (JPEG) is not injective: information is permanently lost, but the files are smaller.
+- **Hashing** ideally WOULD be injective — we'd love every unique input to get a unique hash. When this is achievable, it's called **perfect hashing**. But most of the time it can't be: the hash function maps a large input space to a smaller fixed-size output, so collisions (multiple inputs sharing a hash) are often unavoidable. We'll develop the formal tools to investigate exactly when perfect hashing is possible and when it isn't in our upcoming combinatorics lectures.
+- **Type conversions:** `int(x)` on booleans is injective (you can reverse it with `bool()`), but not surjective over the integers — most of $\mathbb{Z}$ is never reached. `int(3.7)` truncates to `3` — not injective on floats (you lost the `.7`).
+
+---
+
+## The Python Problem
+
+Now the Python connection has real stakes: **without types, you can't know these properties at compile time.**
+
+Consider a function as simple as:
+
+```python
+def add(a, b):
+    return a + b
+```
+
+What is its domain? In Python, it's `Any`. What is its codomain? Also `Any`. Let's look at what actually happens when we investigate its mappings:
+
+| Input Types | Output Type | Behavior |
+| :--- | :--- | :--- |
+| `int + int` | `int` | Normal addition |
+| `bool + bool` | `int` | `True + True = 2` — booleans collapse into ints! |
+| `float + float` | `float` | Floating-point addition |
+| `str + str` | `str` | Concatenation |
+| `list + list` | `list` | Concatenation |
+| `int + str` | **TypeError** | Crash! |
+
+Without type information — without knowing the domain and codomain — we can't reason about whether `add` is injective, surjective, or even defined on all inputs! Is string concatenation injective? (No: `"a" + "bc"` and `"ab" + "c"` both produce `"abc"`.) Is integer addition surjective over the integers? These are important questions, and **types are the only tool that lets you answer them before running the code.**
+
+> Types aren't just labels — they're the walls of the domain and codomain that let you prove properties about your functions before you ever run them.
+
+Typed languages like TypeScript and Rust give you these guarantees at compile time. Python makes you discover them at runtime — often the hard way.
+
+---
+
+## What About Multi-Parameter Functions?
+
+Everything we've defined today — injectivity, surjectivity, bijectivity — applies to functions with a single input. But last lecture we saw bi-functions, tri-functions, bi-predicates, and so on. How do these properties apply to them?
+
+The key insight is one we've already used: **tuples let us treat multiple parameters as a single input.** A bi-function $f : A \times B \to C$ is really just a function whose domain is the product type $A \times B$ — the set of all pairs $(a, b)$.
+
+Once we make that shift, everything works the same way:
+
+- The **domain** of `add : Z × Z → Z` is the set of all integer pairs: $\mathbb{Z} \times \mathbb{Z}$
+- The **codomain** is $\mathbb{Z}$
+- Is `add` injective? No — `add(1, 3)` and `add(2, 2)` both produce `4`
+- Is `add` surjective? Yes — every integer $n$ is reached by the pair $(n, 0)$
+
+What about our other taxonomy categories?
+
+| Category | Domain (as tuple) | Codomain | Example |
+| :--- | :--- | :--- | :--- |
+| Bi-function | $A \times B$ | $C$ | `add : Z × Z → Z` — surjective, not injective |
+| Tri-function | $A \times B \times C$ | $D$ | `clamp(x, lo, hi)` — surjective, not injective |
+| Bi-predicate | $A \times B$ | $\mathbb{B}$ | `== : A × A → B` — surjective, not injective |
+| Bi-consumer | $A \times B$ | $\text{None}$ | `dict.__setitem__` — trivially surjective |
+
+The equality operator `==` is a particularly interesting bi-predicate: it takes two values from the same type and returns a boolean. Is it injective? No — there are many distinct pairs $(a, b)$ where $a \neq b$ that all produce `False`. Is it surjective? Yes — any pair $(x, x)$ produces `True` and any pair $(x, y)$ where $x \neq y$ produces `False`.
+
+> The tuple trick is the same one that lets single-parameter lambdas handle multiple arguments — and it's the same trick that lets our single-input definitions of injectivity, surjectivity, and bijectivity apply to ALL functions, regardless of how many parameters they take.
+
+---
+
+## Coming Up Next
+
+We've been investigating abstract algebraic properties throughout this course — first commutativity and associativity for operators, then reflexivity and symmetry for relations, and now injectivity and surjectivity for functions. Each time, these properties tell us something deep about the structure of our mathematical tools.
+
+Next time, we'll turn to a new chapter: **combinatorics** — the mathematics of counting. How many ways can you arrange things? How many possible inputs does a function have? And when is a domain simply too large for an injective hash function to exist?
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Domain** — the input type; the set of all possible inputs ($A$ in $f : A \to B$)
+- **Codomain** — the output type; the set of all anticipated outputs ($B$ in $f : A \to B$)
+- **Input** — an actual instance chosen from the domain
+- **Output** — the result produced; always in the codomain, always paired with an input
+- **Pre-image** — the subset of the domain actually used
+- **Image (Range)** — the subset of the codomain actually reached
+- **Injective (One-to-One)** — different inputs always produce different outputs; $f(a_1) = f(a_2) \implies a_1 = a_2$
+- **Surjective (Onto)** — every codomain element is reached; $\forall b \in B. \exists a \in A. f(a) = b$
+- **Bijective (One-to-One and Onto)** — both injective and surjective; $\forall b \in B. \exists! a \in A. f(a) = b$
+
+**Classification Table:**
+
+| Property | Meaning | Reversible? | Programmer's Question |
+| :--- | :--- | :--- | :--- |
+| Injective | No two inputs share an output | On the image | "Can I undo this?" |
+| Surjective | Every output is reached | N/A alone | "Do I cover all outputs?" |
+| Bijective | Both | Fully | "Can I round-trip?" |
+
+**Taxonomy Connections:**
+
+| Category | Trivially... | Why |
+| :--- | :--- | :--- |
+| Consumer | Surjective | Codomain is empty/None — vacuously covered |
+| Supplier | Injective | No inputs — vacuously unique |
+| Function | Can be bijective | Only category with meaningful inputs AND outputs |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Trefor Bazett: "Injective, Surjective, and Bijective"](https://www.youtube.com/watch?v=xKNX8BUWR0g) — Clear visual explanations with mapping diagrams
+- [3Blue1Brown: "But what is a function?"](https://www.youtube.com/watch?v=UOuxo6SA8Uc) — Beautiful animations of function mappings
+
+### Further Reading
+
+- [Wikipedia: Injective Function](https://en.wikipedia.org/wiki/Injective_function) — Formal definitions and examples
+- [Wikipedia: Surjective Function](https://en.wikipedia.org/wiki/Surjective_function) — Coverage and onto mappings
+- [Wikipedia: Bijection](https://en.wikipedia.org/wiki/Bijection) — One-to-one correspondence
+- [Wikipedia: Image (Mathematics)](https://en.wikipedia.org/wiki/Image_(mathematics)) — Formal treatment of image and preimage
+
+### Connection to Programming
+
+- Python's `hash()` function is deliberately not injective — it maps arbitrary objects to fixed-size integers, trading uniqueness for speed
+- JSON serialization should be injective — different objects should produce different JSON strings for deserialization to work
+- Database primary keys must be generated by an injective function — no two records can share a key
+- `int()`, `float()`, `str()` type converters have different injectivity/surjectivity properties depending on their domain
+- TypeScript's type system lets you encode domain/codomain constraints at compile time, catching injectivity violations before runtime
+
+</LectureResources>
