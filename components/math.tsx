@@ -103,7 +103,7 @@ export function InlineMath({ formula }: InlineMathProps) {
       ref={ref}
       style={{ opacity: rendered ? 1 : 0.5 }}
     >
-      {`$${formula}$`}
+      {`\\(${formula}\\)`}
     </span>
   )
 }

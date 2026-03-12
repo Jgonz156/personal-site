@@ -1,0 +1,1290 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath, InlineMath } from "@/components/math"
+import { VennDiagram } from "@/components/venn-diagram"
+import { StringSetExpander } from "@/components/string-set-expander"
+import { LanguageBuilder } from "@/components/language-builder"
+import { GrammarDerivationStepper } from "@/components/grammar-derivation-stepper"
+import { DerivationTreeStepper } from "@/components/derivation-tree-stepper"
+import { GrammarFormalization } from "@/components/grammar-formalization"
+import { ChomskyHierarchyDiagram } from "@/components/chomsky-hierarchy-diagram"
+
+## Recap
+
+In LN 5, we surveyed the **four foundational theories of computation** — Language, Automata, Computability, and Complexity — and saw how discoveries in one pillar imply results in the others. In LN 6, we explored **pragmatics**: how different programming languages force programmers to think at different levels of abstraction, and how the right tool depends on the problem domain.
+
+Throughout both lectures, we kept saying things like "a language is a set of strings" and "grammars generate languages." We used these ideas informally, relying on intuition. Today, that changes.
+
+We now have the formal tools to make these ideas precise. Our **logic** (LN 2) gives us quantifiers and proof. Our **set theory** (LN 3) gives us sets, operations, relations, and cardinality. Our **lambda calculus** (LN 4) gives us functions as first-class computational objects.
+
+Today, we use all of these tools to build **Language Theory** from the ground up.
+
+---
+
+## Today's Agenda
+
+- **Symbols and Alphabets** — The primitive building blocks
+- **Strings** — Finite sequences and their operations
+- **The Infinite Library** — Building the universe of all possible strings
+- **Formal Languages** — Subsets of the library, and operations on them
+- **The Need for Grammars** — Why informal descriptions fail
+- **Generative Grammars** — Formal rules for producing strings
+- **Derivation Trees** — Uncovering the structure of a derivation
+- **Ambiguity** — When a string has more than one structure
+- **The Formal Definition** — Grammars as mathematical objects
+- **The Chomsky Hierarchy** — Restricting rules to reveal a hierarchy of power
+- **Analytic Grammars** — A preview of recognition-based parsing
+
+---
+
+## From Pragmatics to Precision
+
+In LN 6 we saw how SQL, Python, Rust, and assembly all let you express computations, but each forces you to consider different things. We discussed *what* makes languages different pragmatically. But we never formally defined what a "language" actually *is*.
+
+Consider a simple question: what strings are valid Python programs? We could try to describe them in English, but English is ambiguous — it's a natural language, not a formal one. We need something more precise.
+
+Here is the motivating problem. Suppose you need to define the set of valid **floating-point numerals** — strings like `3`, `8.5`, `3.14E-2`, and `55.0e+8`. Can you write a precise definition?
+
+- First attempt: "A number with an optional decimal part and optional exponent." Too vague — is `-3` valid? Is `.5`? Is `3.`?
+- Second attempt: "A sequence of one or more digits, optionally followed by a dot and more digits, optionally followed by E/e with an optional sign and digits." Better, but verbose, confusing, and still informal.
+
+We need a *formal* mechanism for defining exactly which strings belong to a language. That's what this lecture builds.
+
+But first, we need to understand what strings are made of.
+
+---
+
+## Symbols and Alphabets
+
+Everything starts with **symbols** — the indivisible atoms of representation.
+
+<DefinitionBox term="Symbol">
+
+A **symbol** is a primitive, indivisible unit of data representation. Symbols cannot be broken down further within the system that uses them.
+
+</DefinitionBox>
+
+Recall the **Fundamental Hypothesis** from LN 5: any piece of human-usable information can be represented as a string of symbols. Whether or not you believe this hypothesis is provable, it is the foundational assumption of all language theory.
+
+Symbols are chosen from an **alphabet**.
+
+<DefinitionBox term="Alphabet">
+
+An **alphabet**, denoted $\Sigma$, is a **finite, non-empty set** of symbols.
+
+</DefinitionBox>
+
+Notice the key word: *set*. An alphabet is an LN 3 set! Everything we learned about sets — membership, subsets, cardinality — applies directly.
+
+Here are some example alphabets:
+
+- **Binary digits**: $\Sigma$ = `{ 0, 1 }`
+- **Decimal digits**: $\Sigma$ = `{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }`
+- **Hex digits**: $\Sigma$ = `{ 0, 1, ..., 9, a, b, c, d, e, f, A, B, C, D, E, F }`
+- **Card suits**: $\Sigma$ = `{ spade, heart, diamond, club }`
+- **Chess notation**: $\Sigma$ = `{ K, Q, R, B, N, a, b, ..., h, 1, 2, ..., 8, x, +, #, O, - }`
+- **Unicode**: $\Sigma$ = the set of all Unicode characters (finite, but very large!)
+
+The alphabet for a programming language like Python is (roughly) the set of all Unicode characters. The alphabet for machine code is just `{ 0, 1 }`. Both are finite, non-empty sets.
+
+---
+
+## Strings: Sequences Over Alphabets
+
+Given an alphabet, we can form **strings** — finite sequences of symbols.
+
+<DefinitionBox term="String">
+
+A **string** over an alphabet $\Sigma$ is a **finite sequence** of symbols from $\Sigma$. The **length** of a string $w$, written $|w|$, is the number of symbol occurrences in the sequence.
+
+</DefinitionBox>
+
+For example, over the alphabet `{ a, b, c }`:
+
+- `abbcbabb` is a string of length 7
+- `b` is a string of length 1
+- `aaa` is a string of length 3
+
+There is one very special string:
+
+<DefinitionBox term="Empty String">
+
+The **empty string**, denoted $\varepsilon$, is the unique string of length 0. It contains no symbols at all.
+
+</DefinitionBox>
+
+### String Operations
+
+Strings support several operations that mirror concepts from our set theory and algebra:
+
+**Concatenation** is the fundamental operation on strings — appending one string to the end of another. The concatenation of strings *x* and *y* is written *xy*.
+
+```python
+# In Python, concatenation uses +
+x = "abb"
+y = "ca"
+print(x + y)  # "abbca"
+```
+
+```javascript
+// In JavaScript, concatenation also uses +
+const x = "abb"
+const y = "ca"
+console.log(x + y)  // "abbca"
+```
+
+$\varepsilon$ is the identity for concatenation: for any string $w$, we have $w\varepsilon = \varepsilon w = w$. This is analogous to how 0 is the identity for addition.
+
+> **A Note on Confusing Notation**: In formal language theory, concatenation is written by juxtaposition — $xy$ — which *looks like* multiplication. But concatenation *behaves like* addition: it combines two things into a longer thing. Python gets this right by using `+` for string concatenation. The mathematical notation is unfortunately inconsistent, but it is standard.
+
+**Repetition** uses superscript notation: $w^0 = \varepsilon$, $w^1 = w$, $w^2 = ww$, and in general <InlineMath formula="w^{k+1} = w \cdot w^k" />.
+
+```python
+# In Python, repetition uses *
+w = "abc"
+print(w * 3)  # "abcabcabc"
+```
+
+This *looks like* exponentiation but *behaves like* multiplication. Again, Python's notation is superior.
+
+**Reversal** of a string $w$, written $w^R$, is the string formed by reversing the order of symbols. Formally: $\varepsilon^R = \varepsilon$, and $(\sigma \cdot w)^R = w^R \cdot \sigma$.
+
+**Substring**: $x$ is a substring of $y$ $\iff$ $\exists v. \exists w. \; y = vxw$. Notice the existential quantifiers from LN 2!
+
+---
+
+## The Infinite Library: Building $\Sigma^*$
+
+Now we arrive at one of the most elegant constructions in all of formal language theory. Starting from a finite alphabet, we can build an *infinite* universe of strings using only set operations from LN 3.
+
+The key insight is that we can organize all possible strings by their length:
+
+- $\Sigma^0 = $ the set containing only the empty string $\varepsilon$
+- $\Sigma^1 = \Sigma$ — all strings of length 1
+- $\Sigma^2$ — all strings of length 2
+- $\Sigma^k$ — all strings of length $k$
+
+Each $\Sigma^k$ is computed by concatenating every string in <InlineMath formula="\Sigma^{k-1}" /> with every symbol in $\Sigma$. This is analogous to the cross product from LN 3 — but instead of producing ordered pairs, we produce concatenated strings.
+
+The **Kleene closure** (named after Stephen Kleene, pronounced "KLAY-nee") is the union of all of these:
+
+<DisplayMath formula="\Sigma^* = \Sigma^0 \cup \Sigma^1 \cup \Sigma^2 \cup \Sigma^3 \cup \cdots = \bigcup_{k=0}^{\infty} \Sigma^k" />
+
+The **positive closure** excludes the empty string:
+
+<DisplayMath formula="\Sigma^+ = \Sigma^1 \cup \Sigma^2 \cup \Sigma^3 \cup \cdots = \bigcup_{k=1}^{\infty} \Sigma^k" />
+
+Let's watch this construction unfold step by step. Try stepping through the expansion from a small alphabet:
+
+<StringSetExpander
+  title="Building Σ* from {a, b}"
+  alphabet={["a", "b"]}
+  maxPower={3}
+/>
+
+<StringSetExpander
+  title="Building Σ* from {0, 1}"
+  alphabet={["0", "1"]}
+  maxPower={3}
+/>
+
+### A Finite Alphabet Generates an Infinite Set
+
+Something remarkable has happened. We started with a **finite** alphabet — perhaps just `{ a, b }` — and by applying the set operations of union and (string) concatenation, we generated a **countably infinite** set of strings.
+
+Why is $\Sigma^*$ countable? Because we can enumerate it: first list all strings of length 0, then length 1, then length 2, and so on. Each $\Sigma^k$ is finite (it has $|\Sigma|^k$ elements), so we have a countable union of finite sets, which is countable. This connects directly to the cardinality arguments from LN 3.
+
+### The Infinite Library
+
+$\Sigma^*$ is the **infinite library** — it contains every possible string over the alphabet. If $\Sigma$ is the Unicode character set, then $\Sigma^*$ contains:
+
+- Every novel ever written
+- Every program ever coded
+- The cure for every disease (expressed as a research paper)
+- Complete solutions to all unsolved mathematical problems
+- Your life story, past and future
+
+It also contains infinite amounts of complete nonsense and misinformation. **When you "know" everything, you know nothing.** The challenge is not generating strings — it's *distinguishing the meaningful ones*. That's what languages do.
+
+---
+
+## Formal Languages: Subsets of the Library
+
+Here is the definition that everything builds toward:
+
+<DefinitionBox term="Formal Language">
+
+A **formal language** $L$ over an alphabet $\Sigma$ is a **set of strings** over $\Sigma$. That is, $L \subseteq \Sigma^*$.
+
+If a string $w \in L$, we say $w$ is an **utterance** of $L$.
+
+</DefinitionBox>
+
+That's it. A language is just a **set**. Everything we learned in LN 3 about sets applies directly to languages. Membership, subsets, cardinality, power sets — all of it.
+
+Here are some example languages over the alphabet `{ a, b }`:
+
+- The set of all strings with equal numbers of a's and b's
+- The set of all strings that start and end with the same symbol
+- The set of all palindromes
+- The empty language (the empty set — no strings at all)
+- The language containing only the empty string (the set containing just epsilon)
+
+And here are some languages over larger alphabets:
+
+- The set of all valid Python programs (over Unicode)
+- The set of all valid JSON documents (over Unicode)
+- The set of all binary strings representing prime numbers (over `{ 0, 1 }`)
+- The set of all valid email addresses
+
+Let's visualize how a language selects strings from $\Sigma^*$. In the display below, the green strings are "in" the language — they are its utterances. The dimmed strings are in $\Sigma^*$ but not in the language.
+
+<LanguageBuilder
+  title="Even-length strings over {a, b}"
+  alphabet={["a", "b"]}
+  maxLength={3}
+  languageName="L"
+  members={["ε", "aa", "ab", "ba", "bb", "aaaa"]}
+  description="L = { w ∈ {a,b}* | |w| is even }. A language is just a subset of Σ*."
+/>
+
+<LanguageBuilder
+  title="Strings starting with 'a' over {a, b}"
+  alphabet={["a", "b"]}
+  maxLength={3}
+  languageName="L"
+  members={["a", "aa", "ab", "aaa", "aab", "aba", "abb"]}
+  description="L = { w ∈ {a,b}* | w starts with 'a' }. Notice how ε is not in this language."
+/>
+
+> **The empty language vs. the $\varepsilon$-language**: Be careful to distinguish $\emptyset$ (the language with *no* strings, not even $\varepsilon$) from the language containing *only* the empty string, <InlineMath formula="\{\varepsilon\}" />. They are very different! $\emptyset$ has cardinality 0; <InlineMath formula="\{\varepsilon\}" /> has cardinality 1.
+
+### Language Operations
+
+Because languages are sets, every set operation from LN 3 applies. But languages also have new operations that arise from their string structure.
+
+**Set operations (directly from LN 3):**
+
+- **Union**: $L_1 \cup L_2$ = strings in either language
+- **Intersection**: $L_1 \cap L_2$ = strings in both languages
+- **Complement**: $\overline{L} = \Sigma^* \setminus L$ = all strings NOT in $L$
+- **Cardinality**: $|L|$ = the number of strings in the language
+
+**String-specific operations (new!):**
+
+**Language concatenation** produces all possible concatenations of strings from two languages:
+
+<DisplayMath formula="L_1 L_2 = \{ xy \mid x \in L_1 \wedge y \in L_2 \}" />
+
+Notice the logical conjunction from LN 2 in the set-builder notation!
+
+**Language exponentiation**: $L^0 = $ <InlineMath formula="\{\varepsilon\}" />, $L^1 = L$, $L^2 = LL$, and so on.
+
+**Kleene closure of a language**:
+
+<DisplayMath formula="L^* = L^0 \cup L^1 \cup L^2 \cup L^3 \cup \cdots" />
+
+**Positive closure**:
+
+<DisplayMath formula="L^+ = L^1 \cup L^2 \cup L^3 \cup \cdots" />
+
+### Language Operation Examples
+
+Let $\Sigma$ = `{ a, b }`, $L_1$ = `{ ba, b }`, and $L_2$ = `{ abb, bb }`. Then:
+
+- $L_1 L_2$ = `{ baabb, babb, bbb }`
+- $L_1 \cup L_2$ = `{ ba, b, abb, bb }`
+- $L_1 \cap L_2 = \emptyset$ (they share no strings)
+- $L_1^*$ = `{ ε, ba, b, baba, bab, bba, bb, ... }`
+
+### Algebraic Properties of Languages
+
+Because languages are sets, they inherit the algebraic properties of set operations. Here are some notable facts (all provable using LN 3 set theory):
+
+- $L \cdot \emptyset = \emptyset \cdot L = \emptyset$ (concatenation with nothing yields nothing)
+- $L \cdot$ <InlineMath formula="\{\varepsilon\}" /> $=$ <InlineMath formula="\{\varepsilon\}" /> $\cdot L = L$ ($\varepsilon$ is the identity)
+- $(L_1 L_2) L_3 = L_1 (L_2 L_3)$ (concatenation is associative)
+- $L (L_1 \cup L_2) = L L_1 \cup L L_2$ (concatenation distributes over union)
+- $L^* = L^+ \cup$ <InlineMath formula="\{\varepsilon\}" />
+- $(L^*)^* = L^*$ (idempotency of Kleene closure)
+
+### The Uncountability Argument
+
+Here is a profound consequence of LN 3's cardinality theory. The set of all languages over an alphabet $\Sigma$ is the **power set** of $\Sigma^*$: every language is a subset of $\Sigma^*$, so the set of all languages is $\mathcal{P}(\Sigma^*)$.
+
+We showed that $\Sigma^*$ is countably infinite. By **Cantor's Theorem** (LN 3), the power set of any set is strictly larger than the set itself. Therefore:
+
+**The set of all languages is uncountable.**
+
+But any description of a language — whether a grammar, a program, or an English sentence — is itself a finite string. The set of all finite descriptions is countable. Therefore:
+
+**Most languages cannot be described by any finite means.**
+
+This is a staggering result. The vast majority of languages over any alphabet are *indescribable* — they exist as subsets of Sigma*, but no finite mechanism can specify which strings are in them and which are not.
+
+<VennDiagram
+  variables={1}
+  labels={["Describable Languages"]}
+  regions={[1]}
+  caption="The describable languages are a vanishingly small subset of all possible languages in P(Σ*)"
+  height="200px"
+/>
+
+This motivates a key question: among the languages we *can* describe, what tools do we have, and how much power does each one give us?
+
+---
+
+## The Need for Grammars
+
+We've been defining languages using set-builder notation with informal English predicates:
+
+- $L$ = `{ w` $\in \Sigma^*$ `| w is a valid floating-point numeral }`
+
+But what does "valid floating-point numeral" mean precisely? Our earlier attempts at informal description were verbose, confusing, and potentially ambiguous.
+
+We need a **formal mechanism** for defining languages. There are two fundamental approaches:
+
+<DefinitionBox term="Language Definition Approaches">
+
+**By Generation**: Give a formalized set of rules that systematically *produce* all and only the strings in the language.
+
+**By Recognition**: Give a formal definition of a process that *determines*, for a given string, whether or not it is in the language.
+
+</DefinitionBox>
+
+The primary mechanism for generation is the **generative grammar**. The primary mechanism for recognition is the **analytic grammar** (which we'll preview at the end and cover in depth in LN 8).
+
+---
+
+## Generative Grammars
+
+A **generative grammar** is a set of rules for producing all and only the strings in a particular language. The rules use **variables** (placeholders that get replaced) and **terminal symbols** (the actual symbols of the language's alphabet).
+
+### Informal Notation
+
+Before we get to the formal definition, let's see how grammars work with a practical notation. A grammar consists of:
+
+- **Variables** (also called non-terminals): placeholders to be replaced by the rules
+- **Terminal symbols**: the actual symbols of the language's alphabet
+- **Rules** (also called productions): each rule shows how a variable can be replaced
+- **Start variable**: the variable where derivation begins
+
+The notation uses several conventions:
+
+- The arrow **->** means "can be replaced with"
+- The pipe **|** means "or" (multiple alternatives for the same variable)
+- The superscript **+** means "one or more"
+- The superscript **\*** means "zero or more"
+- The question mark **?** means "optional" (zero or one)
+- Double quotes delimit actual terminal symbols; variables are unquoted
+- Parentheses are for grouping
+
+### The Floating-Point Grammar
+
+Here is a grammar that precisely defines the floating-point numeral language:
+
+```
+numeral         → digit+ fractionalPart? exponentPart?
+fractionalPart  → "." digit+
+exponentPart    → ("E" | "e") ("+" | "–")? digit+
+digit           → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+```
+
+This grammar tells us exactly which strings are valid floating-point numerals. No ambiguity, no vagueness. Compare this to our informal English attempts!
+
+### Derivations
+
+A **derivation** is the process of applying rules to go from the start variable to a terminal string — a string containing only terminal symbols.
+
+We use two different arrows:
+
+- **->** (single arrow): appears in *rules*, meaning "can be replaced with"
+- **=>** (double arrow): appears in *derivations*, meaning "yields" (one step of rule application)
+
+Here is a derivation showing that `338.253e18` is in the floating-point language:
+
+```
+numeral  ⟹  digit+ fractionalPart? exponentPart?
+         ⟹  338 fractionalPart? exponentPart?
+         ⟹  338 . digit+ exponentPart?
+         ⟹  338.253 exponentPart?
+         ⟹  338.253 ("E"|"e") ("+"|"–")? digit+
+         ⟹  338.253e digit+
+         ⟹  338.253e18
+```
+
+The string `338.253e18` is derivable, so it is in the language. A string is in the language *if and only if* it can be derived from the start variable.
+
+### Practice with Simple Grammars
+
+Let's study several grammars, starting simple and building up. Each grammar defines a language — a **set** of strings.
+
+**Even binary numerals** (binary strings ending in 0):
+
+```
+even → "–"? ("0" | "1")* "0"
+```
+
+**The language of a^n b^n** — strings of *n* a's followed by *n* b's, where the counts must match:
+
+```
+S → ε | "a" S "b"
+```
+
+This grammar generates: $\varepsilon$, `ab`, `aabb`, `aaabbb`, `aaaabbbb`, ... Notice how the recursive rule `S → "a" S "b"` ensures that every `a` is matched by a corresponding `b`. This is a language that **cannot** be recognized by a DFA (as you discovered in HW 3) — it requires the power of a context-free grammar.
+
+**Palindromes over the alphabet a, b:**
+
+```
+pal → ε | "a" | "b" | "a" pal "a" | "b" pal "b"
+```
+
+**Balanced brackets** (parentheses, square brackets, and curly braces, properly nested):
+
+```
+balanced → ( "(" balanced ")" | "[" balanced "]" | "{" balanced "}" )*
+```
+
+### Interactive Grammar Derivation
+
+Let's see these grammars in action. The interactive tool below lets you step through a derivation. In **guided mode**, click "Next Guided Step" to follow a pre-defined derivation. Switch to **free mode** to explore on your own — click any variable to see the rules you can apply.
+
+<GrammarDerivationStepper
+  title="Deriving 'aabb' from the a^n b^n grammar"
+  startSymbol="S"
+  terminals={["a", "b"]}
+  rules={[
+    { variable: "S", productions: [["ε"], ["a", "S", "b"]] },
+  ]}
+  guidedSteps={[
+    { symbolIndex: 0, productionIndex: 1, description: "Apply S → a S b" },
+    { symbolIndex: 1, productionIndex: 1, description: "Apply S → a S b again (inside)" },
+    { symbolIndex: 2, productionIndex: 0, description: "Apply S → ε to terminate" },
+  ]}
+/>
+
+<GrammarDerivationStepper
+  title="Deriving 'abba' from the palindrome grammar"
+  startSymbol="P"
+  terminals={["a", "b"]}
+  rules={[
+    { variable: "P", productions: [["ε"], ["a"], ["b"], ["a", "P", "a"], ["b", "P", "b"]] },
+  ]}
+  guidedSteps={[
+    { symbolIndex: 0, productionIndex: 3, description: "Apply P → a P a (outermost pair)" },
+    { symbolIndex: 1, productionIndex: 4, description: "Apply P → b P b (inner pair)" },
+    { symbolIndex: 2, productionIndex: 0, description: "Apply P → ε to finish" },
+  ]}
+/>
+
+Now let's try a grammar for simple arithmetic expressions. This one has more rules and generates a richer language:
+
+<GrammarDerivationStepper
+  title="Deriving '3+5*2' from an expression grammar"
+  startSymbol="E"
+  terminals={["0","1","2","3","4","5","6","7","8","9","+","-","*","/","(",")","**"]}
+  rules={[
+    { variable: "E", productions: [["E","+","T"], ["E","-","T"], ["T"]] },
+    { variable: "T", productions: [["T","*","F"], ["T","/","F"], ["F"]] },
+    { variable: "F", productions: [["D"], ["(","E",")"]] },
+    { variable: "D", productions: [["0"],["1"],["2"],["3"],["4"],["5"],["6"],["7"],["8"],["9"]] },
+  ]}
+  guidedSteps={[
+    { symbolIndex: 0, productionIndex: 0, description: "E → E + T (addition at the top)" },
+    { symbolIndex: 0, productionIndex: 2, description: "E → T (left operand is a term)" },
+    { symbolIndex: 0, productionIndex: 2, description: "T → F (the term is a single factor)" },
+    { symbolIndex: 0, productionIndex: 0, description: "F → D (the factor is a digit)" },
+    { symbolIndex: 0, productionIndex: 3, description: "D → 3" },
+    { symbolIndex: 2, productionIndex: 0, description: "T → T * F (multiplication)" },
+    { symbolIndex: 2, productionIndex: 2, description: "T → F (left of multiplication)" },
+    { symbolIndex: 2, productionIndex: 0, description: "F → D" },
+    { symbolIndex: 2, productionIndex: 5, description: "D → 5" },
+    { symbolIndex: 4, productionIndex: 0, description: "F → D" },
+    { symbolIndex: 4, productionIndex: 2, description: "D → 2" },
+  ]}
+/>
+
+---
+
+## Derivation Trees
+
+A derivation is a *sequence* of steps, but what we really care about is the *structure* that the derivation reveals. A **derivation tree** (also called a parse tree) captures this structure.
+
+<DefinitionBox term="Derivation Tree">
+
+A **derivation tree** for a grammar is a tree where:
+- The **root** is the start variable
+- Each **internal node** is a variable
+- Each **leaf** is a terminal symbol (or $\varepsilon$)
+- The children of each internal node correspond to the right-hand side of a production rule applied to that variable
+
+</DefinitionBox>
+
+Let's watch the derivation tree for `aabb` grow step-by-step. Each step corresponds to applying one production rule — expanding a variable node into its children:
+
+<DerivationTreeStepper
+  title="Building the derivation tree for 'aabb'"
+  steps={[
+    {
+      nodes: [{ id: "S0", label: "S", level: 0 }],
+      edges: [],
+      description: "Start with the start symbol S"
+    },
+    {
+      nodes: [
+        { id: "S0", label: "S", level: 0 },
+        { id: "a1", label: "a", isTerminal: true, level: 1 },
+        { id: "S1", label: "S", level: 1 },
+        { id: "b1", label: "b", isTerminal: true, level: 1 }
+      ],
+      edges: [
+        { from: "S0", to: "a1" },
+        { from: "S0", to: "S1" },
+        { from: "S0", to: "b1" }
+      ],
+      highlightNodes: ["a1", "S1", "b1"],
+      description: "Apply S → a S b"
+    },
+    {
+      nodes: [
+        { id: "S0", label: "S", level: 0 },
+        { id: "a1", label: "a", isTerminal: true, level: 1 },
+        { id: "S1", label: "S", level: 1 },
+        { id: "b1", label: "b", isTerminal: true, level: 1 },
+        { id: "a2", label: "a", isTerminal: true, level: 2 },
+        { id: "S2", label: "S", level: 2 },
+        { id: "b2", label: "b", isTerminal: true, level: 2 }
+      ],
+      edges: [
+        { from: "S0", to: "a1" },
+        { from: "S0", to: "S1" },
+        { from: "S0", to: "b1" },
+        { from: "S1", to: "a2" },
+        { from: "S1", to: "S2" },
+        { from: "S1", to: "b2" }
+      ],
+      highlightNodes: ["a2", "S2", "b2"],
+      description: "Apply S → a S b again (inner S)"
+    },
+    {
+      nodes: [
+        { id: "S0", label: "S", level: 0 },
+        { id: "a1", label: "a", isTerminal: true, level: 1 },
+        { id: "S1", label: "S", level: 1 },
+        { id: "b1", label: "b", isTerminal: true, level: 1 },
+        { id: "a2", label: "a", isTerminal: true, level: 2 },
+        { id: "S2", label: "S", level: 2 },
+        { id: "b2", label: "b", isTerminal: true, level: 2 },
+        { id: "eps", label: "ε", isEpsilon: true, level: 3 }
+      ],
+      edges: [
+        { from: "S0", to: "a1" },
+        { from: "S0", to: "S1" },
+        { from: "S0", to: "b1" },
+        { from: "S1", to: "a2" },
+        { from: "S1", to: "S2" },
+        { from: "S1", to: "b2" },
+        { from: "S2", to: "eps" }
+      ],
+      highlightNodes: ["eps"],
+      description: "Apply S → ε to terminate. Reading leaves left-to-right: a a ε b b = 'aabb'"
+    }
+  ]}
+/>
+
+Reading the leaves left-to-right gives us the derived string: `aabb`.
+
+The derivation tree is important because it captures **structure**. Different derivations of the same string can produce the same tree — the *order* in which we apply rules doesn't matter for the tree, only *which* rules we apply to *which* variables.
+
+But what happens when a string can produce *different* trees?
+
+### Reading the Tree: How Machines Interpret Structure
+
+Before we answer that question, consider a thought experiment. Suppose you've built a grammar for a simple programming language. A programmer writes a program, and your grammar produces a derivation tree for it. How does the machine actually *execute* the program?
+
+A natural approach is **depth-first search (DFS)**. Starting at the root, you traverse down the left branch, process it fully, then move right. When you encounter an operator node (like `+` or `*`), you first evaluate its left subtree to get a value, then its right subtree, then apply the operator.
+
+This is essentially how tree-walking interpreters work: the tree structure determines the **evaluation order**. The deeper an operation sits in the tree, the earlier it gets evaluated — operations at the bottom are computed first, and their results flow upward.
+
+Keep this in mind as we explore what happens when a string has *more than one* derivation tree.
+
+---
+
+## Ambiguity
+
+Consider the simple arithmetic expression grammar (without the precedence layers we used above):
+
+```
+E → E "+" E | E "*" E | D
+D → "0" | "1" | "2" | ... | "9"
+```
+
+The string `3+5*2` can be derived in two structurally different ways. Let's step through both derivations:
+
+<GrammarDerivationStepper
+  title="Derivation 1: Addition at the top level (→ correct PEMDAS)"
+  startSymbol="E"
+  terminals={["0","1","2","3","4","5","6","7","8","9","+","*"]}
+  rules={[
+    { variable: "E", productions: [["E","+","E"], ["E","*","E"], ["D"]] },
+    { variable: "D", productions: [["0"],["1"],["2"],["3"],["4"],["5"],["6"],["7"],["8"],["9"]] },
+  ]}
+  guidedSteps={[
+    { symbolIndex: 0, productionIndex: 0, description: "E → E + E (addition is the top-level operation)" },
+    { symbolIndex: 0, productionIndex: 2, description: "Left E → D" },
+    { symbolIndex: 0, productionIndex: 3, description: "D → 3" },
+    { symbolIndex: 2, productionIndex: 1, description: "Right E → E * E (multiplication is nested inside)" },
+    { symbolIndex: 2, productionIndex: 2, description: "Left of * becomes D" },
+    { symbolIndex: 2, productionIndex: 5, description: "D → 5" },
+    { symbolIndex: 4, productionIndex: 2, description: "Right of * becomes D" },
+    { symbolIndex: 4, productionIndex: 2, description: "D → 2" },
+  ]}
+/>
+
+<GrammarDerivationStepper
+  title="Derivation 2: Multiplication at the top level (→ wrong answer!)"
+  startSymbol="E"
+  terminals={["0","1","2","3","4","5","6","7","8","9","+","*"]}
+  rules={[
+    { variable: "E", productions: [["E","+","E"], ["E","*","E"], ["D"]] },
+    { variable: "D", productions: [["0"],["1"],["2"],["3"],["4"],["5"],["6"],["7"],["8"],["9"]] },
+  ]}
+  guidedSteps={[
+    { symbolIndex: 0, productionIndex: 1, description: "E → E * E (multiplication is the top-level operation!)" },
+    { symbolIndex: 0, productionIndex: 0, description: "Left E → E + E (addition is nested inside)" },
+    { symbolIndex: 0, productionIndex: 2, description: "Leftmost E → D" },
+    { symbolIndex: 0, productionIndex: 3, description: "D → 3" },
+    { symbolIndex: 2, productionIndex: 2, description: "Middle E → D" },
+    { symbolIndex: 2, productionIndex: 5, description: "D → 5" },
+    { symbolIndex: 4, productionIndex: 2, description: "Right E → D" },
+    { symbolIndex: 4, productionIndex: 2, description: "D → 2" },
+  ]}
+/>
+
+Both derivations produce the same string `3+5*2`, but they yield **different derivation trees**:
+
+<DerivationTreeStepper
+  title="Tree 1: Addition at top → 3 + (5 × 2) = 13"
+  steps={[
+    {
+      nodes: [{ id: "E0", label: "E", level: 0 }],
+      edges: [],
+      description: "Start with E"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "plus" },
+        { from: "E0", to: "E2" }
+      ],
+      highlightNodes: ["E1", "plus", "E2"],
+      description: "E → E + E (addition is the outermost operation)"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 },
+        { id: "D1", label: "D", level: 2 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "plus" },
+        { from: "E0", to: "E2" },
+        { from: "E1", to: "D1" }
+      ],
+      highlightNodes: ["D1"],
+      description: "Left E → D"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 },
+        { id: "D1", label: "D", level: 2 },
+        { id: "t3", label: "3", isTerminal: true, level: 3 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "plus" },
+        { from: "E0", to: "E2" },
+        { from: "E1", to: "D1" },
+        { from: "D1", to: "t3" }
+      ],
+      highlightNodes: ["t3"],
+      description: "D → 3"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 },
+        { id: "D1", label: "D", level: 2 },
+        { id: "t3", label: "3", isTerminal: true, level: 3 },
+        { id: "E3", label: "E", level: 2 },
+        { id: "star", label: "*", isTerminal: true, level: 2 },
+        { id: "E4", label: "E", level: 2 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "plus" },
+        { from: "E0", to: "E2" },
+        { from: "E1", to: "D1" },
+        { from: "D1", to: "t3" },
+        { from: "E2", to: "E3" },
+        { from: "E2", to: "star" },
+        { from: "E2", to: "E4" }
+      ],
+      highlightNodes: ["E3", "star", "E4"],
+      description: "Right E → E * E (multiplication is deeper in the tree)"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 },
+        { id: "D1", label: "D", level: 2 },
+        { id: "t3", label: "3", isTerminal: true, level: 3 },
+        { id: "E3", label: "E", level: 2 },
+        { id: "star", label: "*", isTerminal: true, level: 2 },
+        { id: "E4", label: "E", level: 2 },
+        { id: "D2", label: "D", level: 3 },
+        { id: "t5", label: "5", isTerminal: true, level: 4 },
+        { id: "D3", label: "D", level: 3 },
+        { id: "t2", label: "2", isTerminal: true, level: 4 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "plus" },
+        { from: "E0", to: "E2" },
+        { from: "E1", to: "D1" },
+        { from: "D1", to: "t3" },
+        { from: "E2", to: "E3" },
+        { from: "E2", to: "star" },
+        { from: "E2", to: "E4" },
+        { from: "E3", to: "D2" },
+        { from: "D2", to: "t5" },
+        { from: "E4", to: "D3" },
+        { from: "D3", to: "t2" }
+      ],
+      highlightNodes: ["D2", "t5", "D3", "t2"],
+      description: "Complete tree. DFS evaluates: 3 + (5 * 2) = 3 + 10 = 13"
+    }
+  ]}
+  height="320px"
+/>
+
+<DerivationTreeStepper
+  title="Tree 2: Multiplication at top → (3 + 5) × 2 = 16"
+  steps={[
+    {
+      nodes: [{ id: "E0", label: "E", level: 0 }],
+      edges: [],
+      description: "Start with E"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "star", label: "*", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "star" },
+        { from: "E0", to: "E2" }
+      ],
+      highlightNodes: ["E1", "star", "E2"],
+      description: "E → E * E (multiplication is the outermost operation!)"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "star", label: "*", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 },
+        { id: "E3", label: "E", level: 2 },
+        { id: "plus", label: "+", isTerminal: true, level: 2 },
+        { id: "E4", label: "E", level: 2 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "star" },
+        { from: "E0", to: "E2" },
+        { from: "E1", to: "E3" },
+        { from: "E1", to: "plus" },
+        { from: "E1", to: "E4" }
+      ],
+      highlightNodes: ["E3", "plus", "E4"],
+      description: "Left E → E + E (addition is deeper, so it evaluates FIRST)"
+    },
+    {
+      nodes: [
+        { id: "E0", label: "E", level: 0 },
+        { id: "E1", label: "E", level: 1 },
+        { id: "star", label: "*", isTerminal: true, level: 1 },
+        { id: "E2", label: "E", level: 1 },
+        { id: "E3", label: "E", level: 2 },
+        { id: "plus", label: "+", isTerminal: true, level: 2 },
+        { id: "E4", label: "E", level: 2 },
+        { id: "D1", label: "D", level: 3 },
+        { id: "t3", label: "3", isTerminal: true, level: 4 },
+        { id: "D2", label: "D", level: 3 },
+        { id: "t5", label: "5", isTerminal: true, level: 4 },
+        { id: "D3", label: "D", level: 2 },
+        { id: "t2", label: "2", isTerminal: true, level: 3 }
+      ],
+      edges: [
+        { from: "E0", to: "E1" },
+        { from: "E0", to: "star" },
+        { from: "E0", to: "E2" },
+        { from: "E1", to: "E3" },
+        { from: "E1", to: "plus" },
+        { from: "E1", to: "E4" },
+        { from: "E3", to: "D1" },
+        { from: "D1", to: "t3" },
+        { from: "E4", to: "D2" },
+        { from: "D2", to: "t5" },
+        { from: "E2", to: "D3" },
+        { from: "D3", to: "t2" }
+      ],
+      highlightNodes: ["D1", "t3", "D2", "t5", "D3", "t2"],
+      description: "Complete tree. DFS evaluates: (3 + 5) * 2 = 8 * 2 = 16"
+    }
+  ]}
+  height="320px"
+/>
+
+The same string, two different trees, two different meanings. This is a problem.
+
+<DefinitionBox term="Ambiguous Grammar">
+
+A grammar $G$ is **ambiguous** if there exists at least one string in $L(G)$ that has more than one derivation tree.
+
+</DefinitionBox>
+
+Ambiguity in natural language is common and often harmless (or even humorous):
+
+- "Lawyers give poor free advice." — Does "poor" describe the *people* receiving advice (lawyers give [poor people] [free advice]) or the *quality* of the advice (lawyers give [poor-quality free advice])?
+- "Stolen painting found by tree." — Did someone find the painting near a tree, or did the tree find it?
+- "Hershey bars protest." — Are chocolate bars protesting, or is someone protesting Hershey bars?
+
+### The Danger: DFS Gives Different Answers
+
+Remember our thought experiment about using DFS to execute a derivation tree? Now the danger becomes clear.
+
+If a string has **two derivation trees**, then a DFS traversal produces **two different execution orders** — and potentially **two different results**. For `3+5*2`:
+
+- **Tree 1** (addition at top): DFS descends into `*` before `+` reaches it, computing `5*2=10` first, then `3+10=13`
+- **Tree 2** (multiplication at top): DFS descends into `+` first, computing `3+5=8`, then `8*2=16`
+
+The grammar doesn't tell us which tree is "correct." Both are equally valid derivations.
+
+> **Historical aside**: This isn't a theoretical concern — it caused real bugs in real languages. Before formal language theory was widely applied to language design, some early languages had **undefined evaluation order** for certain expressions. C and C++ to this day have "undefined behavior" for expressions like `f() + g()` where both `f` and `g` have side effects — the language standard deliberately *doesn't specify* which function is called first. Different compilers on different hardware can (and do!) produce different results. This remains a significant source of security vulnerabilities. The lesson: without a formal grammar that *enforces* a unique derivation tree, the meaning of a program can be hardware-dependent.
+
+### You Already Know How to Fix This: PEMDAS
+
+Here's the good news: you've been resolving this exact kind of ambiguity since elementary school.
+
+**PEMDAS** (Parentheses, Exponents, Multiplication/Division, Addition/Subtraction) is a **precedence system**. It tells you which operations to evaluate first when the notation is flat and ambiguous. When you see `3+5*2`, PEMDAS says multiplication has higher precedence, so you compute `5*2` first, then add `3`.
+
+But PEMDAS is a *convention imposed from outside the notation*. What if we could encode PEMDAS *directly into the grammar itself*, so that the grammar produces only **one** derivation tree for every string?
+
+### Resolving Ambiguity: A Step-by-Step Grammar Evolution
+
+Let's start with our flat, ambiguous grammar and evolve it step-by-step until ambiguity is impossible.
+
+**Step 1: The ambiguous grammar**
+
+```
+E → E "+" E | E "*" E | D
+D → "0" | "1" | ... | "9"
+```
+
+The problem: `E` directly contains both `+` and `*` at the same level. There's nothing in the grammar structure to force one to bind tighter than the other.
+
+**Step 2: Separate precedence levels**
+
+PEMDAS tells us `*` binds tighter than `+`. We encode this by introducing a new variable $T$ (Term) that handles multiplication, while $E$ (Expression) handles addition. Expressions are built from terms, and terms are built from digits:
+
+```
+E → E "+" T | T
+T → T "*" D | D
+D → "0" | "1" | ... | "9"
+```
+
+Now `3+5*2` can **only** be parsed as addition-at-the-top: $E$ must break into $E + T$, and the $T$ on the right absorbs the `5*2` as a single term. Try deriving `3+5*2` with this grammar — there is only one derivation tree:
+
+<GrammarDerivationStepper
+  title="Deriving '3+5*2' with the unambiguous grammar"
+  startSymbol="E"
+  terminals={["0","1","2","3","4","5","6","7","8","9","+","*"]}
+  rules={[
+    { variable: "E", productions: [["E","+","T"], ["T"]] },
+    { variable: "T", productions: [["T","*","D"], ["D"]] },
+    { variable: "D", productions: [["0"],["1"],["2"],["3"],["4"],["5"],["6"],["7"],["8"],["9"]] },
+  ]}
+  guidedSteps={[
+    { symbolIndex: 0, productionIndex: 0, description: "E → E + T (top level is addition)" },
+    { symbolIndex: 0, productionIndex: 1, description: "E → T (left side is just a term)" },
+    { symbolIndex: 0, productionIndex: 1, description: "T → D (the term is a single digit)" },
+    { symbolIndex: 0, productionIndex: 3, description: "D → 3" },
+    { symbolIndex: 2, productionIndex: 0, description: "T → T * D (the right term contains multiplication)" },
+    { symbolIndex: 2, productionIndex: 1, description: "T → D" },
+    { symbolIndex: 2, productionIndex: 5, description: "D → 5" },
+    { symbolIndex: 4, productionIndex: 2, description: "D → 2" },
+  ]}
+/>
+
+**Step 3: Controlling associativity**
+
+Notice the recursion direction in our rules:
+
+- `E → E "+" T` has **left recursion** — `E` appears on the *left* of the `+`. This forces `1+2+3` to parse as `(1+2)+3`, which is **left-associative**.
+- If we write `F → D "**" F`, with **right recursion** — $F$ appears on the *right* of `**` — then `2**3**2` parses as `2**(3**2)`, which is **right-associative**.
+
+Left recursion = left associativity. Right recursion = right associativity. The grammar structure *is* the precedence/associativity table.
+
+**The complete unambiguous grammar:**
+
+```
+exp      → exp ("+" | "-") term | term
+term     → term ("*" | "/" | "%") factor | factor
+factor   → primary "**" factor | primary
+primary  → digit+ | "(" exp ")"
+```
+
+Each variable level handles one precedence tier. Lower tiers (deeper in the tree) bind tighter. Recursion direction controls associativity. Parenthesized expressions "escape" back to the top by referencing `exp`, allowing any expression to be grouped explicitly.
+
+---
+
+## The Formal Definition of Grammars
+
+Everything we've been writing informally can be made fully precise. A grammar is a mathematical object — a tuple of sets, just like the relations and functions from LN 3.
+
+<DefinitionBox term="Generative Grammar (Formal)">
+
+A **generative grammar** is a quadruple $G = (V, \Sigma, R, S)$ where:
+- $\Sigma$ is the **alphabet** of the language being described
+- $V$ is a **set of variables**, such that $V \cap \Sigma = \emptyset$
+- $R \subseteq (V \cup \Sigma)^* V (V \cup \Sigma)^* \times (V \cup \Sigma)^*$ — a set of **rules**
+- $S \in V$ — the **start variable**
+
+</DefinitionBox>
+
+Let's unpack the formal definition of $R$. The left-hand side of every rule must contain **at least one variable** — this ensures that once all variables have been eliminated, the derivation stops. The right-hand side can be any string of variables and terminal symbols (including the empty string).
+
+The convenience symbols `|`, `?`, `*`, `+` are **syntactic sugar** — they can all be desugared into the basic rule format:
+
+- `A → B | C` becomes two rules: `A → B` and `A → C`
+- `A → B?` becomes `A → B |` $\varepsilon$
+- `A → B*` becomes `A →` $\varepsilon$ `| A B`
+- `A → B+` becomes `A → B | A B`
+
+### Formalizing the Derivation Relation
+
+<DisplayMath formula="\alpha \gamma \beta \Longrightarrow_R \alpha \delta \beta \quad\text{iff}\quad (\gamma, \delta) \in R" />
+
+This says: in a sentential form (a string of variables and terminals), we can replace any substring $\gamma$ with $\delta$, provided the rule $(\gamma, \delta) \in R$. The strings $\alpha$ and $\beta$ are the context surrounding the replacement.
+
+The **language defined by grammar $G$** is:
+
+<DisplayMath formula="L(G) = \{ w \in \Sigma^* \mid S \Longrightarrow_R^* w \}" />
+
+That is, $L(G)$ is the set of all terminal strings derivable from the start variable $S$ using zero or more applications of rules in $R$. The $*$ on the double arrow means "zero or more derivation steps."
+
+### Seeing the Formalization in Action
+
+The 4-tuple might look abstract, so let's see how some of our familiar grammars translate. The left panel shows the grammar as we've been writing it; the right panel shows the formal components.
+
+<GrammarFormalization
+  title="Formalizing: the a^n b^n grammar"
+  informal={"S → ε | aSb"}
+  variables="V = { S }"
+  alphabet="Σ = { a, b }"
+  rules="R = { (S, ε), (S, aSb) }"
+  startSymbol="S"
+/>
+
+<GrammarFormalization
+  title="Formalizing: the palindrome grammar"
+  informal={"P → ε | a | b | aPa | bPb"}
+  variables="V = { P }"
+  alphabet="Σ = { a, b }"
+  rules="R = { (P, ε), (P, a), (P, b), (P, aPa), (P, bPb) }"
+  startSymbol="P"
+/>
+
+Notice how every component of the informal grammar maps directly into one of the four sets. The informal notation is just a more readable way to write down the same mathematical object.
+
+### Worked Example: From Context-Free to Context-Sensitive
+
+Both grammars above are **context-free**: every rule has a single variable on the left-hand side. But what about languages that need more power?
+
+Consider the language <InlineMath formula="L = \{ a^n b^n c^n \mid n \geq 0 \}" /> — strings of equal numbers of a's, b's, and c's, in order. Can we capture this with a context-free grammar?
+
+Let's try. We know `S → aSbc` would grow the a's and "remember" to generate b's and c's. But after generating the a's, how do we ensure the b's and c's are properly separated? A context-free rule can only replace **one variable at a time**, without knowing what's around it. We'd need the c's from `aSbc` to "jump past" future b's — but context-free rules can't look at their surroundings.
+
+In fact, it can be formally proven (using the **pumping lemma for context-free languages**) that <InlineMath formula="a^n b^n c^n" /> is **not** context-free. We need rules whose left-hand side includes context — a terminal symbol next to a variable.
+
+Here is a grammar that works, using **context-sensitive** rules:
+
+```
+S   → ε | "a" S X "c"
+cX  → Xc
+aX  → ab
+bX  → bb
+```
+
+The rules `cX → Xc`, `aX → ab`, and `bX → bb` have multi-symbol left-hand sides — they only fire when the variable $X$ appears next to a specific terminal. This is the hallmark of a **context-sensitive** grammar.
+
+<GrammarFormalization
+  title="Formalizing: the a^n b^n c^n grammar (context-sensitive)"
+  informal={"S → ε | aSXc\ncX → Xc\naX → ab\nbX → bb"}
+  variables="V = { S, X }"
+  alphabet="Σ = { a, b, c }"
+  rules="R = { (S, ε), (S, aSXc), (cX, Xc), (aX, ab), (bX, bb) }"
+  startSymbol="S"
+/>
+
+The formal grammar is the quadruple:
+
+<DisplayMath formula="G = (\{S, X\}, \{a, b, c\}, \{(S, \varepsilon), (S, aSXc), (cX, Xc), (aX, ab), (bX, bb)\}, S)" />
+
+Let's watch this grammar derive the string `aabbcc` (i.e., $n = 2$). Notice how the context-sensitive rules "shuffle" symbols around — something no context-free grammar can do:
+
+```
+S
+⟹  aSXc                (S → aSXc)
+⟹  aaSXcXc             (S → aSXc, applied to inner S)
+⟹  aaεXcXc = aaXcXc    (S → ε, applied to innermost S)
+⟹  aaXXcc              (cX → Xc, swap X past c)
+⟹  aabXcc              (aX → ab, X becomes b after a)
+⟹  aabbcc              (bX → bb, X becomes b after b)
+```
+
+Each step applies exactly one rule. The critical moves are `cX → Xc` (bubbling the $X$ rightward past c's) and then `aX → ab` and `bX → bb` (converting $X$'s into b's from left to right). This "context-matching then rewriting" pattern is what makes context-sensitive grammars strictly more powerful than context-free ones.
+
+> **Terminology note**: Different authors use different names for the components. $V$ may be called "non-terminals" and $\Sigma$ may be called "terminals." Some authors define a "vocabulary" that includes both. The underlying math is the same.
+
+---
+
+## The Chomsky Hierarchy
+
+We've seen that generative grammars can define languages. But we've also seen that some grammars use simple rules (like `S → a S b`) while others require complex multi-symbol left-hand sides (like `cX → Xc`). In 1959, Noam Chomsky introduced a series of **restrictions** on grammar rules that revealed a fundamental hierarchy of expressive power.
+
+The key idea: the more you restrict what rules can look like, the *fewer* languages you can define — but the structure you can extract from derivations becomes *richer*.
+
+### Type 0: Unrestricted Grammars
+
+<DefinitionBox term="Type 0 — Unrestricted Grammar">
+
+A **Type 0** (unrestricted) grammar places no restrictions on rules beyond requiring at least one variable on the left-hand side. Every rule is of the form:
+
+$\alpha A \beta \to \gamma$
+
+where $A$ is a variable and $\alpha, \beta, \gamma$ are strings of variables and terminals.
+
+The class of languages generated by Type 0 grammars is **RE** (Recursively Enumerable).
+
+</DefinitionBox>
+
+These grammars can define any language that can be recognized by a **Turing Machine** (LN 5). They are maximally powerful, but their derivations can be wild — you can't always extract a clean tree structure.
+
+### Type 1: Context-Sensitive Grammars
+
+<DefinitionBox term="Type 1 — Context-Sensitive Grammar">
+
+A **Type 1** (context-sensitive) grammar requires every rule to be of the form:
+
+$\alpha A \beta \to \alpha \gamma \beta$, where $|\gamma| \geq 1$
+
+Each rule replaces **a single variable** $A$, but only when it appears in the **context** of $\alpha$ on the left and $\beta$ on the right.
+
+The class of languages generated by Type 1 grammars is **CS** (Context-Sensitive).
+
+</DefinitionBox>
+
+The name "context-sensitive" reflects the fact that the replacement of $A$ depends on what surrounds it. The requirement $|\gamma| \geq 1$ means rules cannot erase — the right-hand side is never shorter than the left-hand side (these are also called *noncontracting* grammars).
+
+The a^n b^n c^n grammar we formalized above is context-sensitive (in its noncontracting form). Context-sensitive languages correspond to computations with **bounded memory** — specifically, Linear Bounded Automata.
+
+### Type 2: Context-Free Grammars
+
+<DefinitionBox term="Type 2 — Context-Free Grammar (CFG)">
+
+A **Type 2** (context-free) grammar requires every rule to have a **single variable** on the left-hand side:
+
+$A \to \gamma$
+
+The replacement of $A$ is independent of its surrounding context — hence "context-*free*."
+
+The class of languages generated by Type 2 grammars is **CF** (Context-Free).
+
+</DefinitionBox>
+
+This is the most important grammar class for programming languages. Every rule has exactly one variable on the left, so every derivation naturally produces a **derivation tree**. The a^n b^n grammar (`S → ε | a S b`) is context-free. Balanced brackets, palindromes, and arithmetic expressions are all context-free.
+
+Context-free languages correspond to **Pushdown Automata** — the machines with a stack that you studied in HW 3!
+
+### Type 3: Regular Grammars
+
+<DefinitionBox term="Type 3 — Regular Grammar">
+
+A **Type 3** (regular) grammar requires every rule to have one of these forms:
+
+- **Right-linear**: $A \to wB$ or $A \to w$ (a string of terminals optionally followed by a single variable)
+- **Left-linear**: $A \to Bw$ or $A \to w$ (a single variable optionally followed by terminals)
+
+A grammar must be consistently right-linear or left-linear (not mixed).
+
+The class of languages generated by Type 3 grammars is **REG** (Regular).
+
+</DefinitionBox>
+
+Regular grammars are the most restricted and define the simplest class of languages. They correspond to **Finite Automata / DFAs** — the machines with no stack and no tape that you studied in HW 3.
+
+Any regular language can be expressed as a **regular expression** — a compact notation using only concatenation, union (`|`), and Kleene star (`*`):
+
+- Even binary numerals: `(-|ε)(0|1)*0`
+- Strings with exactly two a's: `(b|c)*a(b|c)*a(b|c)*`
+- Strings ending in `abb`: `(a|b)*abb`
+
+### The Hierarchy
+
+Chomsky's restrictions form a strict containment hierarchy:
+
+<DisplayMath formula="REG \subset CF \subset CS \subset RE" />
+
+Each class is **strictly** larger than the one before it. There exist context-free languages that are not regular, context-sensitive languages that are not context-free, and recursively enumerable languages that are not context-sensitive.
+
+<ChomskyHierarchyDiagram
+  caption="The Chomsky Hierarchy: REG ⊂ CF ⊂ CS ⊂ RE — each ring is a strict subset of the one containing it. Most languages in P(Σ*) lie outside all of these."
+  showOuterLabel={true}
+  height="340px"
+/>
+
+### Connecting Grammars to Automata
+
+This hierarchy is not just about grammars — it maps directly to the automata hierarchy from LN 5 and HW 3:
+
+| Grammar Type | Language Class | Automaton | Memory |
+|:---|:---|:---|:---|
+| Type 3 (Regular) | REG | DFA / NFA | None (finite states only) |
+| Type 2 (Context-Free) | CF | Pushdown Automaton | Stack (LIFO) |
+| Type 1 (Context-Sensitive) | CS | Linear Bounded Automaton | Bounded tape |
+| Type 0 (Unrestricted) | RE | Turing Machine | Unbounded tape |
+
+Each step up adds a data structure (no memory -> stack -> bounded tape -> unbounded tape), and each data structure enables recognizing a strictly larger class of languages. This is the deep connection between **language theory** and **automata theory** that we previewed in LN 5.
+
+### Where Do Our Example Languages Sit?
+
+Let's classify the grammars we've seen:
+
+- **Even binary numerals**: Regular (Type 3) — expressible as a regex, recognizable by a DFA
+- **Palindromes**: Context-Free (Type 2) — the recursive `a pal a` rule needs a stack to match
+- **a^n b^n**: Context-Free (Type 2) — needs a stack to count a's and match b's
+- **Balanced brackets**: Context-Free (Type 2) — nesting requires a stack
+- **a^n b^n c^n**: Context-Sensitive (Type 1) — a stack can match a's against b's, but then has nothing left to match against c's
+- **Arithmetic expressions**: Context-Free (Type 2) — the unambiguous precedence grammar is a CFG
+
+---
+
+## Analytic Grammars: A Preview
+
+Everything we've seen so far is about **generating** strings — starting from the start variable and applying rules until we get a terminal string. This is the generative approach.
+
+But in practice, when we build compilers and interpreters, we need the opposite: given a string, determine whether it's in the language, and if so, extract its structure. This is the **recognition** approach.
+
+<DefinitionBox term="Analytic Grammar">
+
+An **analytic grammar** defines a language by providing rules that **match** strings against patterns, rather than generating strings from rules. The language is the set of all strings that can be successfully matched.
+
+</DefinitionBox>
+
+The biggest difference between generative and analytic grammars is in how alternatives work.
+
+In a generative grammar, `A → B | C` means $A$ can be replaced by $B$ **or** $C$ — both are valid, and both contribute strings to the language. This is **unordered** alternation.
+
+In an analytic grammar, `A ← B / C` means: **try** to match $B$ first. If it succeeds, done. **Only if** $B$ fails, try $C$. This is **ordered** alternation — it's deterministic, and the order matters.
+
+This has consequences:
+
+- The analytic grammar `S ← "a" / "ab"` recognizes only `{ a }` — because `"a"` always matches first, `"ab"` is never tried when the input starts with `a`.
+- But `S ← "ab" / "a"` recognizes `{ a, ab }` — because `"ab"` is tried first, and only if it fails does `"a"` get a chance.
+
+Analytic grammars also feature **lookahead operators** that generative grammars lack:
+
+- **Positive lookahead** (`&E`): checks that $E$ would match at the current position, but doesn't consume input
+- **Negative lookahead** (`~E`): checks that $E$ would **not** match
+
+These operators are powerful enough to let analytic grammars with single-variable left-hand sides define some non-context-free languages!
+
+The formal version of analytic grammars are called **Parsing Expression Grammars (PEGs)**. In LN 8, we'll use them extensively to build real parsers — and we'll explore libraries like **Ohm.js** that implement PEGs as practical parsing tools.
+
+---
+
+## Summary
+
+We began with the simplest mathematical objects — finite sets of symbols — and built an entire theory of language:
+
+1. **Alphabets** are finite sets of symbols (LN 3 sets)
+2. **Strings** are finite sequences over an alphabet, built by concatenation
+3. $\Sigma^*$ is the infinite library of all possible strings, built by union and concatenation (LN 3 set operations)
+4. **Languages** are subsets of $\Sigma^*$ — and the uncountability of the power set means most languages are indescribable
+5. **Grammars** are formal mechanisms for defining the describable languages, specified as quadruples of sets (LN 3 tuples)
+6. **Derivation trees** capture the structure of how a string is generated
+7. **Ambiguity** arises when a string has multiple trees — resolved by encoding precedence in the grammar
+8. **The Chomsky Hierarchy** reveals that restricting grammar rules creates a strict hierarchy: REG is a proper subset of CF, which is a proper subset of CS, which is a proper subset of RE — mirroring the automata hierarchy from LN 5
+9. **Analytic grammars** (PEGs) flip the approach from generation to recognition, enabling practical parsing
+
+The central insight: **language theory is set theory applied to strings**. Every concept — alphabets, languages, grammars, derivation relations, language classes — is built from the sets, relations, and functions of LN 3, quantified with the logic of LN 2.
+
+Next lecture, we'll put these tools to work: defining real programming language syntax with grammars, building parsers that recognize strings, and transforming concrete syntax into abstract syntax trees.
+
+<LectureNotes>
+
+**Key Definitions:**
+- **Alphabet** ($\Sigma$): finite, non-empty set of symbols
+- **String**: finite sequence of symbols; $\varepsilon$ is the empty string
+- $\Sigma^*$: Kleene closure — the set of all strings over $\Sigma$
+- **Language**: any subset $L \subseteq \Sigma^*$
+- **Grammar**: quadruple $(V, \Sigma, R, S)$ generating a language
+- **Derivation tree**: structured view of how a string is generated
+- **Ambiguous grammar**: has a string with multiple derivation trees
+- **Chomsky Hierarchy**: REG subset CF subset CS subset RE
+
+**Key Connections:**
+- Alphabets, languages, grammars are all built from LN 3 set theory
+- Language operations (union, intersection, concatenation) are set operations
+- Derivation relations use LN 2 quantifiers
+- Each grammar type corresponds to an automaton type (DFA, PDA, LBA, TM)
+- The uncountability of $\mathcal{P}(\Sigma^*)$ means most languages are indescribable (LN 3 Cantor)
+
+</LectureNotes>
+
+<LectureResources>
+
+### Additional Resources
+
+- [Noam Chomsky, "On Certain Formal Properties of Grammars" (1959)](https://doi.org/10.1016/S0019-9958(59)90362-6) — The paper that introduced the hierarchy
+- [Michael Sipser, *Introduction to the Theory of Computation*](https://math.mit.edu/~sipser/book.html) — Chapters 1-2 cover regular and context-free languages
+- [Dr. Ray Toal, Language Theory Notes](https://cs.lmu.edu/~ray/notes/languagetheory/) — Our primary reference for this lecture
+- [Ohm.js — A PEG-based parsing library](https://ohmjs.org/) — We'll use this starting in LN 8
+- [regexr.com](https://regexr.com/) — Interactive regular expression tester
+- [Chomsky Hierarchy (Wikipedia)](https://en.wikipedia.org/wiki/Chomsky_hierarchy) — Visual overview of the hierarchy
+
+</LectureResources>

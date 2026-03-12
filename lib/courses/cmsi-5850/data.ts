@@ -359,10 +359,18 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln7"),
     description:
-      "In this lecture, we dive into Language Theory and study its major components: Formal Languages and Grammars.",
+      "In this lecture, we use our formal mathematical tools to rigorously define what a language is, how grammars generate languages, and how the Chomsky Hierarchy classifies them by the power of their generating rules.",
     courseId: "cmsi-5850",
     standard: "Syntax",
-    lnTopics: ["Formal Languages", "Grammars"],
+    lnTopics: [
+      "Alphabets and Strings",
+      "Formal Languages",
+      "Language Operations",
+      "Generative Grammars",
+      "Derivation Trees",
+      "Ambiguity",
+      "Chomsky Hierarchy",
+    ],
     contentUrl: "/cmsi-5850/ln7",
     recordings: [
     ],
