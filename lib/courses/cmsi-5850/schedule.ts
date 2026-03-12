@@ -33,11 +33,7 @@ export const cmsi5850Schedule: ScheduleConfig = {
   ],
 
   // Schedule shifts (add as needed)
-  shifts: [{
-    afterEventId: "5850-hw2",
-    shiftDays: 7,
-    description: "ACM Lightning Lectures",
-  }],
+  shifts: [],
 
   // Last day of instruction (before finals week)
   cutoffDate: DateTime.fromObject({ year: 2026, month: 5, day: 6 }),
