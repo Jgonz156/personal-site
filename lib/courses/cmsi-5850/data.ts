@@ -345,10 +345,10 @@ const allEvents: CourseEvent[] = [
     hwBrightspaceUrl: "",
   },
   {
-    id: "5850-hol9",
+    id: "5850-hol12",
     title: "ACM Lightning Lectures - No Class!",
     type: "holiday",
-    date: schedule.getNextRecurringDate("5850-hol9"),
+    date: schedule.getSpecificDate(2026, 2, 26, "5850-hol12", true),
     description: "ACM Lightning Lecture is one of the major events I'd like to have you attend this semeester, but it coincides with our class time! So we're shifting the course by a week to allow for this!",
     courseId: "cmsi-5850",
     pinned: true,
@@ -381,10 +381,19 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln8"),
     description:
-      "In this lecture, we look at how languages 'look' and how concrete syntax can be abstracted into trees.",
+      "In this lecture, we bridge grammar theory and practice: designing a syntax from scratch, separating lexical and phrase structure, formalizing regular expressions, understanding analytic grammars, and transforming concrete syntax trees into abstract syntax trees.",
     courseId: "cmsi-5850",
     standard: "Syntax",
-    lnTopics: ["CST", "AST"],
+    lnTopics: [
+      "Syntax Design",
+      "Lexical vs. Phrase Syntax",
+      "Regular Expressions",
+      "Analytic Grammars and PEGs",
+      "Concrete Syntax Trees",
+      "Abstract Syntax Trees",
+      "Tree Grammars",
+      "Context Constraints",
+    ],
     contentUrl: "/cmsi-5850/ln8",
     recordings: [
     ],
@@ -393,7 +402,7 @@ const allEvents: CourseEvent[] = [
     id: "5850-hw3",
     title: "HW 3",
     type: "homework",
-    date: schedule.getSpecificDate(2026, 3, 13, "5850-hw3"),
+    date: schedule.getSpecificDate(2026, 3, 20, "5850-hw3"),
     availableDate: schedule.getSpecificDate(2026, 2, 20, "5850-hw3-available"),
     dueTime: "11:59 PM",
     description:
@@ -453,7 +462,7 @@ const allEvents: CourseEvent[] = [
     id: "5850-hw4",
     title: "HW 4",
     type: "homework",
-    date: schedule.getSpecificDate(2026, 3, 27, "5850-hw4"),
+    date: schedule.getSpecificDate(2026, 4, 10, "5850-hw4"),
     availableDate: schedule.getSpecificDate(2026, 3, 13, "5850-hw4-available"),
     dueTime: "11:59 PM",
     description:
@@ -509,7 +518,7 @@ const allEvents: CourseEvent[] = [
     id: "5850-hw5",
     title: "HW 5",
     type: "homework",
-    date: schedule.getSpecificDate(2026, 4, 17, "5850-hw5"),
+    date: schedule.getSpecificDate(2026, 4, 24, "5850-hw5"),
     availableDate: schedule.getSpecificDate(2026, 3, 27, "5850-hw5-available"),
     dueTime: "11:59 PM",
     description:
@@ -566,8 +575,8 @@ const allEvents: CourseEvent[] = [
     id: "5850-hw6",
     title: "HW 6",
     type: "homework",
-    date: schedule.getSpecificDate(2026, 5, 1, "5850-hw6"),
-    availableDate: schedule.getSpecificDate(2026, 4, 17, "5850-hw6-available"),
+    date: schedule.getSpecificDate(2026, 5, 8, "5850-hw6"),
+    availableDate: schedule.getSpecificDate(2026, 4, 17, "5850-hw6-available", true),
     dueTime: "11:59 PM",
     description:
       "In this homework you will reason about operational and denotational semantics for some small languages!",
@@ -581,6 +590,7 @@ const allEvents: CourseEvent[] = [
     hwPoints: { written: 100, programming: 0, optional: 0 },
     hwGithubClassroomUrl: "",
     hwBrightspaceUrl: "",
+    pinned: true,
   },
   {
     id: "5850-final-release",

@@ -16,6 +16,7 @@ export const cmsi5850Schedule: ScheduleConfig = {
   skipDates: [
     DateTime.fromObject({ year: 2026, month: 1, day: 19 }), // Martin Luther King Jr. Day
     DateTime.fromObject({ year: 2026, month: 3, day: 31 }), // Ceasar Chavez Day
+    DateTime.fromObject({ year: 2026, month: 2, day: 26 }), // ACM Lightning Lecture
   ],
 
   // Full weeks to skip (adjust for actual semester)

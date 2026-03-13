@@ -1,0 +1,1373 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath, InlineMath } from "@/components/math"
+import { TokenizerStepper } from "@/components/tokenizer-stepper"
+import { GrammarDerivationStepper } from "@/components/grammar-derivation-stepper"
+import { DerivationTreeStepper } from "@/components/derivation-tree-stepper"
+import { CSTtoASTStepper } from "@/components/cst-to-ast-stepper"
+
+## Where We Left Off
+
+In LN 7, we built **Language Theory** from the ground up. Starting with symbols and alphabets, we constructed $\Sigma^*$ — the infinite library of all possible strings — and defined **formal languages** as subsets of that library. We developed **grammars** as machines for specifying which strings belong to a language, uncovered the **derivation trees** that grammars produce, confronted **ambiguity** when a string had more than one tree, and resolved it by encoding precedence directly into the grammar's structure.
+
+The lecture culminated in two major results. First, the **Chomsky Hierarchy** classified grammars by how much their rules are allowed to "look around" — from the unrestricted Type 0 down to the highly constrained Type 3. Second, we previewed **analytic grammars** — a fundamentally different approach that *recognizes* strings rather than generating them, trading the ambiguity of unordered alternation for the determinism of ordered alternation.
+
+Both of these results are essential for today. Before we dive into new material, let's make sure the tools we'll need are sharp.
+
+---
+
+### The Two Levels That Matter Most
+
+The Chomsky Hierarchy has four levels, but for programming languages, two dominate everything:
+
+**Type 3 — Regular.** A regular grammar restricts every rule to be right-linear ($A \to wB$ or $A \to w$) or left-linear ($A \to Bw$ or $A \to w$). No rule can have variables in the middle of a string. This severe restriction means regular grammars can only describe "flat" patterns — no nesting, no matching, no counting. But that limitation is a strength: regular languages can be recognized by **DFAs** (Deterministic Finite Automata), which are fast, simple machines with no memory beyond their current state.
+
+**Type 2 — Context-Free.** A context-free grammar requires every rule to have a single variable on the left side: $A \to \gamma$. The replacement of $A$ doesn't depend on what surrounds it. This allows **nesting** — matched parentheses, recursive structures, expressions within expressions — because the stack of a **PDA** (Pushdown Automaton) can track depth.
+
+Here is the key intuition for today: these two levels map directly onto the **two phases of syntax analysis** that every compiler performs. Type 3 handles the simple, flat patterns (characters grouping into words). Type 2 handles the nested, recursive patterns (words combining into trees). Understanding why these two levels exist — and why we need *both* — is the foundation of everything that follows.
+
+### Regular Expressions — The Language of Tokens
+
+In LN 7, we mentioned that regular languages can be expressed as **regular expressions** — a compact notation using concatenation, union ($\mid$), and Kleene star ($*$). We saw a few examples like `(a|b)*abb`. But we didn't spend time building intuition for how regular expressions describe *real* patterns. Let's fix that.
+
+Think about the "words" of a programming language. An **identifier** like `radius` or `area` is "a letter followed by zero or more letters or digits." In regex notation: `letter (letter | digit)*`. A **number** like `55.2` is "one or more digits, optionally followed by a dot and more digits": `digit+ ("." digit+)?`. An **operator** like `+` or `**` is just a literal symbol or symbol pair.
+
+Every one of these patterns is **regular** — expressible as a regex, recognizable by a DFA. No nesting is involved. No matching of opening and closing delimiters. Just flat, linear patterns over characters. That's why regular expressions are the right tool for the job: they describe exactly the level of structure that "words" require, and nothing more.
+
+But consider the expression `((3 + 5) * 2)`. The parentheses nest to arbitrary depth, and each open-paren must match a close-paren. No regular expression can track this — the Pumping Lemma from LN 7 proves it. This is where Type 2 (context-free) takes over. We'll see this boundary made precise later in the lecture.
+
+The formal definition of regular expressions comes in a dedicated section below. For now, the intuition is what matters: **regular expressions are the language of tokens**.
+
+### From Generation to Recognition
+
+In LN 7, we previewed analytic grammars and the crucial difference they bring: **ordered alternation**. Let's make sure this is fresh.
+
+In a generative grammar, `S → "a" | "ab"` means $S$ can produce *either* `a` or `ab` — both are valid, both contribute to the language. The alternation is unordered. In an analytic grammar, `S ← "a" / "ab"` means something very different: try to match `"a"` first. If it succeeds, *stop*. Only if `"a"` fails, try `"ab"`. Because the input `a` matches the first alternative, `"ab"` is never reached — the language recognized is just $\{a\}$. Swap the order to `S ← "ab" / "a"` and the language becomes $\{a, ab\}$.
+
+This seems like a restriction, but it's actually a superpower: **determinism**. For any input, there is at most one way to parse it. No ambiguity. No multiple derivation trees. No need for precedence tricks to force a single parse. This is exactly what compilers need — a grammar that gives one answer, fast.
+
+Analytic grammars also feature **negative lookahead** (`~E`): "succeed only if $E$ would *not* match here." This lets us write rules like "an identifier is a letter followed by letters and digits, *but not* the keyword `print`." Generative grammars have no equivalent — you'd need to enumerate every non-keyword identifier, which is impossible.
+
+The formal version of analytic grammars — **Parsing Expression Grammars (PEGs)** — will be developed in full later in this lecture, where we write a complete PEG for our mini-language. For now, the key takeaway is: analytic grammars trade generative power for deterministic recognition, and that trade is exactly what makes them practical for defining programming language syntax.
+
+### Today's Question
+
+With these tools reviewed, we can state today's central question:
+
+**Given a real program — a raw stream of characters — how do we extract its structure?**
+
+The answer is a pipeline, and every stage maps to the theory we've built. **Regular expressions** (Type 3) handle the character-to-token stage. **Context-free grammars** (Type 2) handle the token-to-tree stage. **Analytic grammars** make both stages deterministic. And the trees that emerge — first concrete, then abstract — are what semantics will eventually operate on.
+
+By the end of today, you'll understand every stage of this pipeline and why each one exists.
+
+---
+
+## Today's Agenda
+
+- **Recap: Regular Expressions and Analytic Grammars** — Reviewing the tools we need
+- **The Three Components of a Language Definition** — Syntax, Semantics, Pragmatics
+- **Designing a Syntax from Scratch** — Our running mini-language
+- **Lexical vs. Phrase Syntax** — Two levels of structure
+- **Regular Expressions Formalized** — Completing the Type 3 story
+- **Analytic Grammars and PEGs** — From generation to recognition
+- **Concrete Syntax Trees** — The full derivation tree
+- **Abstract Syntax Trees** — Stripping away the scaffolding
+- **Tree Grammars** — Formalizing abstract syntax
+- **Multiple Concrete Syntaxes, One AST** — Syntax is incidental
+- **The Problem of Context** — What grammars cannot capture
+- **Alternate Notations** — BNF, EBNF, and beyond
+- **Case Study: Thorn** — A language without precedence
+- **Summary and Preview**
+
+---
+
+## The Three Components of a Language Definition
+
+Before diving into the pipeline, let's establish what a complete language definition requires. There are exactly three components, and we've already seen glimpses of each in earlier lectures.
+
+<DefinitionBox term="Syntax">
+
+**Syntax** defines the **form** of valid programs — what strings belong to the language and what structure they carry. It answers: "Does this program look right?"
+
+</DefinitionBox>
+
+<DefinitionBox term="Semantics">
+
+**Semantics** defines the **meaning** of syntactically valid programs — what a program computes or denotes. It answers: "What does this program do?"
+
+</DefinitionBox>
+
+<DefinitionBox term="Pragmatics">
+
+**Pragmatics** defines the **usability** of a language — how effectively it serves its users in a given problem domain. It answers: "Is this language a good tool for the job?"
+
+</DefinitionBox>
+
+We explored pragmatics in LN 6. We'll tackle semantics deeply in LN 10-12. Today and next lecture, we focus entirely on **syntax** — the foundation upon which everything else is built. You cannot define what a program means until you've defined what a program looks like.
+
+The ordering matters: **syntax must come before semantics, and semantics before pragmatics.** You can't evaluate whether a language is comfortable to use until you understand what its programs mean, and you can't assign meaning until you know what its programs look like.
+
+---
+
+## Designing a Syntax from Scratch
+
+The best way to understand syntax is to build one. Rather than starting with an existing language, we'll design our own from scratch — a small language we'll call **Petal**. This language will grow with us from LN 8 through LN 12, gaining features as we learn to give them meaning.
+
+For now, Petal is a simple **expression and print** language:
+
+```
+radius = 55.2 * (-cos(2.8) + 89) % 21;
+area = pi * radius ** 2;
+print hypot(2.28, 3 - radius) / area;
+```
+
+Let's walk through the design decisions:
+
+**What can you write?** A Petal program is a sequence of **statements**. Each statement is either an **assignment** (binding a name to a value) or a **print** statement.
+
+**What are expressions?** Expressions combine **numbers**, **identifiers** (variable names), **unary negation**, **binary operators** (`+`, `-`, `*`, `/`, `%`, `**`), and **function calls** (like `cos`, `hypot`). Parentheses group sub-expressions.
+
+**What symbols exist?** Let's list them: digits (`0-9`), letters (`a-z`, `A-Z`), the decimal point, operators (`+`, `-`, `*`, `/`, `%`, `**`), parentheses, commas, semicolons, the equals sign, and the keywords `print` and `pi`.
+
+**What's the precedence?** Following mathematical convention (remember PEMDAS from LN 7): `**` binds tightest (and is right-associative), then unary `-`, then `*`, `/`, `%`, then `+`, `-`.
+
+These decisions are all **syntactic** — they determine what strings are valid Petal programs and what structure those strings carry. Notice that we haven't said anything about what these programs *mean* — that's semantics, and it comes later.
+
+---
+
+## Lexical vs. Phrase Syntax
+
+Here is a crucial insight that connects directly to the Chomsky Hierarchy from LN 7: syntax has **two levels**, and each level corresponds to a different position in the hierarchy.
+
+<DefinitionBox term="Lexical Syntax (Tokens)">
+
+**Lexical syntax** defines how individual characters combine into **tokens** — the "words" of the language. Identifiers, numbers, keywords, operators, and punctuation are all tokens. Lexical syntax is typically **Type 3 (Regular)** — definable by regular expressions and recognizable by finite automata.
+
+</DefinitionBox>
+
+<DefinitionBox term="Phrase Syntax (Phrases)">
+
+**Phrase syntax** defines how tokens combine into larger structures — expressions, statements, and programs. Phrase syntax is typically **Type 2 (Context-Free)** — definable by context-free grammars and recognizable by pushdown automata.
+
+</DefinitionBox>
+
+This two-level decomposition isn't just a theoretical curiosity — it directly determines how compilers and interpreters are built:
+
+| Level | Grammar Type | Recognizer | Compiler Phase |
+|-------|-------------|------------|---------------|
+| Lexical (characters to tokens) | Type 3 — Regular | DFA (scanner) | **Lexical Analysis** |
+| Phrase (tokens to trees) | Type 2 — Context-Free | PDA (parser) | **Syntactic Analysis** |
+
+The Chomsky Hierarchy from LN 7 predicted this architecture! Regular languages are a proper subset of context-free languages, and scanners are simpler machines than parsers. The hierarchy tells us that the two stages of syntax analysis correspond to two levels of language complexity.
+
+### What lives at each level?
+
+**Lexical** (what the scanner handles):
+- **Identifiers**: `radius`, `area`, `hypot` — a letter followed by zero or more letters or digits
+- **Numerals**: `55.2`, `3`, `2.8` — one or more digits with an optional decimal part
+- **Keywords**: `print`, `pi` — identifiers with special meaning
+- **Operators**: `+`, `-`, `*`, `/`, `%`, `**`, `=`
+- **Punctuation**: `(`, `)`, `,`, `;`
+- **Whitespace and comments**: separators that don't become tokens — they exist only to delimit tokens
+
+**Phrase** (what the parser handles):
+- A **program** is a sequence of statements
+- A **statement** is an assignment or a print
+- An **expression** is built from terms, factors, and primaries (encoding precedence)
+
+### Tokenization in Action
+
+Let's see how lexical analysis works step by step. The scanner reads the source code character by character, grouping characters into tokens:
+
+<TokenizerStepper
+  title="Tokenizing a Petal Statement"
+  source="print hypot(2.28, 3 - radius) / area;"
+  tokens={[
+    { type: "keyword", value: "print", start: 0, end: 5 },
+    { type: "whitespace", value: " ", start: 5, end: 6 },
+    { type: "identifier", value: "hypot", start: 6, end: 11 },
+    { type: "symbol", value: "(", start: 11, end: 12 },
+    { type: "number", value: "2.28", start: 12, end: 16 },
+    { type: "symbol", value: ",", start: 16, end: 17 },
+    { type: "whitespace", value: " ", start: 17, end: 18 },
+    { type: "number", value: "3", start: 18, end: 19 },
+    { type: "whitespace", value: " ", start: 19, end: 20 },
+    { type: "operator", value: "-", start: 20, end: 21 },
+    { type: "whitespace", value: " ", start: 21, end: 22 },
+    { type: "identifier", value: "radius", start: 22, end: 28 },
+    { type: "symbol", value: ")", start: 28, end: 29 },
+    { type: "whitespace", value: " ", start: 29, end: 30 },
+    { type: "operator", value: "/", start: 30, end: 31 },
+    { type: "whitespace", value: " ", start: 31, end: 32 },
+    { type: "identifier", value: "area", start: 32, end: 36 },
+    { type: "symbol", value: ";", start: 36, end: 37 },
+  ]}
+/>
+
+Notice several things:
+- **Whitespace is consumed but not emitted** as a token — it exists only to separate other tokens
+- The scanner uses the **longest match rule**: when `print` could be an identifier or a keyword, the scanner matches the full word and then checks against the keyword list
+- The scanner doesn't know or care about operator precedence — that's the parser's job
+- The output is a **flat sequence** of tokens — all structure has been removed
+
+This is a key insight from LN 7: **the frontier of a derivation tree is the token stream**. The scanner produces the leaves; the parser reconstructs the tree.
+
+---
+
+## Regular Expressions Formalized
+
+In LN 7, we placed regular languages at Type 3 in the Chomsky Hierarchy — the simplest class, recognizable by DFAs. Now we can be precise about the notation used to define them: **regular expressions**.
+
+<DefinitionBox term="Regular Expression">
+
+A **regular expression** over alphabet $\Sigma$ is defined inductively:
+
+1. $\emptyset$ is a regular expression denoting the empty language
+2. $\varepsilon$ is a regular expression denoting the language containing only the empty string
+3. For each $a \in \Sigma$, the symbol $a$ is a regular expression denoting the language containing only the single-character string $a$
+
+If $R$ and $S$ are regular expressions, then:
+
+4. $R \mid S$ (union) denotes the union of the languages of $R$ and $S$
+5. $RS$ (concatenation) denotes the concatenation of the languages
+6. $R^*$ (Kleene star) denotes the Kleene closure of the language of $R$
+
+</DefinitionBox>
+
+**Precedence** (from highest to lowest): Kleene star $*$ binds tightest, then concatenation, then union $\mid$. Parentheses override precedence as usual.
+
+**Derived operators** make regular expressions more convenient:
+
+<DisplayMath formula="R^+ = RR^* \quad\text{(one or more)}" />
+<DisplayMath formula="R? = R \mid \varepsilon \quad\text{(zero or one)}" />
+<DisplayMath formula="R^n = \underbrace{RR \cdots R}_{n} \quad\text{(exactly } n \text{)}" />
+
+### Lexical Definitions for Petal
+
+Using regular expressions, we can precisely define every token type in our language:
+
+<DisplayMath formula="\textit{letter} = [a\text{-}zA\text{-}Z]" />
+<DisplayMath formula="\textit{digit} = [0\text{-}9]" />
+<DisplayMath formula="\textit{id} = \textit{letter}\,(\textit{letter} \mid \textit{digit})^*" />
+<DisplayMath formula="\textit{num} = \textit{digit}^+\,(\texttt{.}\,\textit{digit}^+)?" />
+<DisplayMath formula="\textit{addop} = \texttt{+} \mid \texttt{-}" />
+<DisplayMath formula="\textit{mulop} = \texttt{*} \mid \texttt{/} \mid \texttt{%}" />
+<DisplayMath formula="\textit{space} = (\texttt{ \s } \mid \texttt{ \t } \mid \texttt{ \n })^+" />
+
+Every one of these definitions is a **regular expression** — a Type 3 specification. That means each can be recognized by a DFA, which is exactly what a scanner does. The connection to LN 7's Chomsky Hierarchy isn't coincidental: **regular expressions and DFAs are equivalent** in expressive power, and both sit at Type 3.
+
+Notice what regular expressions *cannot* express: nested structures like matched parentheses. The expression `((3 + 5) * 2)` has a nesting depth that depends on the input — and we proved in LN 7 (via the Pumping Lemma) that no regular language can track arbitrary nesting. That's exactly why phrase syntax needs the more powerful Type 2.
+
+---
+
+## Analytic Grammars and PEGs
+
+In LN 7, we previewed **analytic grammars** — grammars designed for recognition rather than generation. Now we go deeper and write one for Petal.
+
+Recall the key differences from generative grammars:
+- **Ordered alternation** (`/`): try alternatives left to right, take the first that works
+- **Negative lookahead** (`~E`): succeed only if $E$ does NOT match at the current position
+- **Greedy repetition**: `E*` and `E+` always consume as much as possible
+
+These properties make analytic grammars **deterministic** — for any input, there is at most one way to parse it. This eliminates ambiguity entirely, which is exactly what we want for a programming language.
+
+### A PEG for Petal
+
+Here is the full syntax of Petal as a **Parsing Expression Grammar**:
+
+```
+Petal {
+  Program   = Statement+
+  Statement = Assignment | PrintStmt
+  Assignment = identifier "=" Exp ";"
+  PrintStmt  = "print" Exp ";"
+
+  Exp       = AddExp
+  AddExp    = AddExp addop MulExp    -- binary
+            | MulExp
+  MulExp    = MulExp mulop ExpExp    -- binary
+            | ExpExp
+  ExpExp    = PriExp "**" ExpExp     -- binary
+            | UnaryExp
+  UnaryExp  = "-" PriExp             -- negate
+            | PriExp
+  PriExp    = "(" Exp ")"            -- parens
+            | Call
+            | identifier
+            | number
+
+  Call      = identifier "(" ListOf<Exp, ","> ")"
+
+  identifier = ~keyword letter (letter | digit)*
+  keyword    = "print" ~(letter | digit)
+  number     = digit+ ("." digit+)?
+
+  letter     = "a".."z" | "A".."Z"
+  digit      = "0".."9"
+  addop      = "+" | "-"
+  mulop      = "*" | "/" | "%"
+
+  space     += " " | "\t" | "\n"
+}
+```
+
+Several features deserve attention:
+
+**Precedence is encoded structurally**: `AddExp` calls `MulExp`, which calls `ExpExp`, which calls `PriExp`. The deeper a rule appears in the chain, the tighter it binds. This is exactly the technique we developed in LN 7 to resolve ambiguity — but now encoded in a practical parser specification.
+
+**Left recursion for left-associativity**: `AddExp = AddExp addop MulExp` means addition and subtraction associate to the left: `3 - 5 + 2` parses as `(3 - 5) + 2`. Right recursion for right-associativity: `ExpExp = PriExp "**" ExpExp` means exponentiation associates to the right: `2 ** 3 ** 4` parses as `2 ** (3 ** 4)`.
+
+**Keyword protection**: `identifier = ~keyword letter ...` ensures that `print` is never mistaken for a variable name. Without the negative lookahead `~keyword`, a string like `printx` would be parsed as `print` followed by `x`.
+
+**Implicit whitespace**: The `space` rule means the grammar automatically handles whitespace between tokens. `"print" Exp ";"` will match `print 42;` or `print   42  ;` identically.
+
+Try deriving a simple Petal statement with the grammar:
+
+<GrammarDerivationStepper
+  title="Deriving a Petal Print Statement"
+  rules={[
+    { variable: "Stmt", productions: [["id", "=", "Exp", ";"], ["print", "Exp", ";"]] },
+    { variable: "Exp", productions: [["Exp", "+", "Term"], ["Exp", "-", "Term"], ["Term"]] },
+    { variable: "Term", productions: [["Term", "*", "Pri"], ["Term", "/", "Pri"], ["Pri"]] },
+    { variable: "Pri", productions: [["(", "Exp", ")"], ["id"], ["num"]] },
+  ]}
+  startSymbol="Stmt"
+  terminals={["print", "id", "num", "+", "-", "*", "/", "(", ")", "=", ";"]}
+  guidedSteps={[
+    { symbolIndex: 0, productionIndex: 1, description: "This is a print statement" },
+    { symbolIndex: 1, productionIndex: 0, description: "Expression uses addition" },
+    { symbolIndex: 1, productionIndex: 2, description: "Left operand is a simple term" },
+    { symbolIndex: 1, productionIndex: 2, description: "Term is a primary" },
+    { symbolIndex: 1, productionIndex: 1, description: "Primary is an identifier" },
+    { symbolIndex: 3, productionIndex: 2, description: "Right operand is a simple term" },
+    { symbolIndex: 3, productionIndex: 2, description: "Term is a primary" },
+    { symbolIndex: 3, productionIndex: 2, description: "Primary is a number" },
+  ]}
+/>
+
+---
+
+## Concrete Syntax Trees
+
+When a parser processes a token stream using a grammar, it produces a **derivation tree** — exactly the kind we built in LN 7. In the context of compilers, this tree is called a **Concrete Syntax Tree (CST)**.
+
+<DefinitionBox term="Concrete Syntax Tree (CST)">
+
+A **Concrete Syntax Tree** (also called a **parse tree**) is the complete derivation tree of a string under a grammar. Its interior nodes are grammar variables (non-terminals), its leaves are tokens (terminals), and every grammar rule application is fully visible.
+
+</DefinitionBox>
+
+A CST contains **everything** the grammar says about the string — including all the structural scaffolding we added purely for disambiguation:
+
+- **Intermediate categories** like `Term`, `Factor`, `Primary` — they exist only to encode precedence
+- **Punctuation** like parentheses, semicolons, commas — they exist to delimit structure in text
+- **Single-child chains** like `Exp` to `AddExp` to `MulExp` to `ExpExp` to `PriExp` to `num` — long paths that ultimately reach a single value
+
+Let's look at a CST for the expression `3 + 5 * 2`:
+
+<DerivationTreeStepper
+  title="CST for 3 + 5 * 2"
+  steps={[
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+      ],
+      edges: [],
+      description: "Start with the root: Exp",
+      highlightNodes: ["exp"],
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "add-l", label: "Exp", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+      ],
+      edges: [
+        { from: "exp", to: "add-l" },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r" },
+      ],
+      description: "Exp derives Exp + Term (addition at the top level)",
+      highlightNodes: ["add-l", "plus", "term-r"],
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "add-l", label: "Exp", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+        { id: "term-l", label: "Term", level: 2 },
+      ],
+      edges: [
+        { from: "exp", to: "add-l" },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r" },
+        { from: "add-l", to: "term-l" },
+      ],
+      description: "Left Exp descends to Term (no more addition on the left)",
+      highlightNodes: ["term-l"],
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "add-l", label: "Exp", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+        { id: "term-l", label: "Term", level: 2 },
+        { id: "pri-l", label: "Pri", level: 3 },
+      ],
+      edges: [
+        { from: "exp", to: "add-l" },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r" },
+        { from: "add-l", to: "term-l" },
+        { from: "term-l", to: "pri-l" },
+      ],
+      description: "Term descends to Pri (no multiplication on the left)",
+      highlightNodes: ["pri-l"],
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "add-l", label: "Exp", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+        { id: "term-l", label: "Term", level: 2 },
+        { id: "pri-l", label: "Pri", level: 3 },
+        { id: "n3", label: "3", isTerminal: true, level: 4 },
+      ],
+      edges: [
+        { from: "exp", to: "add-l" },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r" },
+        { from: "add-l", to: "term-l" },
+        { from: "term-l", to: "pri-l" },
+        { from: "pri-l", to: "n3" },
+      ],
+      description: "Pri is the number 3",
+      highlightNodes: ["n3"],
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "add-l", label: "Exp", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+        { id: "term-l", label: "Term", level: 2 },
+        { id: "pri-l", label: "Pri", level: 3 },
+        { id: "n3", label: "3", isTerminal: true, level: 4 },
+        { id: "term-r2", label: "Term", level: 2 },
+        { id: "star", label: "*", isTerminal: true, level: 2 },
+        { id: "pri-r2", label: "Pri", level: 2 },
+      ],
+      edges: [
+        { from: "exp", to: "add-l" },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r" },
+        { from: "add-l", to: "term-l" },
+        { from: "term-l", to: "pri-l" },
+        { from: "pri-l", to: "n3" },
+        { from: "term-r", to: "term-r2" },
+        { from: "term-r", to: "star" },
+        { from: "term-r", to: "pri-r2" },
+      ],
+      description: "Right Term derives Term * Pri (multiplication binds tighter)",
+      highlightNodes: ["term-r2", "star", "pri-r2"],
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "add-l", label: "Exp", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+        { id: "term-l", label: "Term", level: 2 },
+        { id: "pri-l", label: "Pri", level: 3 },
+        { id: "n3", label: "3", isTerminal: true, level: 4 },
+        { id: "term-r2", label: "Term", level: 2 },
+        { id: "star", label: "*", isTerminal: true, level: 2 },
+        { id: "pri-r2", label: "Pri", level: 2 },
+        { id: "pri-m", label: "Pri", level: 3 },
+        { id: "n5", label: "5", isTerminal: true, level: 4 },
+        { id: "n2", label: "2", isTerminal: true, level: 3 },
+      ],
+      edges: [
+        { from: "exp", to: "add-l" },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r" },
+        { from: "add-l", to: "term-l" },
+        { from: "term-l", to: "pri-l" },
+        { from: "pri-l", to: "n3" },
+        { from: "term-r", to: "term-r2" },
+        { from: "term-r", to: "star" },
+        { from: "term-r", to: "pri-r2" },
+        { from: "term-r2", to: "pri-m" },
+        { from: "pri-m", to: "n5" },
+        { from: "pri-r2", to: "n2" },
+      ],
+      description: "Complete CST: 5 and 2 are the operands of *, nested inside the right side of +",
+      highlightNodes: ["n5", "n2"],
+    },
+  ]}
+  height="380px"
+/>
+
+This tree is correct, but notice how much **scaffolding** it contains. The path from `Exp` to the number `3` passes through `Exp` → `Term` → `Pri` → `3` — three intermediate nodes that exist only because the grammar needs them for precedence. The actual *meaning* of this expression is just "add 3 to the product of 5 and 2."
+
+This is the motivation for abstract syntax trees.
+
+---
+
+## Abstract Syntax Trees
+
+<DefinitionBox term="Abstract Syntax Tree (AST)">
+
+An **Abstract Syntax Tree** is the essential structural representation of a program, stripped of all syntactic scaffolding. Operators become internal nodes, operands become leaves, and the tree shape alone encodes precedence and association.
+
+</DefinitionBox>
+
+The transformation from CST to AST removes four kinds of nodes:
+
+1. **Punctuation** — parentheses, semicolons, commas, brackets. Their role (grouping, delimiting) is already captured by the tree shape.
+2. **Intermediate categories** — `Term`, `Factor`, `Primary`, `AddExp`. These exist only to encode precedence in a flat grammar. In a tree, precedence is encoded by depth.
+3. **Single-child chains** — when a node has exactly one child and adds no information (e.g., `Exp` → `Term` → `Factor` → `3`), the chain collapses to just the leaf.
+4. **Structural keywords** — `end if`, `end while`, delimiters. Already captured by the tree structure.
+
+What **stays**:
+- **Operators** are lifted to internal nodes
+- **Operands** (numbers, identifiers) remain as leaves
+- The **tree shape** captures precedence, associativity, and grouping
+
+Let's watch this transformation happen step by step:
+
+<CSTtoASTStepper
+  title="CST to AST: 3 + 5 * 2"
+  steps={[
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "exp-l", label: "Exp", level: 1 },
+        { id: "plus", label: "+", isTerminal: true, isOperator: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+        { id: "term-l", label: "Term", level: 2 },
+        { id: "term-r2", label: "Term", level: 2 },
+        { id: "star", label: "*", isTerminal: true, isOperator: true, level: 2 },
+        { id: "pri-r", label: "Pri", level: 2 },
+        { id: "pri-l", label: "Pri", level: 3 },
+        { id: "pri-m", label: "Pri", level: 3 },
+        { id: "n3", label: "3", isTerminal: true, level: 4 },
+        { id: "n5", label: "5", isTerminal: true, level: 4 },
+        { id: "n2", label: "2", isTerminal: true, level: 3 },
+      ],
+      edges: [
+        { from: "exp", to: "exp-l" },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r" },
+        { from: "exp-l", to: "term-l" },
+        { from: "term-l", to: "pri-l" },
+        { from: "pri-l", to: "n3" },
+        { from: "term-r", to: "term-r2" },
+        { from: "term-r", to: "star" },
+        { from: "term-r", to: "pri-r" },
+        { from: "term-r2", to: "pri-m" },
+        { from: "pri-m", to: "n5" },
+        { from: "pri-r", to: "n2" },
+      ],
+      description: "Full CST with all grammar scaffolding visible",
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0, removed: true },
+        { id: "exp-l", label: "Exp", level: 1, removed: true },
+        { id: "plus", label: "+", isTerminal: true, isOperator: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1, removed: true },
+        { id: "term-l", label: "Term", level: 2, removed: true },
+        { id: "term-r2", label: "Term", level: 2, removed: true },
+        { id: "star", label: "*", isTerminal: true, isOperator: true, level: 2 },
+        { id: "pri-r", label: "Pri", level: 2, removed: true },
+        { id: "pri-l", label: "Pri", level: 3, removed: true },
+        { id: "pri-m", label: "Pri", level: 3, removed: true },
+        { id: "n3", label: "3", isTerminal: true, level: 4 },
+        { id: "n5", label: "5", isTerminal: true, level: 4 },
+        { id: "n2", label: "2", isTerminal: true, level: 3 },
+      ],
+      edges: [
+        { from: "exp", to: "exp-l", removed: true },
+        { from: "exp", to: "plus" },
+        { from: "exp", to: "term-r", removed: true },
+        { from: "exp-l", to: "term-l", removed: true },
+        { from: "term-l", to: "pri-l", removed: true },
+        { from: "pri-l", to: "n3", removed: true },
+        { from: "term-r", to: "term-r2", removed: true },
+        { from: "term-r", to: "star" },
+        { from: "term-r", to: "pri-r", removed: true },
+        { from: "term-r2", to: "pri-m", removed: true },
+        { from: "pri-m", to: "n5", removed: true },
+        { from: "pri-r", to: "n2", removed: true },
+      ],
+      description: "Identify intermediate categories (Exp, Term, Pri) — these exist only for precedence and will be removed",
+      removedNodes: ["exp", "exp-l", "term-r", "term-l", "term-r2", "pri-r", "pri-l", "pri-m"],
+    },
+    {
+      nodes: [
+        { id: "plus", label: "+", isOperator: true, level: 0 },
+        { id: "n3", label: "3", isTerminal: true, level: 1 },
+        { id: "star", label: "*", isOperator: true, level: 1 },
+        { id: "n5", label: "5", isTerminal: true, level: 2 },
+        { id: "n2", label: "2", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "plus", to: "n3" },
+        { from: "plus", to: "star" },
+        { from: "star", to: "n5" },
+        { from: "star", to: "n2" },
+      ],
+      description: "Final AST: operators are internal nodes, operands are leaves. Precedence is captured by tree depth — * is deeper than +",
+      highlightNodes: ["plus", "star"],
+    },
+  ]}
+  height="350px"
+/>
+
+The AST is dramatically simpler: 5 nodes instead of 13. Yet it captures **exactly** the same meaning. The tree shape alone tells us that `*` binds tighter than `+` — no intermediate grammar variables needed.
+
+This leads to a profound equation that bridges syntax and semantics:
+
+<DisplayMath formula="\textit{meaning} : \text{AST} \to \text{Semantic Objects}" />
+
+The **meaning function** is defined over ASTs, not CSTs. This is why ASTs matter so much — they are the input to semantics (which we'll explore in LN 10).
+
+### A Larger Example
+
+Let's see a more complex transformation for `5 * a - (b + 1)`:
+
+<CSTtoASTStepper
+  title="CST to AST: 5 * a - (b + 1)"
+  steps={[
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "exp-l", label: "Exp", level: 1 },
+        { id: "minus", label: "-", isTerminal: true, isOperator: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1 },
+        { id: "term-l", label: "Term", level: 2 },
+        { id: "star", label: "*", isTerminal: true, isOperator: true, level: 2 },
+        { id: "pri-r2", label: "Pri", level: 2 },
+        { id: "pri-l2", label: "Pri", level: 3 },
+        { id: "n5", label: "5", isTerminal: true, level: 4 },
+        { id: "a", label: "a", isTerminal: true, level: 3 },
+        { id: "pri-paren", label: "Pri", level: 2 },
+        { id: "lp", label: "(", isTerminal: true, level: 3 },
+        { id: "exp-inner", label: "Exp", level: 3 },
+        { id: "rp", label: ")", isTerminal: true, level: 3 },
+        { id: "exp-b", label: "Exp", level: 4 },
+        { id: "plus-inner", label: "+", isTerminal: true, isOperator: true, level: 4 },
+        { id: "term-1", label: "Term", level: 4 },
+        { id: "pri-b", label: "Pri", level: 5 },
+        { id: "b", label: "b", isTerminal: true, level: 6 },
+        { id: "pri-1", label: "Pri", level: 5 },
+        { id: "n1", label: "1", isTerminal: true, level: 6 },
+      ],
+      edges: [
+        { from: "exp", to: "exp-l" },
+        { from: "exp", to: "minus" },
+        { from: "exp", to: "term-r" },
+        { from: "exp-l", to: "term-l" },
+        { from: "term-l", to: "pri-l2" },
+        { from: "term-l", to: "star" },
+        { from: "term-l", to: "pri-r2" },
+        { from: "pri-l2", to: "n5" },
+        { from: "pri-r2", to: "a" },
+        { from: "term-r", to: "pri-paren" },
+        { from: "pri-paren", to: "lp" },
+        { from: "pri-paren", to: "exp-inner" },
+        { from: "pri-paren", to: "rp" },
+        { from: "exp-inner", to: "exp-b" },
+        { from: "exp-inner", to: "plus-inner" },
+        { from: "exp-inner", to: "term-1" },
+        { from: "exp-b", to: "pri-b" },
+        { from: "pri-b", to: "b" },
+        { from: "term-1", to: "pri-1" },
+        { from: "pri-1", to: "n1" },
+      ],
+      description: "Full CST for 5 * a - (b + 1) with all scaffolding",
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0, removed: true },
+        { id: "exp-l", label: "Exp", level: 1, removed: true },
+        { id: "minus", label: "-", isTerminal: true, isOperator: true, level: 1 },
+        { id: "term-r", label: "Term", level: 1, removed: true },
+        { id: "term-l", label: "Term", level: 2, removed: true },
+        { id: "star", label: "*", isTerminal: true, isOperator: true, level: 2 },
+        { id: "pri-r2", label: "Pri", level: 2, removed: true },
+        { id: "pri-l2", label: "Pri", level: 3, removed: true },
+        { id: "n5", label: "5", isTerminal: true, level: 4 },
+        { id: "a", label: "a", isTerminal: true, level: 3 },
+        { id: "pri-paren", label: "Pri", level: 2, removed: true },
+        { id: "lp", label: "(", isTerminal: true, level: 3, removed: true },
+        { id: "exp-inner", label: "Exp", level: 3, removed: true },
+        { id: "rp", label: ")", isTerminal: true, level: 3, removed: true },
+        { id: "exp-b", label: "Exp", level: 4, removed: true },
+        { id: "plus-inner", label: "+", isTerminal: true, isOperator: true, level: 4 },
+        { id: "term-1", label: "Term", level: 4, removed: true },
+        { id: "pri-b", label: "Pri", level: 5, removed: true },
+        { id: "b", label: "b", isTerminal: true, level: 6 },
+        { id: "pri-1", label: "Pri", level: 5, removed: true },
+        { id: "n1", label: "1", isTerminal: true, level: 6 },
+      ],
+      edges: [
+        { from: "exp", to: "exp-l", removed: true },
+        { from: "exp", to: "minus" },
+        { from: "exp", to: "term-r", removed: true },
+        { from: "exp-l", to: "term-l", removed: true },
+        { from: "term-l", to: "pri-l2", removed: true },
+        { from: "term-l", to: "star" },
+        { from: "term-l", to: "pri-r2", removed: true },
+        { from: "pri-l2", to: "n5", removed: true },
+        { from: "pri-r2", to: "a", removed: true },
+        { from: "term-r", to: "pri-paren", removed: true },
+        { from: "pri-paren", to: "lp", removed: true },
+        { from: "pri-paren", to: "exp-inner", removed: true },
+        { from: "pri-paren", to: "rp", removed: true },
+        { from: "exp-inner", to: "exp-b", removed: true },
+        { from: "exp-inner", to: "plus-inner" },
+        { from: "exp-inner", to: "term-1", removed: true },
+        { from: "exp-b", to: "pri-b", removed: true },
+        { from: "pri-b", to: "b", removed: true },
+        { from: "term-1", to: "pri-1", removed: true },
+        { from: "pri-1", to: "n1", removed: true },
+      ],
+      description: "Remove intermediate categories and punctuation — parentheses are encoded by the tree shape",
+      removedNodes: ["exp", "exp-l", "term-r", "term-l", "pri-r2", "pri-l2", "pri-paren", "lp", "exp-inner", "rp", "exp-b", "term-1", "pri-b", "pri-1"],
+    },
+    {
+      nodes: [
+        { id: "minus", label: "-", isOperator: true, level: 0 },
+        { id: "star", label: "*", isOperator: true, level: 1 },
+        { id: "plus-inner", label: "+", isOperator: true, level: 1 },
+        { id: "n5", label: "5", isTerminal: true, level: 2 },
+        { id: "a", label: "a", isTerminal: true, level: 2 },
+        { id: "b", label: "b", isTerminal: true, level: 2 },
+        { id: "n1", label: "1", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "minus", to: "star" },
+        { from: "minus", to: "plus-inner" },
+        { from: "star", to: "n5" },
+        { from: "star", to: "a" },
+        { from: "plus-inner", to: "b" },
+        { from: "plus-inner", to: "n1" },
+      ],
+      description: "Final AST: - at root, with * and + as children. Tree shape captures all precedence and grouping",
+      highlightNodes: ["minus", "star", "plus-inner"],
+    },
+  ]}
+  height="400px"
+/>
+
+Notice: the **parentheses are gone** in the AST. They aren't needed because the tree already encodes the grouping — `b + 1` appears as a subtree of the right child of `-`, which is exactly what the parentheses expressed in the concrete syntax.
+
+---
+
+## Tree Grammars
+
+If CSTs are described by ordinary grammars, what describes ASTs? The answer is **tree grammars**.
+
+<DefinitionBox term="Tree Grammar">
+
+A **tree grammar** defines abstract syntax by specifying what kinds of nodes can appear in an AST and what children each node type can have. Unlike phrase grammars, tree grammars have no need for precedence, associativity, or parentheses — the tree structure handles all of that.
+
+</DefinitionBox>
+
+Here is the tree grammar for Petal's expressions:
+
+<DisplayMath formula="e : \text{Exp} = n \mid i \mid \text{-}e \mid e\text{+}e \mid e\text{-}e \mid e\text{*}e \mid e\text{/}e \mid e\text{\%}e \mid e\text{**}e \mid i\text{(}e^*\text{)}" />
+
+And for statements and programs:
+
+<DisplayMath formula="s : \text{Stmt} = i\text{=}e \mid \textbf{print}\; e" />
+<DisplayMath formula="p : \text{Program} = s^+" />
+
+Each equation says: an expression $e$ can be a number $n$, an identifier $i$, a negation, a binary operation, or a function call. A statement $s$ can be an assignment or a print. A program $p$ is one or more statements.
+
+Compare this to the phrase grammar, which needed `Exp`, `AddExp`, `MulExp`, `ExpExp`, `UnaryExp`, `PriExp` — six categories just for expressions! The tree grammar needs only one: `Exp`. All the complexity of precedence has been absorbed into the tree structure.
+
+This is a fundamental insight: **tree grammars are simpler than phrase grammars because the tree does the work that grammar nesting used to do.**
+
+---
+
+## Multiple Concrete Syntaxes, One AST
+
+Here is perhaps the most important insight about abstract syntax: **the same AST can be expressed in many different concrete syntaxes**. The AST captures the *essential* structure of a program, while the concrete syntax is merely one *incidental* way to write it down.
+
+Consider the AST for assigning the value `5 * a - (b + 1)` to a variable `x`. Here is that same AST expressed in five different concrete syntaxes:
+
+**C-like (Petal):**
+```
+x = 5 * a - (b + 1);
+```
+
+**Python-like:**
+```python
+x = 5 * a - (b + 1)
+```
+
+**Lisp-like:**
+```lisp
+(set x (- (* 5 a) (+ b 1)))
+```
+
+**COBOL-like:**
+```
+COMPUTE X = 5 * A - (B + 1) END-COMPUTE
+```
+
+**XML-like:**
+```xml
+<assign target="x">
+  <minus>
+    <times><num>5</num><id>a</id></times>
+    <plus><id>b</id><num>1</num></plus>
+  </minus>
+</assign>
+```
+
+Five wildly different appearances — yet all describe the same tree. The Lisp version makes the tree structure most explicit (every node is a parenthesized list), while the C-like version relies on operator precedence to imply the tree, and the XML version uses tag nesting.
+
+This connects directly to LN 6's pragmatics: these are different **pragmatic choices** for the same underlying semantics. A Lisp programmer sees structure explicitly; a C programmer sees it through precedence rules; a COBOL programmer sees it through verbose keywords. The choice of concrete syntax affects usability, not meaning.
+
+For language designers, the implication is liberating: **design your abstract syntax first (the tree grammar), then choose a concrete syntax that best serves your users.** The AST is the real language; the concrete syntax is just its skin.
+
+---
+
+## The Problem of Context
+
+We've built a clean pipeline: characters to tokens (Type 3), tokens to CST (Type 2), CST to AST (simplification). But there's a problem. Consider these Petal programs:
+
+```
+x = y + 1;        // Is y declared?
+print cos(1, 2);   // cos takes 1 argument, not 2!
+x = "hello" + 5;  // Can you add a string to a number?
+```
+
+Each of these programs is **syntactically valid** — a parser will happily produce a CST and AST for each one. But each is **semantically wrong**: undeclared variables, wrong argument counts, type mismatches.
+
+These are **context constraints** — rules that depend on information from elsewhere in the program. Context-free grammars, by definition, cannot capture them.
+
+<DefinitionBox term="Context Constraints">
+
+**Context constraints** (also called **static semantics**) are validity rules that depend on information beyond the immediate grammatical structure. They cannot be expressed by context-free grammars and must be checked by a separate phase after parsing.
+
+</DefinitionBox>
+
+Common context constraints include:
+- **Declaration before use**: a variable must be declared before it can be referenced
+- **Type compatibility**: operators require operands of compatible types
+- **Argument arity**: functions must be called with the correct number of arguments
+- **Scope rules**: names are visible only within certain regions of the program
+- **Access modifiers**: private members cannot be accessed from outside their class
+
+### The Layered View of Validity
+
+This creates a nested picture of program validity:
+
+<DisplayMath formula="\Sigma^* \;\supset\; \text{Lexically valid} \;\supset\; \text{Syntactically valid} \;\supset\; \text{Context-valid} \;\supset\; \text{Semantically meaningful}" />
+
+Not every string is tokenizable. Not every token stream is parseable. Not every parseable program satisfies context constraints. And not every context-valid program has well-defined meaning (it might loop forever or divide by zero).
+
+Each layer filters more strings. The further right we go, the more sophisticated the checker must be — and the fewer strings remain.
+
+### Why Not Use Context-Sensitive Grammars?
+
+You might wonder: if context constraints are about "context," why not use **context-sensitive grammars** (Type 1 from the Chomsky Hierarchy)?
+
+The answer is pragmatic:
+- Context-sensitive grammars are **extremely difficult to write** — even simple constraints lead to enormous rule sets
+- They are **difficult to parse** — no practical parser generators support them
+- They **destroy tree structure** — context-sensitive derivations don't produce clean trees
+- They **look nothing like** how compilers actually check these rules
+
+In practice, language designers handle context constraints with a separate **semantic analysis** phase that walks the AST and checks constraints against a symbol table. This is more modular, more maintainable, and more efficient.
+
+The debate over whether these constraints belong to "syntax" or "semantics" is long-standing. Some authors call them "static semantics" (because they constrain meaning), while others call them "context-sensitive syntax" (because they restrict form). The textbook by Slonneger and Kurtz notes wryly: "The terms static semantics and context-sensitive syntax are used almost interchangeably in the literature."
+
+### The Dangling Else
+
+There's one more ambiguity problem worth examining — one that can't be resolved by precedence alone.
+
+Consider a language with `if-then` and `if-then-else` statements:
+
+```
+if e1 then if e2 then c1 else c2
+```
+
+Which `if` does the `else` belong to? There are two valid parse trees:
+
+<DerivationTreeStepper
+  title="Dangling Else: else belongs to inner if"
+  steps={[
+    {
+      nodes: [
+        { id: "s1", label: "Stmt", level: 0 },
+        { id: "if1", label: "if", isTerminal: true, level: 1 },
+        { id: "e1", label: "e1", isTerminal: true, level: 1 },
+        { id: "then1", label: "then", isTerminal: true, level: 1 },
+        { id: "s2", label: "Stmt", level: 1 },
+        { id: "if2", label: "if", isTerminal: true, level: 2 },
+        { id: "e2", label: "e2", isTerminal: true, level: 2 },
+        { id: "then2", label: "then", isTerminal: true, level: 2 },
+        { id: "c1", label: "c1", isTerminal: true, level: 2 },
+        { id: "else2", label: "else", isTerminal: true, level: 2 },
+        { id: "c2", label: "c2", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "s1", to: "if1" },
+        { from: "s1", to: "e1" },
+        { from: "s1", to: "then1" },
+        { from: "s1", to: "s2" },
+        { from: "s2", to: "if2" },
+        { from: "s2", to: "e2" },
+        { from: "s2", to: "then2" },
+        { from: "s2", to: "c1" },
+        { from: "s2", to: "else2" },
+        { from: "s2", to: "c2" },
+      ],
+      description: "Interpretation 1: else belongs to the INNER if — the most common resolution",
+      highlightNodes: ["else2", "c2"],
+    },
+  ]}
+  height="300px"
+/>
+
+<DerivationTreeStepper
+  title="Dangling Else: else belongs to outer if"
+  steps={[
+    {
+      nodes: [
+        { id: "s1", label: "Stmt", level: 0 },
+        { id: "if1", label: "if", isTerminal: true, level: 1 },
+        { id: "e1", label: "e1", isTerminal: true, level: 1 },
+        { id: "then1", label: "then", isTerminal: true, level: 1 },
+        { id: "s2", label: "Stmt", level: 1 },
+        { id: "else1", label: "else", isTerminal: true, level: 1 },
+        { id: "c2", label: "c2", isTerminal: true, level: 1 },
+        { id: "if2", label: "if", isTerminal: true, level: 2 },
+        { id: "e2", label: "e2", isTerminal: true, level: 2 },
+        { id: "then2", label: "then", isTerminal: true, level: 2 },
+        { id: "c1", label: "c1", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "s1", to: "if1" },
+        { from: "s1", to: "e1" },
+        { from: "s1", to: "then1" },
+        { from: "s1", to: "s2" },
+        { from: "s1", to: "else1" },
+        { from: "s1", to: "c2" },
+        { from: "s2", to: "if2" },
+        { from: "s2", to: "e2" },
+        { from: "s2", to: "then2" },
+        { from: "s2", to: "c1" },
+      ],
+      description: "Interpretation 2: else belongs to the OUTER if — a dangerous misparse",
+      highlightNodes: ["else1", "c2"],
+    },
+  ]}
+  height="300px"
+/>
+
+Different languages resolve this ambiguity in different ways:
+
+- **C, Java, Pascal**: an informal rule — "else binds to the nearest if" (Interpretation 1)
+- **Python**: indentation makes the binding explicit — no ambiguity possible
+- **Petal (our language)**: we'll require explicit block delimiters, avoiding the problem entirely
+
+```
+// Petal avoids the dangling else by using braces:
+if e1 { if e2 { c1 } else { c2 } }    // Unambiguous
+```
+
+This is a design choice — a pragmatic decision from LN 6 — driven by the desire to avoid ambiguity without relying on informal conventions.
+
+---
+
+## Alternate Notations
+
+Throughout computer science history, several notations have been developed for writing grammars. Understanding their relationships helps when reading language specifications.
+
+**BNF (Backus-Naur Form)**: The original notation from the Algol 60 report (1960). Variables are enclosed in angle brackets, and `::=` replaces `→`:
+
+```
+<exp> ::= <exp> + <term> | <term>
+<term> ::= <term> * <factor> | <factor>
+<factor> ::= ( <exp> ) | <number>
+```
+
+**EBNF (Extended BNF)**: Adds repetition (`*`, `+`), optionality (`?`), and grouping from regular expressions:
+
+```
+exp = term (('+' | '-') term)*
+term = factor (('*' | '/' | '%') factor)*
+factor = '-'? primary
+primary = '(' exp ')' | number | identifier
+```
+
+**ABNF (Augmented BNF)**: Used in Internet standards (RFCs). Uses `/` for alternation and prose-style rule names:
+
+```
+exp = term *("+" term / "-" term)
+term = factor *("*" factor / "/" factor)
+```
+
+**PEG (Parsing Expression Grammar)**: What we've been using. Ordered alternation (`/`), no ambiguity by construction:
+
+```
+Exp = Term (("+" / "-") Term)*
+Term = Factor (("*" / "/" / "%") Factor)*
+```
+
+All four notations can describe the same language. The key differences are:
+- **BNF** is purely generative — it can produce ambiguous grammars
+- **EBNF** adds convenience operators from regular expressions
+- **ABNF** is standardized for protocol specifications
+- **PEG** is deterministic by design — ordered alternation eliminates ambiguity
+
+Modern language specifications use a mix of these. Python's grammar uses a variant of EBNF. JavaScript's specification (ECMA-262) uses its own BNF variant. Ohm.js (which we'll use in LN 9) is based on PEGs.
+
+None of these notations cleanly separate lexical from phrase syntax — they use the same notation for both levels. That's one reason PEG-based tools like Ohm are appealing: they handle both levels with a single unified grammar, while internally distinguishing between rules that should skip whitespace (phrase rules) and those that shouldn't (lexical rules).
+
+---
+
+## Case Study: Thorn — A Language Without Precedence
+
+We've spent this entire lecture building machinery for precedence: intermediate grammar categories, left and right recursion, the CST-to-AST transformation that strips away all that scaffolding. But what if a language didn't need any of it?
+
+Let's design one. **Thorn** is an imperative language that makes a radical design choice: **operators serve as enclosing delimiters**. Every operation wraps its operands between a matching pair of operator symbols, with commas separating operands.
+
+### The Idea
+
+In Petal, you write `3 + 5 * 2` and the grammar must encode that `*` binds tighter than `+`. In Thorn, you write:
+
+```
++ 3, * 5, 2 * +
+```
+
+The `*` block is physically nested inside the `+` block. There is no ambiguity. No precedence rules needed. The concrete syntax *is* the tree.
+
+### Thorn at a Glance
+
+**Expressions** use operators as matched delimiters:
+
+```
++ 5, 6, 7 +                  ## 5 + 6 + 7 = 18
+* 3, 4 *                      ## 3 * 4 = 12
++ - 5, 7 -, 10 +              ## (5 - 7) + 10 = 8
+** 2, ** 3, 4 ** **            ## 2 ** (3 ** 4)
+- 5 -                          ## unary negation: -5
+```
+
+**Function calls** follow the same pattern — the function name is the delimiter:
+
+```
+cos 2.8 cos                            ## cos(2.8)
+hypot 2.28, - 3, radius - hypot       ## hypot(2.28, 3 - radius)
+```
+
+**Statements** use enclosing brackets instead of keywords:
+
+```
+[+ 3, 5 +] -> x                        ## assignment: x = 3 + 5
+<< * x, 2 * >>                         ## print: print(x * 2)
+```
+
+- `[` ... `]` encloses an expression whose result is stored — the `->` arrow directs it into a name
+- `<<` ... `>>` encloses output (chevrons "push" to the terminal)
+- `##` begins a comment
+
+No keywords exist. No equals sign for assignment. Statement type is determined entirely by the enclosing delimiters, and the arrow `->` reads naturally as "compute this, then store it *into* that name."
+
+### The Same Program in Two Languages
+
+Here is the running example from the start of this lecture, in both Petal and Thorn:
+
+**Petal:**
+```
+radius = 55.2 * (-cos(2.8) + 89) % 21;
+area = pi * radius ** 2;
+print hypot(2.28, 3 - radius) / area;
+```
+
+**Thorn:**
+```
+[% * 55.2, + - cos 2.8 cos -, 89 +, 21 %] -> radius
+[* pi, ** radius, 2 ** *] -> area
+<< / hypot 2.28, - 3, radius - hypot, area / >>
+```
+
+Both programs produce the **exact same AST**. The tree doesn't know or care which concrete syntax created it.
+
+### A Formatting Convention
+
+Deeply nested Thorn expressions can be hard to read on a single line. A natural formatting convention helps: **when an operator block contains nested blocks, break to new lines and indent**. The visual shape of the code then mirrors the tree:
+
+```
+[
+    %
+        *
+            55.2,
+            +
+                - cos 2.8 cos -,
+                89
+            +
+        *,
+        21
+    %
+] -> radius
+[* pi, ** radius, 2 ** *] -> area
+<<
+    /
+        hypot
+            2.28,
+            - 3, radius -
+        hypot,
+        area
+    /
+>>
+```
+
+Each indentation level corresponds to a depth level in the AST. You can literally *read the tree off the page*. This is a cosmetic convention, not enforced by the grammar — simple expressions like `* pi, ** radius, 2 ** *` stay on one line.
+
+### Thorn's Grammar
+
+Thorn's phrase grammar is remarkably simple:
+
+```
+Thorn {
+  Program    = Stmt+
+  Stmt       = AssignStmt | PrintStmt
+  AssignStmt = "[" Exp "]" "->" identifier
+  PrintStmt  = "<<" Exp ">>"
+
+  Exp        = OpBlock | CallBlock | identifier | number
+  OpBlock    = op Exp ("," Exp)* op
+  CallBlock  = identifier Exp ("," Exp)* identifier
+
+  identifier = letter (letter | digit)*
+  number     = digit+ ("." digit+)?
+  op         = "+" | "-" | "*" | "/" | "%" | "**"
+  letter     = "a".."z" | "A".."Z"
+  digit      = "0".."9"
+  space     += " " | "\t" | "\n" | "##" (~"\n" any)*
+}
+```
+
+Compare this to Petal's grammar, which needed `Exp`, `AddExp`, `MulExp`, `ExpExp`, `UnaryExp`, and `PriExp` — six categories just for expressions. Thorn needs only `Exp`, `OpBlock`, and `CallBlock`. No precedence layers at all.
+
+### Tokenization
+
+Let's see how Thorn's scanner handles the output statement:
+
+<TokenizerStepper
+  title="Tokenizing a Thorn Output Statement"
+  source="<< + 3, * 5, 2 * + >>"
+  tokens={[
+    { type: "symbol", value: "<<", start: 0, end: 2 },
+    { type: "whitespace", value: " ", start: 2, end: 3 },
+    { type: "operator", value: "+", start: 3, end: 4 },
+    { type: "whitespace", value: " ", start: 4, end: 5 },
+    { type: "number", value: "3", start: 5, end: 6 },
+    { type: "symbol", value: ",", start: 6, end: 7 },
+    { type: "whitespace", value: " ", start: 7, end: 8 },
+    { type: "operator", value: "*", start: 8, end: 9 },
+    { type: "whitespace", value: " ", start: 9, end: 10 },
+    { type: "number", value: "5", start: 10, end: 11 },
+    { type: "symbol", value: ",", start: 11, end: 12 },
+    { type: "whitespace", value: " ", start: 12, end: 13 },
+    { type: "number", value: "2", start: 13, end: 14 },
+    { type: "whitespace", value: " ", start: 14, end: 15 },
+    { type: "operator", value: "*", start: 15, end: 16 },
+    { type: "whitespace", value: " ", start: 16, end: 17 },
+    { type: "operator", value: "+", start: 17, end: 18 },
+    { type: "whitespace", value: " ", start: 18, end: 19 },
+    { type: "symbol", value: ">>", start: 19, end: 21 },
+  ]}
+/>
+
+Notice: the same operator symbol (`+`, `*`) appears as both an "opener" and a "closer." The scanner doesn't distinguish between them — that's the parser's job, matching each opening operator with its corresponding close. This is analogous to how a scanner doesn't match parentheses; it just emits `(` and `)` tokens.
+
+### The CST-to-AST Transformation
+
+Here is the payoff. Thorn's CST for `+ 3, * 5, 2 * +` (which means `3 + 5 * 2`):
+
+<CSTtoASTStepper
+  title="Thorn CST to AST: + 3, * 5, 2 * +"
+  steps={[
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0 },
+        { id: "opblk", label: "OpBlock", level: 1 },
+        { id: "plus-o", label: "+", isTerminal: true, isOperator: true, level: 2 },
+        { id: "n3", label: "3", isTerminal: true, level: 2 },
+        { id: "c1", label: ",", isTerminal: true, level: 2 },
+        { id: "inner", label: "OpBlock", level: 2 },
+        { id: "plus-c", label: "+", isTerminal: true, isOperator: true, level: 2 },
+        { id: "star-o", label: "*", isTerminal: true, isOperator: true, level: 3 },
+        { id: "n5", label: "5", isTerminal: true, level: 3 },
+        { id: "c2", label: ",", isTerminal: true, level: 3 },
+        { id: "n2", label: "2", isTerminal: true, level: 3 },
+        { id: "star-c", label: "*", isTerminal: true, isOperator: true, level: 3 },
+      ],
+      edges: [
+        { from: "exp", to: "opblk" },
+        { from: "opblk", to: "plus-o" },
+        { from: "opblk", to: "n3" },
+        { from: "opblk", to: "c1" },
+        { from: "opblk", to: "inner" },
+        { from: "opblk", to: "plus-c" },
+        { from: "inner", to: "star-o" },
+        { from: "inner", to: "n5" },
+        { from: "inner", to: "c2" },
+        { from: "inner", to: "n2" },
+        { from: "inner", to: "star-c" },
+      ],
+      description: "Thorn CST: operator delimiters and commas are visible, but there are no precedence categories",
+    },
+    {
+      nodes: [
+        { id: "exp", label: "Exp", level: 0, removed: true },
+        { id: "opblk", label: "OpBlock", level: 1, removed: true },
+        { id: "plus-o", label: "+", isTerminal: true, isOperator: true, level: 2 },
+        { id: "n3", label: "3", isTerminal: true, level: 2 },
+        { id: "c1", label: ",", isTerminal: true, level: 2, removed: true },
+        { id: "inner", label: "OpBlock", level: 2, removed: true },
+        { id: "plus-c", label: "+", isTerminal: true, isOperator: true, level: 2, removed: true },
+        { id: "star-o", label: "*", isTerminal: true, isOperator: true, level: 3 },
+        { id: "n5", label: "5", isTerminal: true, level: 3 },
+        { id: "c2", label: ",", isTerminal: true, level: 3, removed: true },
+        { id: "n2", label: "2", isTerminal: true, level: 3 },
+        { id: "star-c", label: "*", isTerminal: true, isOperator: true, level: 3, removed: true },
+      ],
+      edges: [
+        { from: "exp", to: "opblk", removed: true },
+        { from: "opblk", to: "plus-o" },
+        { from: "opblk", to: "n3" },
+        { from: "opblk", to: "c1", removed: true },
+        { from: "opblk", to: "inner", removed: true },
+        { from: "opblk", to: "plus-c", removed: true },
+        { from: "inner", to: "star-o" },
+        { from: "inner", to: "n5" },
+        { from: "inner", to: "c2", removed: true },
+        { from: "inner", to: "n2" },
+        { from: "inner", to: "star-c", removed: true },
+      ],
+      description: "Remove commas, closing operators (redundant), and wrapper categories — very little changes",
+      removedNodes: ["exp", "opblk", "c1", "inner", "plus-c", "c2", "star-c"],
+    },
+    {
+      nodes: [
+        { id: "plus-o", label: "+", isOperator: true, level: 0 },
+        { id: "n3", label: "3", isTerminal: true, level: 1 },
+        { id: "star-o", label: "*", isOperator: true, level: 1 },
+        { id: "n5", label: "5", isTerminal: true, level: 2 },
+        { id: "n2", label: "2", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "plus-o", to: "n3" },
+        { from: "plus-o", to: "star-o" },
+        { from: "star-o", to: "n5" },
+        { from: "star-o", to: "n2" },
+      ],
+      description: "Final AST — identical to Petal's AST for 3 + 5 * 2. The tree is the same; only the skin changed.",
+      highlightNodes: ["plus-o", "star-o"],
+    },
+  ]}
+  height="320px"
+/>
+
+Compare this transformation to Petal's. Petal's CST had **13 nodes** (with `Exp`, `Term`, `Pri` scaffolding) that collapsed to 5. Thorn's CST has **12 nodes** (with operator delimiters and commas) that also collapse to 5 — but only commas and closing operators are removed. There are no intermediate precedence categories to eliminate because Thorn never needed them.
+
+The final AST is identical. **The tree is the same. Only the skin changed.**
+
+### Pragmatic Analysis
+
+Thorn makes several trade-offs that connect directly to LN 6's pragmatics discussion:
+
+**What Thorn gains:**
+- No precedence rules needed — the grammar is dramatically simpler
+- No parentheses needed — nesting is always explicit via operator delimiters
+- No keyword-vs-identifier ambiguity — there are no keywords at all
+- Variadic operators for free — `+ 1, 2, 3, 4 +` adds four values naturally
+- With the indentation convention, the source code visually *is* the AST
+
+**What Thorn costs:**
+- Simple expressions become verbose: `+ 3, 5 +` instead of `3 + 5`
+- Unfamiliar syntax raises the learning curve (the Blub Paradox from LN 6 — programmers can only see *down* the abstraction spectrum)
+- Closing operators are redundant information, though they aid error detection (just as `</div>` aids debugging in HTML)
+- Reading deeply nested one-line expressions requires careful delimiter matching
+
+**The takeaway:** Petal optimizes for *familiarity and conciseness* — it looks like languages students already know. Thorn optimizes for *explicitness and structural transparency* — you can read the tree directly. Neither is objectively better. The choice is pragmatic, and it depends entirely on who the language is for and what problems it solves.
+
+---
+
+## Summary
+
+We've traced the full pipeline from raw text to structured trees:
+
+1. **Syntax, Semantics, Pragmatics** — the three components of a language definition, and why syntax must come first
+2. **Petal** — our mini-language, designed from scratch with explicit precedence and associativity choices
+3. **Lexical vs. Phrase Syntax** — two levels mapping to the Chomsky Hierarchy (Type 3 for tokens, Type 2 for phrases)
+4. **Regular Expressions** — the formal notation for lexical syntax, completing the Type 3 story from LN 7
+5. **Analytic Grammars and PEGs** — deterministic parsing from ordered alternation and negative lookahead
+6. **Concrete Syntax Trees** — the full derivation tree, containing all grammar scaffolding
+7. **Abstract Syntax Trees** — the essential tree, stripped of precedence categories, punctuation, and single-child chains
+8. **Tree Grammars** — formalizing abstract syntax without the complexity of phrase grammars
+9. **Multiple Concrete Syntaxes** — the same AST can wear many syntactic skins, proving that concrete syntax is incidental
+10. **Context Constraints** — what grammars cannot capture, requiring separate semantic analysis
+11. **The Dangling Else** — a classic ambiguity resolved by design choices, not grammar tricks
+12. **Alternate Notations** — BNF, EBNF, ABNF, PEG — different notations for the same idea
+13. **Thorn** — a case study proving that precedence is a design choice, not a necessity, and that wildly different concrete syntaxes produce the same AST
+
+The central insight: **programs have two kinds of structure**. The **concrete** structure (CST) includes everything the grammar needs for disambiguation. The **abstract** structure (AST) is what semantics actually cares about. The journey from characters to AST is the syntax pipeline, and every stage is grounded in the formal language theory we built in LN 7. Thorn's case study proves the point: you can design a language that eliminates precedence entirely, and the AST remains unchanged.
+
+Next lecture, we'll **build** this pipeline. We'll write a parser for Petal using Ohm.js, watch it turn strings into CSTs, and write the code that transforms CSTs into ASTs. Theory becomes practice.
+
+<LectureNotes>
+
+**Key Definitions:**
+- **Syntax**: the form of valid programs (this lecture)
+- **Semantics**: the meaning of programs (LN 10-12)
+- **Pragmatics**: the usability of a language (LN 6)
+- **Lexical syntax**: characters to tokens (Type 3 / Regular)
+- **Phrase syntax**: tokens to trees (Type 2 / Context-Free)
+- **Regular expression**: formal notation for Type 3 languages ($\emptyset$, $\varepsilon$, $a$, $R \mid S$, $RS$, $R^*$)
+- **CST**: full derivation tree with all grammar scaffolding
+- **AST**: essential tree with operators as nodes, operands as leaves
+- **Tree grammar**: defines abstract syntax without precedence machinery
+- **Context constraints**: validity rules CFGs cannot capture (declaration, types, arity)
+
+**Key Connections:**
+- Lexical syntax is Type 3 (LN 7) and uses DFAs (LN 5 Automata Theory)
+- Phrase syntax is Type 2 (LN 7) and uses PDAs (LN 5 Automata Theory)
+- The meaning function maps ASTs to semantic objects (bridge to LN 10)
+- Concrete syntax choices are pragmatic decisions (LN 6)
+- Context constraints live between syntax and semantics — the "static semantics" debate
+- Tree grammars eliminate the need for the precedence machinery we built in LN 7
+- Thorn demonstrates that precedence is a consequence of infix notation, not a universal requirement — operator-as-delimiter syntax eliminates it entirely
+
+</LectureNotes>
+
+<LectureResources>
+
+### Additional Resources
+
+- [Dr. Ray Toal, Syntax Notes](https://cs.lmu.edu/~ray/notes/syntax/) — Our primary reference for this lecture
+- [Kenneth Slonneger and Barry Kurtz, *Formal Syntax and Semantics of Programming Languages*, Chapter 1](https://cdn.preterhuman.net/texts/science_and_technology/artificial_intelligence/Formal%20Syntax%20and%20Semantics%20of%20Programming%20Languages%20-%20Kenneth%20Slonneger.pdf) — Syntax, abstract syntax, and context constraints
+- [Ohm.js — A PEG-based parsing library](https://ohmjs.org/) — We'll build Petal's parser with this in LN 9
+- [Bryan Ford, "Parsing Expression Grammars: A Recognition-Based Syntactic Foundation" (2004)](https://bford.info/pub/lang/peg.pdf) — The paper that formalized PEGs
+- [Python Language Grammar Specification](https://docs.python.org/3/reference/grammar.html) — A real-world EBNF grammar
+- [ECMAScript Language Specification (ECMA-262)](https://tc39.es/ecma262/) — JavaScript's full formal grammar
+
+</LectureResources>
