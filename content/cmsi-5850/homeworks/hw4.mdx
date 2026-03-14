@@ -1,0 +1,405 @@
+import {
+  ProgrammingSection,
+} from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+
+This homework covers material from **Lecture 7: Language Theory** and **Lecture 8: Syntax**. It is a **programming-only** assignment designed to force you to confront the practical consequences of the theoretical models we've studied.
+
+You may use **any programming language** you wish. Your choice of language does not affect grading — only correctness, performance, and adherence to the structural constraints.
+
+---
+
+<ProgrammingSection points={100}
+brightspaceUrl=""
+githubClassroomUrl=""
+>
+
+## General Requirements
+
+Before diving into the two parts, please note the following requirements that apply to your entire submission:
+
+**The Premise:**
+
+A FinTech company is analyzing massive streams of trading data. They need to find specific "attack patterns" in the logs. The current pattern they are looking for is simple: A `BUY` order followed by any number of `CANCEL` orders, ending in a `SELL` order. You have been tasked with building the engine to filter these logs.
+
+**Repository Structure:**
+
+Your repository must include a `README.md` at the root with:
+
+1. The **programming language** you chose and why.
+2. **Exact terminal commands** to install any dependencies.
+3. **Exact terminal commands** to run Part 1.
+4. **Exact terminal commands** to run Part 2.
+
+I will clone your repository and follow your README to run your code. If I cannot run it from your instructions, points will be deducted.
+
+**Output Format:**
+
+All output should be printed to the terminal during execution AND written to plain `.txt` files in the `outputs/` folder within each part directory. Compare your output against the corresponding `expected_outputs/` files to verify correctness.
+
+**No External Parser Libraries:**
+
+You must build the parsing logic yourself. Do not use parser generators (ANTLR, yacc, PEG.js, Ohm, etc.). For Part 2, a hand-written DFA loop is preferred over your language's Regex library, though Regex is allowed. For Part 1, you **must** hand-write the recursive descent parser.
+
+**Test Files:**
+
+A 50-megabyte log file is too large to host reliably in a GitHub Classroom template repository. Instead, we have provided a Python script (`generate_logs.py`) that will deterministically generate the log files locally on your machine. Run it before starting:
+
+```bash
+python3 generate_logs.py
+```
+
+This script will generate two files in the root directory:
+1. `logs_small.txt` (1,000 lines)
+2. `logs_massive.txt` (5,000,000 lines)
+
+The logs will look like this:
+
+```text
+[2026-10-01 10:00:01] HEARTBEAT
+[2026-10-01 10:00:02] LOGIN
+[2026-10-01 10:00:03] BUY
+[2026-10-01 10:00:04] CANCEL
+[2026-10-01 10:00:05] SELL
+[2026-10-01 10:00:06] HEARTBEAT
+...
+```
+
+The script uses a fixed random seed. Every student who runs this script will generate the exact same files with the exact same number of attack patterns hidden inside them. The generator is written so that these patterns are **non-overlapping**, which means the expected counts below are exact and reproducible.
+
+---
+
+> **Things to Keep in Mind**
+>
+> As you complete this assignment, keep the following questions in the back of your head. You do not need to submit written answers to these, but they are the core lessons of the assignment:
+>
+> *   **The Cost of Expressiveness**: Why does the Type 2 solution fail (or run incredibly slow) on the large dataset? What is the actual memory cost of the call stack and building a Concrete Syntax Tree vs stream processing?
+> *   **The Power of Restriction**: Why is the Type 3 solution able to process the massive file effortlessly? Think about the Big-O time and space complexity of a DFA.
+> *   **The Boundary**: Suppose the FinTech company changes the requirement. They now want to find a `BUY`, followed by *exactly the same number* of `CANCEL`s as `BUY`s (e.g., `BUY BUY CANCEL CANCEL`). Based on the Pumping Lemma and Automata Theory from LN5/LN7, which engine (DFA or PDA) would you *have* to use to solve this new requirement?
+
+---
+
+## Part 1: The Seduction of Power (Type 2 / Recursive Descent) (45 points)
+
+As a graduate student, you are comfortable with recursion and trees. It is tempting to write a full Context-Free Grammar parser to read the log file, because CFGs are powerful and expressive. Let's see what happens when we do.
+
+---
+
+<QuestionBox qid="Q1" title="The Grammar" points={10}>
+
+Here is the Context-Free Grammar for the log file:
+
+```text
+LogFile -> Transaction*
+Transaction -> AttackPattern | "BUY" | "CANCEL" | "SELL" | "HEARTBEAT" | "LOGIN" | "LOGOUT" | "UPDATE" | "PING"
+AttackPattern -> "BUY" CancelList "SELL"
+CancelList -> "CANCEL" CancelList | epsilon
+```
+
+Your task is to write a **Recursive Descent Parser** that reads the file into memory, converts it into a token stream, and recursively parses it to count the number of valid `AttackPattern`s.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q2" title="Building the Recursive Descent Parser" points={35}>
+
+<SubQuestion qid="Q2a" points={5}>
+
+**Tokenization** — Write a function that reads the entire log file into memory, strips away the timestamp `[YYYY-MM-DD HH:MM:SS]` from each line, and returns a massive array/list of strings: `["HEARTBEAT", "LOGIN", "BUY", "CANCEL", "SELL", ...]`.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={15}>
+
+**Recursive Descent** — Implement the parser functions:
+
+*   Write a `parseLogFile()` function that loops through the token array. At each index, it should attempt to call `parseAttackPattern()`.
+*   Write a `parseAttackPattern()` function. It should check if the current token is `"BUY"`. If so, it should consume it, call `parseCancelList()`, and then expect a `"SELL"`. If the pattern completes successfully, return `true` (or a subtree node) and advance the token index. If it fails, backtrack the index so the main loop can continue searching from the next token.
+*   Write a `parseCancelList()` function that recursively calls itself as long as it sees `"CANCEL"`.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={5}>
+
+**Small File Test** — Run your recursive descent parser on `logs_small.txt`. It should successfully parse the file and print the total number of attack patterns found. Save the output to `part1/outputs/small_result.txt`.
+
+The **first line** of this file must be:
+
+```text
+Patterns found: 12
+```
+
+You may include additional timing information on later lines if you wish.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2d" points={10}>
+
+**Massive File Test** — Run your parser on `logs_massive.txt`.
+
+Depending on your language and implementation details, one of three things will happen:
+*   **StackOverflowError**: Your recursion goes too deep.
+*   **OutOfMemoryError**: Your array of 5 million tokens (or the CST you are building) exceeds heap limits.
+*   **Extreme Slowness**: The backtracking and function call overhead result in $O(n^2)$ behavior, causing the program to hang indefinitely.
+
+Save the output to `part1/outputs/massive_result.txt`. If your program succeeds, the **first line** should be `Patterns found: <count>`, and you may place execution time on a later line. If your program crashes or times out, copy and paste the crash stack trace (or a note stating "Timed out after X minutes") into this file.
+
+*Note: You will receive full points for a crash output, as long as your code is a valid recursive descent parser that works on the small file!*
+
+</SubQuestion>
+
+> **💡 Implementation Hints for Q2:**
+>
+> - **Token index:** Use a mutable index (or pointer) into your token array. Each parse function advances this index as it consumes tokens. On failure, save and restore the index to backtrack.
+> - **The ambiguity trap:** When `parseLogFile()` sees a `"BUY"`, it doesn't know if it's the start of an `AttackPattern` or a standalone `"BUY"` transaction. The naive approach — try `parseAttackPattern()`, and if it fails, treat it as a standalone token — is correct but creates the backtracking overhead that will hurt on large files.
+> - **Building a CST is optional but instructional:** If you build tree nodes (e.g., `TransactionNode`, `AttackPatternNode`, `CancelListNode`) as you parse, the memory pressure becomes extreme on the massive file, which makes the crash more dramatic and educational. If you just count matches without building a tree, the crash may manifest as slowness rather than OOM.
+> - **Measuring time:** Most languages have a way to measure wall-clock time (e.g., `time.time()` in Python, `System.nanoTime()` in Java, `Instant::now()` in Rust, `performance.now()` in Node.js). Wrap your parsing call and print the duration.
+
+</QuestionBox>
+
+---
+
+## Part 2: The Strength of Weakness (Type 3 / DFA) (55 points)
+
+Did we actually need a tree? The attack pattern is simply: `"BUY"` followed by 0 or more `"CANCEL"`s, followed by `"SELL"`.
+
+There is no nesting. There are no matching parentheses. It is purely sequential. It sits squarely at **Type 3 (Regular)** in the Chomsky Hierarchy — recognizable by a DFA with no stack, no tree, and no backtracking. By downgrading our theoretical model from Type 2 to Type 3, we gain incredible performance guarantees. As you implement this, consider: what would change if the company required *matching counts* (e.g., exactly as many `CANCEL`s as `BUY`s)? That pattern would require a stack — pushing you back up to Type 2 and a PDA.
+
+---
+
+<QuestionBox qid="Q3" title="Building the DFA" points={55}>
+
+Discard the recursive functions. Do not store the entire file in an array. We are going to build a **Deterministic Finite Automaton (DFA)**.
+
+<SubQuestion qid="Q3a" points={5}>
+
+**Stream Processing** — Open the file and read it **line by line** (e.g., using a buffered reader or an iterator). Do not load the whole file into memory. Extract the token from each line, process it, and immediately discard it.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={20}>
+
+**The State Machine** — Create a single integer variable `state = 0` and a counter `patternsFound = 0`. Implement the following transition rules inside your line-reading loop using a `switch` or `if/else` block:
+
+*   **State 0 (Start)**: If token is `"BUY"`, transition to State 1. Otherwise, stay in State 0.
+*   **State 1 (Saw BUY)**:
+    *   If token is `"CANCEL"`, stay in State 1.
+    *   If token is `"SELL"`, increment `patternsFound` and transition to State 0.
+    *   If token is `"BUY"`, stay in State 1 (restart the pattern).
+    *   Otherwise (any other token), reset to State 0.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={10}>
+
+**Small File Test** — Run your DFA on `logs_small.txt`. Ensure the count matches what you found in Part 1. Save the output to `part2/outputs/small_result.txt`.
+
+The **first line** of this file must be:
+
+```text
+Patterns found: 12
+```
+
+You may include additional timing information on later lines if you wish.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3d" points={15}>
+
+**Massive File Test** — Run your DFA on `logs_massive.txt`.
+
+Because your DFA uses $O(1)$ memory (just the `state` and `patternsFound` variables) and makes exactly one pass over the file without backtracking ($O(n)$ time), it should process all 5 million lines in a fraction of a second. Notice the contrast: the same problem that crashed (or crawled) your Type 2 parser is solved almost instantly by a Type 3 engine. The theoretical guarantee — that regular languages require only constant memory and linear time — is not just a textbook claim; it is a pragmatic engineering advantage.
+
+Save the output to `part2/outputs/massive_result.txt`. The **first line** of this file must be:
+
+```text
+Patterns found: 48732
+```
+
+You may place execution time on a later line (for example, `Elapsed time: 0.42s`). The expected output file only fixes the count line so that timing differences across languages and machines do not affect grading.
+
+</SubQuestion>
+
+> **💡 Implementation Hints for Q3:**
+>
+> - **Stream, don't load:** The key insight is that your DFA never needs to "look back." Each line is read, its token is extracted, the state transitions, and the line is discarded. This is why the memory usage is $O(1)$ regardless of file size.
+> - **State as an integer:** You only need states 0 and 1. State 2 (Match Found) is not really a state you stay in — it's just the action of incrementing the counter and immediately returning to State 0. You can implement this as an `if` inside State 1's `"SELL"` branch.
+> - **Token extraction:** The same timestamp-stripping logic from Part 1 works here, but applied one line at a time instead of batched into an array.
+> - **Measuring time:** Wrap your entire file-reading loop in a timer. Print both the count and the elapsed time. The contrast with Part 1's time (or crash) is the payoff of the assignment.
+> - **Expected result:** Both Part 1 (small file) and Part 2 (small file) must produce the same count. The first line of your Part 2 outputs should match the `expected_outputs/` files provided exactly.
+
+</QuestionBox>
+
+</ProgrammingSection>
+
+---
+
+## Submission Guidelines
+
+- Submit your repository via **GitHub Classroom** (link at the top of this page)
+- Your `README.md` must contain exact terminal commands to run both parts
+- All output `.txt` files must be committed in the `part1/outputs/` and `part2/outputs/` folders
+- Ensure your code compiles/runs without errors from a fresh clone
+- Include a `.gitignore` appropriate for your language
+
+---
+
+## Repository Structure
+
+Your assignment repository will contain the following files:
+
+```text
+hw4-chomsky-tradeoff/
+├── README.md
+├── generate_logs.py
+├── .gitignore
+├── part1/
+│   ├── inputs/
+│   │   └── .gitkeep
+│   ├── expected_outputs/
+│   │   └── small_result.txt
+│   └── outputs/
+│       └── .gitkeep
+├── part2/
+│   ├── inputs/
+│   │   └── .gitkeep
+│   ├── expected_outputs/
+│   │   ├── small_result.txt
+│   │   └── massive_result.txt
+│   └── outputs/
+│       └── .gitkeep
+```
+
+Write all of your output files into the `outputs/` folder within the corresponding part. The `.gitkeep` files ensure the empty folders are tracked by git — you can leave them in place.
+
+---
+
+## Provided File Contents
+
+Below are the full contents of every provided file. If you experience any issues with your repository, you can reconstruct the files from here.
+
+---
+
+### `generate_logs.py`
+
+This script will be provided in the root of your repository.
+
+```python
+import random
+import datetime
+from datetime import timedelta
+
+def generate_logs(filename, num_lines, target_patterns):
+    random.seed(42) # Deterministic seed so everyone gets the same answers
+    noise_tokens = ["HEARTBEAT", "LOGIN", "LOGOUT", "UPDATE", "PING"]
+
+    # First decide how many CANCELs each pattern will contain.
+    cancel_counts = [random.randint(0, 5) for _ in range(target_patterns)]
+    pattern_lengths = [count + 2 for count in cancel_counts]  # BUY + CANCEL* + SELL
+    total_pattern_lines = sum(pattern_lengths)
+
+    if total_pattern_lines > num_lines:
+        raise ValueError("Not enough lines to place all requested patterns without overlap.")
+
+    # Distribute the remaining noise lines across the gaps before/between/after patterns.
+    remaining_noise = num_lines - total_pattern_lines
+    gaps = [0] * (target_patterns + 1)
+    for _ in range(remaining_noise):
+        gaps[random.randrange(len(gaps))] += 1
+
+    # Build the stream so that inserted patterns are non-overlapping by construction.
+    stream = []
+
+    for _ in range(gaps[0]):
+        stream.append(random.choice(noise_tokens))
+
+    for pattern_index, cancel_count in enumerate(cancel_counts):
+        stream.append("BUY")
+        for _ in range(cancel_count):
+            stream.append("CANCEL")
+        stream.append("SELL")
+
+        for _ in range(gaps[pattern_index + 1]):
+            stream.append(random.choice(noise_tokens))
+
+    # Write to file with timestamps
+    start_time = datetime.datetime(2026, 10, 1, 10, 0, 0)
+    
+    print(f"Generating {filename} with {num_lines} lines...")
+    with open(filename, "w") as f:
+        for i, token in enumerate(stream):
+            timestamp = start_time + timedelta(seconds=i)
+            time_str = timestamp.strftime("[%Y-%m-%d %H:%M:%S]")
+            f.write(f"{time_str} {token}\n")
+    print(f"Done. (Expected patterns: {target_patterns})")
+
+if __name__ == "__main__":
+    generate_logs("logs_small.txt", 1000, 12)
+    generate_logs("logs_massive.txt", 5000000, 48732)
+```
+
+---
+
+### Expected Output Files
+
+#### `part1/expected_outputs/small_result.txt`
+
+```
+Patterns found: 12
+```
+
+#### `part2/expected_outputs/small_result.txt`
+
+```
+Patterns found: 12
+```
+
+#### `part2/expected_outputs/massive_result.txt`
+
+```
+Patterns found: 48732
+```
+
+---
+
+### `README.md`
+
+This template will be provided. Please fill it out.
+
+```markdown
+# HW4: The Chomsky Trade-off
+
+**Name:** [Your Name]
+**Language Used:** [Your Language Choice]
+
+## Setup Instructions
+[Provide exact commands to install any necessary dependencies, if any]
+
+## Part 1 Run Instructions (Type 2 - Recursive Descent)
+[Provide exact commands to run your Part 1 parser]
+[Note: Specify how to run it against logs_small.txt vs logs_massive.txt]
+
+## Part 2 Run Instructions (Type 3 - DFA)
+[Provide exact commands to run your Part 2 DFA]
+[Note: Specify how to run it against logs_small.txt vs logs_massive.txt]
+```
+
+---
+
+## Point Summary
+
+| Part | Question | Points |
+| :--- | :--- | :---: |
+| **Part 1** | Q1: The Grammar | 10 |
+| | Q2: Building the Recursive Descent Parser | 35 |
+| | Q2a: Tokenization | 5 |
+| | Q2b: Recursive Descent | 15 |
+| | Q2c: Small File Test | 5 |
+| | Q2d: Massive File Test | 10 |
+| **Part 2** | Q3: Building the DFA | 55 |
+| | Q3a: Stream Processing | 5 |
+| | Q3b: The State Machine | 20 |
+| | Q3c: Small File Test | 10 |
+| | Q3d: Massive File Test | 15 |
+| **Total** | | **100** |

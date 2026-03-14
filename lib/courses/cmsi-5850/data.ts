@@ -466,14 +466,15 @@ const allEvents: CourseEvent[] = [
     availableDate: schedule.getSpecificDate(2026, 3, 13, "5850-hw4-available"),
     dueTime: "11:59 PM",
     description:
-      "In this homework you will operationalize our syntax and create a parser for a simple language in JavaScript!",
+      "A programming assignment where you will implement both a Type 2 parser and a Type 3 state machine to filter massive FinTech logs, demonstrating the pragmatic trade-offs of the Chomsky Hierarchy.",
     courseId: "cmsi-5850",
     standard: "Syntax",
     contentUrl: "/cmsi-5850/hw4",
     hwTopics: [
-      "Syntax",
-      "Parsing",
-      "Ohm"
+      "Lexical Syntax (Type 3)",
+      "Phrase Syntax (Type 2)",
+      "Recursive Descent",
+      "Finite Automata"
     ],
     hwPoints: { written: 0, programming: 100, optional: 0 },
     hwGithubClassroomUrl: "",

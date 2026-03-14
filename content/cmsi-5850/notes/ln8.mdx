@@ -990,7 +990,11 @@ Different languages resolve this ambiguity in different ways:
 if e1 { if e2 { c1 } else { c2 } }    // Unambiguous
 ```
 
-This is a design choice — a pragmatic decision from LN 6 — driven by the desire to avoid ambiguity without relying on informal conventions.
+But what if you *want* to keep the C/Java style syntax without the ambiguity? This is where **Analytic Grammars (PEGs)** shine. Because PEGs use *ordered alternation* (`/`), they solve the dangling else problem for free. 
+
+If your rule is `IfStmt = "if" Exp "then" Stmt "else" Stmt / "if" Exp "then" Stmt`, the parser will greedily try to match the `else` branch first. If an `else` is present, the parser consumes it immediately. There is no second interpretation.
+
+This is a design choice — a pragmatic decision from LN 6 — driven by the desire to avoid ambiguity either by changing the syntax (like Petal) or by changing the parser tool (like using a PEG).
 
 ---
 

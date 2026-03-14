@@ -87,6 +87,7 @@ professional tool.
 ### Key Deliverable
 By the end of LN9, students have a working parser that takes Petal source code
 and produces an AST. This AST becomes the input for LN10's semantics.
+*(Course Capstone Connection: This maps directly to HW4, where students will build the Petal Parser.)*
 
 ---
 
@@ -122,6 +123,7 @@ and produces an AST. This AST becomes the input for LN10's semantics.
    - What does each AST node type mean?
    - Expressions evaluate to numbers
    - Assignments update an environment (a map from names to values)
+   - **Scoping Rules**: Lexical vs. Dynamic scope (why closures need environments, tying back to LN4)
    - Print statements produce output
    - Walk through several examples
 
@@ -192,13 +194,13 @@ abstract machine."
 
 ### Suggested Interactive Components
 - `StackMachineStepper`: visualize stack-based evaluation of expressions
-- `InferenceTreeBuilder`: step through building a proof tree for evaluation
-- Extend `ReductionStepper` pattern for small-step transitions
+- `OperationalSemanticsStepper`: given a Petal AST, provide `[Take Small Step]` (Structural, evaluates one piece of the tree) and `[Take Big Step]` (Natural, collapses entire subtree to value) buttons to visually compare transition vs. evaluation relations.
 
 ### Key Deliverable
 Students can write small-step and big-step inference rules for Petal constructs
 and use them to prove evaluation results. They see the connection between
 lambda calculus reduction and operational semantics.
+*(Course Capstone Connection: The operational execution mechanisms here map directly to HW5, where students will build the Petal Evaluator/Interpreter.)*
 
 ---
 
@@ -221,7 +223,8 @@ mathematical FUNCTIONS."
 2. **Semantic Domains**
    - Num (numbers), Bool (booleans), State (memory), Output (print stream)
    - Domain constructors: products, sums, function spaces
-   - The bottom element ⊥ and partial functions
+   - Modeling Errors: The bottom element $\bot$ (divergence/crashing) and partial functions
+   - Connection to LN4: $\bot$ is the mathematical representation of the $\Omega$ combinator
    - Connection to LN3: domains are sets with additional structure
 
 3. **Semantic Functions**
@@ -384,7 +387,7 @@ specifications, and appreciate why different semantic methods exist.
 
 ### Suggested Interactive Components
 - `FullPipelineVisualizer`: show a Petal program flowing through every stage
-- Interactive type inference example
+- `TypeInferenceStepper`: Given an AST, generate "Type Equations" (e.g., $T_1 = T_2 \to T_3$) and let the user step through a **Unification Algorithm** that visually connects variables together into equivalence classes.
 - Side-by-side: Petal source → tokens → CST → AST → evaluation result
 
 ### Key Deliverable
