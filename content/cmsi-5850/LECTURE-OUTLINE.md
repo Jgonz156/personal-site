@@ -44,31 +44,32 @@ professional tool.
 
 ### Topics
 
-1. **Recap: From Grammar to Pipeline**
-   - LN7 gave us grammars; LN8 showed what CSTs and ASTs look like
-   - Now: actually produce them from source code
+1. **Recap: The Parsing Problem and the Hierarchy**
+   - The goal: Token Stream (Type 3) $\to$ CST (Type 2)
+   - The problem: Full Type 2 parsing (CYK algorithm) is $O(n^3)$. We need $O(n)$ algorithms, which means restricting our grammars.
 
-2. **Recursive Descent Parsing (by hand)**
-   - The simplest parsing technique: one function per grammar rule
-   - Writing a recursive descent parser for a subset of Petal
+2. **Top-Down Parsing (The LL Family)**
+   - *Strategy:* Start at the root, guess the rules (Left-to-right, Leftmost derivation)
+   - *Implementation:* Recursive Descent (by hand)
    - How precedence climbing works in code
-   - Limitations: left recursion requires rewriting
+   - *The fatal flaw:* Left-recursion causes infinite loops (requires grammar rewriting)
 
-3. **Packrat Parsing**
-   - Memoization to guarantee linear-time PEG parsing
-   - Connection to dynamic programming (LN5's complexity theory)
-   - Why PEGs can be parsed in O(n) time
+3. **Bottom-Up Parsing (The LR Family)**
+   - *Strategy:* Start at the leaves, push to a stack, and reduce (Shift-Reduce)
+   - *The connection:* This is the literal implementation of the Pushdown Automaton (PDA) from LN5!
+   - *The trade-off:* Handles left-recursion beautifully, but extremely hard to write by hand (requires tools like Yacc/Bison)
+   - *Industry impact:* The standard for decades (C/C++)
 
-4. **Ohm.js: A PEG Library**
+4. **The Pragmatic Shift: Analytic Grammars & Packrat Parsing**
+   - *The modern solution:* Sidestep the LL vs LR generative debate entirely
+   - *Algorithm:* Packrat Parsing with memoization
+   - *Complexity:* $O(n)$ time guarantee, at the cost of higher memory
+
+5. **Building Petal's Parser Step-by-Step (with Ohm.js)**
    - Installing and using Ohm.js
-   - Writing the full Petal grammar in Ohm syntax
-   - Semantic actions: how Ohm bridges parse trees and ASTs
-   - The Ohm Editor as a development tool
-
-5. **Building Petal's Parser Step-by-Step**
-   - Lexical rules in Ohm (tokens)
-   - Phrase rules in Ohm (expressions, statements)
+   - Lexical rules (tokens) vs Phrase rules (expressions)
    - Handling left recursion with Ohm's left-recursive PEG extension
+   - Semantic actions: how Ohm bridges parse trees and ASTs
    - Testing with real Petal programs
 
 6. **From CST to AST in Code**
@@ -87,7 +88,6 @@ professional tool.
 ### Key Deliverable
 By the end of LN9, students have a working parser that takes Petal source code
 and produces an AST. This AST becomes the input for LN10's semantics.
-*(Course Capstone Connection: This maps directly to HW4, where students will build the Petal Parser.)*
 
 ---
 

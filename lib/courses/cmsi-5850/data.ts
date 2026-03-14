@@ -373,6 +373,10 @@ const allEvents: CourseEvent[] = [
     ],
     contentUrl: "/cmsi-5850/ln7",
     recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/Q_XEZK9jl4JfKuSRtPiZNmtzWZE9Byx-dmw5ajYj8LkX_H73wlWi8pRduN2ADzAi.UyQoad4xkAGud_7n"
+      }
     ],
   },
   {
@@ -427,13 +431,15 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln9"),
     description:
-      "In this lecture, we look at how we can operationalize the reading of languages and how to do so efficiently.",
+      "In this lecture, we survey the three families of parsing algorithms — Top-Down (LL), Bottom-Up (LR), and Analytic (PEG) — framed by the Chomsky Hierarchy, then build Petal's parser incrementally with Ohm.js.",
     courseId: "cmsi-5850",
     standard: "Syntax",
     lnTopics: [
-      "Recursive Descent Parsing",
-      "Analytic Grammars",
-      "Ohm",
+      "LL Parsing (Recursive Descent)",
+      "LR Parsing (Shift-Reduce)",
+      "PEG / Packrat Parsing",
+      "Ohm.js",
+      "CST to AST",
     ],
     contentUrl: "/cmsi-5850/ln9",
     recordings: [

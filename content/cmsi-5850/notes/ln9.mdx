@@ -1,0 +1,1069 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath, InlineMath } from "@/components/math"
+import { RecursiveDescentStepper } from "@/components/recursive-descent-stepper"
+import { ShiftReduceStepper } from "@/components/shift-reduce-stepper"
+import { PackratStepper } from "@/components/packrat-stepper"
+
+## Recap
+
+In LN 8, we built syntax from the ground up. We designed **Petal**, our running mini-language, by defining its **lexical syntax** (how characters group into tokens via Type 3 regular expressions) and its **phrase syntax** (how tokens organize into trees via Type 2 context-free grammars). We watched the `TokenizerStepper` turn raw characters into labeled tokens, and we used the `CSTtoASTStepper` to see how the concrete syntax tree (CST) — with all its grammar scaffolding — strips down to the essential abstract syntax tree (AST).
+
+We also explored a case study, **Thorn**, whose operator-as-delimiter design eliminates the need for precedence rules entirely, proving that concrete syntax is a design choice, not a mathematical necessity.
+
+But here's what we *didn't* do: we never actually built the machine that performs these transformations. We described what the output *should look like*, but we never wrote the code that reads a string of characters and produces a tree. That's the gap this lecture fills.
+
+**The question for today: given a raw stream of tokens, how do we mechanically construct the correct tree?**
+
+---
+
+### The Pipeline, Revisited
+
+Every compiler or interpreter follows the same pipeline. We've now seen every stage in theory:
+
+```
+Characters ──▶ Tokens ──▶ CST ──▶ AST ──▶ Meaning
+           (Type 3/DFA)   (Type 2/PDA)   (Actions)   (Semantics)
+```
+
+The first arrow — characters to tokens — is handled by a **scanner** (also called a lexer or tokenizer). This is a Type 3 problem: regular expressions define the patterns, and a DFA recognizes them. We built this intuitively in LN 8. In HW 4, you felt the raw performance advantage of a DFA over a recursive descent parser on this exact type of problem.
+
+The second arrow — tokens to CST — is the **parsing** problem. This is a Type 2 problem: context-free grammars define the structure, and some form of pushdown automaton recognizes it. **This is where today's lecture lives.**
+
+The third arrow — CST to AST — is handled by **semantic actions**: code that runs alongside the parser, transforming the full derivation tree into its essential form.
+
+### The Engineering Problem
+
+Here's the tension we need to resolve. The most general algorithm for parsing any context-free grammar is the **CYK algorithm** (Cocke-Younger-Kasami). It works for *every* CFG, even ambiguous ones. But it runs in $O(n^3)$ time, where $n$ is the number of tokens.
+
+<DisplayMath formula="CYK: \text{Any CFG} \quad \Rightarrow \quad O(n^3)" />
+
+For a 10,000-line source file with perhaps 100,000 tokens, that's $10^{15}$ operations. Unusable.
+
+The solution: **restrict your grammars** to specific subclasses that can be parsed in $O(n)$ time. This is the pragmatic trade-off from LN 6 applied directly: we sacrifice some generality to gain the speed we need. The three families of algorithms we'll study today each restrict grammars differently, and each achieves linear time.
+
+---
+
+## Today's Agenda
+
+- **Top-Down Parsing (The LL Family)** — Start at the root, predict downward
+- **Bottom-Up Parsing (The LR Family)** — Start at the leaves, reduce upward
+- **Analytic Grammars and Packrat Parsing** — Sidestep the generative debate entirely
+- **Building Petal's Parser with Ohm.js** — Theory becomes practice
+- **From CST to AST in Code** — Semantic actions
+- **The Ohm Editor** — A live development tool
+
+---
+
+## Top-Down Parsing: The LL Family
+
+<DefinitionBox title="LL(k) Parsing">
+
+**LL(k)** stands for:
+- **L**eft-to-right scan of the input
+- **L**eftmost derivation (always expand the leftmost non-terminal first)
+- **k** tokens of lookahead to decide which rule to apply
+
+The parser starts at the **start symbol** (the root of the tree) and works **downward**, predicting which production rule to use based on the next $k$ tokens in the input stream.
+
+</DefinitionBox>
+
+The most intuitive way to build a parser is **Recursive Descent**: write one function per grammar rule, and let the functions call each other. Each function tries to match the tokens for its rule. If the rule has alternatives, the function peeks at the next token(s) to decide which alternative to take.
+
+### A Tiny Grammar
+
+Let's start with the expression grammar we refined in LN 8. After encoding precedence into the grammar structure, we had something like:
+
+```
+Exp     → Term (("+" | "-") Term)*
+Term    → Factor (("*" | "/") Factor)*
+Factor  → Primary ("**" Factor)?
+Primary → number | identifier | "(" Exp ")"
+```
+
+This grammar is **right-recursive** (or iterative, in the EBNF form above) — exactly the shape a recursive descent parser loves. Each level of the grammar corresponds to a level of precedence, and each function calls the next-lower level.
+
+### Recursive Descent in Pseudocode
+
+Here's what a recursive descent parser looks like for this grammar. Each grammar rule becomes a function:
+
+```
+function parseExp():
+    left = parseTerm()
+    while currentToken is "+" or "-":
+        op = consume currentToken
+        right = parseTerm()
+        left = BinaryNode(op, left, right)
+    return left
+
+function parseTerm():
+    left = parseFactor()
+    while currentToken is "*" or "/":
+        op = consume currentToken
+        right = parseFactor()
+        left = BinaryNode(op, left, right)
+    return left
+
+function parseFactor():
+    base = parsePrimary()
+    if currentToken is "**":
+        consume "**"
+        exponent = parseFactor()   // right-recursive!
+        return BinaryNode("**", base, exponent)
+    return base
+
+function parsePrimary():
+    if currentToken is a number:
+        return NumberNode(consume number)
+    if currentToken is an identifier:
+        return IdentNode(consume identifier)
+    if currentToken is "(":
+        consume "("
+        expr = parseExp()
+        consume ")"
+        return expr
+    error("unexpected token")
+```
+
+Notice the pattern: each function corresponds to one level of precedence. `parseExp` handles addition and subtraction (lowest precedence). `parseTerm` handles multiplication and division. `parseFactor` handles exponentiation (right-associative, so it calls itself recursively). `parsePrimary` handles atoms — numbers, identifiers, and parenthesized sub-expressions.
+
+This is **precedence climbing** in action. The layered grammar we built in LN 8 isn't just a theoretical trick — it's *literally the code*.
+
+### Watching It Work
+
+Let's trace the recursive descent parser on the input `3 + 5 * 2`. The token stream is `[3, +, 5, *, 2]`. Watch how the call stack grows and shrinks as the parser descends through the grammar levels:
+
+<RecursiveDescentStepper
+  title="Recursive Descent: Parsing 3 + 5 * 2"
+  steps={[
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 0,
+      callStack: ["parseExp"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "Start: parseExp() is called. It will look for Term (('+' | '-') Term)*."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 0,
+      callStack: ["parseExp", "parseTerm"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "parseExp() calls parseTerm() to find the left operand."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 0,
+      callStack: ["parseExp", "parseTerm", "parsePrimary"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "parseTerm() calls parsePrimary() to find its left factor."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 1,
+      callStack: ["parseExp", "parseTerm"],
+      treeNodes: [{ id: "n3", label: "3", isTerminal: true, level: 0 }],
+      treeEdges: [],
+      description: "parsePrimary() consumes '3' and returns NumberNode(3). parseTerm sees '+' next — not '*', so it returns."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 2,
+      callStack: ["parseExp"],
+      treeNodes: [{ id: "n3", label: "3", isTerminal: true, level: 0 }],
+      treeEdges: [],
+      description: "parseExp() sees '+'. It consumes '+' and calls parseTerm() for the right operand."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 2,
+      callStack: ["parseExp", "parseTerm"],
+      treeNodes: [{ id: "n3", label: "3", isTerminal: true, level: 0 }],
+      treeEdges: [],
+      description: "Second call to parseTerm(). It calls parsePrimary()."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 2,
+      callStack: ["parseExp", "parseTerm", "parsePrimary"],
+      treeNodes: [{ id: "n3", label: "3", isTerminal: true, level: 0 }],
+      treeEdges: [],
+      description: "parsePrimary() is called to find the next atom."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 3,
+      callStack: ["parseExp", "parseTerm"],
+      treeNodes: [
+        { id: "n3", label: "3", isTerminal: true, level: 0 },
+        { id: "n5", label: "5", isTerminal: true, level: 0 },
+      ],
+      treeEdges: [],
+      description: "parsePrimary() consumes '5' and returns NumberNode(5). parseTerm sees '*' — a multiplicative operator! It enters its while loop."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 4,
+      callStack: ["parseExp", "parseTerm", "parsePrimary"],
+      treeNodes: [
+        { id: "n3", label: "3", isTerminal: true, level: 0 },
+        { id: "n5", label: "5", isTerminal: true, level: 0 },
+      ],
+      treeEdges: [],
+      description: "parseTerm() consumed '*' and calls parsePrimary() for the right factor."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 5,
+      callStack: ["parseExp", "parseTerm"],
+      treeNodes: [
+        { id: "n3", label: "3", isTerminal: true, level: 2 },
+        { id: "mul", label: "*", level: 1 },
+        { id: "n5", label: "5", isTerminal: true, level: 2 },
+        { id: "n2", label: "2", isTerminal: true, level: 2 },
+      ],
+      treeEdges: [
+        { from: "mul", to: "n5" },
+        { from: "mul", to: "n2" },
+      ],
+      description: "parsePrimary() consumes '2'. parseTerm() builds BinaryNode(*, 5, 2). The subtree for 5 * 2 is complete."
+    },
+    {
+      tokens: ["3", "+", "5", "*", "2"],
+      cursor: 5,
+      callStack: [],
+      treeNodes: [
+        { id: "add", label: "+", level: 0 },
+        { id: "n3", label: "3", isTerminal: true, level: 1 },
+        { id: "mul", label: "*", level: 1 },
+        { id: "n5", label: "5", isTerminal: true, level: 2 },
+        { id: "n2", label: "2", isTerminal: true, level: 2 },
+      ],
+      treeEdges: [
+        { from: "add", to: "n3" },
+        { from: "add", to: "mul" },
+        { from: "mul", to: "n5" },
+        { from: "mul", to: "n2" },
+      ],
+      description: "parseExp() builds BinaryNode(+, 3, *(5,2)). Parse complete! The tree correctly nests multiplication inside addition."
+    }
+  ]}
+/>
+
+The key observation: **precedence emerges naturally from the call structure**. `parseTerm` binds `5 * 2` together before `parseExp` ever sees the result. The grammar's layered structure *is* the precedence mechanism.
+
+### The Fatal Flaw: Left Recursion
+
+But what if we hadn't rewritten the grammar? What if we used the "natural" left-recursive version from LN 7?
+
+```
+Exp → Exp "+" Term | Term
+```
+
+This grammar is perfectly valid. It's unambiguous. It even encodes left-associativity correctly. But watch what happens when we try to write a recursive descent parser for it:
+
+```
+function parseExp():
+    left = parseExp()     // ← calls itself IMMEDIATELY
+    ...
+```
+
+The function `parseExp()` calls `parseExp()` before consuming any tokens. That call does the same. And the next. And the next. The call stack grows without bound, and the cursor never advances. This is **left recursion**, and it's the Achilles' heel of top-down parsing.
+
+<RecursiveDescentStepper
+  title="Left Recursion: Infinite Loop"
+  steps={[
+    {
+      tokens: ["3", "+", "5"],
+      cursor: 0,
+      callStack: ["parseExp"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "parseExp() is called. Rule: Exp → Exp '+' Term | Term. It tries the first alternative: Exp '+' Term."
+    },
+    {
+      tokens: ["3", "+", "5"],
+      cursor: 0,
+      callStack: ["parseExp", "parseExp"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "To match Exp '+' Term, it first needs to match Exp... so it calls parseExp() again. The cursor hasn't moved."
+    },
+    {
+      tokens: ["3", "+", "5"],
+      cursor: 0,
+      callStack: ["parseExp", "parseExp", "parseExp"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "Same situation. parseExp() calls parseExp(). The cursor STILL hasn't moved. The stack keeps growing..."
+    },
+    {
+      tokens: ["3", "+", "5"],
+      cursor: 0,
+      callStack: ["parseExp", "parseExp", "parseExp", "parseExp"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "Fourth call. No token consumed. No progress. This will continue forever.",
+      isError: false
+    },
+    {
+      tokens: ["3", "+", "5"],
+      cursor: 0,
+      callStack: ["parseExp", "parseExp", "parseExp", "parseExp", "parseExp"],
+      treeNodes: [],
+      treeEdges: [],
+      description: "The program crashes with a stack overflow. Left recursion is incompatible with top-down parsing.",
+      isError: true
+    }
+  ]}
+/>
+
+The standard fix is exactly what we did above: rewrite the grammar to eliminate left recursion. Replace `Exp → Exp "+" Term | Term` with the iterative form `Exp → Term ("+" Term)*`. This is mathematically equivalent — it generates the same language — but it's now safe for a recursive descent parser because `parseTerm()` is called first, which will consume at least one token before any recursion occurs.
+
+> This is a fundamental constraint of LL parsing: **left-recursive grammars require rewriting before they can be parsed top-down.** The grammar must be transformed so that every recursive call is "guarded" by at least one token being consumed first. This isn't a bug — it's a consequence of the top-down strategy.
+
+### Strengths and Weaknesses of LL
+
+**Strengths:**
+- Easy to write by hand — the code mirrors the grammar
+- Excellent error messages — when parsing fails, the call stack tells you exactly *where* and *why*
+- Natural fit for humans to read and modify
+- You've already used this technique: your lambda calculus interpreter from HW 2 was a recursive descent parser
+
+**Weaknesses:**
+- Cannot handle left-recursive grammars without rewriting
+- Limited lookahead — LL(1) can only peek at one token; some grammars need LL(k) or even unbounded lookahead
+- Grammar contortions can obscure the intended structure
+
+Despite these weaknesses, recursive descent is the most common parsing technique in production compilers today. GCC, Clang, Rust's compiler, Go's compiler, and V8's JavaScript parser all use recursive descent. The simplicity and debuggability outweigh the grammar restrictions in practice.
+
+---
+
+## Bottom-Up Parsing: The LR Family
+
+<DefinitionBox title="LR(k) Parsing">
+
+**LR(k)** stands for:
+- **L**eft-to-right scan of the input
+- **R**ightmost derivation (in reverse)
+- **k** tokens of lookahead
+
+The parser starts at the **leaves** (the input tokens) and works **upward**, collecting tokens on a stack and **reducing** groups of tokens to non-terminals when they match the right-hand side of a grammar rule.
+
+</DefinitionBox>
+
+If LL parsing works top-down — from the root to the leaves — then LR parsing works bottom-up, from the leaves to the root. Instead of *predicting* which rule to use, an LR parser *discovers* rules by collecting evidence on a stack. The two fundamental operations are:
+
+- **SHIFT**: push the next input token onto the stack
+- **REDUCE**: when the top of the stack matches the right-hand side of a production rule, pop those items and push the left-hand side
+
+### The PDA Connection
+
+Here's a fact that should give you chills: the stack in a shift-reduce parser **is** the stack of the Pushdown Automaton from LN 5. When we said that context-free languages are recognized by PDAs, we meant *exactly this*. The shift-reduce parser is the first time in this course that you see a PDA doing real computational work, not just as an abstract model in a theorem.
+
+The DFA in the scanner reads characters and produces tokens (Type 3). The PDA in the parser reads tokens and produces trees (Type 2). The Chomsky Hierarchy isn't just a classification scheme — it's a blueprint for building compilers.
+
+### Watching It Work
+
+Let's trace a shift-reduce parse of `3 + 5 * 2` using this grammar:
+
+```
+Exp  → Exp "+" Term | Term
+Term → Term "*" Primary | Primary
+Primary → number
+```
+
+Notice: this is the **left-recursive** grammar — the one that broke our recursive descent parser. LR parsers handle it naturally.
+
+<ShiftReduceStepper
+  title="Shift-Reduce: Parsing 3 + 5 * 2"
+  steps={[
+    {
+      stack: ["$"],
+      input: ["3", "+", "5", "*", "2", "$"],
+      action: "START",
+      description: "Initial state. The stack has only the bottom marker $. The full input is ahead."
+    },
+    {
+      stack: ["$", "3"],
+      input: ["+", "5", "*", "2", "$"],
+      action: "SHIFT",
+      description: "Shift '3' from the input onto the stack."
+    },
+    {
+      stack: ["$", "Primary"],
+      input: ["+", "5", "*", "2", "$"],
+      action: "REDUCE Primary → number",
+      description: "The top of the stack ('3') matches 'number'. Reduce it to Primary.",
+      highlightStack: [1]
+    },
+    {
+      stack: ["$", "Term"],
+      input: ["+", "5", "*", "2", "$"],
+      action: "REDUCE Term → Primary",
+      description: "The top of the stack ('Primary') matches the RHS of 'Term → Primary'. Reduce.",
+      highlightStack: [1]
+    },
+    {
+      stack: ["$", "Exp"],
+      input: ["+", "5", "*", "2", "$"],
+      action: "REDUCE Exp → Term",
+      description: "The top of the stack ('Term') matches 'Exp → Term'. Reduce.",
+      highlightStack: [1]
+    },
+    {
+      stack: ["$", "Exp", "+"],
+      input: ["5", "*", "2", "$"],
+      action: "SHIFT",
+      description: "Shift '+' onto the stack. We can't reduce yet — we need a Term on the right."
+    },
+    {
+      stack: ["$", "Exp", "+", "5"],
+      input: ["*", "2", "$"],
+      action: "SHIFT",
+      description: "Shift '5' onto the stack."
+    },
+    {
+      stack: ["$", "Exp", "+", "Primary"],
+      input: ["*", "2", "$"],
+      action: "REDUCE Primary → number",
+      description: "Reduce '5' to Primary.",
+      highlightStack: [3]
+    },
+    {
+      stack: ["$", "Exp", "+", "Term"],
+      input: ["*", "2", "$"],
+      action: "REDUCE Term → Primary",
+      description: "Reduce Primary to Term.",
+      highlightStack: [3]
+    },
+    {
+      stack: ["$", "Exp", "+", "Term", "*"],
+      input: ["2", "$"],
+      action: "SHIFT",
+      description: "Shift '*'. We do NOT reduce 'Exp + Term' to Exp yet — the '*' ahead has higher precedence, and we need to grab it first."
+    },
+    {
+      stack: ["$", "Exp", "+", "Term", "*", "2"],
+      input: ["$"],
+      action: "SHIFT",
+      description: "Shift '2' onto the stack."
+    },
+    {
+      stack: ["$", "Exp", "+", "Term", "*", "Primary"],
+      input: ["$"],
+      action: "REDUCE Primary → number",
+      description: "Reduce '2' to Primary.",
+      highlightStack: [5]
+    },
+    {
+      stack: ["$", "Exp", "+", "Term"],
+      input: ["$"],
+      action: "REDUCE Term → Term * Primary",
+      description: "Now the top three items 'Term * Primary' match 'Term → Term * Primary'. Reduce! This correctly binds 5 * 2 together.",
+      highlightStack: [3, 4, 5]
+    },
+    {
+      stack: ["$", "Exp"],
+      input: ["$"],
+      action: "REDUCE Exp → Exp + Term",
+      description: "Now 'Exp + Term' matches 'Exp → Exp + Term'. Reduce! This binds 3 + (5*2) together.",
+      highlightStack: [1, 2, 3]
+    },
+    {
+      stack: ["$", "Exp"],
+      input: ["$"],
+      action: "ACCEPT",
+      description: "The stack has $ Exp and the input is empty ($). Accept! The parse tree has been constructed bottom-up."
+    }
+  ]}
+/>
+
+Look carefully at steps 9 and 10. When the parser sees `Exp + Term` on the stack with `*` as the next token, it doesn't reduce `Exp + Term` to `Exp`. Instead, it **shifts** the `*`, waiting to build the higher-precedence `Term * Primary` first. This is the shift/reduce decision, and it's where the parser's intelligence lives. The decision is encoded in a **parsing table** — a large, precomputed lookup table that tells the parser whether to shift or reduce for every combination of stack state and lookahead token.
+
+### The Parse Table (A Glimpse)
+
+How does the parser know to shift `*` in step 9 but reduce in step 12? It consults a **parse table** — a precomputed two-dimensional lookup indexed by the parser's current **state** (a number encoding the stack contents) and the **lookahead token** (the next input symbol). Here is a small fragment showing just the states relevant to the critical decision:
+
+| State | `+` | `*` | `number` | `$` (end) | Exp | Term | Primary |
+|---|---|---|---|---|---|---|---|
+| **0** (initial) | | | s1 | | goto 4 | goto 3 | goto 2 |
+| **1** (saw number) | r3 | r3 | | r3 | | | |
+| **2** (saw Primary) | r2 | r2 | | r2 | | | |
+| **3** (saw Term) | r1 | **s5** | | r1 | | | |
+| **4** (saw Exp) | s6 | | | **accept** | | | |
+| **5** (saw Term `*`) | | | s1 | | | | goto 7 |
+| **6** (saw Exp `+`) | | | s1 | | | goto 8 | goto 2 |
+| **7** (saw Term `*` Primary) | **r2'** | **r2'** | | **r2'** | | | |
+| **8** (saw Exp `+` Term) | **r1'** | **s5** | | **r1'** | | | |
+
+In this table, `s5` means "shift and go to state 5," `r1` means "reduce using rule 1 (Exp -> Term)," and `goto` entries tell the parser which state to enter after a reduce. The notation is compact, but the principle is simple: **look up your state and your lookahead, and the cell tells you what to do.**
+
+The two critical cells that govern precedence are in **state 8** (the state after seeing `Exp + Term` on the stack):
+
+- Lookahead is `*` -> the cell says **s5** (shift). The parser pushes `*` and waits, because multiplication binds tighter than addition. This is step 9 in the stepper above.
+- Lookahead is `$` (end of input) -> the cell says **r1'** (reduce `Exp -> Exp + Term`). No more operators to grab, so it's safe to close the addition. This is step 13.
+
+The magic is that **precedence is baked into the table**, not into the grammar or the algorithm. The grammar stays clean and left-recursive. The table encodes the intelligence. But the table for even a small grammar has dozens of states and hundreds of cells. For a real programming language, it can have thousands. This is why nobody writes LR parse tables by hand — tools like **Yacc** and **Bison** generate them from your grammar automatically.
+
+### The Trade-Off
+
+LR parsers can handle **left-recursive grammars naturally**. We never had to rewrite `Exp → Exp "+" Term` into an iterative form. The grammar we wrote for humans is the grammar the parser uses. No contortions required.
+
+But there's a price: **the parsing tables are enormous and impossible to construct by hand**. A typical programming language grammar produces tables with thousands of states. Nobody writes an LR parser from scratch. Instead, you use a **parser generator** — a tool that reads your grammar and outputs the parsing code (with its tables). The most famous parser generators are:
+
+- **Yacc** (Yet Another Compiler-Compiler, 1975) — used to build the original C compiler
+- **Bison** — GNU's modern version of Yacc
+- **LALR** — Look-Ahead LR, the subset of LR that Yacc/Bison actually implements (slightly less powerful, but much smaller tables)
+- **GLR** — Generalized LR, which handles even ambiguous grammars (used in some NLP tools)
+
+### Industry History
+
+For decades, LR parsing was the standard approach for production compilers. The original C compiler was built with Yacc. Most UNIX utilities used Yacc-generated parsers. The technique dominated from the mid-1970s through the 1990s.
+
+But starting in the 2000s, the industry shifted. Recursive descent parsers came back, powered by better engineering practices and the realization that **error messages matter more than grammar generality**. When an LR parser encounters an error, the parsing table produces a cryptic state-number-based message. When a recursive descent parser encounters an error, the call stack tells you "I was parsing an if-statement, looking for the closing brace, and found a semicolon instead." This pragmatic advantage (LN 6) proved decisive.
+
+Today, most new compilers use recursive descent. LR-based tools survive in niche roles: legacy systems, parser generators for domain-specific languages, and academic settings where grammar generality matters.
+
+### Strengths and Weaknesses of LR
+
+**Strengths:**
+- Handles left-recursive grammars natively — no rewriting needed
+- Strictly more powerful than LL: every LL grammar is also LR, but not vice versa
+- Theoretical elegance — directly implements the PDA
+- Handles a very broad class of unambiguous CFGs
+
+**Weaknesses:**
+- Parsing tables are too complex for humans to build — requires generator tools
+- Error messages are difficult to customize
+- Debugging a grammar conflict (shift/reduce or reduce/reduce) can be agonizing
+- The generated code is opaque — you can't easily read or modify it
+
+---
+
+## The Pragmatic Shift: Analytic Grammars and Packrat Parsing
+
+We've seen two families of parsers, and each has a fundamental limitation. LL parsers are easy to write but can't handle left recursion. LR parsers are powerful but require complex generator tools. Both are based on **generative grammars** — they try to find a derivation in a context-free grammar.
+
+In 2004, Bryan Ford published a paper that changed the landscape. Instead of working with generative grammars at all, he formalized a completely different approach: **Parsing Expression Grammars (PEGs)**. We previewed PEGs in LN 8. Now let's understand them as a parsing algorithm.
+
+### The PEG Difference
+
+Recall from LN 8: a PEG uses **ordered alternation** (`/`) instead of unordered alternation (`|`). This means:
+
+- In a CFG: `A → "a" | "ab"` generates both `a` and `ab`
+- In a PEG: `A ← "a" / "ab"` tries `"a"` first; if it succeeds, `"ab"` is never tried
+
+This single change eliminates ambiguity by construction. Every input either matches or doesn't, and there's exactly one way to parse it. No ambiguity, no shift/reduce conflicts, no grammar debugging.
+
+PEGs also support **syntactic predicates** — lookahead operators that check what's coming without consuming input:
+- `&E` (positive lookahead): succeeds if `E` would match, but doesn't consume
+- `!E` (negative lookahead): succeeds if `E` would *not* match
+
+These let you write context-sensitive-like rules within a formally context-free framework. For example: "match an identifier, but *not* a keyword" becomes `!keyword identifier`.
+
+### Seeing Ordered Alternation Live
+
+Ordered alternation is subtle, so let's see it in action. The **Ohm Editor** below lets you type a grammar and test it against inputs in real time. Try this experiment:
+
+1. Paste this grammar: `G { start = "ab" / "a" }` — alternatives are tried left-to-right
+2. Type `ab` as input — it matches (the first alternative `"ab"` succeeds)
+3. Type `a` as input — it also matches (first alternative fails, second succeeds)
+4. Now **swap the order**: change the grammar to `G { start = "a" / "ab" }`
+5. Type `ab` again — it **fails**! The parser matches `"a"` from the first alternative, but then there's a leftover `b` that doesn't belong. The second alternative `"ab"` is never even tried.
+
+This is the core of PEGs: the order of alternatives determines behavior. In a CFG, `"a" | "ab"` and `"ab" | "a"` generate the same language. In a PEG, they don't. This is also the property that gives PEGs their power — ambiguity becomes impossible because there's always exactly one way to parse.
+
+<div className="my-6 border rounded-lg overflow-hidden">
+  <div className="px-4 py-3 bg-muted/50 border-b">
+    <span className="font-semibold text-sm">🔧 Ohm Editor — Ordered Alternation Experiment</span>
+  </div>
+  <iframe
+    src="https://ohmjs.org/editor/"
+    className="w-full border-0"
+    style={{ height: "400px" }}
+    title="Ohm Editor — PEG Demo"
+    allow="clipboard-write"
+  />
+  <div className="px-4 py-2 border-t bg-muted/20">
+    <p className="text-sm text-muted-foreground italic text-center">
+      Try <code>G {"{"} start = "ab" / "a" {"}"}</code> vs <code>G {"{"} start = "a" / "ab" {"}"}</code> with input <code>ab</code>. Notice how order matters!
+    </p>
+  </div>
+</div>
+
+This is the same tool we'll use later in this lecture to build Petal's full parser. For now, the takeaway is clear: PEGs trade the symmetry of unordered alternation for the determinism of ordered alternation — and that trade is exactly what makes them practical.
+
+### Packrat Parsing: Guaranteed Linear Time
+
+A naive PEG parser might have exponential worst-case time, because backtracking can retry the same rule at the same position multiple times. **Packrat parsing** eliminates this by memoizing every rule application at every input position.
+
+<DefinitionBox title="Packrat Parsing">
+
+A Packrat parser maintains a **memoization table** indexed by (rule, input position). Before applying any rule at any position, it checks the table:
+- If the result is already cached: return it immediately (**cache hit**)
+- If not: compute the result, store it in the table, then return it
+
+This guarantees that each (rule, position) pair is computed at most once, giving a worst-case time complexity of $O(n \times |G|)$, where $n$ is the input length and $|G|$ is the number of grammar rules. Since $|G|$ is fixed for a given grammar, this is effectively **$O(n)$** — linear time.
+
+The trade-off is **memory**: the table requires $O(n \times |G|)$ space, which can be significant for large inputs with many rules. In practice, this is acceptable for programming language parsers but problematic for parsing multi-gigabyte data files.
+
+</DefinitionBox>
+
+Let's watch Packrat memoization in action. We'll parse `3 + 5 * 2` with a PEG that has enough alternatives to generate real backtracking:
+
+```
+Exp     ← Term "+" Exp / Term
+Term    ← Factor "*" Term / Factor
+Factor  ← Primary
+Primary ← number
+```
+
+This grammar has **right-recursive** alternatives for both `Exp` and `Term`. When a first alternative fails (e.g., `Term "+" Exp` at a position where there's no `+`), the parser backtracks and tries the second alternative (`Term`). Without memoization, the `Term` would be recomputed from scratch. With Packrat, it's a cache hit.
+
+<PackratStepper
+  title="Packrat Memoization: Parsing 3 + 5 * 2"
+  rules={["Exp", "Term", "Factor", "Primary"]}
+  inputTokens={["3", "+", "5", "*", "2"]}
+  steps={[
+    { row: 0, col: 0, result: "pending", isCacheHit: false, description: "Try Exp at position 0. First alternative: Term '+' Exp." },
+    { row: 1, col: 0, result: "pending", isCacheHit: false, description: "Exp needs Term at pos 0. Try Term. First alt: Factor '*' Term." },
+    { row: 2, col: 0, result: "pending", isCacheHit: false, description: "Term needs Factor at pos 0. Factor needs Primary." },
+    { row: 3, col: 0, result: "match", isCacheHit: false, description: "'3' is a number — Primary@0 = ✓. Cache it." },
+    { row: 2, col: 0, result: "match", isCacheHit: false, description: "Primary matched, so Factor@0 = ✓. Cache it." },
+    { row: 1, col: 0, result: "pending", isCacheHit: false, description: "Factor matched. Term's first alt needs '*' at pos 1 — but it's '+'. First alt fails. Try second: just Factor." },
+    { row: 2, col: 0, result: "match", isCacheHit: true, description: "Need Factor@0 again — CACHE HIT! No recomputation needed." },
+    { row: 1, col: 0, result: "match", isCacheHit: false, description: "Second alt matches via cache hit. Term@0 = ✓. Cache it." },
+    { row: 0, col: 0, result: "pending", isCacheHit: false, description: "Term matched. Exp's first alt needs '+' at pos 1 — yes! Now try Exp at position 2." },
+    { row: 0, col: 2, result: "pending", isCacheHit: false, description: "Try Exp at position 2. First alt: Term '+' Exp." },
+    { row: 1, col: 2, result: "pending", isCacheHit: false, description: "Exp needs Term at pos 2. Try Term. First alt: Factor '*' Term." },
+    { row: 2, col: 2, result: "pending", isCacheHit: false, description: "Term needs Factor at pos 2. Factor needs Primary." },
+    { row: 3, col: 2, result: "match", isCacheHit: false, description: "'5' is a number — Primary@2 = ✓. Cache it." },
+    { row: 2, col: 2, result: "match", isCacheHit: false, description: "Factor@2 = ✓. Cache it." },
+    { row: 1, col: 2, result: "pending", isCacheHit: false, description: "Factor matched. Term's first alt needs '*' at pos 3 — yes! Now try Term at position 4." },
+    { row: 1, col: 4, result: "pending", isCacheHit: false, description: "Try Term at pos 4. First alt: Factor '*' Term." },
+    { row: 2, col: 4, result: "pending", isCacheHit: false, description: "Term needs Factor at pos 4. Factor needs Primary." },
+    { row: 3, col: 4, result: "match", isCacheHit: false, description: "'2' is a number — Primary@4 = ✓. Cache it." },
+    { row: 2, col: 4, result: "match", isCacheHit: false, description: "Factor@4 = ✓. Cache it." },
+    { row: 1, col: 4, result: "pending", isCacheHit: false, description: "Factor matched. Term's first alt needs '*' at pos 5 — EOF. First alt fails. Try second: just Factor." },
+    { row: 2, col: 4, result: "match", isCacheHit: true, description: "Need Factor@4 again — CACHE HIT! No recomputation." },
+    { row: 1, col: 4, result: "match", isCacheHit: false, description: "Term@4 = ✓ via cache hit. Cache it." },
+    { row: 1, col: 2, result: "match", isCacheHit: false, description: "Back to pos 2: Factor '*' Term all matched. Term@2 = ✓ (captures 5*2). Cache it." },
+    { row: 0, col: 2, result: "pending", isCacheHit: false, description: "Term matched at pos 2. Exp's first alt needs '+' at pos 5 — EOF. First alt fails. Try second: just Term." },
+    { row: 1, col: 2, result: "match", isCacheHit: true, description: "Need Term@2 again — CACHE HIT! The entire 5*2 subtree is retrieved instantly." },
+    { row: 0, col: 2, result: "match", isCacheHit: false, description: "Exp@2 = ✓ via cache hit. Cache it." },
+    { row: 0, col: 0, result: "match", isCacheHit: false, description: "Back to pos 0: Term '+' Exp all matched. Exp@0 = ✓. Parse complete!" }
+  ]}
+/>
+
+Watch the cache hits at steps 7, 21, and 25. Each time a first alternative fails, the parser tries the second alternative, which needs a result already computed during the first attempt. Without memoization, each of those cache hits would trigger a full redundant descent — `Factor@0` would recompute `Primary → number`, and `Term@2` would recompute `Factor '*' Term → Factor → Primary → number` for both `5` and `2`. In this small example, memoization saved 3 redundant rule applications. In a real grammar with dozens of rules and thousands of tokens, the savings compound from linear overhead to the difference between an $O(n)$ parse and an exponential one.
+
+### The Modern Landscape
+
+Most new parsing tools are PEG-based. The advantages are compelling:
+
+- **No ambiguity** — ordered alternation eliminates it by construction
+- **Linear time** — Packrat memoization guarantees $O(n)$
+- **Left-recursion support** — modern PEG libraries (including Ohm.js) handle left recursion through extensions
+- **Predicates** — `&E` and `!E` provide expressive power beyond what CFGs offer
+- **Grammar is the code** — no separate generation step
+
+Here's how the three families compare:
+
+| Property | LL (Top-Down) | LR (Bottom-Up) | PEG (Analytic) |
+|---|---|---|---|
+| Strategy | Predict from root | Reduce from leaves | Match with backtracking |
+| Left recursion | Cannot handle | Handles naturally | Extensions available |
+| Ambiguity | Possible | Possible | Impossible by design |
+| Error messages | Excellent | Difficult | Good (with effort) |
+| Implementation | By hand | Requires generator | By hand or library |
+| Time complexity | $O(n)$ for LL(k) | $O(n)$ for LALR | $O(n)$ with Packrat |
+| Industry use | GCC, Clang, Rust, Go | Yacc, Bison, legacy | Ohm, PEG.js, tree-sitter |
+
+The trend is clear: LL for hand-written parsers, PEG for library-based parsers, LR for legacy and specialized cases. All three achieve linear time. All three produce correct trees for their grammar subclass. The choice is **pragmatic** — echoing LN 6's central lesson.
+
+---
+
+## Building Petal's Parser Step-by-Step with Ohm.js
+
+Theory without practice is incomplete. Let's build a real parser for Petal using **Ohm.js**, a modern PEG-based parsing library for JavaScript. Ohm was designed by Alex Warth at the CDG (Communications Design Group) at SAP Labs, and it embodies a key principle: **separate the grammar from the semantic actions**. The grammar defines *what* to match. The actions define *what to do* with the matches.
+
+### Why Ohm?
+
+Ohm has several features that make it ideal for our purposes:
+
+1. **Clean grammar syntax** — looks like EBNF, reads like a language specification
+2. **Automatic CST construction** — Ohm builds the concrete syntax tree for you
+3. **Left-recursion support** — Ohm extends standard PEGs to handle left-recursive rules
+4. **Semantic actions** — a separate object of functions transforms CST nodes into whatever you want (ASTs, values, code)
+5. **The Ohm Editor** — a live, browser-based tool for developing and testing grammars
+
+### Phase 1: Expressions Only
+
+Let's start with just arithmetic expressions. Here's the Ohm grammar:
+
+```
+Petal {
+  Exp
+    = Exp "+" Term    -- plus
+    | Exp "-" Term    -- minus
+    | Term
+
+  Term
+    = Term "*" Factor  -- times
+    | Term "/" Factor  -- divide
+    | Factor
+
+  Factor
+    = Primary "**" Factor  -- power
+    | Primary
+
+  Primary
+    = number
+    | identifier
+    | "(" Exp ")"     -- parens
+
+  number = digit+
+  identifier = letter (letter | digit)*
+}
+```
+
+Notice that we're using **left-recursive rules** for `Exp` and `Term` — the exact grammar that broke our recursive descent parser. Ohm handles this seamlessly through its built-in left-recursion extension. The grammar reads exactly as a human would write it, with no contortions required.
+
+Each alternative has a **case label** (like `-- plus`, `-- minus`). These labels become the names of the semantic action functions we'll write later. They're how Ohm connects grammar structure to code.
+
+To test this grammar:
+
+```javascript
+import * as ohm from 'ohm-js';
+
+const petalGrammar = ohm.grammar(`
+  Petal {
+    Exp
+      = Exp "+" Term    -- plus
+      | Exp "-" Term    -- minus
+      | Term
+
+    Term
+      = Term "*" Factor  -- times
+      | Term "/" Factor  -- divide
+      | Factor
+
+    Factor
+      = Primary "**" Factor  -- power
+      | Primary
+
+    Primary
+      = number
+      | identifier
+      | "(" Exp ")"     -- parens
+
+    number = digit+
+    identifier = letter (letter | digit)*
+  }
+`);
+
+const match = petalGrammar.match('3 + 5 * 2');
+console.log(match.succeeded());  // true
+```
+
+When `match.succeeded()` returns `true`, Ohm has successfully parsed the input and built a CST internally. The CST has nodes for every rule application — `Exp_plus` at the top, containing a `Term` (which reduced from `3`) and a `Term_times` (containing `5` and `2`).
+
+### Phase 2: Add Statements
+
+Petal isn't just expressions — it has statements too. Let's extend the grammar:
+
+```
+Petal {
+  Program = Statement+
+
+  Statement
+    = identifier "=" Exp ";"   -- assign
+    | "print" Exp ";"          -- print
+
+  Exp
+    = Exp "+" Term    -- plus
+    | Exp "-" Term    -- minus
+    | Term
+
+  Term
+    = Term "*" Factor  -- times
+    | Term "/" Factor  -- divide
+    | Factor
+
+  Factor
+    = Primary "**" Factor  -- power
+    | Primary
+
+  Primary
+    = number
+    | identifier
+    | "(" Exp ")"     -- parens
+
+  number = digit+
+  identifier = letter (letter | digit)*
+}
+```
+
+We've added `Program` (a sequence of statements) and `Statement` (either an assignment or a print). Notice the keywords `print` and the assignment operator `=`. These are handled by Ohm's string matching — no separate keyword table needed.
+
+Test it:
+
+```javascript
+const match = petalGrammar.match(`
+  x = 3 + 5;
+  y = x * 2;
+  print y;
+`);
+console.log(match.succeeded());  // true
+```
+
+### Phase 3: Handling Whitespace and Keywords
+
+One detail we've glossed over: **whitespace**. In Ohm, there are two kinds of rules:
+
+- **Syntactic rules** (capitalized, like `Exp`, `Statement`): automatically skip whitespace between their components
+- **Lexical rules** (lowercase, like `number`, `identifier`): match characters exactly, no automatic whitespace skipping
+
+This distinction maps directly to the Type 3 / Type 2 split from LN 8. Lexical rules define *tokens* (the flat, character-level patterns). Syntactic rules define *structure* (the nested, token-level patterns). Ohm enforces this distinction through its naming convention — a beautifully pragmatic design choice.
+
+We also need to prevent `identifier` from matching keywords. Ohm provides a clean way to do this:
+
+```
+keyword = "print" ~(letter | digit)
+identifier = ~keyword letter (letter | digit)*
+```
+
+The `~` operator is the negative lookahead from PEG theory. `~keyword` succeeds only if the current position does *not* start with a keyword. This prevents `printf` from being matched as keyword `print` followed by `f`.
+
+### Phase 4: The Full Petal Grammar
+
+Here's the complete grammar, ready for semantic actions:
+
+```
+Petal {
+  Program = Statement+
+
+  Statement
+    = identifier "=" Exp ";"   -- assign
+    | "print" Exp ";"          -- print
+
+  Exp
+    = Exp "+" Term    -- plus
+    | Exp "-" Term    -- minus
+    | Term
+
+  Term
+    = Term "*" Factor  -- times
+    | Term "/" Factor  -- divide
+    | Factor
+
+  Factor
+    = Primary "**" Factor  -- power
+    | Primary
+
+  Primary
+    = number
+    | identifier
+    | "(" Exp ")"     -- parens
+
+  number = digit+
+  identifier = ~keyword letter (letter | digit)*
+  keyword = "print" ~(letter | digit)
+}
+```
+
+This is the grammar we'll attach semantic actions to in the next section.
+
+---
+
+## From CST to AST in Code
+
+A grammar and a successful match give us a **CST** — but we want an **AST**. The CST includes every node from the grammar: the `Exp` that simply forwarded to `Term`, the parentheses that grouped but carry no semantic meaning, the semicolons that terminated statements. The AST strips all of that away, keeping only the essential structure.
+
+Ohm's approach: define a **semantics object** with one function per grammar rule. Each function receives the matched sub-nodes and returns whatever you want — in our case, AST nodes as plain JavaScript objects.
+
+### The Semantic Actions
+
+```javascript
+const semantics = petalGrammar.createSemantics().addOperation('toAST', {
+  Program(statements) {
+    return { type: 'Program', body: statements.children.map(c => c.toAST()) };
+  },
+  Statement_assign(id, _eq, exp, _semi) {
+    return { type: 'Assignment', name: id.sourceString, value: exp.toAST() };
+  },
+  Statement_print(_print, exp, _semi) {
+    return { type: 'Print', expression: exp.toAST() };
+  },
+  Exp_plus(left, _op, right) {
+    return { type: 'BinaryOp', op: '+', left: left.toAST(), right: right.toAST() };
+  },
+  Exp_minus(left, _op, right) {
+    return { type: 'BinaryOp', op: '-', left: left.toAST(), right: right.toAST() };
+  },
+  Term_times(left, _op, right) {
+    return { type: 'BinaryOp', op: '*', left: left.toAST(), right: right.toAST() };
+  },
+  Term_divide(left, _op, right) {
+    return { type: 'BinaryOp', op: '/', left: left.toAST(), right: right.toAST() };
+  },
+  Factor_power(base, _op, exp) {
+    return { type: 'BinaryOp', op: '**', base: base.toAST(), exponent: exp.toAST() };
+  },
+  Primary_parens(_open, exp, _close) {
+    return exp.toAST();
+  },
+  number(_digits) {
+    return { type: 'Number', value: Number(this.sourceString) };
+  },
+  identifier(_first, _rest) {
+    return { type: 'Identifier', name: this.sourceString };
+  },
+});
+```
+
+Notice the **visitor pattern** at work. Each grammar rule has a corresponding action function. Parameters named with a leading underscore (like `_eq`, `_semi`, `_open`) are syntactic scaffolding that we ignore — semicolons, parentheses, keywords. The `toAST()` calls propagate recursively through the CST, and what emerges at the top is a clean AST.
+
+### A Complete Example
+
+Let's trace the full pipeline for a Petal program:
+
+**Source code:**
+```
+x = 5 * a - (b + 1);
+print x;
+```
+
+**After parsing and `toAST()`:**
+```json
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "Assignment",
+      "name": "x",
+      "value": {
+        "type": "BinaryOp",
+        "op": "-",
+        "left": {
+          "type": "BinaryOp",
+          "op": "*",
+          "left": { "type": "Number", "value": 5 },
+          "right": { "type": "Identifier", "name": "a" }
+        },
+        "right": {
+          "type": "BinaryOp",
+          "op": "+",
+          "left": { "type": "Identifier", "name": "b" },
+          "right": { "type": "Number", "value": 1 }
+        }
+      }
+    },
+    {
+      "type": "Print",
+      "expression": { "type": "Identifier", "name": "x" }
+    }
+  ]
+}
+```
+
+This is the same tree structure we visualized in LN 8 with the `CSTtoASTStepper`, but now it's produced by real code. The CST had nodes like `Exp → Exp "-" Term` and `Primary → "(" Exp ")"`. The AST has only the essential structure: operators, operands, statements.
+
+### The Pattern
+
+The semantic action pattern is universal across parsing libraries:
+
+1. **Grammar defines structure** — which sequences of tokens are valid
+2. **Parser produces CST** — the full derivation tree with all grammar nodes
+3. **Semantic actions traverse CST** — one function per rule, extracting the essential information
+4. **AST emerges** — clean, minimal, ready for semantic analysis
+
+This pattern applies whether you use Ohm, ANTLR, tree-sitter, or a hand-written recursive descent parser. The tools change; the architecture doesn't.
+
+---
+
+## The Ohm Editor
+
+Ohm provides a browser-based tool for developing grammars interactively. You can type a grammar on the left, provide test input on the right, and see the CST in real time. It highlights match failures, shows which rules were tried, and lets you experiment without writing any code.
+
+Try pasting the Petal grammar from above, then typing expressions like `3 + 5 * 2` or full programs like `x = 10; print x;`.
+
+<div className="my-6 border rounded-lg overflow-hidden">
+  <div className="px-4 py-3 bg-muted/50 border-b">
+    <span className="font-semibold text-sm">🔧 Ohm Editor — Live Grammar Development</span>
+  </div>
+  <iframe
+    src="https://ohmjs.org/editor/"
+    className="w-full border-0"
+    style={{ height: "500px" }}
+    title="Ohm Editor"
+    allow="clipboard-write"
+  />
+  <div className="px-4 py-2 border-t bg-muted/20">
+    <p className="text-sm text-muted-foreground italic text-center">
+      Paste the Petal grammar above, then type test inputs to see the CST live. Try: <code>3 + 5 * 2</code> or <code>x = 10; print x;</code>
+    </p>
+  </div>
+</div>
+
+The Ohm Editor is your development environment for grammar engineering. Use it whenever you're designing or debugging a grammar — it gives you immediate feedback that no amount of staring at rules can provide.
+
+---
+
+## Summary
+
+Today we surveyed the three families of parsing algorithms, each targeting the same problem — turning a flat stream of tokens into a structured tree — but from fundamentally different angles:
+
+1. **Top-Down (LL / Recursive Descent)**: start at the start symbol, predict which rules to apply, and descend into the grammar. Easy to write by hand, excellent error messages, but cannot handle left-recursive grammars without rewriting. This is the technique you used in HW 2 for the lambda calculus parser, and it's the technique behind GCC, Clang, and Rust's compiler.
+
+2. **Bottom-Up (LR / Shift-Reduce)**: start at the input tokens, push onto a stack, and reduce when the top matches a rule's right-hand side. The stack *is* the PDA from LN 5 — context-free parsing is literally a pushdown automaton at work. Handles left recursion naturally, but requires generator tools because the parsing tables are enormous. Dominated the industry from the 1970s to the 2000s via Yacc/Bison.
+
+3. **Analytic (PEG / Packrat)**: abandon generative grammars entirely. Use ordered alternation to eliminate ambiguity by construction, and Packrat memoization to guarantee linear time. The modern default for new parsing tools, including Ohm.js, which we used to build Petal's parser in this lecture.
+
+We then put theory into practice: we wrote Petal's grammar in Ohm, tested it with real programs, and attached semantic actions to transform the CST into a clean JSON AST. The pipeline from LN 8 — characters to tokens to CST to AST — is no longer abstract. It's code.
+
+Next lecture, we'll take the ASTs that our parser produces and ask the question that syntax alone cannot answer: **what do they mean?**
+
+<LectureNotes>
+
+**Key Definitions:**
+- **LL(k)**: Left-to-right scan, Leftmost derivation, $k$ tokens of lookahead (top-down parsing)
+- **LR(k)**: Left-to-right scan, Rightmost derivation in reverse, $k$ tokens of lookahead (bottom-up parsing)
+- **Recursive Descent**: an LL parsing technique where each grammar rule becomes a function
+- **Shift-Reduce**: an LR parsing technique with two operations: push tokens (shift), replace rule matches (reduce)
+- **Packrat Parsing**: PEG parsing with memoization, guaranteeing $O(n)$ time at $O(n \times |G|)$ memory
+- **Left Recursion**: a rule like $A \to A\alpha$ that causes infinite loops in top-down parsers
+- **Precedence Climbing**: encoding operator precedence as layers of grammar rules, directly mirrored in recursive descent code
+- **Semantic Actions**: functions attached to grammar rules that transform CST nodes into AST nodes
+
+**Key Connections:**
+- The shift-reduce stack IS the PDA stack from LN 5 — bottom-up parsing is literally a pushdown automaton
+- DFA = scanner (Type 3), PDA = parser (Type 2) — the Chomsky Hierarchy is a compiler blueprint
+- Recursive Descent was already used in HW 2 (lambda calculus interpreter)
+- HW 4 demonstrated the Type 3 vs Type 2 performance trade-off; today we saw the algorithm details
+- PEG ordered alternation from LN 8 eliminates ambiguity; Packrat memoization makes it $O(n)$
+- The semantic action pattern connects to LN 4: CST-to-AST transformation is a function from trees to trees
+- Left-recursive grammar rewriting for LL mirrors the grammar evolution we did in LN 7 for disambiguation
+
+</LectureNotes>
+
+<LectureResources>
+
+### Additional Resources
+
+- [Ohm.js — A PEG-based parsing library](https://ohmjs.org/) — The tool we used to build Petal's parser
+- [Ohm Editor — Live grammar development](https://ohmjs.org/editor/) — Interactive grammar testing environment
+- [Bryan Ford, "Parsing Expression Grammars: A Recognition-Based Syntactic Foundation" (2004)](https://bford.info/pub/lang/peg.pdf) — The paper that formalized PEGs and Packrat parsing
+- [Dr. Ray Toal, Syntax Notes](https://cs.lmu.edu/~ray/notes/syntax/) — Reference material on syntax and parsing
+- [Kenneth Slonneger and Barry Kurtz, *Formal Syntax and Semantics of Programming Languages*, Chapter 2](https://cdn.preterhuman.net/texts/science_and_technology/artificial_intelligence/Formal%20Syntax%20and%20Semantics%20of%20Programming%20Languages%20-%20Kenneth%20Slonneger.pdf) — Formal treatment of syntax analysis
+- [Crafting Interpreters — Robert Nystrom](https://craftinginterpreters.com/) — Excellent practical guide to recursive descent parsing
+- [tree-sitter](https://tree-sitter.github.io/tree-sitter/) — A modern incremental parsing library used in many code editors (PEG-based)
+- [ANTLR](https://www.antlr.org/) — A widely-used parser generator (LL-based with extensions)
+
+</LectureResources>
