@@ -628,7 +628,7 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("2820-ln16"),
     description:
-      "In this lecture we will introduce a more formal manner of counting, define disjoint-ness, the rule of sums and products, and practice some combinatorics problems!",
+      "In this lecture we introduce combinatorics as the mathematics of counting, define disjoint sets, the Rule of Sums, the Rule of Products, and the Inclusion-Exclusion Principle, and connect counting to Python code and algorithm complexity!",
     courseId: "cmsi-2820",
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln16",

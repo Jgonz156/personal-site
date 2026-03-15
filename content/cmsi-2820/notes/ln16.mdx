@@ -1,0 +1,679 @@
+import { DisplayMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+
+{/* 
+  Note: The intro section is now rendered automatically by the page component 
+  using data from lib/courses/cmsi-2820/data.ts
+*/}
+
+## A Deceptive Question
+
+Here's a question that seems like it should be easy:
+
+> In a class of 30 students, 20 study Math and 15 study CS. How many students study Math or CS?
+
+Your first instinct might be to add: $20 + 15 = 35$. But there are only 30 students in the class! Something is wrong. We're **overcounting** — some students study both, and we're counting them twice.
+
+To answer this question correctly, we need formal counting tools. That's what today's lecture is about.
+
+---
+
+## What is Combinatorics?
+
+Combinatorics is the mathematics of **counting**. While that might sound simple, the questions we ask quickly become fascinating and the techniques surprisingly deep.
+
+Counting is a general problem found in many different areas of mathematics and beyond:
+
+- **Geometry**: How many distinct triangles can be formed from 6 points?
+- **Calculus**: How many rectangles do we fit under a curve in a Riemann sum?
+- **Algorithms**: How many times does this loop execute?
+- **Cryptography**: How many possible encryption keys exist?
+- **Everyday life**: How many different outfits can you make? How many routes can you take to work?
+
+Before diving into techniques, let's categorize the *kinds* of counting questions we might encounter.
+
+---
+
+## Four Categories of Counting Problems
+
+Not all counting problems are the same. We can classify them into four major categories:
+
+- **Enumeration**: *How many* objects satisfy some criteria? — "How many different 4-digit PINs exist?"
+- **Existential/Selection**: *Is there* a specific object amongst others? — "Is there a PIN with all identical digits?"
+- **Construction**: *Build* an object that satisfies given constraints — "Construct a PIN where no two adjacent digits are the same"
+- **Optimization**: *Find the best* object amongst others — "Which PIN is hardest to guess?"
+
+These categories are not independent — **enumeration** is the foundation that the other three build upon. You need to know *how many* objects exist before you can search for one, construct one, or find the best one.
+
+This lecture focuses entirely on **enumeration**: developing the formal rules for counting how many.
+
+---
+
+## Disjoint Sets — The Foundation
+
+Before we can state any counting rules, we need a prerequisite concept from set theory.
+
+<DefinitionBox term="Disjoint Sets">
+
+Two sets $A$ and $B$ are **disjoint** if they share no elements — their intersection is empty:
+
+<DisplayMath formula="A \cap B = \emptyset" />
+
+Multiple sets are **pairwise disjoint** (or **mutually exclusive**) if every pair among them has an empty intersection.
+
+</DefinitionBox>
+
+| Sets | Disjoint? | Why? |
+| :--- | :--- | :--- |
+| $\{1, 2, 3\}$ and $\{4, 5, 6\}$ | Yes | No shared elements |
+| $\{1, 2, 3\}$ and $\{3, 4, 5\}$ | No | Both contain 3 |
+| Even numbers and Odd numbers | Yes | No number is both |
+| Vowels and Consonants | Yes | No letter is both |
+| $\{x \in \mathbb{Z} : x > 0\}$ and $\{x \in \mathbb{Z} : x < 0\}$ | Yes | Positive and negative integers don't overlap |
+
+Disjointness is the gatekeeper for our first counting rule. When sets overlap, simple addition overcounts — exactly the trap we fell into with our opening question.
+
+---
+
+## Counting is More Fundamental Than Arithmetic
+
+Here's something worth pausing on before we proceed. Once you see the disjoint sets definition, the next step — "add the sizes together" — might feel trivially obvious. Like a kindergarten problem.
+
+That feeling is exactly right, and it's important.
+
+**Counting is literally the first mathematical skill humans learn.** Before addition, before subtraction — we point at objects and count them. What we're *really* doing when we "count" is **putting things into a set and asking for its cardinality**. That's it. That's the whole operation.
+
+Arithmetic *arises from* counting:
+- **Addition** is what happens when you count two disjoint groups together
+- **Subtraction** is what happens when you remove elements before counting
+- **Multiplication** is what happens when you count groups of groups
+
+So yes, these early combinatorics problems will feel like "kindergarten" problems. That's not a weakness — it's a sign that counting is genuinely the most fundamental operation in mathematics, and we are now giving it the formal tools it deserves.
+
+The key discipline from here on: **always frame your answer in terms of sets and cardinality**, not just raw numbers. Instead of saying "there are 3 ice creams and 4 cakes, so 7 options," say:
+
+> Let $I$ be the set of ice cream options with $|I| = 3$ and $C$ be the set of cake options with $|C| = 4$. Since $I \cap C = \emptyset$, we have $|I \cup C| = |I| + |C| = 7$.
+
+This feels like overkill now. But the set-theoretic framing is exactly what scales to the harder problems later in this lecture — and later in this course.
+
+---
+
+## The Rule of Sums (Addition Principle)
+
+Our first formal counting rule captures the simplest scenario: choosing **one option** from **disjoint groups**.
+
+<DefinitionBox term="The Rule of Sums">
+
+If a task can be accomplished by choosing from one of several **pairwise disjoint** sets $A_1, A_2, \ldots, A_k$, then the total number of ways to accomplish the task is:
+
+<DisplayMath formula="|A_1 \cup A_2 \cup \cdots \cup A_k| = |A_1| + |A_2| + \cdots + |A_k|" />
+
+**Requirement**: The sets must be **pairwise disjoint** — no element appears in more than one set.
+
+</DefinitionBox>
+
+The connection to logic: choosing from $A$ **OR** $B$ mirrors logical disjunction. Disjointness ensures mutual exclusivity — you can't accidentally count something twice.
+
+### Example 1: Choosing a Dessert
+
+At a restaurant, you can choose:
+
+- 3 types of ice cream, OR
+- 4 types of cake
+
+How many dessert options do you have?
+
+**Solution**: Let $I$ be the set of ice cream options with $|I| = 3$ and $C$ be the set of cake options with $|C| = 4$. Since $I \cap C = \emptyset$ (ice creams and cakes are different items), we apply the Rule of Sums:
+
+<DisplayMath formula="|I \cup C| = |I| + |C| = 3 + 4 = 7 \text{ dessert options}" />
+
+### Example 2: Choosing an Elective
+
+A student can take a morning elective (4 options) OR an evening elective (5 options), but not both due to a scheduling conflict.
+
+**Solution**: Let $M$ be the set of morning electives and $E$ be the set of evening electives. Since a course can't be both morning and evening, $M \cap E = \emptyset$:
+
+<DisplayMath formula="|M \cup E| = |M| + |E| = 4 + 5 = 9 \text{ elective choices}" />
+
+### Example 3: Choosing a Character Class
+
+A game lets you pick a warrior (3 subclasses) OR a mage (4 subclasses) OR a rogue (2 subclasses). How many character options are there?
+
+**Solution**: Let $W$, $G$, and $R$ be the sets of warrior, mage, and rogue subclasses respectively. These are pairwise disjoint (a subclass belongs to exactly one archetype), so the Rule of Sums generalizes:
+
+<DisplayMath formula="|W \cup G \cup R| = |W| + |G| + |R| = 3 + 4 + 2 = 9 \text{ character options}" />
+
+The Rule of Sums works for any number of pairwise disjoint sets, not just two.
+
+---
+
+## The Rule of Products (Multiplication Principle)
+
+Our second rule handles a different scenario: making **multiple independent choices in sequence**.
+
+<DefinitionBox term="The Rule of Products">
+
+If a task requires making a sequence of independent choices, where the first choice can be made in $n_1$ ways, the second in $n_2$ ways, and so on, then the total number of ways to complete the task is:
+
+<DisplayMath formula="n_1 \times n_2 \times \cdots \times n_k" />
+
+**Requirement**: The choices must be **independent** — the number of options for each choice doesn't depend on what you chose previously.
+
+</DefinitionBox>
+
+The connection to logic: making choice $A$ **AND** choice $B$ mirrors conjunction. Independence means neither choice constrains the other.
+
+### Example 4: Making an Outfit
+
+You're getting dressed and need to choose:
+
+- One of 5 shirts
+- One of 3 pairs of pants
+
+How many different outfits can you make?
+
+**Solution**: You must make both choices, and your shirt choice doesn't affect your pants options. By the Rule of Products:
+
+<DisplayMath formula="5 \times 3 = 15 \text{ possible outfits}" />
+
+### Example 5: Building a Sandwich
+
+A sandwich requires bread (3 options), protein (4 options), and sauce (5 options). How many distinct sandwiches can you build?
+
+**Solution**: Three independent choices made in sequence:
+
+<DisplayMath formula="3 \times 4 \times 5 = 60 \text{ possible sandwiches}" />
+
+### Example 6: 4-Digit PINs
+
+A 4-digit PIN where each digit is 0-9. How many PINs are there?
+
+**Solution**: Four independent choices, each with 10 options:
+
+<DisplayMath formula="10 \times 10 \times 10 \times 10 = 10^4 = 10{,}000 \text{ PINs}" />
+
+Now, what if digits **can't repeat**? The first digit has 10 options, the second has 9 (can't reuse the first), the third has 8, the fourth has 7:
+
+<DisplayMath formula="10 \times 9 \times 8 \times 7 = 5{,}040 \text{ PINs without repeats}" />
+
+Notice how the "no repeats" constraint makes the choices *dependent* on previous choices — but only in *how many* options remain, not *which* ones. This is still the Rule of Products. We'll formalize this pattern with a much cleaner formula in the next lecture.
+
+---
+
+## Combining the Rules
+
+Most real problems aren't purely sums or purely products — they require **both** rules working together. The key skill is identifying which rule applies at each stage.
+
+### Example 7: Travel Plans
+
+You're planning a trip and need to decide:
+
+1. **Transportation**: Drive (1 way) OR Fly (3 airlines to choose from)
+2. **Hotel**: 4 hotels available
+
+How many ways can you plan your trip?
+
+**Solution**:
+
+- First, count transportation options using the Rule of Sums: $1 + 3 = 4$ ways (driving and flying are disjoint options)
+- Then, multiply by hotel choices using the Rule of Products: $4 \times 4 = 16$ total plans (transportation AND hotel are independent choices)
+
+### Example 8: Password Formats
+
+A password is either 3 lowercase letters OR 2 digits followed by 1 uppercase letter. How many passwords are possible?
+
+**Solution**: Two disjoint password *formats* (a password can't be both), so we use the Rule of Sums at the top level. Within each format, we use the Rule of Products:
+
+- Format 1 (3 lowercase letters): $26 \times 26 \times 26 = 26^3 = 17576$
+- Format 2 (2 digits + 1 uppercase): $10 \times 10 \times 26 = 2600$
+
+<DisplayMath formula="17{,}576 + 2{,}600 = 20{,}176 \text{ possible passwords}" />
+
+### Example 9: License Plate Schemes
+
+A state offers two license plate formats: 3 letters followed by 3 digits, OR 2 letters followed by 4 digits. How many total plates are possible?
+
+**Solution**: Again, the Rule of Sums at the top (disjoint formats) and the Rule of Products within each:
+
+- Format 1: $26^3 \times 10^3 = 17576000$
+- Format 2: $26^2 \times 10^4 = 6760000$
+
+<DisplayMath formula="17{,}576{,}000 + 6{,}760{,}000 = 24{,}336{,}000 \text{ possible plates}" />
+
+The pattern: **OR between formats → add. AND within a format → multiply.** Train yourself to spot these words in word problems.
+
+---
+
+## Beyond Enumeration: The Other Three Categories
+
+We defined four categories of counting problems at the start of this lecture but focused entirely on enumeration. Now that we have enumeration tools, let's briefly revisit the other three — because they connect directly to ideas we've already studied.
+
+### Existential Problems — "Does One Exist?"
+
+<DefinitionBox term="Existential Problem">
+
+An **existential problem** asks whether at least one object satisfying a given property exists within a collection.
+
+</DefinitionBox>
+
+This should sound familiar — it is exactly the **existential quantifier** $\exists$ from our logic lectures. The question "Is there a PIN with all identical digits?" can be written formally as "there exists a PIN $p$ such that all digits of $p$ are the same."
+
+Enumeration can solve existential problems: if the count of objects satisfying the property is greater than 0, the answer is yes. But here is the important insight — sometimes you can answer an existential question **without counting everything**. You just need a single **witness**.
+
+**Example 1**: "Among all 3-letter passwords using A-Z, does one exist that is a palindrome?"
+
+We *could* enumerate all $26^3 = 17576$ passwords and check each one. Or we could just produce **"ABA"** — a concrete witness. Done. Existence proven.
+
+**Example 2**: "Does a 4-digit PIN exist where all digits are prime?"
+
+The prime digits are 2, 3, 5, 7. The PIN "2357" is a witness — existence confirmed. But now we can also ask the enumeration follow-up: *how many* such PINs exist? Since each of the 4 positions has 4 choices (the prime digits), the Rule of Products gives us $4^4 = 256$.
+
+<PracticeBox
+  title="Existential Reasoning"
+  question="Among all 2-digit numbers (10-99), does one exist that is both a perfect square and has digits that sum to 10?"
+  choices={["No, no such number exists", "Yes, 64 (since 8 squared is 64 and 6 + 4 = 10)", "Yes, 49 (since 7 squared is 49 and 4 + 9 = 13)", "Yes, 81 (since 9 squared is 81 and 8 + 1 = 9)"]}
+  correctIndex={1}
+  hint="List the 2-digit perfect squares: 16, 25, 36, 49, 64, 81. Check which has digits summing to 10."
+  explanation="64 = 8 squared and 6 + 4 = 10. We only needed one witness to prove existence, no need to check every 2-digit number."
+/>
+
+---
+
+### Construction Problems — "Build One"
+
+<DefinitionBox term="Construction Problem">
+
+A **construction problem** asks you to produce a specific object satisfying given constraints.
+
+</DefinitionBox>
+
+Construction is the "proof" side of existence. From our proof lectures, constructing a witness is the standard technique for proving an existential statement true. Enumeration tells you *how many* objects exist; construction actually **builds one**.
+
+**Example 1**: "Construct a 4-digit PIN where each digit is strictly larger than the previous."
+
+One witness: "1234". Another: "2468". We check: $2 < 4 < 6 < 8$, so yes, it is valid. How many such PINs exist? That is a harder enumeration question we will develop tools for in future lectures — but the construction itself is straightforward.
+
+**Example 2**: "Construct a 3-element subset of the integers that is closed under negation (i.e., if $x$ is in the set, then $-x$ is also in the set)."
+
+One witness: the set containing $-1$, $0$, and $1$. If we take $-1$, its negation $1$ is in the set. If we take $1$, its negation $-1$ is in the set. If we take $0$, its negation $0$ is in the set. Construction complete — and we have connected back to set theory and closure properties.
+
+<PracticeBox
+  title="Construction"
+  question="Which of the following is a valid witness for: Construct a 3-letter string using only A and B that reads the same forwards and backwards (a palindrome)."
+  choices={["ABB", "ABA", "BAA", "ABC"]}
+  correctIndex={1}
+  hint="A palindrome reads the same forwards and backwards. The first and last characters must match."
+  explanation="ABA reversed is ABA, making it a palindrome. ABB reversed is BBA (not a palindrome), BAA reversed is AAB, and ABC uses a character not in the allowed set."
+/>
+
+---
+
+### Optimization Problems — "Find the Best"
+
+<DefinitionBox term="Optimization Problem">
+
+An **optimization problem** asks for the object that maximizes or minimizes some criterion among all objects satisfying given constraints.
+
+</DefinitionBox>
+
+Optimization builds on both enumeration (you need to know the search space) and existence (the optimum must exist in the space). We will not develop formal optimization techniques in this course — that belongs to algorithms courses — but recognizing the pattern is important.
+
+**Example**: "Among all 4-digit PINs, which is hardest to guess?"
+
+This question seems simple but reveals something deep: the answer depends on the **optimization criterion**. If an attacker guesses sequentially starting from 0000, then 9999 takes the longest (10000 guesses). If the attacker guesses randomly, then *all* PINs are equally hard — each has a 1 in 10000 chance of being guessed first.
+
+The lesson: optimization problems require a clearly defined **objective function** (what you are maximizing or minimizing) and a clearly defined **search space** (what objects you are considering). Many CS problems are optimization in disguise:
+
+- "What is the fastest algorithm?" optimizes runtime over the space of all algorithms
+- "What is the strongest password?" optimizes resistance to attack over all valid passwords
+- "What is the best route?" optimizes distance or time over all paths in a graph
+
+Tools like greedy algorithms, dynamic programming, and linear programming formalize optimization techniques — you will encounter these in future CS courses.
+
+<PracticeBox
+  title="Optimization Reasoning"
+  question="A vending machine has 3 snack slots (each holding a different snack) and must place the most popular snack where customers see it first (slot 1). Given snacks A (80 sales/day), B (120 sales/day), and C (50 sales/day), which arrangement optimizes visibility for the most popular snack?"
+  choices={["A in slot 1, B in slot 2, C in slot 3", "B in slot 1, A in slot 2, C in slot 3", "C in slot 1, B in slot 2, A in slot 3", "It does not matter, all arrangements are equally good"]}
+  correctIndex={1}
+  explanation="B has the most sales (120/day), so the optimization criterion (most popular in slot 1) places B first. The remaining arrangement does not affect the criterion, but B-A-C orders the rest by popularity too."
+/>
+
+---
+
+## When Sets Overlap — The Inclusion-Exclusion Principle
+
+Let's return to our opening question:
+
+> In a class of 30 students, 20 study Math and 15 study CS. How many students study Math or CS?
+
+We tried adding $20 + 15 = 35$, but got a number larger than the class. The problem: the sets of Math students and CS students are **not disjoint** — some students study both, and the Rule of Sums counted them twice.
+
+We need a rule that works even when sets overlap.
+
+### The Overcounting Problem
+
+Suppose 8 students study both Math and CS. When we count $|M| + |CS|$:
+
+- Students who study *only* Math: counted once (correct)
+- Students who study *only* CS: counted once (correct)
+- Students who study *both*: counted **twice** (once in $|M|$, once in $|CS|$) — overcounted!
+
+To fix this, we **subtract the intersection** to remove the double-counting.
+
+### Two-Set Inclusion-Exclusion
+
+<DefinitionBox term="Inclusion-Exclusion Principle (Two Sets)">
+
+For any two finite sets $A$ and $B$:
+
+<DisplayMath formula="|A \cup B| = |A| + |B| - |A \cap B|" />
+
+We "include" each set, then "exclude" the overlap we counted twice.
+
+</DefinitionBox>
+
+Notice: when $A \cap B = \emptyset$, the $|A \cap B|$ term is 0, and inclusion-exclusion reduces to the Rule of Sums. The Rule of Sums is just a special case!
+
+### Example 10: The Opening Question Resolved
+
+In a class of 30 students, 20 study Math, 15 study CS, and 8 study both. How many study at least one?
+
+**Solution**: Let $M$ = students studying Math, $CS$ = students studying CS.
+
+<DisplayMath formula="|M \cup CS| = |M| + |CS| - |M \cap CS| = 20 + 15 - 8 = 27" />
+
+So 27 students study at least one subject, and $30 - 27 = 3$ students study neither.
+
+### Example 11: Cards
+
+A standard deck has 52 cards. How many cards are red OR face cards?
+
+**Solution**: Let $R$ = red cards, $F$ = face cards.
+
+- $|R| = 26$ (13 hearts + 13 diamonds)
+- $|F| = 12$ (4 jacks + 4 queens + 4 kings)
+- $|R \cap F| = 6$ (jack, queen, king of hearts and diamonds)
+
+<DisplayMath formula="|R \cup F| = 26 + 12 - 6 = 32 \text{ cards}" />
+
+### Three-Set Inclusion-Exclusion
+
+What if three sets overlap? The same logic applies, but we need to be more careful about what was overcounted.
+
+<DefinitionBox term="Inclusion-Exclusion Principle (Three Sets)">
+
+For any three finite sets $A$, $B$, and $C$:
+
+<DisplayMath formula="|A \cup B \cup C| = |A| + |B| + |C| - |A \cap B| - |A \cap C| - |B \cap C| + |A \cap B \cap C|" />
+
+</DefinitionBox>
+
+The pattern is **alternating**: add the singles, subtract the pairs, add the triple. Why add back the triple intersection? When we subtracted pairwise overlaps, elements in all three sets were subtracted *three times* (once for each pair) after being added *three times* (once for each set) — so they were completely removed. We add them back once to get the correct count.
+
+### Example 12: Programming Language Survey
+
+100 students surveyed about programming languages:
+
+- 50 use Python
+- 40 use JavaScript
+- 30 use Java
+- 20 use Python AND JavaScript
+- 15 use Python AND Java
+- 10 use JavaScript AND Java
+- 5 use all three
+
+How many students use at least one of these languages?
+
+**Solution**: Let $P$, $J\!S$, and $J$ be the respective sets.
+
+<DisplayMath formula="|P \cup J\!S \cup J| = 50 + 40 + 30 - 20 - 15 - 10 + 5 = 80" />
+
+So 80 students use at least one language, and $100 - 80 = 20$ use none of the three.
+
+This alternating inclusion-exclusion pattern continues for any number of sets: add singles, subtract pairs, add triples, subtract quadruples, and so on.
+
+---
+
+## The Python Connection
+
+### Counting with Code
+
+Python's standard library has counting built in because these rules are so fundamental.
+
+The `itertools.product` function literally implements the Rule of Products — it generates every combination of choices:
+
+```python
+import itertools
+
+shirts = ["red", "blue", "green"]
+pants = ["jeans", "khakis"]
+
+outfits = list(itertools.product(shirts, pants))
+print(len(outfits))  # 6 — same as 3 × 2
+```
+
+For the Rule of Sums, `itertools.chain` combines disjoint groups:
+
+```python
+import itertools
+
+ice_cream = ["vanilla", "chocolate", "strawberry"]
+cake = ["cheesecake", "tiramisu", "carrot", "lemon"]
+
+desserts = list(itertools.chain(ice_cream, cake))
+print(len(desserts))  # 7 — same as 3 + 4
+```
+
+And Python's set operations give you inclusion-exclusion directly:
+
+```python
+math_students = {"Alice", "Bob", "Carol", "Dave", "Eve"}
+cs_students = {"Carol", "Dave", "Frank", "Grace"}
+
+# Inclusion-exclusion by hand:
+by_formula = len(math_students) + len(cs_students) - len(math_students & cs_students)
+
+# Or just let Python compute the union:
+by_union = len(math_students | cs_students)
+
+print(by_formula)  # 7
+print(by_union)    # 7 — same answer
+```
+
+### Counting and Complexity
+
+Here's a connection that might surprise you: **you've been doing combinatorics every time you analyzed the complexity of a loop.**
+
+A single `for` loop over $n$ items runs $n$ times. A nested loop (2 deep) runs $n \times n = n^2$ times — that's the Rule of Products! Each iteration of the outer loop independently triggers $n$ iterations of the inner loop.
+
+```python
+# Rule of Products in action: n × n iterations
+for i in range(n):       # n choices for i
+    for j in range(n):   # n choices for j (independent of i)
+        process(i, j)    # n² total calls
+```
+
+Triple nesting gives $n^3$. The pattern is clear: **nested loops multiply**.
+
+What about sequential (non-nested) blocks?
+
+```python
+# Rule of Sums in action: n + n² iterations
+for i in range(n):       # n iterations
+    simple_task(i)
+
+for i in range(n):       # n iterations (these are
+    for j in range(n):   # independent of the above loop)
+        complex_task(i, j)  # n² iterations
+# Total: n + n²
+```
+
+The first block and the second block are disjoint operations (they don't share iterations), so we add: $n + n^2$. The **Rule of Products** tells you the complexity of your nested loops. The **Rule of Sums** tells you the complexity of your sequential blocks.
+
+When you learned that nested loops multiply and sequential blocks add, you were already doing combinatorics. Now you know why.
+
+### The Other Three Categories in Python
+
+Python already has built-in tools for existential, construction, and optimization problems too.
+
+**Existential → `any()` and `in`**
+
+The `any()` function is the existential quantifier $\exists$ in code. It short-circuits — it stops the moment it finds a witness, exactly like how we said you don't need to enumerate everything:
+
+```python
+pins = [1234, 2357, 8901]
+any(all(d in "2357" for d in str(p)) for p in pins)  # True
+
+# The `in` operator is an existential check on a collection
+3 in {1, 2, 3, 4}  # True — witness found, stop searching
+```
+
+Contrast with `all()`, which is the universal quantifier $\forall$ — it checks every element and only returns `True` if the property holds for all of them.
+
+**Construction → comprehensions**
+
+List comprehensions are literally construction — they build objects satisfying constraints:
+
+```python
+# "Construct all 3-letter palindromes from {A, B}"
+palindromes = [a + b + a for a in "AB" for b in "AB"]
+# ['AAA', 'ABA', 'BAB', 'BBB']
+```
+
+The comprehension syntax mirrors the mathematical pattern: define the shape, specify the domain, and the constraints are implicit in the structure.
+
+**Optimization → `max()`, `min()`, and `key`**
+
+```python
+snacks = {"A": 80, "B": 120, "C": 50}
+best = max(snacks, key=snacks.get)  # "B"
+```
+
+The `key` parameter is exactly the **objective function** from our definition. `max(collection, key=objective)` is the Python spelling of "find the element that maximizes this criterion." Change the `key` and the "best" element changes — reinforcing the lesson that optimization always depends on the criterion.
+
+---
+
+## Practice Problems
+
+Try these to test your understanding!
+
+<PracticeBox
+  title="Problem 1: Restaurant Menu"
+  question="A restaurant offers 5 appetizers, 8 main courses, and 3 desserts. If you must order all three courses, how many different meals can you create?"
+  choices={["16 meals (5 + 8 + 3)", "120 meals (5 x 8 x 3)", "40 meals (5 x 8)", "24 meals (8 x 3)"]}
+  correctIndex={1}
+  hint="You must make all three choices. Which rule applies when you must do multiple things?"
+  explanation="You must choose an appetizer AND a main course AND a dessert. Three independent choices means the Rule of Products: 5 x 8 x 3 = 120 different meals. The Rule of Sums (addition) would only apply if you were choosing ONE course from disjoint options."
+/>
+
+<PracticeBox
+  title="Problem 2: License Plates"
+  question="A license plate has 3 letters (A-Z) followed by 3 digits (0-9). How many different license plates are possible?"
+  choices={["36 (26 + 10)", "676000 (26 x 26 x 10 x 10 x 10)", "17576000 (26 x 26 x 26 x 10 x 10 x 10)", "1000 (10 x 10 x 10)"]}
+  correctIndex={2}
+  hint="Each position on the plate is an independent choice. How many options does each position have?"
+  explanation="Six independent choices (Rule of Products): 26 x 26 x 26 x 10 x 10 x 10 = 17576000 license plates. Each letter position has 26 options and each digit position has 10."
+/>
+
+<PracticeBox
+  title="Problem 3: Committee Selection"
+  question="You need to form a 2-person committee from 4 seniors and 5 juniors. The committee must have people from the same class (both seniors OR both juniors). How many ways can you form the committee?"
+  choices={["9 ways (4 + 5)", "20 ways (4 x 5)", "32 ways (4 x 3 + 5 x 4)", "72 ways (4 x 3 x 5 x 4 / 2)"]}
+  correctIndex={2}
+  hint="First figure out how many ways to pick 2 from each class (Rule of Products), then combine the disjoint options (Rule of Sums)."
+  explanation="Picking 2 seniors: 4 x 3 = 12 ways. Picking 2 juniors: 5 x 4 = 20 ways. Since these are disjoint options (a committee is all seniors OR all juniors), we add: 12 + 20 = 32 ways. We will learn a cleaner formula for this type of problem in the next lecture!"
+/>
+
+<PracticeBox
+  title="Problem 4: Exam Results"
+  question="In a class of 40 students, 25 passed Exam 1, 20 passed Exam 2, and 10 passed both exams. How many students passed neither exam?"
+  choices={["5 students", "10 students", "15 students", "0 students"]}
+  correctIndex={0}
+  hint="Use inclusion-exclusion to find how many passed at least one exam, then subtract from the total."
+  explanation="By inclusion-exclusion: students who passed at least one = 25 + 20 - 10 = 35. Students who passed neither = 40 - 35 = 5."
+/>
+
+<PracticeBox
+  title="Problem 5: Event Planning (Challenge)"
+  question="A conference offers morning workshops (3 options) paired with afternoon sessions (4 options), OR full-day seminars (2 options). How many distinct plan types are available?"
+  choices={["9 plan types (3 + 4 + 2)", "14 plan types (3 x 4 + 2)", "24 plan types (3 x 4 x 2)", "12 plan types (3 x 4)"]}
+  correctIndex={1}
+  hint="Within the workshop+session track, you must choose both (Rule of Products). Between the two tracks, you choose one (Rule of Sums)."
+  explanation="Workshop+session combinations: 3 x 4 = 12 (Rule of Products, you must choose both). Full-day seminars: 2. Since the two tracks are disjoint options: 12 + 2 = 14 total plan types (Rule of Sums)."
+/>
+
+---
+
+## Key Takeaways
+
+- **Counting** is putting things into a set and asking for its cardinality — it's more fundamental than arithmetic itself
+- **Disjoint sets** share no elements ($A \cap B = \emptyset$) — this is the prerequisite for simple addition
+- **Rule of Sums**: Add when you choose **one option from disjoint sets** — OR means add
+- **Rule of Products**: Multiply when you make **multiple independent choices** — AND means multiply
+- **Inclusion-Exclusion**: When sets overlap, subtract the intersection to correct for overcounting
+- Most problems require **combining both rules** — the key is identifying OR vs AND at each decision point
+
+---
+
+## Coming Up Next
+
+We've been counting when each choice is independent and straightforward. But what happens when **order matters**? What if we're arranging objects in a line, or selecting a subset where we care about the sequence?
+
+Next time, we introduce **factorials** ($n!$), **permutations** (ordered selections), and **combinations** (unordered selections) — the tools that let us count arrangements and selections systematically.
+
+---
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Combinatorics** — the mathematics of counting; fundamentally about set cardinality
+- **Disjoint sets** — sets with no shared elements: $A \cap B = \emptyset$
+- **Pairwise disjoint** — every pair in a collection of sets is disjoint
+
+**Counting Rules:**
+
+| Rule | When to Use | Formula | Key Word |
+| :--- | :--- | :--- | :--- |
+| Rule of Sums | Choose ONE from disjoint options | $\|A \cup B\| = \|A\| + \|B\|$ | OR |
+| Rule of Products | Make MULTIPLE independent choices | $n_1 \times n_2 \times \cdots \times n_k$ | AND |
+| Inclusion-Exclusion (2 sets) | Sets may overlap | $\|A \cup B\| = \|A\| + \|B\| - \|A \cap B\|$ | OR (with overlap) |
+| Inclusion-Exclusion (3 sets) | Three sets may overlap | $\|A \cup B \cup C\| = \Sigma\text{singles} - \Sigma\text{pairs} + \|A \cap B \cap C\|$ | OR (with overlap) |
+
+**Connection to Programming:**
+
+| Counting Rule | Code Pattern | Complexity |
+| :--- | :--- | :--- |
+| Rule of Sums | Sequential blocks | $n + m$ |
+| Rule of Products | Nested loops | $n \times m$ |
+| Inclusion-Exclusion | Set union operations | Depends on overlap |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Trefor Bazett: "Counting Principles"](https://www.youtube.com/watch?v=3VcnFLNEbKg) — Clear visual explanations of the fundamental counting rules
+- [3Blue1Brown: "How to count"](https://www.youtube.com/watch?v=0sPzDwS55wM) — Beautiful animations exploring why counting gets tricky
+
+### Further Reading
+
+- [Wikipedia: Rule of Sum](https://en.wikipedia.org/wiki/Rule_of_sum) — Formal treatment of the addition principle
+- [Wikipedia: Rule of Product](https://en.wikipedia.org/wiki/Rule_of_product) — Formal treatment of the multiplication principle
+- [Wikipedia: Inclusion-Exclusion Principle](https://en.wikipedia.org/wiki/Inclusion%E2%80%93exclusion_principle) — General formula and proofs
+- [Brilliant: Inclusion-Exclusion](https://brilliant.org/wiki/inclusion-exclusion-principle/) — Interactive examples and practice problems
+
+### Connection to Programming
+
+- Python's `itertools.product` implements the Rule of Products — generating all combinations of choices
+- Python's `itertools.chain` implements the Rule of Sums — concatenating disjoint groups
+- Set operations (`|`, `&`, `-`) in Python directly mirror the set-theoretic foundations of counting
+- Algorithm complexity analysis (Big-O) is fundamentally combinatorics: counting loop iterations
+
+</LectureResources>
