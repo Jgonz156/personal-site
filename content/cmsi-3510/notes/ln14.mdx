@@ -1,0 +1,268 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { MemoryTag } from "@/components/memory-tag"
+import { FixedPartitionDemo } from "@/components/fixed-partition-demo"
+import { DynamicPartitionStepper } from "@/components/dynamic-partition-stepper"
+import { AllocationStrategyDemo } from "@/components/allocation-strategy-demo"
+import { AlgorithmRankReveal } from "@/components/algorithm-rank-reveal"
+import { AllocationBehaviorVisual } from "@/components/allocation-behavior-visual"
+import { CodeAddressMapping } from "@/components/code-address-mapping"
+import { AddressTranslationDemo } from "@/components/address-translation-demo"
+
+## Recap
+
+In LN13, we surveyed the full landscape of **memory hardware** — from SRAM registers at picosecond speeds to tape drives measured in seconds. We established the mental model of memory as a series of **finite strips** ("rolls of toilet paper"), each a different length, with processes coloring parts of every roll simultaneously.
+
+Today we face the critical question: **how do we actually allocate processes onto those strips?** We have fast memory that is tiny (registers, cache) and slow memory that is enormous (HDDs, tape). Running processes need to live in the fast memory — RAM — but that space is limited. We need to be smart about how we place processes into it, because every decision we make about placement has consequences for performance, waste, and system stability.
+
+---
+
+## The Goal
+
+Our goal is to take the memory model from last time and **allocate all data** — whether being used by active processes or set aside for storage — across our strips. We need to be cognizant of what data needs to be close to the CPU and just how much to move there, since the space gets smaller and smaller the faster we need it.
+
+Since only **running processes** need high-speed access, we will focus on getting processes placed into main memory (RAM). The question becomes: given a finite strip of RAM, how do we fit multiple processes onto it?
+
+The simplest answer is also the most intuitive: give each process its own contiguous block.
+
+---
+
+## Contiguous Allocation
+
+<DefinitionBox term="Contiguous Allocation">
+
+<MemoryTag type="hardware">Contiguous allocation</MemoryTag> assigns each process a **linearly contiguous block** of memory addresses — one after another, with no gaps within a process. The entire process occupies a single, unbroken region.
+
+</DefinitionBox>
+
+This is how you would naturally place things on a shelf: each item gets its own stretch of space, packed next to the previous one. Simple, predictable, fast to access. But as we will see, it comes with significant tradeoffs. There are two major techniques for contiguous allocation.
+
+---
+
+## Fixed Partitioning — "Bar Seating"
+
+The first technique is **fixed partitioning**. Think of it like bar seating at a restaurant — the stools are evenly spaced and bolted to the floor. You sit in however many stools your group needs, but you cannot move them.
+
+The idea is to **divide memory into equally sized regions** ahead of time, then allocate as many partitions as needed to fit each process. If a process needs 18 KB and each partition is 16 KB, it gets 2 partitions (32 KB total) — even though it only uses 18 KB.
+
+<FixedPartitionDemo />
+
+Notice what happens as you adjust the partition size: if a process is not perfectly divisible by the partition size, there is **overallocation**. Those wasted bytes within the allocated partitions are called internal fragmentation.
+
+<DefinitionBox term="Internal Fragmentation">
+
+<MemoryTag type="cost">Internal fragmentation</MemoryTag> is the waste that occurs **inside** allocated partitions when the partition size does not perfectly match the process size. The leftover space within a partition cannot be used by any other process — it is simply wasted.
+
+</DefinitionBox>
+
+By making the partition size smaller, we can match process sizes more closely, reducing internal fragmentation. But there is a catch: as the partition size decreases, we need **more partitions**, and we need a data structure to track whether each partition is in use. A partition size of 1 byte would theoretically eliminate all waste — but the tracking data structure would be as large as the memory itself! We would need as much memory to *manage* memory as we have to *use*.
+
+So increasing partition size lets us sacrifice less overhead to management, but the larger we go, the worse the internal fragmentation gets. This is a fundamental tradeoff with no perfect answer in fixed partitioning.
+
+But wait — if we can measure the internal fragmentation, it is because we already know the size of each process. Why do we not just allocate partitions that *match* the process size, rather than choosing a fixed size ahead of time?
+
+---
+
+## Dynamic Partitioning — "Booth Seating"
+
+This is the logic behind **dynamic partitioning**. Think of it like booth seating — people slide into the booth and take up only the space they need. No wasted room.
+
+The idea is to **separate memory into regions sized to each arriving process**. When a process arrives, we carve out exactly as much memory as it needs. No overallocation, no internal fragmentation. Problem solved!
+
+...or is it?
+
+> Watch for this specific mismatch: **total free memory** can be large enough while the **largest contiguous gap** is still too small.
+
+<DynamicPartitionStepper />
+
+Step through the events above and watch what happens when processes terminate. Gaps of varying sizes form between the remaining processes. Eventually, a large process arrives and gets **rejected** — even though the total free memory across all gaps is more than enough! The problem is that no single contiguous gap is large enough.
+
+<DefinitionBox term="External Fragmentation">
+
+<MemoryTag type="cost">External fragmentation</MemoryTag> is the waste that occurs **between** allocated blocks. Free memory exists but is scattered across many small gaps, none of which is individually large enough to serve a new allocation request.
+
+</DefinitionBox>
+
+This problem also appears in fixed partitioning (unallocated partitions scattered between used ones), so it is not unique to dynamic partitioning. But dynamic partitioning makes it especially visible because the gap sizes are irregular.
+
+Taking inspiration from restaurants — what if we asked everyone to slide down to fill the gaps? We could alleviate fragmentation by simply **reallocating everything** to pack processes together.
+
+<DefinitionBox term="Compaction">
+
+<MemoryTag type="hardware">Compaction</MemoryTag> is the process of **relocating all allocated blocks** to one end of memory, consolidating all free space into a single contiguous region. Try the "Compact" button in the visualization above!
+
+</DefinitionBox>
+
+Compaction works — but it becomes increasingly expensive as memory gets larger. Every byte of every process must be copied. As systems get more RAM and processes get larger, compaction takes more and more time. We need a better approach: can we prevent fragmentation through smarter allocation?
+
+---
+
+## Allocation Strategies
+
+We know the fragmentation problem is caused by small processes being allocated next to or between larger ones, leaving awkward gaps when the small ones terminate. What if we were smarter about *which* gap we choose?
+
+Let us categorize what we have been doing: **First-Fit** — allocate at the first gap that is large enough, scanning from the beginning of memory. Simple and fast. But there are alternatives:
+
+| Strategy | Description |
+| :--- | :--- |
+| **First-Fit (FF)** | Allocate at the first gap found in a linear scan from the start |
+| **Best-Fit (BF)** | Scan all gaps, pick the **smallest** one that fits — minimize leftover space |
+| **Worst-Fit (WF)** | Scan all gaps, pick the **largest** one — maximize leftover space |
+| **Next-Fit (NF)** | Like First-Fit, but start scanning from where you left off last time |
+
+Try each strategy on the same sequence of events:
+
+> As you step through the demo, do not just ask whether the allocation succeeds. Ask **which gap** each strategy chooses, and **why**.
+
+<AllocationStrategyDemo />
+
+These algorithms have been studied extensively. Based on empirical and theoretical analysis, we can generally rank them by overall performance:
+
+<AlgorithmRankReveal />
+
+Amazing results, right? The irony of the naming — "Best-Fit" is actually *worse* than "Worst-Fit"! But the real question is **why**. In many areas of programming, trying to proactively address issues earlier almost always leads to improvement. So how did the naive First-Fit take first place, and the technique that tried its hardest to prevent fragmentation end up being the slowest?
+
+The answer comes from understanding **process behavior**.
+
+Processes with smaller memory needs are generally **faster** — they need less space for computation and tend to terminate quickly. Larger processes with greater needs generally **run longer**. This asymmetry is what causes external fragmentation: small processes allocated next to large ones leave tiny gaps when they exit, while the large processes remain.
+
+So why does not Best-Fit help? Because it actually **creates more small gaps**. By always picking the smallest fitting gap, every allocation leaves a tiny sliver of leftover space. After many cycles, memory is peppered with unusable 1-2 KB gaps. Compaction has to handle far more fragments, even though each is small.
+
+Worst-Fit does better because placing small processes in the *largest* gap leaves large remaining gaps — which are more likely to be useful for future large processes.
+
+Next-Fit is not great because it distributes gaps evenly across memory without any management strategy, leading to fragmentation everywhere.
+
+And First-Fit? It works best for the same reason Multi-Level Feedback Queues were revolutionary for scheduling: **it naturally sorts by behavior**! Small processes appear quickly and leave quickly. They form small gaps *at the front* of memory (since FF always starts scanning from the beginning). This pushes larger, slower processes toward the back. Over time, memory self-organizes into a **hot zone** at the front (many tiny fast-turnover processes) and a **cold zone** at the back (stable large processes). The small processes naturally fit in the small front gaps, leaving large gaps at the back for large processes.
+
+Less management is better in this space. Some jobs actually require less supervision to succeed.
+
+<AllocationBehaviorVisual />
+
+---
+
+## The Problem with Contiguous Allocation
+
+Both internal and external fragmentation are direct consequences of requiring everything to be **contiguous**. So what if we did what the scheduler does and split a process in half? Allocate the first half in one gap and the rest somewhere else?
+
+**Wait.** Before we do such a thing, consider the ramifications. Machine code relies on ISA instructions being **one after another** in the process address space. All the jumps, all the program counter increments — they assume sequential layout. What would your programs look like if we just split them arbitrarily?
+
+- **Split by file?** Would not work for scripts, only compiled object-oriented languages.
+- **Split by function?** The management overhead would be enormous, and not all programs are structured that way.
+- **Split line by line?** We would need entirely new ways of visualizing computation. Every line being independently placed means reading top-to-bottom is worthless. Every line becomes its own thread? Programmers would revolt.
+
+The programmer's response is a resounding **NO**. Programming is already hard enough without having to write code that anticipates being sliced to pieces. But we *absolutely need* non-contiguous allocation to fix fragmentation!
+
+So we need **both**: non-contiguous allocation for the memory hardware, and the illusion of contiguous addresses for the programmer. Can we have our cake and eat it too?
+
+To find out, we need to reconcile how programmers and hardware each use **addresses**.
+
+---
+
+## Logical vs. Physical Addresses
+
+Let us start from the programmer's perspective and work our way down, then come up from the hardware side, and see where the disconnect lies.
+
+### The Programmer's View
+
+When we write programs, we use variable names, function names, and line numbers. The compiler translates these into machine code with **addresses** — numerical labels that identify where values live and where instructions jump to.
+
+<CodeAddressMapping />
+
+Two critical observations:
+
+1. **Every program starts at address 0.** The compiler assigns addresses from 0 upward for every program independently.
+2. **Different programs reuse the same addresses.** Two completely different programs both have variables at `RBP-8`, both start execution at `0x0000`.
+
+From the programmer's perspective, addresses are just **names** — convenient labels for the things in our program. We use them like names at a restaurant: "Table for x, party of y."
+
+### The Hardware's View
+
+Now consider the machine code executing on the CPU. Recall that 64-bit ISA instructions literally map onto logic gates. An address in machine code physically selects a specific location in memory hardware. Only **one** piece of data can occupy a given physical address at any time. Addresses are not names — they are **slots**.
+
+If we mapped every program's logical addresses directly to physical memory, every program would try to occupy the same physical slots — starting at 0x0000. Data corruption. Crashes. Chaos.
+
+<DefinitionBox term="Logical Address (Virtual Address)">
+
+A <MemoryTag type="speed">logical address</MemoryTag> (also called a virtual address) is the address used by a program. It is relative to the program itself — every program thinks it starts at 0. Logical addresses are like **names**: convenient, reusable, and local to each process.
+
+</DefinitionBox>
+
+<DefinitionBox term="Physical Address">
+
+A <MemoryTag type="hardware">physical address</MemoryTag> is the actual address in hardware memory. It corresponds to a specific, unique location on the memory chip. Physical addresses are like **slots**: there is exactly one per memory location, and no two processes can share one.
+
+</DefinitionBox>
+
+### The Fix: Base Offset Translation
+
+Both types of addresses are just numbers. We have a guarantee from programmers that all logical addresses are entirely contained within their process. We have a hardware guarantee that every physical address slot is unique and treated equally.
+
+If mapping logical addresses directly to physical addresses results in collisions, why do we not simply **offset** each process's logical addresses until they land on an unused region of physical memory? The process slides into the available space while keeping all its internal address relationships intact.
+
+> Track one number carefully: every process begins at the same **logical start**, but ends up with a different **physical start** after translation.
+
+<AddressTranslationDemo />
+
+The formula is beautifully simple:
+
+> **physical address = logical address + base**
+
+And the best part? Since this is purely a numerical offset applied to every memory access — based on ISA-level information — it can be performed **entirely in hardware**. The programmers never see it. The memory architecture developers never see it. It is invisible.
+
+---
+
+## Preview: The Memory Management Unit
+
+This hardware offset is computed by the **MMU (Memory Management Unit)** — a dedicated piece of hardware that sits between the CPU and memory. Every address the CPU produces is a logical address. The MMU intercepts it, adds the base offset for the current process, and sends the translated physical address to the memory bus.
+
+This is the same MMU we mentioned back in LN9 when discussing CPU security — it was already there, enforcing memory boundaries. Now we see its other critical role: **address translation**.
+
+Next time, we will explore the MMU in depth and discover that the simple base-offset scheme we just derived is actually the foundation of something much more powerful: **Virtual Memory**. Instead of one base offset per process, what if we could translate *every page* of a process independently? That is where non-contiguous allocation finally becomes real — without the programmer noticing a thing.
+
+---
+
+## Summary
+
+- **Contiguous allocation** gives each process a single unbroken block of addresses
+- **Fixed partitioning** divides memory into equal regions — simple but causes <MemoryTag type="cost">internal fragmentation</MemoryTag> (waste inside partitions)
+- **Dynamic partitioning** sizes partitions to each process — eliminates internal fragmentation but creates <MemoryTag type="cost">external fragmentation</MemoryTag> (gaps between processes)
+- **Compaction** fixes fragmentation by relocating processes, but is expensive
+- Four allocation strategies: **FF** (scan from start), **BF** (smallest gap), **WF** (largest gap), **NF** (scan from last position)
+- Empirically: **FF > NF > WF > BF** — First-Fit wins because it naturally sorts by process behavior, like MLFQ
+- Contiguous allocation fundamentally causes fragmentation; non-contiguous allocation is needed but programmers refuse to restructure their code
+- **Logical addresses** (programmer names, start at 0) vs. **physical addresses** (hardware slots, must be unique)
+- A simple **base offset** translates logical to physical — done in hardware by the **MMU**, invisible to everyone
+- Next lecture: Virtual Memory — independent translation of every page
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+1. Internal fragmentation = waste **inside** allocated blocks (fixed partitioning)
+2. External fragmentation = waste **between** allocated blocks (dynamic partitioning)
+3. Compaction works but does not scale — prevention through smart allocation is better
+4. First-Fit beats Best-Fit because process behavior naturally sorts memory into hot/cold zones
+5. The logical/physical address distinction is the foundation of all modern memory management
+6. Base offset translation is simple, hardware-implemented, and invisible to programmers — this is the seed of virtual memory
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 15: Address Spaces](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free textbook covering address spaces and memory virtualization
+- [OSTEP Chapter 16: Memory API](https://pages.cs.wisc.edu/~remzi/OSTEP/) — malloc, free, and the programmer's view of memory
+- [Modern Operating Systems (Tanenbaum) Ch. 3: Memory Management](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — Contiguous allocation, fragmentation, and base/limit registers
+
+### Fragmentation and Allocation Strategies
+
+- [Knuth, The Art of Computer Programming Vol. 1 Section 2.5](https://www-cs-faculty.stanford.edu/~knuth/taocp.html) — The original analysis of First-Fit, Best-Fit, and Worst-Fit
+- [Wilson et al., Dynamic Storage Allocation: A Survey and Critical Review](https://www.cs.northwestern.edu/~pdinda/ics-s05/doc/dsa.pdf) — Comprehensive survey of memory allocation strategies
+
+### Historical Context
+
+- [The Fifty-Percent Rule (Knuth, 1973)](https://dl.acm.org/doi/10.1145/362342.362345) — Under First-Fit, about 50% of allocated blocks are adjacent to a free block
+- [Buddy System Allocation (Knowlton, 1965)](https://dl.acm.org/doi/10.1145/363095.363112) — An alternative power-of-2 partitioning scheme
+
+</LectureResources>
