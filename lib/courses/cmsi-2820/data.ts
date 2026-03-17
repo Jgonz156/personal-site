@@ -633,10 +633,7 @@ const allEvents: CourseEvent[] = [
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln16",
     recordings: [
-      {
-        name: "Replacement Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/jdnNvgZGDdVwOjhDXlOX-JfAPsMX6vbjNMs_WPj-U6PtDiDKkkExqwYQ1meQf8bL.cGmayObRRgyizkLD",
-      },
+      
     ],
   },
   {
@@ -650,18 +647,7 @@ const allEvents: CourseEvent[] = [
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln17",
     recordings: [
-      {
-        name: "Replacement Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/uRE2ThHCvKqXrIal6EyORVpxJFLDXkGPwryVnp0DeT1O4nNsOzK8LIdao-bIvFXP.BRIugwWqnqcK0nsd",
-      },
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/aOikiaWWVtur7SJn3ukwRQunuu2qlVGNAxTHVfd_jx1ySsHOmqjm6Q--GQAnhb7O.hYwgelN7QKAc0_a9",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/ief1PzW2e8xpmszSPWg_e0SbqGU8SPeFMDOwEOQZGlpp9y9Y4Gg-g5R0YdyAzz5W.OhM8sCCQj3TzvMdS",
-      },
+      
     ],
   },
   {
@@ -675,10 +661,7 @@ const allEvents: CourseEvent[] = [
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln18",
     recordings: [
-      {
-        name: "Replacement Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/IrXOLyp3O_Cph9G1sn6Gy3K5pdTOU9g9gNi_C-hbCsJ_GqTcdXx9BeOzjZrgdINa.H1Bji-3bjcRrcR8U?startTime=1744145227000",
-      },
+      
     ],
   },
   {
@@ -692,10 +675,7 @@ const allEvents: CourseEvent[] = [
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln19",
     recordings: [
-      {
-        name: "Replacement Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/Hp-EqnnsI7Flfq9DO3ttOPuTEwo64OPFj4lx2JUQWUGXxnUJVVpthY15K_lL_wa7.pLtaZ9omjL82ZRet",
-      },
+      
     ],
   },
   {
