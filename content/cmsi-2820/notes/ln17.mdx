@@ -1,0 +1,723 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+
+{/* 
+  Note: The intro section is now rendered automatically by the page component 
+  using data from lib/courses/cmsi-2820/data.ts
+*/}
+
+## Recap
+
+Last lecture we built our fundamental counting toolkit: the **Rule of Sums** (OR = add sizes of disjoint sets), the **Rule of Products** (AND = multiply independent choice counts), and the **Inclusion-Exclusion Principle** (correct for overcounting when sets overlap).
+
+We saw that every counting answer is really a **set cardinality** — we define a set of outcomes and ask how big it is. We also saw how to decode English word problems into the right rule by spotting "or" and "and."
+
+Near the end, we looked at a PIN problem where digits couldn't repeat. The first digit had 10 options, the second had 9, the third 8, the fourth 7:
+
+<DisplayMath formula="10 \times 9 \times 8 \times 7 = 5{,}040 \text{ PINs}" />
+
+The Rule of Products still worked — each position had a definite count — but the counts **shrank** at each step. That shrinking pattern is today's starting point.
+
+---
+
+## The Shrinking Choices Pattern
+
+Here is a question that seems straightforward:
+
+> In how many ways can 5 students line up for a photo?
+
+Let's apply the Rule of Products. The first position in the line can be filled by any of the 5 students. Once someone is placed there, the second position has 4 remaining choices, the third has 3, then 2, then 1:
+
+<DisplayMath formula="5 \times 4 \times 3 \times 2 \times 1 = 120" />
+
+Let $L$ be the set of all distinct lineups. Each element of $L$ is one particular ordering of the 5 students. We are asking "how big is $L$?" — and the Rule of Products tells us $|L| = 120$.
+
+Notice the difference from last lecture's problems. When we counted sandwiches ($3 \times 4 \times 5 = 60$), each position had a **fixed** number of options. Here, each choice **reduces** the available options by one because we are arranging without replacement. The Rule of Products still applies — each position has a definite count — but the counts depend on the position.
+
+This telescoping product comes up so often that it deserves its own name and notation.
+
+---
+
+## Factorials
+
+<DefinitionBox term="Factorial">
+
+For any non-negative integer $n$, the **factorial** of $n$, written $n!$, is:
+
+<DisplayMath formula="n! = n \times (n-1) \times (n-2) \times \cdots \times 2 \times 1" />
+
+with $0! = 1$ by convention.
+
+</DefinitionBox>
+
+So our photo lineup answer is simply $5! = 120$.
+
+Why is $0! = 1$? Two reasons:
+
+1. **Counting interpretation**: $0!$ is the number of ways to arrange zero objects. There is exactly one way to do nothing — do nothing. That's 1 arrangement, not 0.
+2. **Algebraic consistency**: We want the recursive identity $n! = n \times (n-1)!$ to hold for all positive $n$. Setting $n = 1$: we need $1! = 1 \times 0!$, which requires $0! = 1$.
+
+Framing this in the language of sets: let $L$ be the set of all possible lineups of $n$ students. Then $|L| = n!$. The factorial is a compact name for a specific Rule of Products pattern — the one where choices shrink by 1 at each step.
+
+Here is a table of small factorials to build intuition for how fast they grow:
+
+| $n$ | $n!$ |
+| :--- | ---: |
+| $0$ | $1$ |
+| $1$ | $1$ |
+| $2$ | $2$ |
+| $3$ | $6$ |
+| $4$ | $24$ |
+| $5$ | $120$ |
+| $6$ | $720$ |
+| $7$ | $5040$ |
+| $8$ | $40320$ |
+| $9$ | $362880$ |
+| $10$ | $3628800$ |
+
+The growth is explosive. By $20!$, you are over 2 quintillion — more than the estimated grains of sand on Earth.
+
+In Python, you get this directly:
+
+```python
+import math
+math.factorial(5)   # 120
+math.factorial(20)  # 2432902008176640000
+```
+
+---
+
+## The Algebra of Factorials
+
+Defining the factorial is only half the story. Its real power comes from its structure as a telescoping product — you can peel terms off, push terms on, and cancel shared tails. This algebraic toolbox is what makes the formulas in the rest of this lecture work.
+
+### Peeling Off Terms
+
+The recursive identity $n! = n \times (n-1)!$ lets you peel one factor off the front. But you can peel as many as you like:
+
+<DisplayMath formula="n! = n \times (n-1) \times (n-2)!" />
+
+<DisplayMath formula="n! = n \times (n-1) \times (n-2) \times (n-3)!" />
+
+Each step exposes one more factor from the product while packaging the rest back into a smaller factorial.
+
+### Pushing Terms On
+
+Going the other direction, you can extend a factorial by multiplying on more terms:
+
+<DisplayMath formula="n! \times (n+1) = (n+1)!" />
+
+<DisplayMath formula="n! \times (n+1) \times (n+2) = (n+2)!" />
+
+If you have a factorial and multiply by the next consecutive integers, you get a larger factorial.
+
+### Factorial Division as Cancellation
+
+This is the key technique. When you divide one factorial by another, the shared tail cancels:
+
+<DisplayMath formula="\frac{8!}{5!} = \frac{8 \times 7 \times 6 \times 5!}{5!} = 8 \times 7 \times 6" />
+
+Here is the step-by-step reasoning: write out $8!$ far enough to expose $5!$ as a suffix, then cancel it with the denominator. The result is a "falling product" — exactly the shrinking-choices pattern we started with.
+
+The general principle:
+
+<DisplayMath formula="\frac{n!}{k!} = n \times (n-1) \times \cdots \times (k+1) \quad \text{when } n \geq k" />
+
+This produces exactly $n - k$ factors.
+
+**Worked examples:**
+
+<DisplayMath formula="\frac{10!}{7!} = \frac{10 \times 9 \times 8 \times 7!}{7!} = 10 \times 9 \times 8 = 720" />
+
+<DisplayMath formula="\frac{6!}{6!} = 1" />
+
+That second example connects back to $0! = 1$: if you arrange all $n$ items and ask "how many items remain unarranged?", the answer is $0! = 1$, and dividing any factorial by itself gives 1 — confirming the algebra is consistent.
+
+We will use this cancellation technique in the very next section to derive clean formulas for permutations and combinations. The factorial does not just name the pattern — it lets us **manipulate** it algebraically.
+
+<PracticeBox
+  title="Factorial Algebra"
+  question="Simplify the following expression without a calculator:"
+  choices={[
+    "7! / 4! = 7 × 6 × 5 = 210",
+    "7! / 4! = 7 × 6 × 5 × 4 = 840",
+    "7! / 4! = 7 × 4 = 28",
+    "7! / 4! = 3! = 6"
+  ]}
+  correctIndex={0}
+  hint="Write out 7! until you see 4! as a suffix, then cancel."
+  explanation="7! = 7 × 6 × 5 × 4!, so 7! / 4! = 7 × 6 × 5 = 210. We peeled off 3 factors (since 7 - 4 = 3) and cancelled the shared 4! tail."
+/>
+
+---
+
+## Two Questions That Classify Every Counting Problem
+
+Before diving into the named formulas, let's set up a framework. Every time you encounter a counting problem involving selections or arrangements, you can classify it by asking two yes/no questions:
+
+1. **Does order matter?** — Is "ABC" a different outcome from "CBA"?
+2. **Are repeats allowed?** — Can we pick the same item more than once?
+
+These two questions produce a 2×2 grid of scenarios:
+
+|  | Order matters | Order does not matter |
+| :--- | :--- | :--- |
+| **No repeats** | Permutations | Combinations |
+| **Repeats allowed** | Permutations with repetition | Combinations with repetition |
+
+We already know how to solve each of these with the Rule of Products — we have been doing it all along. Now we are giving each cell a **name** and a **formula**, and using our factorial algebra to derive each one.
+
+---
+
+## Permutations (Without Repetition)
+
+**Problem**: From 8 runners in a race, how many ways can we award gold, silver, and bronze?
+
+This is choosing 3 from 8 where **order matters** (gold-silver-bronze is different from bronze-silver-gold) and **no repeats** (a runner cannot win two medals).
+
+By the Rule of Products: 8 choices for gold, 7 for silver, 6 for bronze:
+
+<DisplayMath formula="8 \times 7 \times 6 = 336" />
+
+Let $M$ be the set of all possible medal assignments. Each element of $M$ is an ordered triple (gold, silver, bronze) — a 3-permutation of 8 runners. We are asking for $|M| = 336$.
+
+Notice this is a "partial factorial" — we start at 8 but stop after 3 factors instead of going all the way down to 1. Can we express this using factorial division? Absolutely — this is where our algebraic toolbox pays off:
+
+<DisplayMath formula="8 \times 7 \times 6 = \frac{8!}{5!} = \frac{8!}{(8-3)!}" />
+
+We peel off 3 factors from $8!$ by cancelling the $5!$ tail.
+
+<DefinitionBox term="Permutation (Without Repetition)">
+
+The number of ways to arrange $r$ items chosen from $n$ distinct items, where **order matters** and **no repeats** are allowed, is:
+
+<DisplayMath formula="P(n, r) = \frac{n!}{(n-r)!}" />
+
+</DefinitionBox>
+
+Let's verify:
+
+<DisplayMath formula="P(8, 3) = \frac{8!}{(8-3)!} = \frac{8!}{5!} = 8 \times 7 \times 6 = 336" />
+
+**Special case**: When $r = n$ (arranging all items), the denominator is $(n - n)! = 0! = 1$, so $P(n, n) = n!$. This is the photo lineup problem — arrange everyone.
+
+### Another Example
+
+> How many 3-letter "words" can you make from the 26 letters, with no letter repeated?
+
+Order matters (CAT $\neq$ TAC) and no repeats. This is $P(26, 3)$:
+
+<DisplayMath formula="P(26, 3) = \frac{26!}{23!} = 26 \times 25 \times 24 = 15{,}600" />
+
+In Python:
+
+```python
+import math
+math.perm(8, 3)   # 336
+math.perm(26, 3)  # 15600
+```
+
+From here, the set cardinality framing has been established — the formulas now carry the weight.
+
+<PracticeBox
+  title="Permutations"
+  question="A club of 12 members must elect a President, Vice President, and Secretary. How many ways can they fill these positions?"
+  choices={[
+    "P(12, 3) = 12 × 11 × 10 = 1,320",
+    "12 × 12 × 12 = 1,728",
+    "12 + 11 + 10 = 33",
+    "12! = 479,001,600"
+  ]}
+  correctIndex={0}
+  hint="Order matters (President ≠ Vice President) and no one can hold two positions."
+  explanation="This is a permutation without repetition: 3 distinct positions from 12 members. P(12, 3) = 12! / 9! = 12 × 11 × 10 = 1,320."
+/>
+
+---
+
+## Permutations With Repetition
+
+**Problem**: How many 3-letter "words" can you make from the 26 letters if letters **can** repeat?
+
+Now each position has 26 choices regardless of what was picked before. The choices do not shrink:
+
+<DisplayMath formula="26 \times 26 \times 26 = 26^3 = 17{,}576" />
+
+<DefinitionBox term="Permutation With Repetition">
+
+The number of ways to fill $r$ positions from $n$ options, where **order matters** and **repeats are allowed**, is:
+
+<DisplayMath formula="n^r" />
+
+</DefinitionBox>
+
+This is actually the simplest case — it is the Rule of Products with all choices equal. You already did this last lecture with PINs ($10^4 = 10000$) without knowing it had a name.
+
+The contrast is instructive: **with** repetition the choices stay constant ($n^r$); **without** repetition they shrink (<InlineMath formula="\frac{n!}{(n-r)!}" />). The "without" count is always smaller because you have fewer options at each step.
+
+In Python, this is just exponentiation:
+
+```python
+26 ** 3  # 17576
+
+import itertools
+len(list(itertools.product("ABCDEFGHIJKLMNOPQRSTUVWXYZ", repeat=3)))  # 17576
+```
+
+<PracticeBox
+  title="With vs. Without Repetition"
+  question="A 4-digit PIN uses digits 0-9. How many MORE PINs are possible when digits can repeat compared to when they cannot?"
+  choices={[
+    "10,000 - 5,040 = 4,960",
+    "10,000 - 10,000 = 0",
+    "10⁴ - 10! = negative (impossible)",
+    "5,040 - 10,000 = negative (impossible)"
+  ]}
+  correctIndex={0}
+  hint="With repetition: 10⁴. Without repetition: P(10, 4) = 10 × 9 × 8 × 7."
+  explanation="With repetition: 10⁴ = 10,000. Without repetition: P(10, 4) = 10 × 9 × 8 × 7 = 5,040. The difference is 4,960 — almost half the PINs require at least one repeated digit!"
+/>
+
+---
+
+## Combinations (Without Repetition)
+
+Now we shift from "order matters" to "order does not matter."
+
+**Problem**: From 8 runners, how many ways can we choose 3 for a relay team? (No positions — just team membership.)
+
+We already know $P(8, 3) = 336$ ordered selections. But now the team <InlineMath formula="\{A, B, C\}" /> is the same as <InlineMath formula="\{C, B, A\}" /> — order does not matter. So 336 overcounts. By how much?
+
+Each group of 3 runners can be internally rearranged in $3! = 6$ ways. All 6 of these arrangements are the **same team**, but our permutation count treated them as different. So we divide out the overcounting:
+
+<DisplayMath formula="\frac{336}{6} = \frac{P(8, 3)}{3!} = 56 \text{ teams}" />
+
+This is the second payoff of our factorial algebra. Let's expand this fully:
+
+<DisplayMath formula="\frac{P(n, r)}{r!} = \frac{n!}{(n-r)! \cdot r!}" />
+
+<DefinitionBox term="Combination (Without Repetition)">
+
+The number of ways to choose $r$ items from $n$ distinct items, where **order does NOT matter** and **no repeats** are allowed, is:
+
+<DisplayMath formula="C(n, r) = \binom{n}{r} = \frac{n!}{r! \cdot (n-r)!}" />
+
+Read "<InlineMath formula="\binom{n}{r}" />" as "**$n$ choose $r$**."
+
+</DefinitionBox>
+
+Let's verify with the runners: <InlineMath formula="\binom{8}{3} = \frac{8!}{3! \cdot 5!}" />. Using cancellation:
+
+<DisplayMath formula="\frac{8!}{3! \cdot 5!} = \frac{8 \times 7 \times 6 \times 5!}{3! \cdot 5!} = \frac{8 \times 7 \times 6}{3 \times 2 \times 1} = \frac{336}{6} = 56" />
+
+The key insight: **combinations are permutations divided by $r!$**. Permutations overcount by exactly the number of ways to rearrange the selected group.
+
+### Another Example
+
+> How many 5-card poker hands can be dealt from a standard 52-card deck?
+
+Order does not matter (the hand is the same regardless of the dealing order) and no repeats. This is <InlineMath formula="\binom{52}{5}" />:
+
+<DisplayMath formula="\binom{52}{5} = \frac{52!}{5! \cdot 47!} = \frac{52 \times 51 \times 50 \times 49 \times 48}{5 \times 4 \times 3 \times 2 \times 1} = \frac{311{,}875{,}200}{120} = 2{,}598{,}960" />
+
+In Python:
+
+```python
+import math
+math.comb(8, 3)   # 56
+math.comb(52, 5)  # 2598960
+
+import itertools
+len(list(itertools.combinations(range(8), 3)))  # 56
+```
+
+<PracticeBox
+  title="Permutation or Combination?"
+  question="You are selecting 4 books from a shelf of 10 to pack in your suitcase. How many ways can you do this?"
+  choices={[
+    "P(10, 4) = 5,040 — order matters because books are distinct",
+    "C(10, 4) = 210 — you just care about which books, not the packing order",
+    "10⁴ = 10,000 — you might pick the same book twice",
+    "4! × 10 = 240"
+  ]}
+  correctIndex={1}
+  hint="Does packing order matter? Can you pick the same book twice?"
+  explanation="You are choosing which 4 books to bring — not arranging them in order. No repeats (each book is distinct). This is a combination: C(10, 4) = 10! / (4! × 6!) = 210."
+/>
+
+---
+
+## Combinations With Repetition
+
+This is the trickiest of the four cases.
+
+**Problem**: An ice cream shop has 5 flavors. How many ways can you order 3 scoops if you can repeat flavors? (Order does not matter — a cone is a cone.)
+
+This is not a permutation (order does not matter) and repeats are allowed (you can get 3 scoops of chocolate). How do we count this?
+
+### The Stars and Bars Technique
+
+Represent each scoop as a star ($\star$) and use bars ($|$) to separate flavors. For example, with flavors Chocolate, Vanilla, Strawberry, Mint, and Mango:
+
+- $\star \star \; | \; \star \; | \; \; | \; \; | \; \;$ = 2 Chocolate, 1 Vanilla
+- $| \; | \; \star \star \star \; | \; | \;$ = 3 Strawberry
+- $\star \; | \; \star \; | \; | \; | \; \star$ = 1 Chocolate, 1 Vanilla, 1 Mango
+
+We always have 3 stars (scoops) and 4 bars (dividers between 5 flavors). That is $3 + 4 = 7$ total positions, and we need to choose which 3 of them are stars (the rest become bars).
+
+<DefinitionBox term="Combination With Repetition">
+
+The number of ways to choose $r$ items from $n$ types, where **order does NOT matter** and **repeats are allowed**, is:
+
+<DisplayMath formula="\binom{n + r - 1}{r}" />
+
+(Equivalently, <InlineMath formula="\binom{n + r - 1}{n - 1}" /> — choosing where to place the bars instead of the stars.)
+
+</DefinitionBox>
+
+For the ice cream problem:
+
+<DisplayMath formula="\binom{5 + 3 - 1}{3} = \binom{7}{3} = \frac{7!}{3! \cdot 4!} = \frac{7 \times 6 \times 5}{3 \times 2 \times 1} = 35" />
+
+### Another Example
+
+> How many ways can you distribute 10 identical candies among 4 children?
+
+Each candy is a star, and we need 3 bars to separate the children's piles. Total positions: $10 + 3 = 13$. Choose 3 for bars (or 10 for stars):
+
+<DisplayMath formula="\binom{4 + 10 - 1}{10} = \binom{13}{10} = \binom{13}{3} = \frac{13 \times 12 \times 11}{3 \times 2 \times 1} = 286" />
+
+In Python:
+
+```python
+import itertools
+flavors = ["C", "V", "S", "Mi", "Ma"]
+orders = list(itertools.combinations_with_replacement(flavors, 3))
+len(orders)  # 35
+```
+
+<PracticeBox
+  title="Combinations With Repetition"
+  question="A bakery sells 4 types of donuts. You want to buy a box of 6. How many different boxes can you put together (you can repeat types, and order doesn't matter)?"
+  choices={[
+    "C(4, 6) — but this is undefined since r > n",
+    "4⁶ = 4,096 — order matters here",
+    "C(4 + 6 - 1, 6) = C(9, 6) = 84",
+    "C(6, 4) = 15"
+  ]}
+  correctIndex={2}
+  hint="Order doesn't matter (a box is a box) and repeats are allowed (you can get multiple of the same type). This is stars and bars."
+  explanation="Stars and bars: 6 stars (donuts) and 3 bars (dividers for 4 types). Choose 6 positions for stars out of 9 total: C(9, 6) = C(9, 3) = 84."
+/>
+
+---
+
+## The Complete Classification
+
+Let's bring back our 2×2 grid, now filled with formulas:
+
+|  | Order matters | Order does not matter |
+| :--- | :--- | :--- |
+| **No repeats** | <InlineMath formula="P(n,r) = \frac{n!}{(n-r)!}" /> | <InlineMath formula="C(n,r) = \frac{n!}{r!(n-r)!}" /> |
+| **Repeats allowed** | $n^r$ | <InlineMath formula="\binom{n+r-1}{r}" /> |
+
+When you encounter a word problem, ask the two questions:
+
+1. Does order matter?
+2. Are repeats allowed?
+
+The answers point you to the right cell. Combined with the LN16 insight — "OR = add (Rule of Sums), AND = multiply (Rule of Products)" — you now have a rich vocabulary for decoding English into mathematics.
+
+---
+
+## Beyond Enumeration — The Other Three Categories Revisited
+
+Last lecture we defined four categories of counting problems: Enumeration, Existential, Construction, and Optimization. We focused entirely on enumeration. Now that we have factorials, permutations, and combinations in our toolkit, let's briefly revisit the other three — because they operate on the **same sets** that our enumeration formulas count.
+
+### Existential — "Does One Exist?"
+
+> Does there exist a 4-letter word from <InlineMath formula="\{A, B, C, D, E\}" /> with no repeated letters that starts with "B"?
+
+We could enumerate all $P(5, 4) = 120$ arrangements and check each one. Or we could just produce **"BACD"** — a single witness. Existence proven without any counting at all.
+
+Connect back to the existential quantifier: <InlineMath formula="\exists \, w \in W. \; \text{starts\_with}(w, B)" />. Sometimes the enumeration count itself answers existence: if $P(n, r) > 0$, at least one arrangement exists. But existence can also be proven by simply constructing a witness.
+
+### Construction — "Build One"
+
+> List all 2-element subsets of <InlineMath formula="\{A, B, C\}" />.
+
+The answer is not a number — it is the actual collection: <InlineMath formula="\{A, B\}" />, <InlineMath formula="\{A, C\}" />, <InlineMath formula="\{B, C\}" />. We know there are <InlineMath formula="\binom{3}{2} = 3" /> of them, but the constructive question asks us to **produce** them.
+
+In Python, this is the difference between `math.comb(3, 2)` (returns `3`) and `list(itertools.combinations(['A','B','C'], 2))` (returns the actual subsets). Enumeration tells you the size; construction gives you the contents.
+
+### Optimization — "Find the Best"
+
+> Of all $P(4, 3) = 24$ three-letter arrangements of <InlineMath formula="\{A, B, C, D\}" />, which comes first alphabetically?
+
+We know the size of the search space (24 arrangements), but the optimization question asks for the **best** one by some criterion. These problems layer a selection condition on top of the counted set. The answer here is "ABC" — but the reasoning is about the **criterion**, not the count.
+
+Optimization over combinatorial structures is the heart of algorithms courses. Greedy algorithms, dynamic programming, and search algorithms all operate on precisely these kinds of counted sets.
+
+**The key message**: factorials, permutations, and combinations are **enumeration** tools, but the sets they count are the same sets that existential, constructive, and optimization questions operate on. Counting the size of the haystack is step one; sometimes you also need to find the needle, build the haystack, or pick the best straw.
+
+Let's see all four categories in action on a single real-world engineering problem.
+
+---
+
+## Case Study: Designing ASCII
+
+**ASCII** — the **American Standard Code for Information Interchange** — was born in the 1960s from a practical problem. Early computers needed to transmit text over slow, expensive hardware — telephone lines and teletype machines where every bit cost time and money. Engineers needed an **encoding**: a way to represent characters as sequences of 1s and 0s. The encoding had to be **expressive enough** to cover the English alphabet, digits, punctuation, and control commands, while being **as compact as possible** to minimize transmission cost.
+
+This is a combinatorics problem. And remarkably, it touches all four of our problem categories.
+
+### Step 1 — Enumeration: "How many characters can $n$ bits represent?"
+
+Each bit position has 2 choices: 0 or 1. This is permutation with repetition — $n$ positions, 2 options each, order matters (the string `01` is different from `10`), and repeats are allowed (a bit can be 0 more than once).
+
+By the Rule of Products:
+
+<DisplayMath formula="n \text{ bits} \implies 2 \times 2 \times \cdots \times 2 = 2^n \text{ distinct patterns}" />
+
+Let $B_n$ be the set of all $n$-bit strings. Then $|B_n| = 2^n$.
+
+| Bits ($n$) | Distinct patterns ($2^n$) |
+| :--- | ---: |
+| $1$ | $2$ |
+| $2$ | $4$ |
+| $3$ | $8$ |
+| $4$ | $16$ |
+| $5$ | $32$ |
+| $6$ | $64$ |
+| $7$ | $128$ |
+| $8$ | $256$ |
+
+### Step 2 — Existential: "Is 7 bits enough?"
+
+Before choosing a bit-width, the engineers inventoried everything they needed to encode:
+
+| Category | Count |
+| :--- | ---: |
+| Uppercase letters (A-Z) | $26$ |
+| Lowercase letters (a-z) | $26$ |
+| Digits (0-9) | $10$ |
+| Punctuation and special symbols | $33$ |
+| Control characters (newline, tab, escape, etc.) | $33$ |
+| **Total** | **$128$** |
+
+These categories are **disjoint** — no character belongs to two groups. So the Rule of Sums applies:
+
+<DisplayMath formula="26 + 26 + 10 + 33 + 33 = 128 \text{ characters needed}" />
+
+Now the existential question: does there exist a bit-width $n$ such that $2^n \geq 128$?
+
+From our table: $2^6 = 64$ — not enough. But $2^7 = 128$ — exactly enough. **Witness found**: $n = 7$.
+
+### Step 3 — Construction: "Assign the actual codes"
+
+Knowing that 7 bits suffices is not the same as having an encoding. We must actually **construct** a mapping from 128 characters to 128 bit patterns. This is a bijection — each character gets exactly one code, and each code maps to exactly one character.
+
+The engineers did not assign codes arbitrarily. They made clever construction choices:
+
+- **Digits 0-9** were assigned codes `0110000` through `0111001`, so the last 4 bits of each code are the digit's binary value. This made numeric conversion trivial in hardware.
+- **Uppercase and lowercase letters** differ by exactly one bit (bit 5). Flipping a single bit converts `A` (`1000001`) to `a` (`1100001`). Case conversion becomes a single bitwise operation.
+- **Control characters** were grouped in the first 32 codes, keeping them separate from printable characters.
+
+These construction choices were not arbitrary — they were **optimized** for the hardware of the era, which leads us to the final question.
+
+### Step 4 — Optimization: "Why 7 and not 8?"
+
+Using 8 bits per character would have given $2^8 = 256$ codes — 128 extra slots, plenty of breathing room for future expansion. So why did the designers choose 7?
+
+On 1960s hardware, every bit per character multiplied across millions of characters added up to significant cost and transmission time. A message of 1 million characters at 7 bits costs 7 million bits; at 8 bits, it costs 8 million — a 14% increase. Over slow telephone lines, that difference was real.
+
+The optimization problem:
+
+> Minimize $n$ subject to the constraint $2^n \geq 128$.
+
+The answer is $n = 7$. This is exactly the structure of an optimization problem: find the **best** value (minimum bit-width) from a set of candidates (positive integers) that satisfies a constraint (enough codes for all characters).
+
+**One engineering problem, four combinatorial questions.** Enumeration told us how many codes each bit-width gives. Existence confirmed 7 bits suffices. Construction built the actual table. Optimization justified why 7 — not 6, not 8 — was chosen.
+
+<PracticeBox
+  title="ASCII Design Challenge"
+  question="If the ASCII designers had needed to support 200 distinct characters instead of 128 (perhaps to include accented letters for European languages), what is the minimum number of bits required per character?"
+  choices={[
+    "7 bits, since 2⁷ = 128 is close enough to 200",
+    "8 bits, since 2⁷ = 128 < 200 but 2⁸ = 256 ≥ 200",
+    "9 bits, since you need extra room for future expansion",
+    "200 bits, one bit per character"
+  ]}
+  correctIndex={1}
+  hint="This is an optimization problem: minimize n subject to 2ⁿ ≥ 200. Check powers of 2."
+  explanation="2⁷ = 128 < 200, so 7 bits is not enough. 2⁸ = 256 ≥ 200, so 8 bits suffices. Since we want the minimum, the answer is 8 bits. (This is essentially what Extended ASCII and ISO 8859 did!)"
+/>
+
+### Scaling Up: From ASCII to Unicode and UTF-8
+
+ASCII solved the problem for English — but the world has far more than 128 characters. Chinese has tens of thousands of characters, Japanese uses multiple scripts, Arabic is written right-to-left, and then there are emoji. The same four combinatorial questions resurface at a much larger scale.
+
+- **Enumeration**: Unicode defines space for up to $2^{21} = 1114112$ code points — 21 bits' worth of distinct patterns, far beyond ASCII's 7.
+- **Existential**: Is $2^{21}$ enough? Unicode currently assigns around 149,000 characters. Since $149000 \ll 1114112$, there is plenty of room. The existential check passes with margin to spare.
+- **Construction**: The assignments must be carefully organized — CJK characters occupy one block, emoji another, mathematical symbols yet another. This is construction at massive scale, with committees debating which characters deserve a code point.
+- **Optimization re-emerges with UTF-8**: **UTF-8** — **Unicode Transformation Format, 8-bit** — is how Unicode is actually transmitted. If every character used a fixed 21 bits (3 bytes), English text would triple in size compared to ASCII. UTF-8 solves this with a **variable-width encoding**: ASCII characters still use just 1 byte (backward compatible!), common accented characters use 2 bytes, CJK characters use 3, and rare symbols use 4. This is an optimization over encoding schemes — minimize average message size while covering the full character set. The combinatorial structure is elegant: each prefix byte determines how many continuation bytes follow, and each continuation byte contributes 6 bits ($2^6 = 64$ additional patterns per byte).
+
+The same 4-question framework that designed a 128-character table in the 1960s scales to a million-character standard today. The math does not change — only the numbers get bigger.
+
+### The Same Pattern Everywhere
+
+The $n^r$ formula — $n$ choices per position, $r$ positions — quietly underpins many systems you use every day:
+
+- **RGB colors**: Each pixel has 3 channels (R, G, B), each with 256 intensity levels. Total colors: $256^3 = 16777216$ — over 16 million. This is why "24-bit color" and "true color" are synonymous.
+- **IPv4 addresses**: 4 octets, each ranging 0-255. Total addresses: $256^4 = 2^{32} \approx 4.3$ billion. The fact that we ran out is itself a counting story — the enumeration told us the ceiling, and the world hit it.
+- **Passwords**: An 8-character password using lowercase, uppercase, digits, and 10 symbols (72 options per position) gives $72^8 \approx 7.2 \times 10^{14}$ possibilities. Each additional character multiplies the search space by 72 — this is why password **length** matters more than character complexity.
+
+One formula, three domains, three engineering consequences. Combinatorics is not abstract — it is the mathematics behind the systems you use every day.
+
+---
+
+## Practice Problems
+
+<PracticeBox
+  title="Problem 1: Identify the Type"
+  question="A security system requires a 5-digit code using digits 0-9 where no digit repeats. How many codes are possible?"
+  choices={[
+    "10⁵ = 100,000 (permutation with repetition)",
+    "P(10, 5) = 30,240 (permutation without repetition)",
+    "C(10, 5) = 252 (combination without repetition)",
+    "C(14, 5) = 2,002 (combination with repetition)"
+  ]}
+  correctIndex={1}
+  hint="Does the order of digits matter in a code? Can you reuse digits?"
+  explanation="Order matters (12345 ≠ 54321 as a code) and no repeats. This is a permutation without repetition: P(10, 5) = 10! / 5! = 10 × 9 × 8 × 7 × 6 = 30,240."
+/>
+
+<PracticeBox
+  title="Problem 2: Committee Formation"
+  question="From a group of 15 volunteers, how many ways can you form a 4-person committee?"
+  choices={[
+    "P(15, 4) = 32,760",
+    "C(15, 4) = 1,365",
+    "15⁴ = 50,625",
+    "C(18, 4) = 3,060"
+  ]}
+  correctIndex={1}
+  hint="Is a committee an ordered or unordered group? Can someone serve twice?"
+  explanation="A committee is an unordered group (no positions) with no repeats (each person serves once). This is a combination: C(15, 4) = 15! / (4! × 11!) = (15 × 14 × 13 × 12) / (4 × 3 × 2 × 1) = 1,365."
+/>
+
+<PracticeBox
+  title="Problem 3: Pizza Toppings"
+  question="A pizza shop offers 8 toppings. You can add up to 3 toppings and can double up on a topping (e.g., extra cheese). If you want exactly 3 toppings, how many different pizzas can you order?"
+  choices={[
+    "C(8, 3) = 56",
+    "P(8, 3) = 336",
+    "8³ = 512",
+    "C(10, 3) = 120"
+  ]}
+  correctIndex={3}
+  hint="Can you repeat a topping? Does the order you add toppings matter?"
+  explanation="Order does not matter (toppings on a pizza have no sequence) and repeats are allowed (extra cheese). This is a combination with repetition: C(8 + 3 - 1, 3) = C(10, 3) = 120."
+/>
+
+<PracticeBox
+  title="Problem 4: Arranging Books"
+  question="You have 7 different textbooks and want to arrange 3 of them on a shelf (left to right). How many arrangements are possible?"
+  choices={[
+    "C(7, 3) = 35",
+    "P(7, 3) = 210",
+    "7³ = 343",
+    "7! = 5,040"
+  ]}
+  correctIndex={1}
+  hint="Does the left-to-right order on the shelf matter?"
+  explanation="Order matters (the arrangement Math-CS-English is different from English-CS-Math on the shelf) and no repeats. This is a permutation: P(7, 3) = 7! / 4! = 7 × 6 × 5 = 210."
+/>
+
+<PracticeBox
+  title="Problem 5: The Two Questions"
+  question="Match each scenario to its counting type. A bag contains 10 colored marbles. You draw 4 marbles WITH replacement (put each one back). You record the COLOR of each draw in order. How many outcomes?"
+  choices={[
+    "C(10, 4) = 210 — unordered, no repeats",
+    "P(10, 4) = 5,040 — ordered, no repeats",
+    "10⁴ = 10,000 — ordered, repeats allowed",
+    "C(13, 4) = 715 — unordered, repeats allowed"
+  ]}
+  correctIndex={2}
+  hint="You record the color IN ORDER and you put each marble back before drawing again."
+  explanation="You record in order (sequence matters) and draw with replacement (repeats allowed). This is a permutation with repetition: 10⁴ = 10,000. If you hadn't replaced the marble, it would be P(10, 4) = 5,040. If order didn't matter with replacement, it would be C(13, 4) = 715."
+/>
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Key Definitions:**
+
+- **Factorial**: $n! = n \times (n-1) \times \cdots \times 1$, with $0! = 1$
+- **Permutation**: An ordered arrangement — order matters
+- **Combination**: An unordered selection — order does not matter
+
+**The Classification Grid:**
+
+| | Order matters | Order does not matter |
+| :--- | :--- | :--- |
+| **No repeats** | <InlineMath formula="P(n,r) = \frac{n!}{(n-r)!}" /> | <InlineMath formula="C(n,r) = \frac{n!}{r!(n-r)!}" /> |
+| **Repeats allowed** | $n^r$ | <InlineMath formula="\binom{n+r-1}{r}" /> |
+
+**Factorial Algebra:**
+
+| Operation | Result |
+| :--- | :--- |
+| Peel off | $n! = n \times (n-1)!$ |
+| Push on | $n! \times (n+1) = (n+1)!$ |
+| Cancel tails | <InlineMath formula="\frac{n!}{k!} = n \times (n-1) \times \cdots \times (k+1)" /> |
+
+**Key Relationships:**
+
+- $P(n, r) = r! \times C(n, r)$ — permutations overcount combinations by $r!$
+- <InlineMath formula="C(n, r) = \frac{P(n, r)}{r!}" /> — divide out the overcounting
+- $P(n, n) = n!$ — arranging all items
+
+**Python Quick Reference:**
+
+| Formula | Python |
+| :--- | :--- |
+| $n!$ | `math.factorial(n)` |
+| $P(n, r)$ | `math.perm(n, r)` |
+| $C(n, r)$ | `math.comb(n, r)` |
+| $n^r$ | `n ** r` |
+| List permutations | `itertools.permutations(items, r)` |
+| List combinations | `itertools.combinations(items, r)` |
+| List combinations w/ rep | `itertools.combinations_with_replacement(items, r)` |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Trefor Bazett: "Permutations and Combinations"](https://www.youtube.com/watch?v=XJnIdRXUi7A) — Clear walkthrough of the formulas with visual examples
+- [3Blue1Brown: "How to count"](https://www.youtube.com/watch?v=0sPzDwS55wM) — Beautiful animations on why counting gets tricky
+
+### Further Reading
+
+- [Wikipedia: Factorial](https://en.wikipedia.org/wiki/Factorial) — History and properties of the factorial function
+- [Wikipedia: Permutation](https://en.wikipedia.org/wiki/Permutation) — Formal treatment and variations
+- [Wikipedia: Combination](https://en.wikipedia.org/wiki/Combination) — Including the binomial coefficient notation
+- [Wikipedia: Stars and Bars](https://en.wikipedia.org/wiki/Stars_and_bars_(combinatorics)) — The technique behind combinations with repetition
+- [Brilliant: Permutations and Combinations](https://brilliant.org/wiki/permutations-and-combinations/) — Interactive practice problems
+
+### Connection to Programming
+
+- `math.factorial`, `math.perm`, `math.comb` give you the counts directly
+- `itertools.permutations`, `itertools.combinations`, `itertools.combinations_with_replacement` construct the actual arrangements
+- Algorithm complexity: nested loops are permutations with repetition ($n^k$); the factorial appears in brute-force search over all orderings
+
+</LectureResources>
