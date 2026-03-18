@@ -28,7 +28,10 @@ function formatTeamScore(
 ): string {
   const roleLabel = showRole && team.role ? ` (${team.role === "data" ? "Data" : "Task"})` : ""
   const sizeLabel = teamSize != null ? ` (${teamSize} students)` : ""
-  const base = `Team ${teamIndex + 1}${roleLabel}${sizeLabel}: ${team.count}`
+  const countLabel = team.missed != null && team.missed > 0
+    ? `${team.count} (−${team.missed} missed)`
+    : `${team.count}`
+  const base = `Team ${teamIndex + 1}${roleLabel}${sizeLabel}: ${countLabel}`
   if (team.timeToCompleteMinutes != null) {
     return `${base} in ${team.timeToCompleteMinutes} min`
   }

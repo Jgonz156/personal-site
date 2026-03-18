@@ -4,6 +4,9 @@ export interface TeamStageScore {
   /** For stages with defined endings (e.g. AC3 Character, Network):
    *  time to complete in minutes. Omit if team didn't finish - count is more representative. */
   timeToCompleteMinutes?: number
+  /** Penalty count for incomplete work (e.g. missed worksheets in EDF).
+   *  Net score = count - missed. */
+  missed?: number
 }
 
 export interface StageResult {

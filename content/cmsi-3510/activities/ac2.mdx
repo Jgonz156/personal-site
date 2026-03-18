@@ -53,18 +53,25 @@ After each stage: count scores, reflect, and discuss!
 <ActivityLeaderboard data={{
   activityTitle: "Saved by The Schedule",
   results: [
-    // Add your semester data here. Example:
-    // { semester: "Fall 2025", studentCount: 32, totalProduction: 156, teamSizes: [8, 8, 8, 8], stages: [
-    //   { stageNumber: 1, stageLabel: "Batch", durationMinutes: 15, teams: [
-    //     { count: 12 }, { count: 15 }, { count: 11 }, { count: 14 }
-    //   ]},
-    //   { stageNumber: 2, stageLabel: "Interactive", durationMinutes: 15, teams: [
-    //     { count: 10 }, { count: 9 }, { count: 11 }, { count: 8 }
-    //   ]},
-    //   { stageNumber: 3, stageLabel: "Real-Time", durationMinutes: 15, teams: [
-    //     { count: 18 }, { count: 22 }, { count: -5 }, { count: 15 }
-    //   ]}
-    // ]}
+    { semester: "Spring 2026", studentCount: 24, totalProduction: 170, teamSizes: [10, 5, 9], stages: [
+      { stageNumber: 1, stageLabel: "Batch (FCFS)", durationMinutes: 11, teams: [
+        { count: 35 }, { count: 27 }, { count: 38 }
+      ]},
+      { stageNumber: 2, stageLabel: "Interactive (RR)", durationMinutes: 11, teams: [
+        { count: 21 }, { count: 16 }, { count: 33 }
+      ]},
+    ]},
+    { semester: "Fall 2025", studentCount: 2, totalProduction: 35, teamSizes: [2], stages: [
+      { stageNumber: 1, stageLabel: "Batch (FCFS)", durationMinutes: 15, teams: [
+        { count: 12 }
+      ]},
+      { stageNumber: 2, stageLabel: "Interactive (RR)", durationMinutes: 15, teams: [
+        { count: 17 }
+      ]},
+      { stageNumber: 3, stageLabel: "Real-Time (EDF)", durationMinutes: 15, teams: [
+        { count: 10, missed: 4 }
+      ]},
+    ]},
   ],
 }} />
 
