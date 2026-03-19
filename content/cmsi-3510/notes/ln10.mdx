@@ -132,11 +132,11 @@ Every process alternates between **CPU bursts** (periods of computation) and **I
 
 This distinction matters enormously for scheduling because I/O bursts represent **opportunities to interleave** — when one process is waiting, the CPU can work on another.
 
-> **📌 Key Reality:** In practice, the **vast majority** of real-world processes are I/O-bound. Your web browser, text editor, email client, Spotify, Slack — they all spend most of their time waiting for user input, network responses, or disk reads. The CPU is usually available; the goal is to respond quickly when a burst arrives. This is why interactive scheduling matters so much.
+> **📌 Key Reality:** Many interactive applications are heavily I/O-bound. Your web browser, text editor, email client, Spotify, and Slack all spend lots of time waiting for user input, network responses, or disk reads. That is one big reason interactive scheduling matters so much.
 
 ### Why This Distinction Matters
 
-Without distinguishing compute-bound from I/O-bound processes, early schedulers had a problem: during I/O bursts, the CPU simply executed **NOP instructions** — literally doing nothing. The CPU was idle while perfectly good work sat waiting in the queue.
+Without distinguishing compute-bound from I/O-bound processes, early schedulers had a problem: during I/O bursts, the CPU simply did nothing. The CPU was idle while perfectly good work sat waiting in the queue.
 
 Once **interleaving** emerged (recall the multiprogramming era from LN6), schedulers could identify I/O gaps as locations to run other processes. But interleaving alone isn't enough — we also need to decide **when** to force a switch.
 
@@ -218,7 +218,7 @@ The OS controls when switching happens. Programmers and their programs cannot be
 | **Best for** | Embedded systems, trusted code | General-purpose, untrusted code |
 | **Historical examples** | Mac OS Classic, Windows 3.1 | Unix, Windows 95+, all modern OSes |
 
-> **💡 Connection to LN6 — Cooperative Is Making a Comeback:** Here's an interesting twist: `async/await` (Tokio in Rust, from LN6) is essentially **cooperative scheduling at the application level**. Green threads yield at `await` points voluntarily — the programmer decides when to yield, just like cooperative scheduling. The crucial difference: the **OS still uses preemptive scheduling underneath**. So a misbehaving async task can only freeze its own runtime, not the entire OS. We get the efficiency of cooperative scheduling within the safety net of preemptive scheduling. The best of both worlds!
+> **💡 Connection to LN6 — Cooperative Is Making a Comeback:** Here's an interesting twist: `async/await` (Tokio in Rust, from LN6) is essentially **cooperative scheduling at the application level**. Tasks yield at `await` points voluntarily — the programmer decides when to yield, just like cooperative scheduling. The crucial difference: the **OS still uses preemptive scheduling underneath**. So a misbehaving async task can only freeze its own runtime, not the entire OS. We get the efficiency of cooperative scheduling within the safety net of preemptive scheduling. The best of both worlds!
 
 ---
 

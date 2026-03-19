@@ -81,7 +81,7 @@ fn search_parallel(data: &[i32], target: i32) -> bool {
 }
 ```
 
-Each thread searches **250,000 elements** instead of 1,000,000. With 4 cores, the work happens truly simultaneously. Speedup: **nearly 4x**.
+Each thread searches roughly **250,000 elements** instead of 1,000,000. On an ideal 4-core machine with negligible overhead, this could approach a 4x speedup. In real systems, copying, synchronization, scheduling, and cache effects usually reduce that gain.
 
 > **🤔 Why does this work so well?** The problem has three key properties:
 > 1. **Easy to partition** — just split the array into chunks

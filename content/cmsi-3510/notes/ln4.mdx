@@ -138,6 +138,7 @@ struct Document {
 }                            // Total: 328+ bytes (plus heap allocations)
 
 // Pass by VALUE: Copies 328+ bytes AND clones all heap data!
+// The stack-resident fields are passed by value; heap allocations are not always implicitly cloned.
 fn word_count_value(doc: Document) -> usize {
     doc.content.iter()
         .map(|line| line.split_whitespace().count())
@@ -161,7 +162,8 @@ The difference becomes critical when working with real documents:
 
 ```rust
 fn analyze_library(books: &Vec<Document>) -> LibraryStats {
-    // Without the &, this would CLONE the entire vector of documents!
+    // Without the &, (And assuming we couldn't perform a move instead) 
+    // this would CLONE the entire vector of documents!
     // With a library of 10,000 books, that could be gigabytes of copying.
     
     LibraryStats {
@@ -211,7 +213,7 @@ fn main() {
 | Immutable | `&T` | Yes | No | Many |
 | Mutable | `&mut T` | Yes | Yes | Exactly one |
 
-> **📌 Rule of Thumb:** If your type is **> 16 bytes** or doesn't implement `Copy`, pass by reference. Use `&T` for read-only access, `&mut T` when modification is needed.
+> **📌 Rule of Thumb:** For large or non-`Copy` types, start by considering a reference. Use `&T` for read-only access and `&mut T` when modification is needed. Then measure if performance is important.
 
 ---
 

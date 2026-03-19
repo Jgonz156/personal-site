@@ -43,9 +43,13 @@ This is how you would naturally place things on a shelf: each item gets its own 
 
 The first technique is **fixed partitioning**. Think of it like bar seating at a restaurant — the stools are evenly spaced and bolted to the floor. You sit in however many stools your group needs, but you cannot move them.
 
-The idea is to **divide memory into equally sized regions** ahead of time, then allocate as many partitions as needed to fit each process. If a process needs 18 KB and each partition is 16 KB, it gets 2 partitions (32 KB total) — even though it only uses 18 KB.
+In the simplified model for this lecture, memory is divided into equal-sized allocation units ahead of time. If a process needs 18 KB and each unit is 16 KB, it receives 2 units (32 KB total) even though it only uses 18 KB.
+
+Before you touch the slider, predict which direction reduces waste inside an allocated block: larger units or smaller ones.
 
 <FixedPartitionDemo />
+
+Therefore, fixed-size allocation trades tracking simplicity for internal waste: smaller units reduce waste, but require more bookkeeping.
 
 Notice what happens as you adjust the partition size: if a process is not perfectly divisible by the partition size, there is **overallocation**. Those wasted bytes within the allocated partitions are called internal fragmentation.
 
@@ -74,6 +78,8 @@ The idea is to **separate memory into regions sized to each arriving process**. 
 > Watch for this specific mismatch: **total free memory** can be large enough while the **largest contiguous gap** is still too small.
 
 <DynamicPartitionStepper />
+
+Therefore, dynamic partitioning fixes the "waste inside the block" problem by making it easier to create the "waste between blocks" problem.
 
 Step through the events above and watch what happens when processes terminate. Gaps of varying sizes form between the remaining processes. Eventually, a large process arrives and gets **rejected** — even though the total free memory across all gaps is more than enough! The problem is that no single contiguous gap is large enough.
 
@@ -116,7 +122,7 @@ Try each strategy on the same sequence of events:
 
 <AllocationStrategyDemo />
 
-These algorithms have been studied extensively. Based on empirical and theoretical analysis, we can generally rank them by overall performance:
+These algorithms have been studied extensively. Based on empirical and theoretical analysis, we can generally rank them by overall performance. It should be strongly noted however that with a better understanding our your workload, these algortihms may reorder:
 
 <AlgorithmRankReveal />
 
@@ -136,7 +142,11 @@ And First-Fit? It works best for the same reason Multi-Level Feedback Queues wer
 
 Less management is better in this space. Some jobs actually require less supervision to succeed.
 
+Before using the visual below, watch two things at once: where new allocations land and what shape of free space is left behind
+
 <AllocationBehaviorVisual />
+
+Therefore, allocator quality is really about the long-term shape of free space, not just whether one individual allocation succeeds.
 
 ---
 
@@ -164,9 +174,13 @@ Let us start from the programmer's perspective and work our way down, then come 
 
 ### The Programmer's View
 
-When we write programs, we use variable names, function names, and line numbers. The compiler translates these into machine code with **addresses** — numerical labels that identify where values live and where instructions jump to.
+When we write programs, we use variable names, function names, and line numbers. The entire toolchain you are using, including the compiler, linker, and loader, translates these into machine code with **addresses** — numerical labels that identify where values live and where instructions jump to.
+
+Before stepping through the mapping, watch what stays stable for the program: names and relative relationships inside the code.
 
 <CodeAddressMapping />
+
+Therefore, from the program's point of view, addresses behave like local labels inside one address space.
 
 Two critical observations:
 
@@ -201,13 +215,19 @@ If mapping logical addresses directly to physical addresses results in collision
 
 > Track one number carefully: every process begins at the same **logical start**, but ends up with a different **physical start** after translation.
 
+Before stepping through this demo, track one invariant: the program's logical address stays the same even though the physical destination changes.
+
 <AddressTranslationDemo />
+
+Therefore, translation lets the programmer keep one coherent address space while the OS chooses a different physical placement.
 
 The formula is beautifully simple:
 
 > **physical address = logical address + base**
 
-And the best part? Since this is purely a numerical offset applied to every memory access — based on ISA-level information — it can be performed **entirely in hardware**. The programmers never see it. The memory architecture developers never see it. It is invisible.
+In real systems, this simple model is usually paired with a **limit/bounds check** so the process cannot wander outside its assigned region.
+
+This works because the translation is systematic: one logical region maps to a shifted physical region. The mechanism is hardware-assisted, while the operating system is responsible for setting up the mapping correctly.
 
 ---
 
@@ -228,10 +248,10 @@ Next time, we will explore the MMU in depth and discover that the simple base-of
 - **Dynamic partitioning** sizes partitions to each process — eliminates internal fragmentation but creates <MemoryTag type="cost">external fragmentation</MemoryTag> (gaps between processes)
 - **Compaction** fixes fragmentation by relocating processes, but is expensive
 - Four allocation strategies: **FF** (scan from start), **BF** (smallest gap), **WF** (largest gap), **NF** (scan from last position)
-- Empirically: **FF > NF > WF > BF** — First-Fit wins because it naturally sorts by process behavior, like MLFQ
+- In many workloads, **First-Fit** performs well, but allocator rankings are empirical and workload-dependent
 - Contiguous allocation fundamentally causes fragmentation; non-contiguous allocation is needed but programmers refuse to restructure their code
 - **Logical addresses** (programmer names, start at 0) vs. **physical addresses** (hardware slots, must be unique)
-- A simple **base offset** translates logical to physical — done in hardware by the **MMU**, invisible to everyone
+- A simple **base offset** translates logical to physical; real systems pair that idea with bounds/protection checks
 - Next lecture: Virtual Memory — independent translation of every page
 
 <LectureNotes>
@@ -241,9 +261,9 @@ Next time, we will explore the MMU in depth and discover that the simple base-of
 1. Internal fragmentation = waste **inside** allocated blocks (fixed partitioning)
 2. External fragmentation = waste **between** allocated blocks (dynamic partitioning)
 3. Compaction works but does not scale — prevention through smart allocation is better
-4. First-Fit beats Best-Fit because process behavior naturally sorts memory into hot/cold zones
-5. The logical/physical address distinction is the foundation of all modern memory management
-6. Base offset translation is simple, hardware-implemented, and invisible to programmers — this is the seed of virtual memory
+4. Allocation strategy quality depends on the long-term pattern of leftover gaps, not just one placement decision
+5. The logical/physical address distinction is the foundation of modern memory management
+6. Base offset translation is the simplest form of address translation — later VM systems generalize the same idea
 
 </LectureNotes>
 

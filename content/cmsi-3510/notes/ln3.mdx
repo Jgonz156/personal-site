@@ -57,9 +57,9 @@ Rust leverages mature formal reasoning: type systems that prove memory safety at
 
 ## The Ownership/Borrowing System
 
-Rust's solution recognizes a simple reality: **In stateful programming, all values are accessed through variables.**
+Rust's solution starts from a simpler teaching model: most values are reached through bindings and references that the compiler can reason about statically.
 
-Since variables are the only way to refer to values, we can draw some very simple conclusions about the lifetime of values in memory:
+Using that model, we can draw some useful conclusions about the lifetime of values in memory:
 
 | Principle | Implication |
 | :--- | :--- |
@@ -67,7 +67,7 @@ Since variables are the only way to refer to values, we can draw some very simpl
 | Values must be accessible while the variable is referenceable | Memory must persist |
 | Once a variable is no longer referenceable | We can free the memory |
 
-This is simplified—variables can exist uninitialized—but the core principles hold. Since variables are the only way to reference anything, they should manage allocation and deallocation.
+This is simplified, but the core principles hold: Rust ties value validity to bindings, moves, and borrows in a way the compiler can check ahead of time.
 
 ### Why Not Just Use C's Approach?
 
@@ -89,7 +89,7 @@ So all we have to do to manage memory in Rust is to set up our variables and ref
 
 </DefinitionBox>
 
-Variables made at declaration are always the initial owners of their values.
+The binding introduced at declaration is usually the initial owner of the value it creates.
 
 ```rust
 let x = 1;
@@ -238,11 +238,11 @@ Well, only having your owner tied statically to a single variable would mean tha
 
 The solution is to recognize that we can only have one owner of a value, but **no one ever said we couldn't have the value transferred from one owner to another!**
 
-In the program above, we had `x` as the owner of the String value "hello" but then we said via our declaration syntax a new "allocation" has to happen for `y`!
+In the program above, `x` initially owns the `String` value `"hello"`, and the assignment to `y` transfers ownership.
 
-We could simply copy all the memory from `x` to `y` but this would be a waste of time and memory (looking at you, C++!).
+Rust could have required an explicit deep copy every time, but that would be expensive for heap-owning values.
 
-Instead, we can transfer the ownership of the value to `y`! The memory/value is "moved" from `x` to `y` and `x` is no longer the owner of the value.
+Instead, ownership moves to `y`. The important language-level fact is not that bytes teleport in memory; it is that `y` becomes the valid owner and `x` no longer may be used as one.
 
 ```rust
 fn main() {
@@ -252,11 +252,11 @@ fn main() {
 }
 ```
 
-> ⚠️ **Warning:** Using `x` after the transfer is an error as it is no longer the owner of the value and is "empty." It's actually filled with "garbage"—memory that is no longer valid to use but still contains bits. You should never attempt to use garbage as it leads to undefined behavior and is a surefire way to introduce bugs and security vulnerabilities (C and C++ are notorious for this since they can't prevent you from accessing garbage at the language level)!
+> ⚠️ **Warning:** Using `x` after the move is an error because the binding is no longer valid for that value. Think of it as a binding the compiler has invalidated.
 
 ### Copy vs. Move: A Side Tangent
 
-This is actually a very interesting problem to discuss: when is the right time to copy? C++ has Copy and Move semantics just like Rust does, but C++ has Copy prioritized first over memory Moves whilst Rust is the other way around!
+This raises an important design question: when should a language copy, and when should it move? Rust chooses move-by-default for many non-`Copy` values so ownership changes stay explicit.
 
 | Language | Default Behavior | Philosophy |
 | :--- | :--- | :--- |

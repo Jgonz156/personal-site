@@ -47,7 +47,7 @@ SRAM uses **6 transistors per bit** to form a stable bistable circuit (a flip-fl
 
 </DefinitionBox>
 
-The word "static" in SRAM does not mean "unchanging data" — it means the circuit is **statically stable**. Unlike its dynamic cousin, SRAM doesn't need to be constantly refreshed. The tradeoff? Six transistors per bit makes SRAM *expensive* and *physically large* relative to the data it stores. You cannot cheaply build terabytes of SRAM — you would need billions of transistors per byte.
+The word "static" in SRAM does not mean "unchanging data" — it means the circuit is **statically stable** while powered. Unlike DRAM, SRAM does not need refresh cycles. The tradeoff is density: SRAM stores fewer bits per unit area than DRAM, so it is much more expensive for large memories.
 
 This is why SRAM is used only where speed is absolutely critical: the CPU's registers (the fastest memory in any system, operating at a single clock cycle) and the cache hierarchy (L1, L2, L3). Your CPU die is actually *mostly* cache — look back at those die shots from LN9 and notice how much silicon is dedicated to it.
 
@@ -59,9 +59,9 @@ DRAM uses just **1 transistor and 1 capacitor per bit**. The capacitor stores ch
 
 </DefinitionBox>
 
-The word "dynamic" refers to the fact that the stored charge is constantly *draining away*. The memory controller must periodically read each bit and write it back to refresh the capacitor — a process that takes time and bandwidth. If the refresh doesn't happen fast enough, the bit "decoheres" and the data is lost, even while the system is powered on.
+The word "dynamic" refers to the fact that the stored charge must be maintained over time. The memory controller periodically refreshes rows so the charge does not decay away. Refresh costs time and bandwidth, but DRAM's density is so much better than SRAM that it remains the standard choice for main memory.
 
-Why use DRAM at all if it has this problem? Because 1 transistor + 1 capacitor is **dramatically** cheaper and smaller than 6 transistors. You can pack orders of magnitude more DRAM into the same silicon area. This makes DRAM suitable for **main memory** — those sticks of RAM you slot into a desktop motherboard. Modern DDR5 modules reach 4800–8400 MT/s (megatransfers per second) with on-die ECC (error correcting codes) to catch refresh-related bit flips.
+Why use DRAM at all if it has this problem? Because it packs far more bits into the same area at a much lower cost. That makes it suitable for **main memory** — the RAM sticks or soldered memory packages that hold active programs and data.
 
 > **Key Insight:** SRAM vs. DRAM is the first taste of the central tension of memory engineering: **speed vs. density vs. cost**. You will see this tradeoff at every level of the hierarchy. It is inescapable.
 
@@ -75,7 +75,7 @@ Why use DRAM at all if it has this problem? Because 1 transistor + 1 capacitor i
 
 <DefinitionBox term="ROM (Read-Only Memory)">
 
-ROM stores data that is **"baked in"** during manufacturing or via a special one-time programming process. It is used for boot firmware (BIOS/UEFI), system microcode, and embedded firmware. Old cartridge-based game consoles (NES, SNES, Game Boy) stored their games on ROM chips.
+ROM stores data that is **"baked in"** during manufacturing or via a special programming process. It is used for boot firmware (BIOS/UEFI), system microcode, and embedded firmware. Old cartridge-based game consoles (NES, SNES, Game Boy) stored their games on ROM chips.
 
 </DefinitionBox>
 
@@ -117,8 +117,8 @@ Optical memory stores data by **physically altering the surface of a reflective 
 | Format | Capacity | Laser Wavelength |
 | :--- | :--- | :--- |
 | CD | 700 MB | 780 nm (infrared) |
-| DVD | 4.7–8.5 GB | 650 nm (red) |
-| Blu-ray | 25–128 GB | 405 nm (blue-violet) |
+| DVD | 4.7-8.5 GB | 650 nm (red) |
+| Blu-ray | 25-128 GB | 405 nm (blue-violet) |
 
 Shorter wavelengths focus more tightly, allowing smaller pits and higher density. This is literally why Blu-ray is called "Blu-ray" — it uses a blue laser instead of a red one.
 
@@ -179,9 +179,13 @@ The SLC, TLC, and QLC distinctions you see marketed on consumer SSDs also reflec
 
 ## The Memory Hierarchy
 
-This is the heart of the lecture. Every technology we have discussed occupies a specific position in a hierarchy ordered by **distance from the CPU**. The closer to the CPU, the faster and more expensive. The further away, the slower and cheaper. This hierarchy is not a design choice — it is an economic and physical *inevitability*.
+This is the heart of the lecture. Every technology we have discussed occupies a specific position in a hierarchy ordered roughly by **latency, capacity, and cost per bit**. The closer to the CPU, the faster and smaller. The farther away, the slower and cheaper per bit.
+
+Before you play with the table, compare three columns in order: latency first, then capacity, then cost. The useful pattern is not one exact number; it is how violently those columns diverge.
 
 <MemoryTechTable />
+
+Therefore, the memory hierarchy is less a single ladder and more a compromise stack: no one layer wins on speed, capacity, persistence, and cost all at once.
 
 ### Understanding the Speed Column
 
@@ -250,15 +254,15 @@ Understanding what memory *looks like* is crucial to your optimizations as softw
 
 At the lowest level, we know it is all 1s and 0s flowing through gates. But that is the electrical engineer's view, not ours. The highest view is the application developer's: they only know of the stack and the heap. There are even layers beyond that — SQL developers who cannot control memory at all.
 
-Our view is that of **machine code via the ISA**. We do not read individual bits; we read **instructions**, one by one, as defined by our CPU's Instruction Set Architecture. So do not imagine a horizontal tape of 1s and 0s. Imagine a **vertical tape**, 64 bits wide, broken into discrete blocks — because that is what our instructions physically *are*. Each instruction is 64 bits wide (on a 64-bit system). It is like writing an essay on a roll of toilet paper as you unroll it — each line is exactly 64 characters wide, read from top to bottom.
+Our view is that of **machine code via the ISA**. We do not manipulate transistors directly; we reason in addresses, objects, instructions, pages, stacks, and heaps. So treat the vertical tape below as a **visual metaphor** for ordered address space, not as a literal claim that every instruction on a 64-bit CPU is 64 bits wide. In real ISAs, instruction widths vary.
 
-We group these machine instructions into **programs** and assign them to memory segments. Then we unroll a large blank section of the tape and subdivide it into the **Process Address Space** we discussed in LN10:
+We group machine code and program data into one process image, then subdivide its address space into familiar regions:
 
 <PASVerticalTape />
 
-Notice the structure: code and data sit together at the low end (top of the tape), then the heap grows downward from the code, and the stack grows upward from the bottom. The gap in between is where the two will eventually collide if you allocate too much — a **stack overflow** (the stack hits the heap) or **heap exhaustion** (the heap fills all available space).
+Therefore, the main point of this diagram is spatial organization: a process sees one ordered address space even though the hardware underneath may be much messier.
 
-This is the view of memory that you, as an OS developer, will optimize. Not bits, not bytes — **64-bit instruction blocks** in a vertical tape that you must partition, protect, and manage for every running process.
+Notice the structure: code and static data live in one region, the heap and stack are separate growth areas, and the exact layout is managed by the loader, compiler, ABI, and operating system. The diagram is a first-pass model, but it is a useful one because it highlights that memory management is mostly about controlling regions and translations, not staring at raw voltages.
 
 ---
 
@@ -266,9 +270,11 @@ This is the view of memory that you, as an OS developer, will optimize. Not bits
 
 There is one final visualization that ties everything together. We said memory is a hierarchy of different hardware, each with different speeds and capacities. Each of those hardware tiers can be thought of as its own "roll of toilet paper" — a finite tape. Registers are a tiny roll. Cache is small. RAM is medium. SSDs are large. HDDs are enormous.
 
-A running process does not live on just one of these rolls. Its **instructions** might be in cache (recently executed code), its **data** in RAM (active variables and heap objects), its **executable** on the SSD (the binary file), and its **logs** on the HDD (archival writes). A process *colors* parts of every roll simultaneously.
+A running process does not live in just one place. Its actively referenced pages may be in RAM, copies of recently used data may also appear in caches, its executable image lives on persistent storage, and its outputs may be written elsewhere. The exact movement policies differ by layer, but one program can leave footprints across several tiers at once.
 
 <MemoryHardwareTapes />
+
+Therefore, when we say an OS "manages memory," we usually mean it manages the process's active working state across address spaces and main memory while coordinating with slower storage beneath it.
 
 This is the complete picture: each component of your system that contains memory has one of these finite tapes, and the transfer of data, subdivisions, and processes *between* these tapes is what we as OS developers are here to manage. In the next several lectures, we will study exactly how the OS orchestrates this — virtual memory, paging, page replacement algorithms, and more.
 

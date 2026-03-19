@@ -197,8 +197,8 @@ The answer is **virtualization**. Each running program (process) gets a **virtua
 
 - Its own CPU (with its own registers)
 - Its own memory (starting at address 0)
-- Its own I/O devices
-- Its own disk storage
+- Its own handles onto I/O resources
+- Its own view of files and storage objects through the OS interface
 
 In reality, the OS **multiplexes** the real hardware among all processes, switching so fast that each process appears to have its own machine.
 
@@ -381,8 +381,8 @@ fn main() {
 
 - Runtime scheduler decides when each thread runs
 - Context switches happen in user space (no kernel call)
-- Many green threads can map to few kernel threads (M:N model)
-- What Tokio provides in Rust
+- Many user-space tasks can be multiplexed onto fewer kernel threads
+- Roughly the style of abstraction Tokio exposes for async tasks in Rust
 
 ```rust
 use tokio;
@@ -390,7 +390,7 @@ use tokio;
 #[tokio::main]
 async fn main() {
     let handle = tokio::spawn(async {
-        println!("Hello from a green thread!");
+        println!("Hello from a Tokio task!");
     });
     
     handle.await.unwrap();
@@ -409,7 +409,7 @@ async fn main() {
 
 ### The Connection to async/await
 
-`async/await` in Rust is essentially syntactic sugar for green threading:
+`async/await` in Rust is best understood as syntax for building and polling **futures**. In practice, many runtimes schedule those futures cooperatively, which makes the model feel thread-like even though it is not the same thing as an OS thread:
 
 ```rust
 async fn fetch_data() -> String {
@@ -419,7 +419,7 @@ async fn fetch_data() -> String {
 }
 ```
 
-Think of `await` as saying: *"You can work on something else until this is ready."*
+Think of `await` as saying: *"This future is not ready yet; the runtime can poll something else for now."*
 
 This is a **control flow mechanism** like `if` and `while`:
 - `if` — branch based on condition
@@ -605,7 +605,7 @@ let y = fetch_y().await;
 | Scenario | Use |
 | :--- | :--- |
 | CPU-bound work | Kernel threads (`std::thread`) |
-| Many I/O-bound tasks | Green threads (Tokio) |
+| Many I/O-bound tasks | Async tasks / futures (Tokio) |
 | Need true parallelism | Kernel threads |
 | Need millions of tasks | Green threads |
 | Simple, few threads | Kernel threads |
@@ -643,7 +643,7 @@ No OS → Batch → Multiprogramming → Time-Sharing → Modern OS
 
 **Rust Threading:**
 - `std::thread` — kernel threads, true parallelism
-- `tokio` — green threads, async I/O, millions of tasks
+- `tokio` — async runtime, async I/O, many lightweight tasks
 - `move` — transfer ownership to thread
 - `Arc<Mutex<T>>` — shared mutable state
 

@@ -359,7 +359,7 @@ Understanding memory layout is essential for systems programming.
 
 #### Default Layout (`repr(Rust)`)
 
-Rust is free to reorder fields for optimal packing:
+Rust may reorder fields for optimization under `repr(Rust)`; the exact layout is not a stable guarantee you should rely on:
 
 ```rust
 struct Unoptimized {
@@ -409,7 +409,7 @@ struct CCompatible {
 
 | Representation | Field Order | Padding | Use Case |
 | :--- | :--- | :--- | :--- |
-| `repr(Rust)` | Compiler chooses | Minimized | Default, most efficient |
+| `repr(Rust)` | Compiler chooses | Often optimized, but not layout-stable | Default representation |
 | `repr(C)` | Declaration order | C-compatible | FFI, OS interfaces |
 | `repr(packed)` | Declaration order | None | Careful! May cause unaligned access |
 
@@ -627,7 +627,7 @@ fn process_message(msg: Message) {
 
 ### Enum Memory Layout
 
-Enums have a **discriminant** (tag) plus space for the **largest variant**:
+Enums usually need a **discriminant** (tag) plus enough space for the **largest variant**, though niche optimizations can change the exact representation:
 
 ```rust
 enum Example {
@@ -677,7 +677,7 @@ println!("Size of &i32: {}", size_of::<&i32>());           // 8
 println!("Size of Option<&i32>: {}", size_of::<Option<&i32>>()); // 8 (same!)
 ```
 
-> **📌 Key Point:** This is why `Option<Box<T>>` and `Option<&T>` have no overhead compared to nullable pointers in C—Rust uses the null representation for `None`.
+> **📌 Key Point:** This is why `Option<Box<T>>` and `Option<&T>` can often have no extra size overhead compared to nullable pointers in C—Rust may use the null representation for `None`.
 
 ---
 

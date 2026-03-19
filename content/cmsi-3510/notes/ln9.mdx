@@ -284,7 +284,7 @@ fn main() {
     let (sender, receiver) = mpsc::channel();
 
     thread::spawn(move || {
-        sender.send("Hello from another process!").unwrap();
+        sender.send("Hello from another thread!").unwrap();
     });
 
     let message = receiver.recv().unwrap();
@@ -302,7 +302,7 @@ How do processes know if they're **related** to one another? This is where UNIX 
 
 ### UNIX: The <ManagerTag manager="hierarchy">Fork Tree</ManagerTag>
 
-In UNIX, all processes are born from `fork()` — every process is a clone of its parent. Every process has exactly one parent, forming a **tree** rooted at `init` (PID 1).
+In classic UNIX-style systems, new processes are typically created through `fork()` followed by `exec()`. Every process has one parent, forming a **tree** rooted at a system init process.
 
 <GraphVisualization
   nodes={[
@@ -356,9 +356,9 @@ In Windows, processes are created from scratch via `CreateProcess()`. Relationsh
 | Aspect | UNIX | Windows |
 | :--- | :--- | :--- |
 | Creation | <ManagerTag manager="hierarchy">`fork()`</ManagerTag> — clone parent | `CreateProcess()` — from scratch |
-| Structure | Tree (all connected via init) | Disconnected graph |
+| Structure | Strong parent/child tree model | Weaker tree emphasis; many relations are handle-based |
 | Relationships | Implicit (parent-child) | Explicit (handles, consent) |
-| Finding processes | Tree traversal | Graph search algorithms |
+| Finding processes | Parent/child traversal is natural | Usually OS enumeration APIs, with handle relationships as extra structure |
 | Trade-off | Needs security for malformed connections | More isolation but harder discovery |
 
 ### Rust Process Spawning

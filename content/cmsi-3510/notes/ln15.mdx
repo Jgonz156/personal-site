@@ -1,0 +1,221 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { MemoryTag } from "@/components/memory-tag"
+import { LogicalPhysicalPipeline } from "@/components/logical-physical-pipeline"
+import { PagingDemo } from "@/components/paging-demo"
+import { MMUTranslationStepper } from "@/components/mmu-translation-stepper"
+import { PageTableVisualizer } from "@/components/page-table-visualizer"
+
+## Recap — From Rust to Hardware
+
+Last time we established the critical distinction between <MemoryTag type="logical">logical addresses</MemoryTag> and <MemoryTag type="physical">physical addresses</MemoryTag>. Programmers use logical addresses — convenient labels starting at 0 — while hardware uses physical addresses — unique slots in actual memory chips. The **MMU** sits between these two worlds, translating one to the other so neither side has to compromise.
+
+Let us trace the full pipeline from the code you write all the way to the physical hardware, and see exactly where the MMU draws the line.
+
+Before stepping through the pipeline, watch one invariant: the program keeps the same logical view even when the hardware placement changes underneath it.
+
+<LogicalPhysicalPipeline />
+
+This is the core promise of virtual memory: stable addressing for the program even when physical placement is hidden and flexible.
+
+Step through all four phases above. Phases 1 and 2 are the **logical side** — what you as a programmer create and what the compiler produces. Everything uses logical addresses starting at `0x0000`. Phases 3 and 4 are the **physical side** — where the hardware actually places your code. Notice how `one()` and `main()` end up at completely different physical locations, separated by unrelated data. Yet the `call [rip + @one]` instruction still works because the MMU transparently maps the logical label to its physical location. The programmer never notices.
+
+---
+
+## The Universal Memory Dream
+
+Recall our discussion of the **universal memory** concept from LN13 — the theoretical ideal of a single, enormous, fast, cheap memory strip for all computation. We cannot build such hardware (yet), so we are stuck with the multi-strip, multi-speed, multi-cost reality of registers, caches, RAM, SSDs, and HDDs.
+
+But what if, with a little more facade maintenance from our MMU, we could let programmers **think and code** as though they have a single infinite strip, while the physical implementation remains hidden behind the curtain?
+
+If your MMU is sophisticated enough to maintain this illusion — supporting full logical-to-physical address translation — then you have a system that implements what is called **Virtual Memory**.
+
+---
+
+## What Virtual Memory Is (and Is Not)
+
+<DefinitionBox term="Virtual Memory">
+
+<MemoryTag type="logical">Virtual memory</MemoryTag> is a memory management technique that maintains the distinction between logical and physical addressing, implemented in hardware (the MMU) and managed by the OS. It allows processes to use more <MemoryTag type="logical">logical address space</MemoryTag> than there is <MemoryTag type="physical">physical memory</MemoryTag> available.
+
+</DefinitionBox>
+
+Virtual memory exists first to provide **translation, protection, and isolation**. One consequence is that the OS can also overcommit memory and move inactive data to backing storage. The core idea:
+
+1. Divide each process into "chunks"
+2. Load only the chunks the CPU currently needs into fast memory (RAM)
+3. Swap chunks between memory and storage as needed
+
+Before we go further, let us be very clear about what virtual memory is **not**:
+
+> Virtual memory is **not** inventing new space for storing things. It is **not** "downloading more RAM." You can only get more memory or storage by purchasing more or better hardware.
+
+The distinction being made is that managing **memory** (RAM) is hard because it is limited, so we offload the things we do not pick up as often onto **storage** (SSD/HDD). When virtual memory says it is "placing chunks elsewhere," those chunks are placed on hardware so slow we no longer consider it readily available.
+
+Recall the distinction between storage and memory: all ways to store computations on a system are functionally identical in their capacity to hold data. It is their **speed** that determines whether we call something "memory" or "storage." A cache holds things the same way an HDD does — it is just orders of magnitude faster.
+
+As a fun aside, you *can* technically "download more RAM" by updating your system software to mark what would typically be storage hardware as memory. You can run programs off an HDD! The fundamental process is identical to RAM — it is just significantly slower. This is exactly what **swap files** and **swap partitions** do on modern operating systems.
+
+---
+
+## Non-Contiguous Allocation — Revisiting the Foundation
+
+Recall from LN14 that we desperately need **non-contiguous allocation** to fix fragmentation, but programmers refuse to restructure their code to accommodate it. Virtual memory solves this impasse: we perform non-contiguous allocation in the <MemoryTag type="physical">physical address space</MemoryTag> while maintaining the illusion of contiguous addressing in the <MemoryTag type="logical">logical address space</MemoryTag>.
+
+To implement this, we need non-contiguous allocation techniques. We covered two **contiguous** techniques last time:
+
+- **Fixed partitioning** — simple, but classically suffered from internal fragmentation
+- **Dynamic partitioning** — eliminated internal fragmentation but created external fragmentation
+
+What if we could leverage the fundamental principles of these two techniques to build something new? Our first non-contiguous technique is best described as "virtual fixed partitioning." Its name is **paging**.
+
+---
+
+## Paging
+
+<DefinitionBox term="Paging">
+
+<MemoryTag type="logical">Paging</MemoryTag> divides the logical address space into many fixed-size partitions called **pages**. The <MemoryTag type="physical">physical address space</MemoryTag> is divided into identically-sized partitions called **frames**. Pages are mapped to frames by the MMU, but a process's pages do **not** need to occupy contiguous frames — they can be scattered anywhere across physical memory.
+
+</DefinitionBox>
+
+<DefinitionBox term="Page">
+
+A <MemoryTag type="logical">page</MemoryTag> is a fixed-size block of a process's logical address space. All pages for all processes are the same size. Each page can be independently mapped to any available frame in physical memory.
+
+</DefinitionBox>
+
+<DefinitionBox term="Frame">
+
+A <MemoryTag type="physical">frame</MemoryTag> is a fixed-size block of physical memory, identically sized to a page. Frames are the "slots" that pages get loaded into. A system typically has fewer frames than the total number of pages across all processes, since physical memory is limited while logical address space can be made large.
+
+</DefinitionBox>
+
+Usually, a system has **more virtual pages than physical frames**. This is by design: programmers get as much logical space as they want (the "universal memory" illusion), while the physical hardware has a finite number of frames. The MMU handles the mapping so the programmer never notices the mismatch.
+
+Before using the paging demo, watch what changes and what stays fixed: physical frame placement changes, but each page keeps its logical identity.
+
+<PagingDemo />
+
+Therefore, paging solves the placement problem by making contiguity a property of the virtual address space, not of the underlying physical memory.
+
+Notice the familiar tradeoff from fixed partitioning: as you adjust the page/frame size, smaller pages match process sizes better (less internal fragmentation in the last page) but require more pages to track. Larger pages waste more space in the final page but require fewer tracking entries.
+
+The critical difference from fixed partitioning is that pages **do not need to be physically contiguous**. A process's pages can be scattered across physical frames in RAM, and some pages may be absent and backed by secondary storage until needed. The program still behaves as though it has one contiguous virtual space.
+
+---
+
+## Page Faults and Swapping
+
+If we are dividing a process into pages and only loading *some* of them into physical frames, what happens when the CPU requests code or data that lives on an unloaded page?
+
+Recall something critical: the assembly running on the CPU operates in <MemoryTag type="logical">logical address space</MemoryTag>. It does not know about pages, frames, or physical addresses. It just asks for "line 13" and expects to get data back.
+
+When the MMU receives a logical address and discovers that the corresponding page is not loaded into any frame, the jig is up. The MMU declares a **page fault**.
+
+<DefinitionBox term="Page Fault">
+
+A <MemoryTag type="cost">page fault</MemoryTag> occurs when the CPU references a virtual address whose page is not currently mapped to a resident physical frame. The fault traps into the OS, which may then:
+
+1. Validate that the access is legal
+2. Find a free frame or choose a victim frame if replacement is necessary
+3. Read the needed page from backing storage if the page is not already resident
+4. Update the mapping and retry the faulting instruction
+
+</DefinitionBox>
+
+As a side note, notice that this situation directly models the same management problem the CPU faces with **scheduling**. With CPU scheduling, multiple processes compete for a limited number of cores. With page management, multiple pages compete for a limited number of frames. There is an entirely adjacent scheduling problem dedicated to deciding which pages to evict — a direct parallel to CPU scheduling! Do not worry though; we have seen enough scheduling for one OS course.
+
+This system only works because the hardware and OS cooperate to maintain the fiction of one coherent virtual address space. Let us take a deep dive into the exact steps involved.
+
+---
+
+## The MMU in Action
+
+Before stepping through the MMU translation, compare the fast path and the fault path: what is identical, and where does the expensive detour begin?
+
+<MMUTranslationStepper />
+
+Step through both scenarios above. In the **normal path**, the MMU receives a logical address, translates it to a physical address using its page table, fetches the data from RAM, and returns it to the CPU. The CPU never knows the translation happened.
+
+In the **page fault path**, the requested page is not resident. Extra steps are required: the kernel handles the fault, may need to evict some other page, reads the needed page into memory, updates the mapping, and then retries the access. The important operational detail is that the fault involves the OS and scheduler aswell as the hardware.
+
+---
+
+## Page Tables — The Yellow Pages
+
+The MMU has dedicated hardware support for converting <MemoryTag type="logical">logical</MemoryTag> addresses to <MemoryTag type="physical">physical</MemoryTag> addresses. When paging is implemented, it consults a **page table** whose contents are set up by the operating system.
+
+<DefinitionBox term="Page Table">
+
+A <MemoryTag type="hardware">page table</MemoryTag> is a data structure in memory that maps <MemoryTag type="logical">page numbers</MemoryTag> to <MemoryTag type="physical">frame numbers</MemoryTag>, along with permission and status bits. The OS builds and updates it; the MMU and TLB consult it during translation.
+
+</DefinitionBox>
+
+The architecture of the page table rests on the **bits of the virtual address**. Recall that the MMU is hardware — it can only see and solve problems one instruction at a time. We as OS designers think in 64-bit instruction chunks, but the hardware reasons about individual bits *within* those chunks. This is exactly what we are about to see.
+
+The idea: split each logical address into two parts:
+
+1. **Upper bits → Page number** — used as a key to look up the corresponding frame in the page table
+2. **Lower bits → Offset** — the position within the page; this is preserved as-is during translation
+
+The MMU takes the page number bits, looks up the corresponding frame number in the page table, replaces the page bits with the frame bits, and keeps the offset unchanged. The result is a complete physical address.
+
+Before you adjust the slider, predict which tradeoff will move: more page-number bits means what happens to page size and table size?
+
+<PageTableVisualizer />
+
+Adjust the slider to change how many bits are dedicated to the page number. Watch how this affects the number of possible pages and the size of each page:
+
+- **More page bits** = more pages, smaller pages (finer granularity, less internal fragmentation, bigger page table)
+- **Fewer page bits** = fewer pages, larger pages (coarser granularity, more internal fragmentation, smaller page table)
+
+This is the same tradeoff we saw with fixed partition sizes — but now it operates at the bit level of the instruction architecture itself.
+
+Try the **Page Fault Demo** to see what happens when the page number has no corresponding valid entry. Therefore, the page table is not just a lookup map; it is also the hardware-visible record of whether a page is resident and accessible.
+
+---
+
+## Summary
+
+- The <MemoryTag type="logical">logical</MemoryTag> / <MemoryTag type="physical">physical</MemoryTag> address distinction from LN14 is the foundation of virtual memory
+- **Virtual memory** lets the OS manage processes larger than physical RAM by swapping "chunks" (pages) between memory and storage
+- Virtual memory is **not** creating new RAM — it is a translation and protection mechanism that can also use backing storage for nonresident pages
+- **Paging** divides logical space into <MemoryTag type="logical">pages</MemoryTag> and physical space into <MemoryTag type="physical">frames</MemoryTag> of equal size
+- Pages can be **non-contiguously** placed in frames — solving the fragmentation problem without the programmer noticing
+- A **page fault** occurs when the CPU requests a page that is not currently resident or not currently mapped for that access
+- The **page table** maps page numbers to frame numbers plus status bits; the OS maintains it and the MMU consults it
+- More page bits = more pages, smaller pages, less waste, bigger table; fewer page bits = the opposite
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+1. Virtual memory maintains a stable per-process address space while physical placement remains flexible underneath
+2. Paging is "virtual fixed partitioning" — it keeps the fixed-size-block tradeoff (internal fragmentation in the last page, tracking overhead) while gaining non-contiguous placement
+3. The MMU performs translation in hardware, while the OS sets up and repairs the mappings
+4. Page faults are the expensive edge case: when a needed page is not resident, the kernel must intervene before execution continues
+5. The page table splits each virtual address into page-number bits (the lookup key) and offset bits (preserved as-is), replacing the page number with a frame number to produce the physical address
+6. The page/offset bit split is a fundamental architectural decision that affects page count, page size, internal fragmentation, and page table size
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 18: Introduction to Paging](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free textbook covering paging fundamentals, page tables, and address translation
+- [OSTEP Chapter 19: TLBs (Translation Lookaside Buffers)](https://pages.cs.wisc.edu/~remzi/OSTEP/) — How modern hardware caches page table lookups for speed
+- [OSTEP Chapter 21: Swapping Mechanisms](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Page fault handling and swap space management
+
+### Virtual Memory Architecture
+
+- [Modern Operating Systems (Tanenbaum) Ch. 3.3: Virtual Memory](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — Comprehensive coverage of paging, page tables, and page replacement
+- [Intel 64 and IA-32 Architectures Manual, Vol. 3A Ch. 4: Paging](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html) — How x86 hardware implements multi-level page tables
+
+### Historical Context
+
+- [Fotheringham, Dynamic Storage Allocation in the Atlas Computer (1961)](https://dl.acm.org/doi/10.1145/366786.366800) — The Atlas computer at Manchester introduced virtual memory and paging
+- [Denning, Virtual Memory (1970)](https://dl.acm.org/doi/10.1145/356571.356573) — Peter Denning's foundational survey of virtual memory concepts
+
+</LectureResources>

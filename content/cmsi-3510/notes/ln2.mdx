@@ -94,7 +94,7 @@ Notice what these declarations force us to acknowledge:
 
 | Question | Why It Matters |
 | :--- | :--- |
-| Are we allocating new memory? | `let` keyword signals allocation |
+| Are we introducing a new binding? | `let` creates a new binding, which may require storage or may be optimized away |
 | Is it mutable or immutable? | Affects optimization strategies |
 | What is the type? | Determines memory size |
 | Is it a constant or static? | Affects storage location |
@@ -116,10 +116,10 @@ Being forced to answer these questions might feel "extra" compared to Python, bu
 
 | Information | Optimization |
 | :--- | :--- |
-| **Type** | Pre-allocate exact space needed (i32 = 4 bytes, f64 = 8 bytes) |
+| **Type** | Reason about representation and operations at compile time |
 | **Mutability** | Alter values in-place if mutable; gain concurrency safety if immutable |
 | **Constant** | Inline the value directly into code—avoid memory access overhead |
-| **Static** | Pre-allocate in a compact, optimized section of memory |
+| **Static** | Place data in program-lifetime storage when appropriate |
 | **Uninitialized** | Pre-allocate based on type information alone |
 
 > **💡 Key Insight:** We can optimize the space we take up *before we even run the program!*
@@ -191,7 +191,7 @@ In Rust, the **compiler** helps us out. It must ensure all memory is managed wel
 
 For the majority of variables you'll declare in Rust, the rule is simple:
 
-> **You are accessible from the line of declaration until the end of the block you're declared in.**
+> **A local binding is usually accessible from its declaration until the end of the block it is declared in.**
 
 ```rust
 {
@@ -238,20 +238,20 @@ Recall that memory is made up of different regions:
 | **Heap** | Dynamic location for data that can't make linear promises |
 | **Static** | Special section for data needed for the program's entire lifetime; compact, never grows/shrinks at runtime |
 
-The compiler places your values among these based on how you declare and initialize them:
+The compiler and runtime place values among these based on their types and how they are used:
 
 ```rust
-let x = 1;              // Stack
-let y = Box::new(2);    // Heap
-let z: i32 = 3;         // Stack
-const W: i32 = 4;       // Static (inlined)
+let x = 1;              // Typically stack storage for this local
+let y = Box::new(2);    // Box handle is local; boxed value lives on the heap
+let z: i32 = 3;         // Typically stack storage for this local
+const W: i32 = 4;       // Compile-time constant
 ```
 
 ### Why This Matters
 
 Values on the **stack** mean less memory-accessing overhead—we ensure all values a function needs are already with it in memory before the function is called.
 
-However, we can't always know the exact size of an object at compile time. That's why we still have the **heap**—but it's much slower, so Rust's syntax makes it obvious when you're using it:
+However, not everything fits cleanly into fixed-size local storage. Heap allocation is useful for dynamically sized data and ownership patterns that outlive one stack frame, though it usually costs more than simple stack allocation:
 
 ```rust
 let y = Box::new(2);  // Heap allocation is explicit!
@@ -263,14 +263,14 @@ let y = Box::new(2);  // Heap allocation is explicit!
 
 | Type | Memory Location |
 | :--- | :--- |
-| Primitive types (`i32`, `f64`, `bool`, `char`) | Stack |
-| Fixed-size arrays (`[i32; 3]`) | Stack |
+| Primitive types (`i32`, `f64`, `bool`, `char`) | Typically stack as locals |
+| Fixed-size arrays (`[i32; 3]`) | Typically stack as locals |
 | Vectors (`Vec<i32>`) | Stack (metadata) + Heap (data) |
 | Strings (`String`) | Stack (reference) + Heap (data) |
 | Structs | Stack (metadata) + Heap (data if needed) |
 | Enums | Stack (metadata) + Heap (data if needed) |
-| Constants/Statics | Static |
-| References (`&i32`, `&mut i32`) | Stack |
+| Constants/Statics | Program-lifetime storage or inlined use |
+| References (`&i32`, `&mut i32`) | Typically a small pointer-sized value in local storage |
 
 ---
 
@@ -446,14 +446,16 @@ These types reference other values in memory.
 ```rust
 fn main() {
     let x: &i32 = &1;
-    let y: &mut i32 = &mut 2;
+    let mut value = 2;
+    let y: &mut i32 = &mut value;
     let z: &[i32] = &[1, 2, 3];
     let boxed: Box<i32> = Box::new(4);
     let rc: Rc<i32> = Rc::new(5);
     let arc: Arc<i32> = Arc::new(6);
     let weak: Weak<i32> = Weak::new();
     let raw_const: *const i32 = &1 as *const i32;
-    let raw_mut: *mut i32 = &mut 2 as *mut i32;
+    let mut other_value = 7;
+    let raw_mut: *mut i32 = &mut other_value as *mut i32;
 }
 ```
 
@@ -475,7 +477,7 @@ Next time we'll explore **Functions** and **The Ownership System**!
 - **Declaration syntax** enables compile-time optimizations for memory allocation
 - **Mutability** refers to the variable binding, not the value itself
 - **Scope** determines accessibility; **lifetime** determines when memory is freed
-- Values live on the **stack**, **heap**, or **static** section depending on declaration
+- Values may use the **stack**, **heap**, or program-lifetime storage depending on their type and use
 - Rust's **type system** is precise: scalar, compound, and reference types each serve specific purposes
 
 **Memory Locations Quick Reference:**

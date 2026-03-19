@@ -9,6 +9,8 @@ export type MemoryTagType =
   | "speed"
   | "cost"
   | "hardware"
+  | "logical"
+  | "physical"
 
 const tagConfig: Record<
   MemoryTagType,
@@ -49,6 +51,18 @@ const tagConfig: Record<
     text: "text-teal-700 dark:text-teal-300",
     border: "border-teal-400/40 dark:border-teal-500/30",
     label: "Hardware",
+  },
+  logical: {
+    bg: "bg-blue-500/10 dark:bg-blue-500/15",
+    text: "text-blue-700 dark:text-blue-300",
+    border: "border-blue-400/40 dark:border-blue-500/30",
+    label: "Logical",
+  },
+  physical: {
+    bg: "bg-green-500/10 dark:bg-green-500/15",
+    text: "text-green-700 dark:text-green-300",
+    border: "border-green-400/40 dark:border-green-500/30",
+    label: "Physical",
   },
 }
 

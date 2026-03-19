@@ -257,7 +257,7 @@ These registers have dedicated hardware roles that keep the CPU running:
 | **MAR** | Memory Address Register | Holds the address to **read from or write to** in RAM |
 | **MBR/MDR** | Memory Buffer/Data Register | Holds data **going to or coming from** RAM |
 
-> **📌 How they work together:** When the CPU executes `ADD RAX, 5`:
+> **📌 How they work together:** In the simplified fetch/decode/execute model, when the CPU executes `ADD RAX, 5`:
 > 1. **PC** tells the CPU where to find this instruction in memory
 > 2. **MAR** receives the address from PC, sends it to the memory bus
 > 3. **MBR** receives the instruction bytes from memory
@@ -265,6 +265,8 @@ These registers have dedicated hardware roles that keep the CPU running:
 > 5. The ALU performs the addition, result goes to **ACC** then **RAX**
 > 6. **FLAGS** is updated (was the result zero? did it overflow?)
 > 7. **PC** is incremented to the next instruction
+
+As an important note, these are a generalized look at many special registers, they are NOT always present in all architectures!
 
 ### Historical Naming: 50 Years of Backwards Compatibility
 
@@ -305,7 +307,7 @@ The **ALU** is a combinational logic circuit that performs arithmetic, logical, 
 | **Logical** | AND, OR, XOR, NOT, bit shifts, rotates | Sets zero, sign |
 | **Comparison** | CMP (subtract without storing), TEST (AND without storing) | Sets all condition flags |
 
-The results go to the **accumulator** register, and the **FLAGS register** is updated to reflect the outcome. This is how `if` statements work at the hardware level — the compiler emits a `CMP` instruction, then a conditional jump that checks the FLAGS.
+The result is written to the destination register chosen by the instruction, and the **FLAGS register** is updated to reflect the outcome. This is how `if` statements work at the hardware level — the compiler emits a `CMP` instruction, then a conditional jump that checks the flags.
 
 ### Pipelining: Task Parallelism Inside the ALU
 
@@ -432,14 +434,14 @@ The CU is also the **security gatekeeper**. Based on the current privilege level
 
 ### Spectre and Meltdown (2018): When Optimization Became Vulnerability
 
-Modern CUs include a brilliant optimization called **speculative execution**. When the CPU hits a branch (`if/else`), instead of waiting to determine which path to take, it **guesses** and starts executing speculatively. If the guess is right, it saved time. If wrong, it discards the speculated results and tries the other path.
+Modern CPUs include a major optimization called **speculative execution**. When the CPU hits a branch (`if/else`), it may predict which path is likely and begin work early. If the guess is right, it saves time. If not, the architectural results are rolled back.
 
 In January 2018, researchers discovered that this optimization created catastrophic security vulnerabilities:
 
 - **Meltdown:** A rogue user process could speculatively read *kernel memory*. Even though the speculation was "rolled back," the data left traces in the CPU cache that could be measured through **timing side-channels**.
 - **Spectre:** Even more devastating — it affected speculative execution across *process boundaries*. One program could read another program's memory.
 
-These vulnerabilities affected virtually every modern CPU — Intel, AMD, and ARM. Billions of devices were vulnerable. Software patches reduced performance by **5-30%** on some workloads.
+These vulnerabilities affected a huge range of modern CPUs. Spectre was broadly cross-vendor; classic Meltdown was especially associated with Intel and some ARM designs. Software patches reduced performance by **5-30%** on some workloads.
 
 > **💡 Key Connection:** The Spectre/Meltdown mitigations were partly delivered as **microcode updates** — patches to the microprogrammed CU. This is exactly why microprogrammed CUs exist! A hardwired CU would have required a physical chip replacement. The flexibility to update microcode literally saved the industry from having to recall billions of processors.
 
@@ -587,11 +589,11 @@ When a device needs the CPU's attention:
 
 ### Why Your Mouse Works During a "Freeze"
 
-Here's a fun application of interrupt knowledge. When your computer "freezes" — maybe a program is stuck in an infinite loop hogging the CPU — you'll notice that **the mouse cursor still moves on screen**.
+Here's a fun application of interrupt knowledge. When your computer "freezes" — maybe a program is stuck in an infinite loop hogging the CPU — you may still notice that **the mouse cursor moves on screen**.
 
 Why? Because mouse input is a **hardware interrupt**. Even when a program has the CPU locked in a tight loop, the interrupt controller can still signal the CPU. The CPU briefly pauses the stuck program, handles the mouse ISR (update cursor position, redraw), and returns. The stuck program never knows it was interrupted.
 
-Now here's the diagnostic insight: **if the mouse cursor also freezes**, it means the CPU isn't even handling interrupts anymore. This indicates a much more serious problem — the CPU might be stuck in an ISR itself, or interrupts have been disabled. A hard crash is likely imminent. The diagnostic escalation:
+Now here's the diagnostic insight: **if the mouse cursor also freezes**, it means the CPU isn't even handling certain hardware interrupts anymore! This indicates a much more serious problem — the CPU might be stuck in an ISR itself, or interrupts have been disabled. A hard crash is likely imminent. The diagnostic escalation:
 
 | Symptom | What It Means | Severity |
 | :--- | :--- | :--- |

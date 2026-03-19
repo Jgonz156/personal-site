@@ -90,7 +90,7 @@ Ethernet's CSMA/CD protocol was specifically designed to solve livelock: when tw
 
 <DefinitionBox term="Resource">
 
-A <DeadlockTag type="resource">resource</DeadlockTag> is an object whose access rights can be assigned exclusively to a single process at a time. Because access is exclusive, contention is inevitable.
+A <DeadlockTag type="resource">resource</DeadlockTag> is anything a process may need to acquire, wait for, or share under limited availability. Deadlock discussions focus especially on non-shareable or finitely available resources.
 
 </DefinitionBox>
 
@@ -148,7 +148,7 @@ The `MutexGuard` returned by `.lock()` implements Rust's RAII pattern — the lo
 
 ### Semaphores: From Dijkstra to Rust
 
-Dijkstra invented both the deadlock formalism AND <DeadlockTag type="resource">semaphores</DeadlockTag> as a coordination solution. A **binary semaphore** (0 or 1) is equivalent to a mutex. A **counting semaphore** (initialized to k) naturally handles multi-instance resources — it allows up to k concurrent holders.
+Dijkstra invented both the deadlock formalism AND <DeadlockTag type="resource">semaphores</DeadlockTag> as a coordination solution. A **binary semaphore** (0 or 1) is similar to a mutex for teaching purposes, though mutexes usually add ownership rules that plain semaphores do not. A **counting semaphore** (initialized to k) naturally handles multi-instance resources — it allows up to k concurrent holders.
 
 The classic semaphore operations are **P** (proberen — "to test", decrements) and **V** (verhogen — "to increment"). These names come from Dutch, Dijkstra's native language. They're error-prone: nothing prevents you from calling V without P, or P twice without V.
 
@@ -188,7 +188,7 @@ Students who have written Python since day one now have the formal vocabulary to
 
 So is this problem like the halting problem? Are we doomed to never find a general solution? Must we always rest uneasy, knowing our code might deadlock?
 
-**Actually, no!** Unlike the halting problem, deadlocks are **solvable in general** for all programs — past, present, or future. Coffman's research (1971) led to an amazing discovery: deadlock occurs **if and only if** four conditions are met simultaneously. Break even one, and the system makes progress.
+**Actually, no!** Unlike the halting problem, deadlocks are **solvable in general** for a known resource model. Coffman's research (1971) led to an amazing discovery: deadlock occurs **if and only if** four conditions are met simultaneously. Break even one, and the system makes progress.
 
 <DefinitionBox term="Coffman's Four Conditions">
 
@@ -211,12 +211,16 @@ To reinforce that all 4 are necessary, consider what happens with only 3:
 | :--- | :--- | :--- |
 | No <DeadlockTag type="condition">Mutual Exclusion</DeadlockTag> | Resources are shared freely | No contention — everyone reads simultaneously |
 | No <DeadlockTag type="condition">Hold and Wait</DeadlockTag> | Processes request all resources atomically | Either get everything or nothing — no partial holding |
-| No <DeadlockTag type="condition">No Preemption</DeadlockTag> | OS can forcibly reclaim resources | Cycles are broken by preemption — the scheduler intervenes |
+| No <DeadlockTag type="condition">No Preemption</DeadlockTag> | The system can forcibly reclaim the contended resource | Cycles can be broken because the waiting chain no longer has to remain intact |
 | No <DeadlockTag type="condition">Circular Wait</DeadlockTag> | Resources are ordered; always acquired in sequence | Linear chains can't form cycles |
+
+Before you toggle anything, ask yourself which condition is usually easiest to break in a real design: ordering, atomic acquisition, or reclaimability.
 
 Toggle the conditions below to see this in action:
 
 <CoffmanConditionsPanel />
+
+Therefore, the practical design game is often: pick the cheapest Coffman condition to break and engineer around that one.
 
 ---
 
@@ -242,7 +246,7 @@ For single-instance resources: **a cycle in the RAG = a deadlock**. Finding cycl
 
 ### Step-by-Step: From Safe to Deadlock
 
-Watch how a deadlock forms step by step. The Rust code on the right shows the corresponding thread operations at each stage:
+Watch how a deadlock forms step by step. As you click, narrate each edge as either **holds** or **requests**; that makes the cycle much easier to see.
 
 <ResourceAllocationStepper
   scenarios={[
@@ -417,13 +421,17 @@ Watch how a deadlock forms step by step. The Rust code on the right shows the co
   ]}
 />
 
-Notice the third scenario: the **same processes, same resources, same work** — but a different acquisition order prevents the cycle entirely. This is exactly the insight behind resource ordering as a prevention technique, and it demonstrates how a scheduler could subtly reorder operations to avoid the deadlock altogether.
+Notice the third scenario: the **same processes, same resources, same work** — but a different acquisition order prevents the cycle entirely. This is exactly the insight behind resource ordering as a prevention technique.
+
+Therefore, the graph is useful because it shows the exact structural change: ordering removes the possibility of a circular wait.
 
 ### Build Your Own Deadlock
 
-Now try it yourself! Add processes and resources, draw edges, and watch the cycle detector respond in real-time:
+Now try it yourself. First create a deadlock on purpose, then fix it by breaking one Coffman condition:
 
 <DeadlockSandbox />
+
+Therefore, the sandbox is not just a detector; it is a design lab for testing which prevention move actually breaks the cycle.
 
 ---
 
@@ -440,7 +448,11 @@ The solutions preview the four handling techniques:
 - <DeadlockTag type="technique">Prevention (atomic)</DeadlockTag>: Only pick up both forks simultaneously, or neither. This breaks hold-and-wait.
 - <DeadlockTag type="technique">Detection</DeadlockTag>: A monitor detects the cycle and forces one philosopher to put down their fork.
 
+Before running the demo, compare two styles of solution: changing **timing** and changing **guarantees**. Which one actually removes the possibility of deadlock?
+
 <DiningPhilosophersDemo />
+
+Therefore, the strongest solutions are usually the ones that change the resource-allocation rules, not just the ones that hope the timing works out.
 
 ---
 
@@ -467,9 +479,9 @@ Four major approaches, organized by a medical analogy:
 
 #### Timeout-Based Detection
 
-A pragmatic middle ground between formal graph analysis and ignoring the problem: if you can't acquire a <DeadlockTag type="resource">resource</DeadlockTag> within T time units, **release all held resources and retry**. This is how distributed systems (gRPC, HTTP clients, database connections) handle deadlock risk in practice.
+A pragmatic middle ground between formal graph analysis and ignoring the problem: if you cannot acquire a <DeadlockTag type="resource">resource</DeadlockTag> quickly enough, **back off, release what you can, and retry**. This is how distributed systems (gRPC, HTTP clients, database connections) often handle deadlock risk in practice.
 
-In Rust, this is `Mutex::try_lock()`:
+In Rust, `Mutex::try_lock()` is the non-blocking building block for that style:
 
 ```rust
 use std::sync::Mutex;
@@ -481,7 +493,7 @@ match lock.try_lock() {
 }
 ```
 
-**Real-world database detection:** PostgreSQL and MySQL InnoDB use **wait-for graphs** (a simplified RAG containing only processes, not resources) and kill the youngest transaction when a cycle is detected. You can actually trigger this and see the `ERROR: deadlock detected` message yourself!
+**Real-world database detection:** PostgreSQL and MySQL InnoDB use **wait-for graphs** (a simplified RAG containing only processes, not resources) and abort a victim transaction when a cycle is detected. You can actually trigger this and see the `ERROR: deadlock detected` message yourself.
 
 ---
 
@@ -504,17 +516,19 @@ Two key definitions:
 
 The most famous avoidance algorithm, invented by Dijkstra (1965). Named because a banker must ensure they never loan out so much money that they can't satisfy all customers. The OS is the banker; resources are money; processes are customers with credit limits.
 
-Let's see this with actual money first. You're the bank manager. Each customer has deposited some cash and has a credit limit — the maximum they could ever request. The bank vault holds whatever cash hasn't been loaned out. Your job: never get into a state where a customer asks for their remaining credit and the vault is empty. Try adjusting the deposits, credit limits, and vault cash to see when the bank is safe vs. at risk:
+Let's see this with actual money first. You're the bank manager. Each customer has deposited some cash and has a credit limit — the maximum they could ever request. The bank vault holds whatever cash hasn't been loaned out. This analogy is only a warm-up, but it makes the safe/unsafe distinction intuitive. Try adjusting the deposits, credit limits, and vault cash to see when the bank is safe vs. at risk:
 
 <BankersBankAnalogy />
 
 Notice the key insight: the bank doesn't need enough cash to cover *everyone at once* — it just needs enough to let *at least one* customer finish, get their deposit back, then use that to serve the next customer, and so on. A <DeadlockTag type="safe">safe state</DeadlockTag> is one where such an ordering exists. An <DeadlockTag type="danger">unsafe state</DeadlockTag> means no such ordering is guaranteed.
 
+Therefore, the analogy is really about **existence of a safe sequence**, not about money itself.
+
 **Generalizing beyond money.** In real operating systems, there isn't just one resource — there are multiple: memory pages, disk sectors, network sockets, printer queues, and more. The algorithm generalizes by tracking a *vector* of resources instead of a single dollar amount. Each process has an allocation vector (what it holds), a max vector (what it could ever need), and available becomes a vector of all free resources. The same "can at least one process finish?" check runs across *all* resource types simultaneously — a process can only proceed if its need is met in *every* dimension.
 
 The algorithm checks, at each request: "If I grant this, can I still guarantee a <DeadlockTag type="safe">safe sequence</DeadlockTag> where every process eventually gets what it needs?" If not, the request is denied.
 
-Try the full multi-resource version yourself — edit the values and watch the safety determination change:
+Try the full multi-resource version yourself — but remember one crucial distinction before you start: **unsafe** does not mean **deadlocked right now**. It means the system has lost its guarantee of being able to finish everyone safely.
 
 <BankersAlgorithm
   initialProcesses={[
@@ -527,6 +541,8 @@ Try the full multi-resource version yourself — edit the values and watch the s
   resourceNames={["A", "B", "C"]}
   initialAvailable={[3, 3, 2]}
 />
+
+Therefore, Banker's Algorithm is a refusal rule: it denies requests that would move the system from "safe but tight" into "unsafe and no longer guaranteed."
 
 ---
 
@@ -579,7 +595,7 @@ Where:
 
 If the expected cost of rare deadlocks is less than the ongoing cost of preventing them, ignore them.
 
-Combined with preemptive scheduling (which naturally attacks the <DeadlockTag type="condition">No Preemption</DeadlockTag> condition), most interactive systems rarely deadlock in practice. When they do, a reboot is cheaper than the continuous overhead of formal prevention.
+Most interactive systems accept some deadlock risk because the expected incidence is low enough that full prevention is not worth the cost. When deadlocks do occur, restarting an application or rebooting the machine may be cheaper than paying continuous prevention overhead everywhere.
 
 > **📚 Engineering Risk Management:** This is the same principle used throughout engineering. Bridges are designed for 99.9% of expected loads, not 100%. Software reliability targets "five 9s" (99.999% uptime) — not 100%, because the cost of that last 0.001% is astronomical. The ostrich algorithm is mathematically justified risk management.
 
@@ -704,11 +720,11 @@ No mutexes, no locks, no deadlock. The data is owned by one thread, and others c
 
 ---
 
-## Scheduling as Deadlock Avoidance
+## Scheduling and Deadlock
 
-Tying back to LN11: an unfair cooperative scheduler could **reorder the order processes run** to avoid the deadlock altogether. The "Avoided via Ordering" scenario in the RAG stepper above shows exactly this — same processes, same resources, different execution order, no cycle.
+Tying back to LN11: scheduling affects **timing**, which can influence whether a buggy locking pattern deadlocks on a particular run. But timing luck is not a guarantee. The "Avoided via Ordering" scenario in the RAG stepper works because the locking rule changed, not because the scheduler happened to be clever.
 
-However, modern systems often take the easier way out: **preemptive scheduling** naturally attacks the <DeadlockTag type="condition">No Preemption</DeadlockTag> condition, since the OS can forcibly reclaim CPU time from any process. This means losing some of the efficiency benefits of cooperative scheduling, but gaining a structural guarantee that one of Coffman's conditions is weakened.
+Preemptive scheduling is still valuable for responsiveness and fairness, but reclaiming CPU time is not the same thing as reclaiming a mutex, file lock, or printer. Deadlock prevention has to target the contended resource itself.
 
 ---
 
@@ -788,7 +804,7 @@ This connects back to LN11's scheduling concerns: spinlocks are essentially coop
 
 | Term | Definition |
 | :--- | :--- |
-| <DeadlockTag type="resource">**Resource**</DeadlockTag> | An object whose access can be assigned exclusively to one process |
+| <DeadlockTag type="resource">**Resource**</DeadlockTag> | Something a process may need to acquire, wait for, or share under limited availability |
 | <DeadlockTag type="resource">**Preemptable**</DeadlockTag> | Resource that can be reassigned mid-operation without harm |
 | <DeadlockTag type="resource">**Non-preemptable**</DeadlockTag> | Resource that cannot be interrupted mid-operation |
 | <DeadlockTag type="resource">**Semaphore**</DeadlockTag> | Dijkstra's synchronization primitive (binary = mutex, counting = multi-instance) |
@@ -802,7 +818,7 @@ This connects back to LN11's scheduling concerns: spinlocks are essentially coop
 | <DeadlockTag type="safe">**Safe State**</DeadlockTag> | An ordering exists where all processes can complete |
 | <DeadlockTag type="technique">**Banker's Algorithm**</DeadlockTag> | Avoidance algorithm checking for safe states before granting requests |
 | **RAG** | Resource Allocation Graph — directed graph for deadlock detection |
-| **GIL** | Global Interpreter Lock — Python's single-mutex deadlock prevention |
+| **GIL** | Global Interpreter Lock — CPython's coarse interpreter lock, which simplifies some internal synchronization at the cost of CPU-bound parallelism |
 
 **Deadlock Handling Decision Guide:**
 
@@ -810,7 +826,7 @@ This connects back to LN11's scheduling concerns: spinlocks are essentially coop
 Safety-critical system?     → Prevention (resource ordering, atomic acquisition)
 Known resource bounds?      → Avoidance (Banker's Algorithm)
 Checkpointing available?    → Detection & Recovery (cycle detection + rollback)
-Interactive/general use?    → Ostrich (preemptive scheduler handles most cases)
+Interactive/general use?    → Often Ostrich or selective detection, depending on cost and failure tolerance
 Distributed system?         → Timeouts (no global RAG available)
 Maximum performance?        → Lock-free data structures (eliminate locks entirely)
 ```
