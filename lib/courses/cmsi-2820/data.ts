@@ -650,7 +650,10 @@ const allEvents: CourseEvent[] = [
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln17",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/WK_dAEln6m8vFMSFoTnEl9vpaCQIrdlEJiJ_R80_bbVbkqES2jt5vqC37L6PI4qG.u-66lgxy8EjbAXmA"
+      }
     ],
   },
   {
