@@ -19,9 +19,9 @@ const PROCESSES: Process[] = [
 
 const LOGICAL_TOTAL = 128
 const PHYSICAL_STRIPS = [
-  { label: "RAM", totalFrames: 8, tier: "primary" as const },
-  { label: "Cache", totalFrames: 2, tier: "fast" as const },
-  { label: "Swap / HDD", totalFrames: 6, tier: "slow" as const },
+  { label: "RAM", baseFrames: 4, tier: "primary" as const },
+  { label: "Cache", baseFrames: 1, tier: "fast" as const },
+  { label: "Swap / HDD", baseFrames: 2, tier: "slow" as const },
 ]
 
 interface PageEntry {
@@ -60,16 +60,12 @@ function computeMapping(pageSize: number): MappingResult {
     }
   }
 
-  const strips = PHYSICAL_STRIPS.map((s) => ({
-    ...s,
-    totalFrames: Math.max(1, Math.floor(s.totalFrames * (16 / pageSize))),
-  }))
-  const totalFrames = strips.reduce((s, st) => s + st.totalFrames, 0)
+  const totalFrames = PHYSICAL_STRIPS.reduce((s, st) => s + st.baseFrames, 0)
 
   const frameAssignments: MappingResult["frameAssignments"] = []
   let pageIdx = 0
-  for (let si = 0; si < strips.length && pageIdx < pages.length; si++) {
-    for (let fi = 0; fi < strips[si].totalFrames && pageIdx < pages.length; fi++) {
+  for (let si = 0; si < PHYSICAL_STRIPS.length && pageIdx < pages.length; si++) {
+    for (let fi = 0; fi < PHYSICAL_STRIPS[si].baseFrames && pageIdx < pages.length; fi++) {
       frameAssignments.push({ strip: si, frame: fi, page: pages[pageIdx] })
       pageIdx++
     }
@@ -99,18 +95,13 @@ export function PagingDemo({ className }: { className?: string }) {
   const mapping = useMemo(() => computeMapping(pageSize), [pageSize])
   const visibleAssignments = mapping.frameAssignments.slice(0, step)
 
-  const strips = PHYSICAL_STRIPS.map((s) => ({
-    ...s,
-    totalFrames: Math.max(1, Math.floor(s.totalFrames * (16 / pageSize))),
-  }))
-
   const maxStep = mapping.frameAssignments.length
 
   return (
     <div className={cn("border rounded-lg p-4 bg-card my-6", className)}>
       <h4 className="font-semibold text-sm mb-1">Paging — Pages and Frames</h4>
       <p className="text-xs text-muted-foreground mb-3">
-        Logical pages (blue) are mapped to physical frames (green). Step through to see how each page gets a frame.
+        Logical pages (blue) are mapped to physical frames (green). Notice there are more pages than frames — that is the whole point of virtual memory.
       </p>
 
       {/* Slider for page/frame size */}
@@ -131,6 +122,13 @@ export function PagingDemo({ className }: { className?: string }) {
           {mapping.totalPages} pages / {mapping.totalFrames} frames
         </span>
       </div>
+
+      {/* Pages > Frames callout */}
+      {mapping.totalPages > mapping.totalFrames && (
+        <div className="mb-3 p-2 rounded border border-amber-400/30 bg-amber-500/5 text-xs text-amber-700 dark:text-amber-300">
+          <span className="font-semibold">{mapping.totalPages} pages</span> but only <span className="font-semibold">{mapping.totalFrames} frames</span> — {mapping.totalPages - mapping.totalFrames} pages will have nowhere to go and must wait in storage until needed.
+        </div>
+      )}
 
       {/* Step controls */}
       <div className="flex items-center gap-2 mb-4">
@@ -167,39 +165,58 @@ export function PagingDemo({ className }: { className?: string }) {
                 (a) => a.page.processName === page.processName && a.page.pageIndex === page.pageIndex
               )
               const isCurrentStep = step > 0 && i === step - 1
+              const fillPct = (page.usedKB / pageSize) * 100
               return (
                 <div
                   key={i}
                   className={cn(
-                    "flex items-center border-b last:border-b-0 transition-all text-[10px] h-7",
-                    isCurrentStep && "ring-2 ring-blue-400 z-10 relative"
+                    "relative flex items-center border-b last:border-b-0 transition-all text-[10px] h-7 overflow-hidden",
+                    isCurrentStep && "ring-2 ring-blue-400 z-10"
                   )}
                 >
-                  <div className={cn("w-5 h-full flex items-center justify-center", page.processColor, "opacity-60")}>
-                    <span className="text-white font-bold text-[8px]">{page.processName.replace("P", "")}</span>
-                  </div>
-                  <div className="flex-1 px-1.5 flex items-center justify-between">
-                    <span className="font-mono text-blue-700 dark:text-blue-300">
-                      pg {page.pageIndex}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {page.usedKB}/{pageSize} KB
-                    </span>
-                  </div>
+                  {/* Process fill bar */}
+                  <div
+                    className={cn("absolute inset-y-0 left-0", page.processColor, "opacity-40")}
+                    style={{ width: `${fillPct}%` }}
+                  />
+                  {/* Internal fragmentation (waste) region */}
                   {page.wastedKB > 0 && (
-                    <div className="w-8 h-full bg-red-500/15 flex items-center justify-center text-[8px] text-red-600 dark:text-red-400 font-mono">
-                      +{page.wastedKB}
-                    </div>
+                    <div
+                      className="absolute inset-y-0 right-0 bg-red-500/15"
+                      style={{ width: `${100 - fillPct}%` }}
+                    />
                   )}
-                  {assigned && (
-                    <div className="w-5 h-full bg-green-500/20 flex items-center justify-center text-[8px] text-green-700 dark:text-green-300">
-                      ✓
+                  {/* Labels over the fill */}
+                  <div className="relative flex items-center w-full h-full">
+                    <div className={cn("w-5 h-full flex items-center justify-center", page.processColor, "opacity-70")}>
+                      <span className="text-white font-bold text-[8px]">{page.processName.replace("P", "")}</span>
                     </div>
-                  )}
+                    <div className="flex-1 px-1.5 flex items-center justify-between">
+                      <span className="font-mono text-blue-700 dark:text-blue-300">
+                        pg {page.pageIndex}
+                      </span>
+                      {page.wastedKB > 0 && (
+                        <span className="text-[8px] text-red-600 dark:text-red-400 font-mono">
+                          +{page.wastedKB} KB
+                        </span>
+                      )}
+                    </div>
+                    {assigned && (
+                      <div className="w-5 h-full flex items-center justify-center bg-green-500/20">
+                        <span className="text-[8px] text-green-700 dark:text-green-300">✓</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
             })}
           </div>
+          {/* Swapped pages indicator */}
+          {mapping.swappedPages > 0 && step >= maxStep && (
+            <div className="mt-1 text-[9px] text-muted-foreground">
+              {mapping.swappedPages} page{mapping.swappedPages > 1 ? "s" : ""} remain unloaded (no frames available)
+            </div>
+          )}
         </div>
 
         {/* Mapping arrows */}
@@ -218,16 +235,16 @@ export function PagingDemo({ className }: { className?: string }) {
             Physical Address Space
           </div>
           <div className="space-y-3">
-            {strips.map((strip, si) => {
+            {PHYSICAL_STRIPS.map((strip, si) => {
               const stripAssignments = visibleAssignments.filter((a) => a.strip === si)
               return (
                 <div key={si}>
                   <div className="text-[10px] text-muted-foreground mb-0.5 flex items-center justify-between">
                     <span className="font-semibold">{strip.label}</span>
-                    <span className="font-mono">{strip.totalFrames} frames</span>
+                    <span className="font-mono">{strip.baseFrames} frame{strip.baseFrames > 1 ? "s" : ""}</span>
                   </div>
                   <div className="border border-green-400/30 rounded overflow-hidden">
-                    {Array.from({ length: strip.totalFrames }).map((_, fi) => {
+                    {Array.from({ length: strip.baseFrames }).map((_, fi) => {
                       const assigned = stripAssignments.find((a) => a.frame === fi)
                       const isCurrentTarget =
                         step > 0 &&
@@ -237,34 +254,43 @@ export function PagingDemo({ className }: { className?: string }) {
                         <div
                           key={fi}
                           className={cn(
-                            "flex items-center border-b last:border-b-0 h-7 text-[10px] transition-all",
-                            isCurrentTarget && "ring-2 ring-green-400 z-10 relative",
+                            "relative flex items-center border-b last:border-b-0 h-7 text-[10px] transition-all overflow-hidden",
+                            isCurrentTarget && "ring-2 ring-green-400 z-10",
                             !assigned && "bg-muted/10"
                           )}
                         >
-                          <div className={cn(
-                            "w-5 h-full flex items-center justify-center",
-                            assigned ? cn(assigned.page.processColor, "opacity-60") : "bg-muted/20"
-                          )}>
-                            {assigned ? (
-                              <span className="text-white font-bold text-[8px]">
-                                {assigned.page.processName.replace("P", "")}
+                          {/* Fill bar for assigned frame */}
+                          {assigned && (
+                            <div
+                              className={cn("absolute inset-y-0 left-0", assigned.page.processColor, "opacity-40")}
+                              style={{ width: "100%" }}
+                            />
+                          )}
+                          <div className="relative flex items-center w-full h-full">
+                            <div className={cn(
+                              "w-5 h-full flex items-center justify-center",
+                              assigned ? cn(assigned.page.processColor, "opacity-70") : "bg-muted/20"
+                            )}>
+                              {assigned ? (
+                                <span className="text-white font-bold text-[8px]">
+                                  {assigned.page.processName.replace("P", "")}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground/30 text-[8px]">—</span>
+                              )}
+                            </div>
+                            <div className="flex-1 px-1.5 flex items-center justify-between">
+                              <span className="font-mono text-green-700 dark:text-green-300">
+                                f{fi}
                               </span>
-                            ) : (
-                              <span className="text-muted-foreground/30 text-[8px]">—</span>
-                            )}
-                          </div>
-                          <div className="flex-1 px-1.5 flex items-center justify-between">
-                            <span className="font-mono text-green-700 dark:text-green-300">
-                              f{fi}
-                            </span>
-                            {assigned ? (
-                              <span className="text-muted-foreground">
-                                ← {assigned.page.processName} pg{assigned.page.pageIndex}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground/40">empty</span>
-                            )}
+                              {assigned ? (
+                                <span className="text-muted-foreground text-[9px]">
+                                  ← {assigned.page.processName} pg{assigned.page.pageIndex}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground/40">empty</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )
@@ -311,7 +337,7 @@ export function PagingDemo({ className }: { className?: string }) {
                 </span>
                 {" → "}
                 <span className="font-semibold text-green-700 dark:text-green-300">
-                  {strips[a.strip].label} frame {a.frame}
+                  {PHYSICAL_STRIPS[a.strip].label} frame {a.frame}
                 </span>
                 {a.page.wastedKB > 0 && (
                   <span className="text-red-600 dark:text-red-400 ml-2">

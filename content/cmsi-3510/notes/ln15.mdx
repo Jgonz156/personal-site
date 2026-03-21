@@ -5,6 +5,8 @@ import { LogicalPhysicalPipeline } from "@/components/logical-physical-pipeline"
 import { PagingDemo } from "@/components/paging-demo"
 import { MMUTranslationStepper } from "@/components/mmu-translation-stepper"
 import { PageTableVisualizer } from "@/components/page-table-visualizer"
+import { PageBitSacrifice } from "@/components/page-bit-sacrifice"
+import { EightBitTranslationChain } from "@/components/eight-bit-translation-chain"
 
 ## Recap — From Rust to Hardware
 
@@ -173,6 +175,32 @@ Adjust the slider to change how many bits are dedicated to the page number. Watc
 This is the same tradeoff we saw with fixed partition sizes — but now it operates at the bit level of the instruction architecture itself.
 
 Try the **Page Fault Demo** to see what happens when the page number has no corresponding valid entry. Therefore, the page table is not just a lookup map; it is also the hardware-visible record of whether a page is resident and accessible.
+
+---
+
+## Putting It All Together — An 8-Bit System
+
+Let us make all of this concrete by working through a complete example on an imaginary **8-bit computer**. On a real 64-bit machine the numbers are enormous, but the mechanics are identical — an 8-bit system keeps everything small enough to trace by hand.
+
+An 8-bit instruction can reference 2<sup>8</sup> = 256 different addresses. That is the entire <MemoryTag type="logical">logical address space</MemoryTag> of this system — 256 lines, numbered 0 to 255. Every logical address the CPU can express fits in those 8 bits.
+
+Now we must decide how many of those 8 bits to sacrifice for the page identifier. Each bit we sacrifice doubles the number of pages while halving the number of lines in each page. Watch how the binary structure of the instruction *literally* carves the LAS into pages:
+
+<PageBitSacrifice />
+
+The pattern is mechanical: the page bits count pages, the offset bits size them. No matter how we split, all 256 addresses are accounted for — we are just choosing the granularity of our pages.
+
+### From Pages to Frames
+
+Now we cross into the <MemoryTag type="physical">physical</MemoryTag> side. Let us commit to the **3-bit page scenario** (8 pages of 32 lines each) and ask: how much physical memory do we need?
+
+Each <MemoryTag type="physical">frame</MemoryTag> must be exactly 32 bytes — the same size as a page. If our physical memory is smaller than 32 bytes, we cannot even fit a single frame. If it is exactly 32 bytes, we get one frame. If it is 64 bytes, we get two. We will go with **64 bytes** and see what the page table looks like.
+
+With only 2 frames available for 8 pages, the page table has 8 rows but only 2 of them map to a frame. The other 6 are page faults — those pages live in storage until they are needed. When a translation succeeds, the 3 page bits are stripped off and replaced with however many frame bits we need (just 1 bit for 2 frames). The 5 offset bits pass through completely unchanged.
+
+<EightBitTranslationChain />
+
+This is the entire mechanism. The logical address space (256 addresses, 8 bits) is **four times larger** than the physical address space (64 addresses, 6 bits). The page table bridges that gap, and the offset bits that index within a page are the same bits that index within a frame — because pages and frames are the same size. That is why the offset is preserved: it does not need to be translated at all.
 
 ---
 
