@@ -1,0 +1,330 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { MemoryTag } from "@/components/memory-tag"
+import { AddressSpaceScale } from "@/components/address-space-scale"
+import { PageTableVisualizer } from "@/components/page-table-visualizer"
+import { MultiLevelPageSlider } from "@/components/multi-level-page-slider"
+import { MultiLevelTranslationChain } from "@/components/multi-level-translation-chain"
+import { SegmentationDemo } from "@/components/segmentation-demo"
+import { ModernPageHierarchy } from "@/components/modern-page-hierarchy"
+
+## Recap — Paging on an 8-Bit System
+
+Last time we introduced **paging** as the first non-contiguous allocation technique — "virtual fixed partitioning." We divided the <MemoryTag type="logical">logical address space</MemoryTag> into fixed-size **pages**, divided the <MemoryTag type="physical">physical address space</MemoryTag> into identically-sized **frames**, and used a **page table** to map between them.
+
+We worked through a complete 8-bit example: an 8-bit instruction gives us 256 logical addresses. By sacrificing 3 upper bits for the page identifier, we get 8 pages of 32 lines each. With only 64 bytes of physical memory (2 frames), the page table maps 2 of those 8 pages to frames while the rest stay in storage until a page fault forces them in.
+
+The mechanics are clean and elegant at 8 bits. But our laptops are not 8-bit machines. They are **64-bit** machines. And 64 bits changes everything.
+
+Before we scale up, let us make sure we are precise about the units we will be throwing around for the rest of this lecture.
+
+---
+
+## A Quick Note on Units — Bits, Bytes, and Prefixes
+
+A **bit** is a single binary digit (0 or 1). A **byte** is 8 bits — the smallest unit of data that modern hardware reads and writes at the memory bus level. When we say a system is "64-bit," we mean its addresses are 64 bits wide. But each of those addresses points to one **byte**, not one bit. This is called **byte-addressable** memory, and every modern architecture (x86, x86-64, ARM) works this way.
+
+This distinction matters enormously for the calculations ahead:
+
+- A 64-bit system has 2<sup>64</sup> possible addresses
+- Each address = 1 byte
+- Therefore: 2<sup>64</sup> addresses = **2<sup>64</sup> bytes**, not 2<sup>64</sup> bits
+
+This is the same reason the 32-bit RAM limit is 4 **GB** (2<sup>32</sup> bytes = 4,294,967,296 bytes), not 4 Gb (gigabits). Each of those 2<sup>32</sup> addresses pointed to a byte.
+
+### Binary vs. SI Prefixes
+
+You will see two styles of size prefixes throughout this course. **Binary prefixes** (KiB, MiB, GiB) use powers of 2, which align naturally with address spaces. **SI prefixes** (KB, MB, GB) use powers of 10, which are what hard drive manufacturers and network engineers tend to use. The difference compounds at each level — by the time you reach exabytes, the gap is roughly 15%.
+
+| Binary Prefix | Exact Value | SI Prefix | Exact Value |
+|---|---|---|---|
+| 1 KiB | 2<sup>10</sup> = 1,024 B | 1 KB | 10<sup>3</sup> = 1,000 B |
+| 1 MiB | 2<sup>20</sup> = 1,048,576 B | 1 MB | 10<sup>6</sup> = 1,000,000 B |
+| 1 GiB | 2<sup>30</sup> ≈ 1.074 billion B | 1 GB | 10<sup>9</sup> = 1,000,000,000 B |
+| 1 TiB | 2<sup>40</sup> B | 1 TB | 10<sup>12</sup> B |
+| 1 EiB | 2<sup>60</sup> B | 1 EB | 10<sup>18</sup> B |
+
+This lecture uses binary prefixes (GiB, TiB, EiB) when working with address spaces and memory sizes, since powers of 2 are the native language of hardware. When we reference retail pricing or real-world comparisons, we may use SI prefixes where they match common usage.
+
+A common source of confusion: **RAM sticks are labeled in "GB" but actually hold binary gigabytes.** A stick labeled "32 GB" contains exactly 32 × 2<sup>30</sup> = 2<sup>35</sup> bytes — which is technically 32 GiB. This happens because RAM chips are physically structured as powers of 2 (each chip has 2<sup>n</sup> addressable cells), so the capacity is always an exact power of 2. RAM is one of the rare cases where the industry label and the binary value match. Hard drives and SSDs are the opposite — a "1 TB" drive contains 10<sup>12</sup> bytes, which is only ~931 GiB. That is why a "1 TB" drive shows up as roughly 931 GB in your OS.
+
+---
+
+## Scaling Up: How Big Is 64 Bits?
+
+A 64-bit system can reference 2<sup>64</sup> different logical addresses. Let us try to comprehend just how large that number is.
+
+<AddressSpaceScale />
+
+Slide through the bit widths above and watch the columns appear. An 8-bit system addresses 256 bytes. A 16-bit system jumps to 64 KiB. A 32-bit system reaches 4 GiB — this is why 32-bit operating systems and games hit the famous **4 GB RAM limit**. The instruction set literally cannot express larger addresses; there are not enough bits.
+
+Then there is 64 bits: **16 EiB** — roughly 18.4 exabytes. That is a number in the **quintillions**. No computer on Earth has anywhere near this much memory.
+
+---
+
+## The Cost of a 1:1 Mapping
+
+For 8-bit, 16-bit, and even 32-bit systems, it is technically feasible to build enough physical memory to match the entire logical address space one-to-one. You *could* buy 4 GiB of RAM for a 32-bit machine and map every logical address to a unique physical address.
+
+But for a 64-bit system? Let us do the math.
+
+### How Many RAM Sticks?
+
+A typical RAM stick is labeled "32 GB" but, as we just covered, actually holds 32 GiB (2<sup>35</sup> bytes). To fill 2<sup>64</sup> bytes of physical memory:
+
+> 2<sup>64</sup> ÷ 2<sup>35</sup> = 2<sup>29</sup> = **536,870,912 sticks** — roughly 537 million.
+
+### How Much Would It Cost?
+
+This time last year, a 32 GB DDR5 SO-DIMM was about **$5 per GiB** (~$160 per stick). That puts the total at:
+
+> 2<sup>34</sup> GiB × $5/GiB ≈ **$86 billion**
+
+Updated 2026 pricing is much worse. The [same Crucial DDR5 stick](https://www.amazon.com/dp/B0BLTDTD86) now costs roughly **$11 per GiB** (~$352 per stick):
+
+> 2<sup>34</sup> GiB × $11/GiB ≈ **$189 billion**
+
+### How Much Would It Weigh?
+
+At 9.4 grams per SO-DIMM stick:
+
+> 536,870,912 × 9.4 g ≈ **5,047 metric tons**
+
+For reference, that is roughly **927 adult elephants**, **425 cruise ship anchors**, or **12 fully loaded Boeing 747s**.
+
+### How Much Silicon?
+
+Modern NAND flash achieves about 29 Gb/mm² of density. To store 2<sup>64</sup> bytes (2<sup>67</sup> bits) of raw data:
+
+> 2<sup>67</sup> ÷ (29 × 10<sup>9</sup>) ≈ 5,090 m² ≈ **1.3 acres** — roughly one American football field of pure silicon.
+
+### What About Our 8-Bit System?
+
+With a typical laptop having 16 GiB of physical memory against a 2<sup>64</sup>-byte logical address space, the frame-to-page ratio is about 2<sup>-30</sup> ≈ 10<sup>-9</sup>. If we applied the same ratio to our 8-bit example (256 addresses), the physical memory would need to hold 256 × 10<sup>-9</sup> ≈ **0.000000256 bytes** — a fraction of a single bit. The disparity between a 64-bit LAS and real hardware is so extreme that it is physically unrepresentable at the 8-bit scale.
+
+Clearly, a 1:1 mapping is impossible. We need page tables.
+
+---
+
+## Intel's Page Sizes and Single-Level Limits
+
+Intel chips bake specific page sizes into their silicon. The MMU is hardware — it can only support the page sizes the chip was designed for. Intel x86-64 processors support three:
+
+| Page Size | Offset Bits | Page Identifier Bits | Page Table Entries |
+|-----------|-------------|---------------------|--------------------|
+| **4 KB** (small) | 12 | 52 | 2<sup>52</sup> ≈ 4.5 quadrillion |
+| **2 MB** (large) | 21 | 43 | 2<sup>43</sup> ≈ 8.8 trillion |
+| **1 GB** (huge) | 30 | 34 | 2<sup>34</sup> ≈ 17.2 billion |
+
+How much silicon would a single-level page table require for each?
+
+- **Small pages (4 KB):** ~10 m² ≈ 108 sq ft — **a small bedroom**
+- **Large pages (2 MB):** ~19,400 mm² ≈ 30 in² — **a dinner plate**
+- **Huge pages (1 GB):** ~38 mm² — **a fingernail**
+
+Huge pages are physically feasible as a single-level table, but they cause terrible internal fragmentation — most processes do not use an entire gigabyte of space. We need small pages for fine-grained allocation, but a single-level table for small pages is absurdly large.
+
+Let us see the single-level tradeoff in action on our 16-bit system. Here the visualizer is configured with a high page-bit count to illustrate the scale problem:
+
+<PageTableVisualizer initialPageBits={12} minPageBits={10} maxPageBits={14} />
+
+With 12 page bits on a 16-bit system, we get 4,096 page table entries and only 16 addresses per page. That is already a substantial table for a 16-bit system. Now imagine 52 page bits on a 64-bit system.
+
+---
+
+## Multi-Level Page Tables
+
+A single-level page table with 4.5 quadrillion entries is out of the question. But what if we split the page-identifier bits across **multiple levels** of tables, each one pointing to the next?
+
+<DefinitionBox term="Multi-Level Page Table">
+
+A <MemoryTag type="hardware">multi-level page table</MemoryTag> splits the page-identifier bits of a virtual address into multiple groups. Each group indexes into a separate table at that level, which either points to a table at the next level or (at the final level) provides the frame number. Only the tables along the active translation chain need to be resident in memory.
+
+</DefinitionBox>
+
+The idea is the same as a hierarchical directory structure: instead of one enormous flat list, we use nested tables where each level narrows the search. On our 16-bit system, we can split 12 page-identifier bits across 4 levels.
+
+<MultiLevelPageSlider />
+
+Adjust the bit allocations above. The default split is **4|3|2|3** with 4 offset bits. Notice the comparison panel at the bottom:
+
+- **Single-level** with 12 page bits: 4,096 entries = 8 KiB (at 2 bytes per entry)
+- **Multi-level** fully populated: slightly *more* total entries (due to intermediate tables) — but the minimum resident per translation chain is just **36 entries (72 bytes)**
+
+That is the key insight. The total memory footprint when fully populated is actually marginally *larger* with multi-level tables. But we do not need every table resident at once. For a single translation, only one chain of 4 tables is consulted. The other tables can stay on storage until a page fault demands them.
+
+Single-level demands the entire 8 KiB always in memory. Multi-level can serve a translation with just **72 bytes** resident, offloading the rest to disk.
+
+---
+
+## Multi-Level Translation in Action
+
+Let us trace a single translation through all 4 levels of the page table with the default 4|3|2|3|4 split.
+
+<MultiLevelTranslationChain />
+
+Each level's table has many rows, but only **one row is selected** per level — determined by that level's bits from the logical address. The selected row at levels 1–3 points to a specific table at the next level. The selected row at level 4 provides the frame number, which replaces all the page-identifier bits while the offset bits pass through unchanged.
+
+The highlighted rows above are the only entries that must be resident in memory for this translation to succeed. Every other row — and every other table not on this particular chain — can stay on storage until a different translation path requires it.
+
+---
+
+## Beyond Multi-Level Tables
+
+Multi-level page tables are the foundational technique, but modern systems employ additional mechanisms to improve performance. We will not investigate these in depth, but they are worth knowing about:
+
+**Translation Lookaside Buffers (TLBs)** — Walking 4 or 5 levels of page tables for every memory access would be painfully slow. The TLB is a small, fast hardware cache inside the MMU that stores recent page-to-frame translations. If the TLB already has the mapping, the multi-level walk is skipped entirely. TLB misses are expensive; TLB hits are nearly free.
+
+**Inverted Page Tables** — Instead of one entry per virtual page (which can be enormous), an inverted page table has one entry per physical frame. Since frames are limited by actual hardware, the table is much smaller. The tradeoff is that lookups require searching (typically via hashing) rather than direct indexing.
+
+**Software-Managed Page Tables** — Some architectures let the OS handle page table walks in software rather than dedicating MMU hardware to it. The MIPS architecture is a classic example. This trades hardware complexity for software flexibility, allowing the OS to use whatever page table format it prefers.
+
+---
+
+## Page Replacement Algorithms
+
+Page faults create a parallel scheduling problem: when all frames are full and a new page needs to come in, which page do we evict? This is structurally identical to the CPU scheduling problem we studied — multiple contenders competing for a limited resource, with the OS deciding who stays and who gets swapped out.
+
+There is an entire field of study around page replacement algorithms, each with different tradeoffs between overhead and hit rate. We will not dive deep here, but the honorable mentions include:
+
+- **Optimal** — Evict the page that will not be used for the longest time (theoretically perfect, but requires future knowledge — used only as a benchmark)
+- **Not Recently Used (NRU)** — Categorize pages by reference and modification bits, evict from the lowest category
+- **First-In, First-Out (FIFO)** — Evict the oldest page (simple but suffers from Bélády's anomaly)
+- **Second Chance** — FIFO with a reference-bit check: if the page was recently used, give it another chance
+- **Clock** — Circular buffer variant of Second Chance (efficient to implement)
+- **Least Recently Used (LRU)** — Evict the page unused for the longest time (good performance, expensive to track exactly)
+- **Working Set** — Keep in memory only the pages a process has used within a recent time window
+- **Working Set Clock** — Combines the Working Set concept with the Clock algorithm for practical implementation
+
+---
+
+## From Virtual Fixed to Virtual Dynamic — Segmentation
+
+We have spent considerable time on paging — "virtual fixed partitioning." It has been remarkably effective: non-contiguous allocation, transparent to programmers, and the internal fragmentation is manageable. But it *does* still have internal fragmentation in the LAS, which is an interesting thing to consider. The logical address space at this point is our universal memory facade — we are purposefully wasting parts of our own illusion.
+
+More fundamentally, paging still forces us to think of memory as one long strip divided into uniform pages. But that is not how we as programmers actually think about memory. We think in **data structures** — stacks, heaps, arrays, linked lists, function call frames. What if we aligned our memory management to match?
+
+<DefinitionBox term="Segmentation">
+
+<MemoryTag type="logical">Segmentation</MemoryTag> divides the logical address space into multiple, variable-size regions called **segments**, each corresponding to a logical entity in the program (code, stack, heap, array, etc.). Each segment is its own independent logical address space starting at address 0. Segments are then mapped to dynamically-sized regions in the <MemoryTag type="physical">physical address space</MemoryTag>.
+
+</DefinitionBox>
+
+The idea: instead of dividing the LAS into fixed-size pages, we create a separate LAS for every data structure the program uses. The program's Code is one segment. Its Stack is another. Its Heap is another. Each one starts at address 0, grows and shrinks independently, and is exactly the size it needs to be.
+
+We then continuously allocate these variable-size segments onto physical memory wherever there is space — this is dynamic partitioning applied to virtual memory.
+
+<SegmentationDemo />
+
+Step through the demo above. Notice the key visual difference from paging: the left side shows **multiple separate logical strips** rather than one divided strip. Each segment is its own address space. On the physical side, segments are packed dynamically — no fixed frames, no wasted space within a segment.
+
+But external fragmentation still rears its head. When segments are deallocated, gaps form. A new segment may not fit in any single gap despite there being enough total free space. Compaction is still needed, just as it was with dynamic partitioning.
+
+There is no internal fragmentation since segments are exactly sized to their contents. And accessing a segment that is not currently resident in RAM causes a **segmentation fault** — the famous segfault from C!
+
+---
+
+## Paging vs. Segmentation
+
+Let us put these two techniques side by side. Look carefully at which column "wins" each row.
+
+| Consideration | Paging | Segmentation |
+|---|---|---|
+| Do programmers need to be aware that the technique is being used? | No | Yes |
+| How many linear address spaces are there? | 1 | Many |
+| Can the total address space exceed the size of physical memory? | Yes | Yes |
+| Can procedures and data be distinguished and separately protected? | No | Yes |
+| Can tables whose size fluctuates be accommodated easily? | No | Yes |
+| Is the sharing of procedures between users facilitated? | No | Yes |
+| Why was this technique invented? | To get a large linear address space without having to buy more physical memory | To allow programs and data to be broken up into logically independent address spaces and to aid sharing and protection |
+
+Segmentation wins on **5 of 7** criteria. It offers finer-grained protection, better sharing, and a more natural fit for how programmers actually structure their code. You would be forgiven for thinking segmentation should be the dominant technique in modern systems.
+
+So... is it?
+
+---
+
+## The Twist: x86-64 Killed Segmentation
+
+Despite its advantages on paper, segmentation lost the hardware war.
+
+When Intel designed the x86-64 (AMD64) architecture — the 64-bit extension of x86 — they made a decisive choice. In **64-bit long mode**, the CPU forces the base address of the CS, DS, ES, and SS segment registers to **zero** and their limits to the maximum value. Segmentation is architecturally flattened into a no-op. The hardware physically cannot perform segment-based memory protection in 64-bit mode.
+
+The only surviving vestige is the **FS** and **GS** segment registers, which retain configurable base addresses. They are used exclusively for **thread-local storage** — a narrow, specialized use case that has nothing to do with the grand vision of segmentation as a memory management technique.
+
+Both Windows and Linux converged on the same architecture: **paging only**, with all sophistication implemented in OS software on top of the hardware page tables.
+
+<ModernPageHierarchy />
+
+Look at the hierarchy above. Both operating systems use the exact same hardware structure — because the hardware dictates it. The naming conventions differ (Linux calls level 4 "PGD," Windows calls it "PML4E"), but the mechanism is identical. Both walk the same 4 or 5 levels of page tables, use the same Intel page sizes, and end up at the same physical frame + offset.
+
+Where they differ is in the **software layer**:
+
+- **Linux** uses Transparent Huge Pages to automatically promote 4 KB pages to 2 MB when beneficial, implements Copy-on-Write for `fork()`, and has the notorious OOM Killer as a last resort when memory is exhausted
+- **Windows** uses Virtual Address Descriptors (VADs) to track committed and reserved virtual regions, implements Working Set management to actively trim per-process memory, and swaps to `pagefile.sys`
+
+But the underlying hardware translation? Identical. Paging won.
+
+### But Wait — Why Does C Still Throw Segfaults?
+
+If segmentation is dead, why does every C programmer know the term "segmentation fault"? Because the name is a **historical artifact**.
+
+On modern x86-64 systems, the crash you know as a "segfault" is actually triggered by the **paging** hardware. Here is what really happens:
+
+1. Your program dereferences a bad pointer (NULL, freed memory, wild pointer)
+2. The MMU walks the page table hierarchy for that virtual address
+3. It finds either no valid entry or a permission violation
+4. The MMU raises a **page fault**
+5. The OS kernel examines the fault, determines it is illegitimate, and delivers **SIGSEGV** to the process
+
+The signal is called SIGSEGV — **Sig**nal: **Seg**mentation **V**iolation — because the name was established in the 1970s and 1980s when segmentation hardware genuinely caught these errors. On your modern laptop, that crash is a page fault wearing a dead system's name. Even the error message is a ghost of segmentation.
+
+Paging won not because it was better on every criterion — the comparison table clearly shows segmentation's advantages. It won because the one criterion where paging excels — **"Do programmers need to be aware?"** → No — turned out to be the decisive factor. Transparency trumped power. The hardware chose for us, and it chose the technique that required nothing from the programmer.
+
+---
+
+## Summary
+
+- A 64-bit LAS contains 2<sup>64</sup> ≈ 18.4 exabytes of addressable space — far beyond any feasible physical memory
+- A 1:1 LAS-to-PAS mapping on a 64-bit system would require ~537 million RAM sticks, cost ~$189 billion, weigh ~5,047 metric tons, and need ~1.3 acres of silicon
+- Intel x86-64 supports 3 page sizes: 4 KB (small), 2 MB (large), 1 GB (huge)
+- A single-level page table for small pages would require 4.5 quadrillion entries — roughly a bedroom-sized chip
+- **Multi-level page tables** split the page identifier across 4+ levels of chained tables; only one chain must be resident per translation
+- TLBs cache recent translations for speed; inverted tables and software-managed tables are alternative approaches
+- **Page replacement** is a parallel scheduling problem with its own family of algorithms (Optimal, LRU, Clock, etc.)
+- **Segmentation** divides the LAS into variable-size, data-structure-aligned segments — no internal fragmentation, but external fragmentation persists
+- Segmentation wins on most comparison criteria, yet **x86-64 hardware killed segmentation** by flattening segment bases to zero in 64-bit mode
+- Both Linux and Windows converge on the same paging-only hardware hierarchy; they differ only in OS-level software management
+- The modern "segfault" is actually a page fault — the name is a historical artifact from the segmentation era
+
+<LectureNotes>
+
+**Key Takeaways:**
+
+1. The jump from 32-bit to 64-bit is not merely "twice as big" — it is an exponential leap of 2<sup>32</sup> times larger, making 1:1 memory mapping physically impossible
+2. Multi-level page tables solve the single-level size problem not by reducing total entries, but by allowing most tables to stay on storage — only the active chain needs to be resident
+3. Segmentation aligns memory management with how programmers think (data structures), but paging aligns with what hardware can implement transparently
+4. x86-64 settled the paging-vs-segmentation debate at the hardware level: segmentation is architecturally dead in 64-bit long mode
+5. Real-world OS memory management (Linux, Windows) is paging + sophisticated software — the hardware provides the page table walk, the OS provides the policy
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 20: Paging — Smaller Tables](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Multi-level page tables, inverted page tables, and TLBs
+- [OSTEP Chapter 22: Policies — Beyond Physical Memory](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Page replacement algorithms (LRU, Clock, Working Set)
+- [OSTEP Chapter 16: Segmentation](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Segmentation concepts, segment tables, and comparison with paging
+
+### Architecture References
+
+- [Intel 64 and IA-32 Architectures Manual, Vol. 3A Ch. 4: Paging](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html) — Official Intel documentation on 4-level and 5-level (LA57) page tables
+- [AMD64 Architecture Programmer's Manual, Vol. 2 Ch. 5: Page Translation](https://www.amd.com/en/search/documentation/hub.html) — AMD's specification of long mode paging and the flattening of segmentation
+
+### Historical Context
+
+- [Multics Segmentation](https://multicians.org/multics-vm.html) — Multics pioneered segmented virtual memory in the 1960s; its influence echoes in the x86 segment registers
+- [Linux Kernel Documentation: Page Tables](https://www.kernel.org/doc/html/latest/) — How Linux implements its 4/5-level page table hierarchy (PGD, P4D, PUD, PMD, PTE)
+
+</LectureResources>

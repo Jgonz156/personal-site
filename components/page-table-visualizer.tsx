@@ -33,21 +33,38 @@ function toBinary(val: number, bits: number): string {
   return val.toString(2).padStart(bits, "0")
 }
 
-export function PageTableVisualizer({ className }: { className?: string }) {
-  const [pageBits, setPageBits] = useState(4)
+interface PageTableVisualizerProps {
+  className?: string
+  totalBits?: number
+  initialPageBits?: number
+  minPageBits?: number
+  maxPageBits?: number
+}
+
+export function PageTableVisualizer({
+  className,
+  totalBits = 16,
+  initialPageBits = 4,
+  minPageBits = 2,
+  maxPageBits = 8,
+}: PageTableVisualizerProps) {
+  const [pageBits, setPageBits] = useState(initialPageBits)
   const [step, setStep] = useState(0)
 
-  const offsetBits = 16 - pageBits
+  const offsetBits = totalBits - pageBits
   const totalPages = 1 << pageBits
   const addressesPerPage = 1 << offsetBits
 
   const pageTable = useMemo(() => buildPageTable(pageBits), [pageBits])
 
   const sampleLogical = useMemo(() => {
-    const pagePart = Math.min(totalPages - 1, 5)
+    let pagePart = Math.min(totalPages - 1, 5)
+    for (const [p, f] of pageTable.entries()) {
+      if (f !== null) { pagePart = p; break }
+    }
     const offsetPart = Math.min(addressesPerPage - 1, 42)
     return (pagePart << offsetBits) | offsetPart
-  }, [totalPages, addressesPerPage, offsetBits])
+  }, [totalPages, addressesPerPage, offsetBits, pageTable])
 
   const samplePageNum = sampleLogical >> offsetBits
   const sampleOffset = sampleLogical & ((1 << offsetBits) - 1)
@@ -55,11 +72,11 @@ export function PageTableVisualizer({ className }: { className?: string }) {
   const isPageFault = sampleFrame === null
   const samplePhysical = sampleFrame !== null ? (sampleFrame << offsetBits) | sampleOffset : null
 
-  const logicalBits = toBinary(sampleLogical, 16)
-  const physicalBits = samplePhysical !== null ? toBinary(samplePhysical, 16) : null
+  const logicalBits = toBinary(sampleLogical, totalBits)
+  const physicalBits = samplePhysical !== null ? toBinary(samplePhysical, totalBits) : null
 
   const STEPS = [
-    "Show the 16-bit logical address with page/offset split",
+    `Show the ${totalBits}-bit logical address with page/offset split`,
     "Extract the page number bits",
     "Look up page number in the page table",
     isPageFault
@@ -67,7 +84,7 @@ export function PageTableVisualizer({ className }: { className?: string }) {
       : "Found! Replace page bits with frame bits",
     isPageFault
       ? "Translation cannot complete — page must be swapped in"
-      : "Result: 16-bit physical address",
+      : `Result: ${totalBits}-bit physical address`,
   ]
 
   const maxStep = STEPS.length - 1
@@ -87,11 +104,11 @@ export function PageTableVisualizer({ className }: { className?: string }) {
   const activeFrame = pageTable.get(activePageNum) ?? null
   const activeIsFault = activeFrame === null
   const activePhysical = activeFrame !== null ? (activeFrame << offsetBits) | activeOffset : null
-  const activeLogicalBits = toBinary(activeLogical, 16)
-  const activePhysicalBits = activePhysical !== null ? toBinary(activePhysical, 16) : null
+  const activeLogicalBits = toBinary(activeLogical, totalBits)
+  const activePhysicalBits = activePhysical !== null ? toBinary(activePhysical, totalBits) : null
 
   const activeSteps = [
-    "Show the 16-bit logical address with page/offset split",
+    `Show the ${totalBits}-bit logical address with page/offset split`,
     "Extract the page number bits",
     "Look up page number in the page table",
     activeIsFault
@@ -99,14 +116,14 @@ export function PageTableVisualizer({ className }: { className?: string }) {
       : "Found! Replace page bits with frame bits",
     activeIsFault
       ? "Translation cannot complete — page must be swapped in"
-      : "Result: 16-bit physical address",
+      : `Result: ${totalBits}-bit physical address`,
   ]
 
   return (
     <div className={cn("border rounded-lg p-4 bg-card my-6", className)}>
       <h4 className="font-semibold text-sm mb-1">Page Table — Bit-Level Translation</h4>
       <p className="text-xs text-muted-foreground mb-3">
-        See how a 16-bit logical address is split into page number and offset bits, looked up in the page table, and translated to a physical address.
+        See how a {totalBits}-bit logical address is split into page number and offset bits, looked up in the page table, and translated to a physical address.
       </p>
 
       {/* Slider for page bits */}
@@ -116,8 +133,8 @@ export function PageTableVisualizer({ className }: { className?: string }) {
         </span>
         <input
           type="range"
-          min={2}
-          max={8}
+          min={minPageBits}
+          max={maxPageBits}
           step={1}
           value={pageBits}
           onChange={(e) => { setPageBits(parseInt(e.target.value)); setStep(0); setShowFault(false) }}
@@ -163,12 +180,12 @@ export function PageTableVisualizer({ className }: { className?: string }) {
         </div>
       )}
 
-      {/* 16-bit display */}
+      {/* Bit display */}
       <div className="mb-4">
         <div className="text-[10px] font-semibold text-muted-foreground mb-1">
-          {step >= 4 && !activeIsFault ? "Physical Address" : "Logical Address"}: 0x{(step >= 4 && !activeIsFault && activePhysical !== null ? activePhysical : activeLogical).toString(16).toUpperCase().padStart(4, "0")}
+          {step >= 4 && !activeIsFault ? "Physical Address" : "Logical Address"}: 0x{(step >= 4 && !activeIsFault && activePhysical !== null ? activePhysical : activeLogical).toString(16).toUpperCase().padStart(Math.ceil(totalBits / 4), "0")}
         </div>
-        <div className="flex">
+        <div className="flex flex-wrap">
           {(step >= 4 && !activeIsFault ? activePhysicalBits! : activeLogicalBits).split("").map((bit, i) => {
             const isPageBit = i < pageBits
             const highlight =
@@ -178,7 +195,7 @@ export function PageTableVisualizer({ className }: { className?: string }) {
               <div
                 key={i}
                 className={cn(
-                  "w-8 h-10 flex items-center justify-center border text-sm font-mono font-bold transition-all",
+                  "w-6 h-8 flex items-center justify-center border text-xs font-mono font-bold transition-all",
                   isPageBit
                     ? (step >= 4 && !activeIsFault
                       ? "bg-green-500/15 text-green-700 dark:text-green-300 border-green-400/30"
@@ -193,14 +210,14 @@ export function PageTableVisualizer({ className }: { className?: string }) {
           })}
         </div>
         <div className="flex mt-0.5">
-          <div style={{ width: `${(pageBits / 16) * 100}%` }} className="text-center text-[9px] font-semibold text-blue-700 dark:text-blue-300">
+          <div style={{ width: `${(pageBits / totalBits) * 100}%` }} className="text-center text-[9px] font-semibold text-blue-700 dark:text-blue-300">
             {step >= 4 && !activeIsFault ? (
               <span className="text-green-700 dark:text-green-300">Frame #{activeFrame}</span>
             ) : (
               <>Page #{activePageNum}</>
             )}
           </div>
-          <div style={{ width: `${(offsetBits / 16) * 100}%` }} className="text-center text-[9px] text-muted-foreground">
+          <div style={{ width: `${(offsetBits / totalBits) * 100}%` }} className="text-center text-[9px] text-muted-foreground">
             Offset ({activeOffset})
           </div>
         </div>
@@ -269,8 +286,8 @@ export function PageTableVisualizer({ className }: { className?: string }) {
           ) : (
             <div className="text-green-700 dark:text-green-300">
               <span className="font-bold">Translation complete.</span>{" "}
-              Logical <span className="font-mono">0x{activeLogical.toString(16).toUpperCase().padStart(4, "0")}</span>{" "}
-              → Physical <span className="font-mono">0x{activePhysical!.toString(16).toUpperCase().padStart(4, "0")}</span>{" "}
+              Logical <span className="font-mono">0x{activeLogical.toString(16).toUpperCase().padStart(Math.ceil(totalBits / 4), "0")}</span>{" "}
+              → Physical <span className="font-mono">0x{activePhysical!.toString(16).toUpperCase().padStart(Math.ceil(totalBits / 4), "0")}</span>{" "}
               (page {activePageNum} → frame {activeFrame}, offset {activeOffset} preserved)
             </div>
           )}
