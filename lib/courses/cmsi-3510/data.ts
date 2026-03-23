@@ -512,7 +512,10 @@ const allEvents: CourseEvent[] = [
     standard: "Memory",
     contentUrl: "/cmsi-3510/ln15",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/s2EyUPfj5QZIKbXFUfwS6CqOQrZoHbLRS9Y69E-malVdpKZhA_H8kiZX_I92EMh7.vAyYoKl2mr_xPEx-"
+      }
     ],
   },
   {
