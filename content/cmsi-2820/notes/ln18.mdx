@@ -1,0 +1,591 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+import { PascalTriangleBuilder } from "@/components/pascal-triangle-builder"
+import { PascalTrianglePatterns } from "@/components/pascal-triangle-patterns"
+import { PascalTriangleChoose } from "@/components/pascal-triangle-choose"
+
+{/* 
+  Note: The intro section is now rendered automatically by the page component 
+  using data from lib/courses/cmsi-2820/data.ts
+*/}
+
+## Recap
+
+Last lecture we formalized four counting scenarios by asking two questions: **does order matter?** and **are repeats allowed?**
+
+|  | Order matters | Order does not matter |
+| :--- | :--- | :--- |
+| **No repeats** | <InlineMath formula="P(n,r) = \frac{n!}{(n-r)!}" /> | <InlineMath formula="C(n,r) = \frac{n!}{r!(n-r)!}" /> |
+| **Repeats allowed** | $n^r$ | <InlineMath formula="\binom{n+r-1}{r}" /> |
+
+We also built an algebraic toolbox for factorials: peeling off terms ($n! = n \times (n-1)!$), pushing terms on, and cancelling shared tails in divisions. Today we will use that toolbox to prove a beautiful identity hidden inside a centuries-old number triangle.
+
+---
+
+## Pascal's Triangle — Building It
+
+Pascal's Triangle is a number pattern built by one of the simplest rules imaginable:
+
+1. Start with a single **1** at the top
+2. Each entry in a new row is the **sum of the two entries directly above it**
+3. If an entry has no neighbor above (the edges), it is **1**
+
+Use the slider below to generate more rows, and step through to see how each value in the newest row is computed from the row above.
+
+<PascalTriangleBuilder />
+
+Row 0 is just `[1]`. Row 1 is `[1, 1]`. Row 2: the edges are 1, and the middle is $1 + 1 = 2$, giving `[1, 2, 1]`. Row 3: `[1, 3, 3, 1]`. The pattern grows quickly.
+
+Notice the recursive nature: **every value is derived from previously computed values**. Nothing is calculated from scratch — each row builds on the one before it. This is a property we will return to later when we connect to programming.
+
+---
+
+## Hidden Patterns
+
+Pascal's Triangle is famous for hiding an extraordinary number of patterns. Toggle the buttons below to explore some of them.
+
+<PascalTrianglePatterns />
+
+### Natural Numbers
+
+The second diagonal (reading down-right from the top) contains $1, 2, 3, 4, 5, 6, 7, \ldots$ — the natural numbers. The simplest sequence, hiding in plain sight.
+
+### Triangular Numbers
+
+The third diagonal gives $1, 3, 6, 10, 15, 21, \ldots$ — the **triangular numbers**. Each triangular number is the sum of the first $n$ natural numbers. They count how many dots you need to form an equilateral triangle with $n$ rows.
+
+### Tetrahedral Numbers
+
+The fourth diagonal produces $1, 4, 10, 20, 35, \ldots$ — the **tetrahedral numbers**. Each is the sum of the first $n$ triangular numbers. They count the number of spheres in a tetrahedral pile.
+
+### Hockey Stick (Christmas Stocking)
+
+Pick any diagonal and sum a consecutive run of entries. The answer always appears at the "bend" — one row below and one position to the side of where you stopped. The shape traced out looks like a hockey stick.
+
+For example: $1 + 3 + 6 + 10 = 20$, and 20 is exactly the entry at the bend.
+
+### Squaring
+
+Adjacent entries in the second and third diagonals have a relationship to perfect squares. For row $n$: $C(n, 1) + 2 \cdot C(n, 2) = n^2$. The triangle encodes squares through a combination of its diagonals.
+
+### Powers of 11
+
+Read each row as a single number: $1, 11, 121, 1331, 14641, \ldots$ — these are the powers of 11! For rows 5 and beyond, you need to carry digits (just like in normal addition), but the pattern holds.
+
+### Binomial Coefficients — The Biggest Pattern
+
+Each row gives the **coefficients** for expanding $(a + b)^n$:
+
+<DefinitionBox term="The Binomial Theorem">
+
+For any non-negative integer $n$:
+
+<DisplayMath formula="(a + b)^n = \sum_{k=0}^{n} \binom{n}{k} \, a^{n-k} \, b^k" />
+
+The coefficients <InlineMath formula="\binom{n}{k}" /> are exactly the entries in row $n$ of Pascal's Triangle.
+
+</DefinitionBox>
+
+For example, $(a + b)^3 = 1 \cdot a^3 + 3 \cdot a^2 b + 3 \cdot a b^2 + 1 \cdot b^3$, and row 3 of the triangle is `[1, 3, 3, 1]`.
+
+### Sierpinski's Triangle
+
+Toggle the "Sierpinski Triangle" button above and something unexpected emerges. Color every **odd** entry and dim every **even** one. The result is a fractal — an approximation of **Sierpinski's Triangle**, one of the most famous self-similar structures in mathematics.
+
+Why does a fractal hide inside a number triangle? Because the construction rule is recursive. Each cell is the sum of two cells above it, and the parity (odd vs. even) of a sum depends on the parity of its parts. This local rule, applied uniformly at every scale, produces structure at every scale. With 8 rows the pattern is suggestive; with hundreds of rows it becomes unmistakable. The same principle — simple local rules generating complex global behavior — appears throughout computer science, from cellular automata to fractal image compression.
+
+---
+
+## The Triangle IS "n choose k"
+
+All of these patterns have a single underlying explanation: **the entry at row $n$, position $k$ is exactly** <InlineMath formula="C(n, k) = \binom{n}{k}" />.
+
+Click any interior cell below to see the relationship.
+
+<PascalTriangleChoose />
+
+This is why the triangle encodes so many combinatorial identities — it is literally a table of every "n choose k" value. The construction rule (sum the two entries above) is not just a computational trick — it is a deep combinatorial identity.
+
+---
+
+## Pascal's Rule
+
+The construction rule of the triangle — each entry is the sum of the two above it — translates directly into an identity about combinations:
+
+<DefinitionBox term="Pascal's Rule">
+
+For all integers $n \geq 1$ and $1 \leq k \leq n - 1$:
+
+<DisplayMath formula="\binom{n-1}{k-1} + \binom{n-1}{k} = \binom{n}{k}" />
+
+</DefinitionBox>
+
+### Why Does This Make Sense?
+
+Imagine you are choosing $k$ students for a project group from a class of $n$ students. Focus on one specific student — say, Alice.
+
+Every possible group either **includes Alice** or **does not include Alice**. These are disjoint, exhaustive cases, so the Rule of Sums applies:
+
+- **Alice is IN the group**: We still need to choose the remaining $k - 1$ members from the other $n - 1$ students. That is <InlineMath formula="\binom{n-1}{k-1}" /> ways.
+- **Alice is NOT in the group**: We need to choose all $k$ members from the other $n - 1$ students. That is <InlineMath formula="\binom{n-1}{k}" /> ways.
+
+Adding these disjoint cases gives us the total: <InlineMath formula="\binom{n-1}{k-1} + \binom{n-1}{k} = \binom{n}{k}" />.
+
+Here is the key insight: **deciding who is left out is the same as forming a group with the people who remain**. If Alice is not in your group of $k$, then she is automatically in the "complementary group" of $n - k$ people. Choosing who is in is the same as choosing who is out — both perspectives count the same set of groups.
+
+### Algebraic Proof
+
+We can also verify Pascal's Rule purely with factorial algebra. Start by expanding both terms:
+
+<DisplayMath formula="\binom{n-1}{k-1} + \binom{n-1}{k} = \frac{(n-1)!}{(k-1)!(n-k)!} + \frac{(n-1)!}{k!(n-k-1)!}" />
+
+To add these fractions, we need a common denominator. Multiply the left fraction by <InlineMath formula="\frac{k}{k}" /> and the right by <InlineMath formula="\frac{n-k}{n-k}" />:
+
+<DisplayMath formula="= \frac{k \cdot (n-1)!}{k!(n-k)!} + \frac{(n-k) \cdot (n-1)!}{k!(n-k)!}" />
+
+Now both fractions share the denominator $k!(n-k)!$, so we combine:
+
+<DisplayMath formula="= \frac{k \cdot (n-1)! + (n-k) \cdot (n-1)!}{k!(n-k)!}" />
+
+Factor out $(n-1)!$:
+
+<DisplayMath formula="= \frac{(n-1)! \cdot (k + (n-k))}{k!(n-k)!} = \frac{(n-1)! \cdot n}{k!(n-k)!}" />
+
+And since $(n-1)! \cdot n = n!$, we arrive at:
+
+<DisplayMath formula="= \frac{n!}{k!(n-k)!} = \binom{n}{k} \qquad \square" />
+
+The "multiply by a strategic 1" trick — <InlineMath formula="\frac{k}{k}" /> and <InlineMath formula="\frac{n-k}{n-k}" /> — is exactly the kind of factorial manipulation we practiced last lecture.
+
+<PracticeBox
+  title="Pascal's Rule"
+  question="Use Pascal's Rule to compute C(7, 3) from smaller values, without using the factorial formula directly."
+  choices={[
+    "C(6, 2) + C(6, 3) = 15 + 20 = 35",
+    "C(6, 3) + C(6, 4) = 20 + 15 = 35",
+    "C(7, 2) + C(7, 4) = 21 + 35 = 56",
+    "C(6, 2) + C(6, 4) = 15 + 15 = 30"
+  ]}
+  correctIndex={0}
+  hint="Pascal's Rule says C(n, k) = C(n-1, k-1) + C(n-1, k). So C(7, 3) = C(6, 2) + C(6, 3)."
+  explanation="By Pascal's Rule: C(7, 3) = C(6, 2) + C(6, 3) = 15 + 20 = 35. You can verify: C(7, 3) = 7! / (3! × 4!) = 35."
+/>
+
+---
+
+## The Symmetry of C(n, k)
+
+Look at any row of Pascal's Triangle: `[1, 3, 3, 1]`, `[1, 4, 6, 4, 1]`, `[1, 5, 10, 10, 5, 1]`. They are all **palindromes** — they read the same forwards and backwards. This visual symmetry corresponds to a fundamental identity:
+
+<DefinitionBox term="Symmetry Identity">
+
+<DisplayMath formula="\binom{n}{k} = \binom{n}{n-k}" />
+
+Choosing $k$ items to **include** from $n$ is the same as choosing $n - k$ items to **exclude**.
+
+</DefinitionBox>
+
+Why? Consider choosing a team of $k$ people from a group of $n$. Every time you form a team, you simultaneously form the group of people **not** on the team — a group of $n - k$ people. There is a perfect one-to-one correspondence between teams of size $k$ and "leftover groups" of size $n - k$. Since these two perspectives count the same collection of divisions, they must be equal.
+
+This is the same insight we used in Pascal's Rule: "choosing who is in is the same as choosing who is out." Here, the symmetry identity makes it a standalone tool. It is especially useful for simplifying computation — $C(100, 97)$ looks daunting, but $C(100, 3)$ is quick mental arithmetic.
+
+We have been investigating abstract algebraic properties throughout this course — commutativity and associativity for operators, reflexivity and symmetry for relations, injectivity and surjectivity for functions. Here we find yet another symmetry, this time in a counting function. The pattern continues: every mathematical structure reveals its own symmetries.
+
+<PracticeBox
+  title="Symmetry Identity"
+  question="Compute C(10, 7) without using the factorial formula for C(10, 7) directly."
+  choices={[
+    "C(10, 7) = C(7, 10) — swap both numbers",
+    "C(10, 7) = C(7, 3) = 35",
+    "C(10, 3) = 10! / (3! × 7!) = 120",
+    "C(7, 10) = undefined"
+  ]}
+  correctIndex={2}
+  hint="The symmetry identity says C(n, k) = C(n, n-k). So C(10, 7) = C(10, ?)."
+  explanation="By symmetry: C(10, 7) = C(10, 3) = 10! / (3! × 7!) = 120. Much easier than computing the original 7-factorial denominator directly."
+/>
+
+---
+
+## Double Counting — The Big Reveal
+
+Here is a question that seems to require a lot of work:
+
+> How many groups can be formed from 4 people?
+
+Groups of **any** size — including the empty group (no one) and the full group (everyone). This is not <InlineMath formula="\binom{4}{k}" /> for one specific $k$; it is the **sum** of <InlineMath formula="\binom{4}{k}" /> for every $k$ from 0 to 4. In other words, we are summing the entire 4th row of Pascal's Triangle:
+
+<DisplayMath formula="\binom{4}{0} + \binom{4}{1} + \binom{4}{2} + \binom{4}{3} + \binom{4}{4} = 1 + 4 + 6 + 4 + 1 = 16" />
+
+That works, but it required computing five separate binomial coefficients and adding them. Is there a faster way?
+
+### The Binary Trick
+
+Instead of using choose notation, try a completely different approach. Line up the 4 people as columns. For each person, write "in" or "out." Each row of the resulting table is one possible group:
+
+| Alice | Bob | Carol | Dave | Group |
+| :--- | :--- | :--- | :--- | :--- |
+| in | in | in | in | All 4 |
+| in | in | in | out | Alice, Bob, Carol |
+| in | in | out | in | Alice, Bob, Dave |
+| ... | ... | ... | ... | ... |
+| out | out | out | in | Dave only |
+| out | out | out | out | Empty group |
+
+Now replace "in" with **1** and "out" with **0**. Each row becomes a 4-bit binary number:
+
+| Bit 3 | Bit 2 | Bit 1 | Bit 0 | Binary | Decimal |
+| :---: | :---: | :---: | :---: | :--- | ---: |
+| 1 | 1 | 1 | 1 | 1111 | 15 |
+| 1 | 1 | 1 | 0 | 1110 | 14 |
+| ... | ... | ... | ... | ... | ... |
+| 0 | 0 | 0 | 1 | 0001 | 1 |
+| 0 | 0 | 0 | 0 | 0000 | 0 |
+
+How many 4-bit binary numbers exist? This is a permutation with repetition: 4 positions, 2 choices each.
+
+<DisplayMath formula="2^4 = 16" />
+
+The same answer — without computing a single binomial coefficient!
+
+### Four Equivalent Questions
+
+All of the following are answered by **16**:
+
+1. How many **groups** can be formed from 4 people?
+2. How many **4-bit binary numbers** exist?
+3. How many **ordered sequences of length 4** from the set $\{0, 1\}$ with repetition?
+4. How many **distinct regions** does a 4-variable Venn diagram have?
+
+These are all asking the same question in different disguises. They all count the size of the same underlying set — the set of all possible "in-or-out" assignments for 4 elements.
+
+### Row Sums Are Powers of 2
+
+This reveals one more pattern in Pascal's Triangle: the sum of each row is a power of 2.
+
+| Row | Sum | Power of 2 |
+| :--- | ---: | :--- |
+| Row 0: 1 | 1 | $2^0$ |
+| Row 1: 1, 1 | 2 | $2^1$ |
+| Row 2: 1, 2, 1 | 4 | $2^2$ |
+| Row 3: 1, 3, 3, 1 | 8 | $2^3$ |
+| Row 4: 1, 4, 6, 4, 1 | 16 | $2^4$ |
+
+Generalizing from 4 to any $n$:
+
+<DefinitionBox term="Binomial Sum Identity">
+
+<DisplayMath formula="\sum_{k=0}^{n} \binom{n}{k} = 2^n" />
+
+The sum of all entries in row $n$ of Pascal's Triangle equals $2^n$.
+
+</DefinitionBox>
+
+### Connection to Power Sets
+
+All of these questions are asking for the cardinality of the **power set**. The power set of a set $S$, written $\mathcal{P}(S)$, is the set of all subsets of $S$ — including the empty set and $S$ itself.
+
+If $|S| = n$, then $|\mathcal{P}(S)| = 2^n$.
+
+This is why it is called the **power** set — its size is a power of 2. Each element of $S$ is either "in" or "out" of a given subset, and the total number of in-or-out assignments is $2^n$.
+
+### The Alternating Sum
+
+The row-sum identity came from plugging $a = 1$ and $b = 1$ into the binomial theorem. What happens if we try $a = 1$ and $b = -1$?
+
+<DisplayMath formula="(1 + (-1))^n = 0^n = 0 \quad \text{for } n \geq 1" />
+
+Expanding the left side with the binomial theorem:
+
+<DisplayMath formula="\sum_{k=0}^{n} \binom{n}{k} \cdot 1^{n-k} \cdot (-1)^k = \sum_{k=0}^{n} (-1)^k \binom{n}{k} = 0" />
+
+This says that for any row of Pascal's Triangle ($n \geq 1$), if you **alternate signs** — add the first entry, subtract the second, add the third, subtract the fourth, and so on — the result is always **zero**. The even-indexed entries and odd-indexed entries sum to exactly the same value; they perfectly cancel.
+
+What does this mean combinatorially? Of all $2^n$ subsets of an $n$-element set, exactly **half** have even size and exactly **half** have odd size. The "positive" subsets and "negative" subsets are perfectly balanced. One theorem, two substitutions, two powerful identities — this is the leverage that the binomial theorem provides.
+
+---
+
+## Double Counting as a Proof Technique
+
+What we just did — showing that summing a row of Pascal's Triangle and counting binary strings both yield $2^n$ — is an example of a powerful proof technique.
+
+<DefinitionBox term="Double Counting (Counting in Two Ways)">
+
+A **combinatorial proof** technique for showing two expressions are equal by demonstrating that they both count the size of the same set.
+
+If counting method A gives expression $E_1$ and counting method B gives expression $E_2$, and both methods count the same collection of objects, then $E_1 = E_2$.
+
+</DefinitionBox>
+
+The key insight: if two different counting methods always produce the same answer, the expressions are **logically substitutable**. This is the same intuition programmers have — two functions with identical input-output behavior are interchangeable, even if their implementations differ.
+
+### Substitutability in Code
+
+Consider these two Python functions:
+
+```python
+def count_v1(n):
+    count = 0
+    for i in range(n):
+        for j in range(n):
+            count += 1
+    return count
+
+def count_v2(n):
+    return n * n
+```
+
+Both compute $n^2$. But `count_v1` runs in $O(n^2)$ time (nested loops), while `count_v2` runs in $O(1)$ time (direct multiplication). Double counting gives us the **mathematical license** to replace one with the other.
+
+This is exactly what we do as programmers when we optimize: we find two methods that compute the same thing, then choose the faster one. Double counting proves they are substitutable. Think back to our earlier lectures on functions — two functions that always have the same input-output pairs must be substitutable, even if their bodies are completely different. Double counting is the formal tool that lets us prove two "function bodies" are equivalent by showing they both measure the same set.
+
+---
+
+## Python Connection: Dynamic Programming
+
+Pascal's Triangle is one of the earliest examples of what computer scientists now call **dynamic programming** (DP).
+
+### The Naive Recursive Approach
+
+Computing <InlineMath formula="\binom{n}{k}" /> using Pascal's Rule recursively seems natural:
+
+```python
+def choose_naive(n, k):
+    if k == 0 or k == n:
+        return 1
+    return choose_naive(n - 1, k - 1) + choose_naive(n - 1, k)
+```
+
+But this is **disastrously slow**. Each call branches into two more calls, producing an exponential call tree. Computing `choose_naive(20, 10)` makes over a million recursive calls — most of which recompute values that were already calculated elsewhere in the tree.
+
+### Memoization — Remembering Past Work
+
+The fix is simple: **remember** previously computed values. Python's `@functools.lru_cache` does this automatically:
+
+```python
+import functools
+
+@functools.lru_cache(maxsize=None)
+def choose_memo(n, k):
+    if k == 0 or k == n:
+        return 1
+    return choose_memo(n - 1, k - 1) + choose_memo(n - 1, k)
+```
+
+Now `choose_memo(20, 10)` runs almost instantly — each unique $(n, k)$ pair is computed only once and cached. This is **top-down DP**: same recursive structure, but with a memory layer.
+
+### Bottom-Up DP — Building the Triangle
+
+Alternatively, build the triangle row by row, just like we did with the interactive visual:
+
+```python
+def pascal_triangle(n):
+    tri = [[1]]
+    for r in range(1, n + 1):
+        prev = tri[-1]
+        row = [1]
+        for k in range(1, r):
+            row.append(prev[k - 1] + prev[k])
+        row.append(1)
+        tri.append(row)
+    return tri
+
+tri = pascal_triangle(20)
+print(tri[20][10])  # C(20, 10) = 184756
+```
+
+This is **bottom-up DP**: compute small sub-problems first (row 0, row 1, row 2, ...) and use their results to solve larger ones. No recursion needed.
+
+### The Historical Connection
+
+Richard Bellman formalized dynamic programming in the 1950s at the RAND Corporation. The core principle — **solve sub-problems first, store results, combine for larger problems** — is exactly what Pascal's Triangle has been doing for centuries.
+
+Bellman's insight revolutionized algorithm design. Today, DP powers:
+
+- **Shortest path algorithms** (Dijkstra's, Bellman-Ford)
+- **Sequence alignment** in bioinformatics (matching DNA sequences)
+- **Compiler optimization** (optimal register allocation)
+- **AI planning** (reinforcement learning)
+- **Text processing** (spell-check edit distance)
+
+Pascal's Triangle, discovered independently by mathematicians across multiple civilizations long before computers existed, was dynamic programming before dynamic programming had a name. Every time you build a row from the previous one, you are doing exactly what Bellman described: decomposing a problem into overlapping sub-problems, solving each one once, and combining results.
+
+---
+
+## Python Connection: Bitmasking and Power Sets
+
+The groups-to-binary connection from the double counting section maps directly to how programmers use **bitmasks** to represent subsets.
+
+```python
+def power_set(items):
+    n = len(items)
+    for mask in range(2 ** n):
+        subset = [items[i] for i in range(n) if mask & (1 << i)]
+        yield subset
+
+people = ["Alice", "Bob", "Carol", "Dave"]
+for group in power_set(people):
+    print(group)
+```
+
+Each integer from 0 to $2^n - 1$ is a bitmask representing one subset. The bit at position $i$ says whether item $i$ is "in" or "out" — exactly the yes/no table we built earlier.
+
+This pattern appears everywhere in real systems:
+
+- **Unix file permissions**: `rwx` for user/group/other is a 3-bit mask per category. `chmod 755` means user = 111 (all permissions), group = 101 (read + execute), other = 101.
+- **Feature flags**: Enable or disable features with a single integer. Each bit controls one feature.
+- **Network subnet masks**: IP subnets use bitmasks to partition addresses into network and host portions.
+
+One important observation: generating the full power set is inherently $O(2^n)$ — this is unavoidable because the output itself has $2^n$ elements. Combinatorics tells us **why** exponential algorithms exist: some problems have exponentially many answers. When a problem asks you to examine all subsets, no algorithm can do better than exponential, because there are exponentially many subsets to examine. The math explains the computational barrier.
+
+---
+
+## Practice Problems
+
+<PracticeBox
+  title="Problem 1: Pascal's Rule Application"
+  question="Using Pascal's Rule (not the factorial formula), compute C(8, 3)."
+  choices={[
+    "C(7, 2) + C(7, 3) = 21 + 35 = 56",
+    "C(7, 3) + C(7, 4) = 35 + 35 = 70",
+    "C(8, 2) + C(8, 4) = 28 + 70 = 98",
+    "C(7, 2) + C(7, 4) = 21 + 35 = 56"
+  ]}
+  correctIndex={0}
+  hint="Pascal's Rule: C(n, k) = C(n-1, k-1) + C(n-1, k). So C(8, 3) = C(7, ?) + C(7, ?)."
+  explanation="C(8, 3) = C(7, 2) + C(7, 3) = 21 + 35 = 56. Verify: C(8, 3) = 8! / (3! × 5!) = 56."
+/>
+
+<PracticeBox
+  title="Problem 2: Which Row?"
+  question="A pizza menu lets you add any combination of 6 available toppings (including no toppings or all toppings). How many different pizzas can you order?"
+  choices={[
+    "6 (one per topping)",
+    "C(6, 3) = 20 (pick half)",
+    "2⁶ = 64 (each topping is in or out)",
+    "6! = 720 (arrange the toppings)"
+  ]}
+  correctIndex={2}
+  hint="Each topping is either on the pizza or not. How many in-or-out assignments are there for 6 toppings?"
+  explanation="Each topping is independently 'in' or 'out,' giving 2⁶ = 64 possible pizzas. This is the sum of row 6 of Pascal's Triangle: C(6,0) + C(6,1) + ... + C(6,6) = 64."
+/>
+
+<PracticeBox
+  title="Problem 3: Row Sum Identity"
+  question="What is C(5,0) + C(5,1) + C(5,2) + C(5,3) + C(5,4) + C(5,5)?"
+  choices={[
+    "25",
+    "32",
+    "120",
+    "5"
+  ]}
+  correctIndex={1}
+  hint="Use the identity: the sum of row n of Pascal's Triangle equals 2ⁿ."
+  explanation="By the binomial sum identity, the sum of all C(5, k) for k = 0 to 5 equals 2⁵ = 32. You can verify: 1 + 5 + 10 + 10 + 5 + 1 = 32."
+/>
+
+<PracticeBox
+  title="Problem 4: Double Counting"
+  question="A club has 10 members. They want to count how many ways to form a committee of any size. Member A argues: 'Sum C(10, k) for k = 0 to 10.' Member B argues: 'Each member is in or out, so it's 2¹⁰.' Who is right?"
+  choices={[
+    "Only A is right",
+    "Only B is right",
+    "Both are right — they count the same set in two different ways",
+    "Neither is right"
+  ]}
+  correctIndex={2}
+  hint="This is a double counting argument. Do both methods count the same collection of objects?"
+  explanation="Both are right! Method A counts committees by size (how many of each size, then add up). Method B counts committees by membership (each member in or out). Both count the same set — all possible committees — so both give 1024."
+/>
+
+<PracticeBox
+  title="Problem 5: Power Set"
+  question="How many elements does the power set of {a, b, c, d, e} contain?"
+  choices={[
+    "5",
+    "10",
+    "25",
+    "32"
+  ]}
+  correctIndex={3}
+  hint="The power set contains ALL subsets, including the empty set and the set itself."
+  explanation="|P(S)| = 2ⁿ where n = |S|. Here n = 5, so |P(S)| = 2⁵ = 32. This includes the empty set, all 5 singletons, all 10 pairs, all 10 triples, all 5 quadruples, and the full set."
+/>
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Pascal's Triangle:**
+
+- Built by the rule: each entry = sum of the two entries above it (edges are 1)
+- Entry at row $n$, position $k$ is <InlineMath formula="\binom{n}{k}" />
+- Contains natural numbers, triangular numbers, tetrahedral numbers, hockey stick sums, powers of 11, binomial coefficients, and Sierpinski's Triangle fractal
+
+**Pascal's Rule:**
+
+<DisplayMath formula="\binom{n-1}{k-1} + \binom{n-1}{k} = \binom{n}{k}" />
+
+Intuition: every group either includes a specific person or doesn't — two disjoint cases.
+
+**Symmetry Identity:**
+
+<DisplayMath formula="\binom{n}{k} = \binom{n}{n-k}" />
+
+Choosing $k$ to include = choosing $n - k$ to exclude.
+
+**Binomial Theorem:**
+
+<DisplayMath formula="(a + b)^n = \sum_{k=0}^{n} \binom{n}{k} \, a^{n-k} \, b^k" />
+
+**Key identities from substitution:**
+
+<DisplayMath formula="\sum_{k=0}^{n} \binom{n}{k} = 2^n \qquad \text{and} \qquad \sum_{k=0}^{n} (-1)^k \binom{n}{k} = 0" />
+
+Row sums give powers of 2 (power set size). Alternating sums give zero (even-sized and odd-sized subsets balance perfectly).
+
+**Double Counting:**
+
+A proof technique: show two expressions are equal by demonstrating they count the same set. If two methods count the same objects, their answers must agree — the expressions are substitutable.
+
+**Connection to Programming:**
+
+| Math Concept | Programming Concept |
+| :--- | :--- |
+| Pascal's Triangle construction | Bottom-up dynamic programming |
+| Memoized recursive C(n,k) | Top-down DP with caching |
+| Subset in/out assignments | Bitmask representation |
+| Power set size $2^n$ | Why brute-force subset search is exponential |
+| Double counting equivalence | Function substitutability / optimization |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Numberphile: "Pascal's Triangle"](https://www.youtube.com/watch?v=0iMtlus-afo) — Visual tour of the triangle's hidden patterns
+- [3Blue1Brown: "Binary, Subtraction"](https://www.youtube.com/watch?v=wMo6F12aBJk) — Beautiful animations on binary counting
+
+### Further Reading
+
+- [Wikipedia: Pascal's Triangle](https://en.wikipedia.org/wiki/Pascal%27s_triangle) — History, properties, and generalizations
+- [Wikipedia: Double Counting](https://en.wikipedia.org/wiki/Double_counting_(proof_technique)) — Formal treatment with examples
+- [Wikipedia: Dynamic Programming](https://en.wikipedia.org/wiki/Dynamic_programming) — Bellman's principle and applications
+- [Brilliant: Pascal's Triangle](https://brilliant.org/wiki/pascals-triangle/) — Interactive exploration of patterns
+
+### Connection to Programming
+
+- Pascal's Triangle is a canonical example of **dynamic programming** — building solutions from sub-problems
+- `@functools.lru_cache` in Python implements **memoization**, the top-down variant of DP
+- **Bitmasks** (`mask & (1 << i)`) are the programmer's tool for working with subsets
+- The $2^n$ growth of power sets explains why many combinatorial algorithms are inherently exponential
+
+</LectureResources>
