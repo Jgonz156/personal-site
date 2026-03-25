@@ -1,0 +1,600 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+import { ReductionStepper } from "@/components/reduction-stepper"
+import { BijectionVisualizer } from "@/components/bijection-visualizer"
+import { PigeonholeDiagram } from "@/components/pigeonhole-diagram"
+import { BirthdayParadoxChart } from "@/components/birthday-paradox-chart"
+import { HashTableVisualizer } from "@/components/hash-table-visualizer"
+
+## Recap
+
+Last lecture we explored Pascal's Triangle and its remarkable identities — Pascal's Rule, the symmetry identity, the binomial theorem, and the binomial sum identity. We then introduced **double counting**: proving two expressions are equal by showing they count the same set.
+
+Double counting gave us the power to prove identities by arguing about *what* is being counted. Today we develop a second proof technique: proving identities by **constructing functions**. Instead of arguing "these count the same set," we argue "I can build an explicit pairing between these two sets — here it is."
+
+---
+
+## Proving Things by Building Functions
+
+We know that two sets have the same size when we can count both and get the same number. But what if counting is hard? What if the sets are enormous — or even infinite? Is there another way to show two sets are the same size *without* counting them?
+
+Imagine two groups of students standing in separate lines. If you can pair every person in line A with exactly one person in line B — with nobody left out on either side — then the lines must be the same length, even if you never counted. You didn't need to know the number. You just needed the **pairing**.
+
+What properties does this pairing need? Think back to LN15:
+
+- **No sharing**: each person in B is paired with at most one person from A. That's **injectivity** — different inputs map to different outputs.
+- **No one left out**: every person in B has someone from A paired with them. That's **surjectivity** — every output is reached.
+
+Together, these give a **bijection**. And if a bijection exists between two sets, those sets must have the same cardinality:
+
+<DisplayMath formula="\exists f: A \to B \text{ such that } f \text{ is bijective} \implies |A| = |B|" />
+
+In LN15, we *checked* whether given functions had these properties. Now we flip the script: we *construct* a function and prove it has these properties. The function IS the proof.
+
+This is also a turning point for the lambda calculus. In LN12-14, we studied lambda calculus as an object — learning the syntax, the reductions, the safety conditions. Now, for the first time, we use it as a **tool**. We will write specific lambdas and prove they have the formal properties we need. The quantifier patterns from LN11 and the function property definitions from LN15 all converge here.
+
+Let's try it on an identity we already know.
+
+---
+
+## Bijective Proof — The Symmetry Identity
+
+In LN18, we proved the symmetry identity <InlineMath formula="\binom{n}{k} = \binom{n}{n-k}" /> with a counting argument: choosing $k$ items to include is the same as choosing $n - k$ items to exclude. Both perspectives count the same set of divisions, so the numbers agree.
+
+But now we have a new technique. Can we prove it by *constructing an explicit bijection* between two sets?
+
+### Setting Up the Sets
+
+Let <InlineMath formula="A_k" /> be the set of all $k$-element subsets of <InlineMath formula="\{1, 2, \ldots, n\}" />, so <InlineMath formula="|A_k| = \binom{n}{k}" />.
+
+Let <InlineMath formula="A_{n-k}" /> be the set of all $(n-k)$-element subsets, so <InlineMath formula="|A_{n-k}| = \binom{n}{n-k}" />.
+
+If we can build a bijection <InlineMath formula="f: A_k \to A_{n-k}" />, then <InlineMath formula="|A_k| = |A_{n-k}|" />, proving the identity.
+
+### Constructing the Function
+
+We need a lambda that takes a $k$-subset and returns an $(n-k)$-subset. Consider:
+
+<DisplayMath formula="f = \lambda S.\; \{1, \ldots, n\} \setminus S" />
+
+This is the **complement function**. Let's understand why each piece is there:
+
+- **The input** $S$ is a $k$-element subset drawn from <InlineMath formula="A_k" />
+- **The operation** <InlineMath formula="\{1, \ldots, n\} \setminus S" /> takes the universal set and removes every element of $S$, leaving everything *not* in $S$
+- **The output** has $n - k$ elements (we removed $k$ from $n$), so it lands in <InlineMath formula="A_{n-k}" />
+
+The intuition: "choosing who's in the group" vs. "choosing who's NOT in the group" — same decision, two perspectives. If you pick 3 people out of 5 for a team, the 2 people you *didn't* pick are uniquely determined. That's the complement.
+
+### Seeing It on Concrete Data
+
+Before we prove this works in general, let's see it on a concrete example. For $n = 5$ and $k = 2$, every 2-element subset should map to a unique 3-element subset via complement:
+
+<BijectionVisualizer
+  leftLabel="2-subsets of {1..5}"
+  rightLabel="3-subsets of {1..5}"
+  functionLabel="f(S) = {1,2,3,4,5} \ S"
+  leftItems={[
+    "{1,2}", "{1,3}", "{1,4}", "{1,5}",
+    "{2,3}", "{2,4}", "{2,5}",
+    "{3,4}", "{3,5}", "{4,5}"
+  ]}
+  rightItems={[
+    "{3,4,5}", "{2,4,5}", "{2,3,5}", "{2,3,4}",
+    "{1,4,5}", "{1,3,5}", "{1,3,4}",
+    "{1,2,5}", "{1,2,4}", "{1,2,3}"
+  ]}
+  mappings={[
+    [0, 0], [1, 1], [2, 2], [3, 3],
+    [4, 4], [5, 5], [6, 6],
+    [7, 7], [8, 8], [9, 9]
+  ]}
+/>
+
+Step through the mapping. Every left item has exactly one arrow out, and every right item has exactly one arrow in. This *looks* like a bijection — but seeing it on one example doesn't prove it works for all $n$ and $k$. Let's prove it, starting with the concrete case to build intuition, then generalizing.
+
+### Testing Injectivity on a Concrete Case
+
+Before we write the general proof, let's walk through the logic on two specific inputs from our $n = 5$, $k = 2$ example.
+
+Pick two distinct inputs: <InlineMath formula="S_1 = \{1, 2\}" /> and <InlineMath formula="S_2 = \{1, 3\}" />.
+
+Compute their outputs:
+
+- <InlineMath formula="f(S_1) = \{1,2,3,4,5\} \setminus \{1,2\} = \{3, 4, 5\}" />
+- <InlineMath formula="f(S_2) = \{1,2,3,4,5\} \setminus \{1,3\} = \{2, 4, 5\}" />
+
+Different inputs gave different outputs. Now let's run the proof logic on these concrete values. *If* we assumed <InlineMath formula="f(S_1) = f(S_2)" />, that would mean <InlineMath formula="\{3,4,5\} = \{2,4,5\}" /> — but these aren't equal (3 is in one but not the other). So <InlineMath formula="f(S_1) \neq f(S_2)" />, confirming that $S_1 \neq S_2$ forced $f(S_1) \neq f(S_2)$.
+
+The key mechanism: because $S_1$ and $S_2$ differ (one contains 2, the other contains 3), the elements *removed* from the universal set differ, so the complements must differ too.
+
+This worked for one pair. The general proof shows it works for *every* pair.
+
+### Proving Injectivity (General)
+
+**Goal**:
+
+<DisplayMath formula="\forall S_1, S_2 \in A_k.\; f(S_1) = f(S_2) \implies S_1 = S_2" />
+
+In words: if two inputs produce the same output, they must have been the same input.
+
+1. Assume $f(S_1) = f(S_2)$
+2. By definition of $f$: <InlineMath formula="\{1,\ldots,n\} \setminus S_1 = \{1,\ldots,n\} \setminus S_2" />
+3. Every element NOT in $S_1$ is the same as every element NOT in $S_2$
+4. Therefore every element IN $S_1$ must also be IN $S_2$, and vice versa
+5. <InlineMath formula="S_1 = S_2 \quad \square" />
+
+This is exactly the same logic we saw with <InlineMath formula="\{1,2\}" /> and <InlineMath formula="\{1,3\}" /> — but now it holds for any two subsets. Two different group selections will always exclude different people, so their complements are always distinct.
+
+### Testing Surjectivity on a Concrete Case
+
+Now let's test whether every target on the right side can be reached. Pick a target from <InlineMath formula="A_3" />: say <InlineMath formula="T = \{1, 4, 5\}" />.
+
+Can we find an <InlineMath formula="S \in A_2" /> such that $f(S) = T$? Let's construct one:
+
+1. Compute <InlineMath formula="S = \{1,2,3,4,5\} \setminus T = \{1,2,3,4,5\} \setminus \{1,4,5\} = \{2, 3\}" />
+2. Check the size: $|S| = 2$, so <InlineMath formula="S \in A_2" />
+3. Verify: <InlineMath formula="f(\{2,3\}) = \{1,2,3,4,5\} \setminus \{2,3\} = \{1,4,5\} = T \quad \checkmark" />
+
+You can confirm this in the visualizer above — find <InlineMath formula="\{2,3\}" /> on the left, follow its arrow, and it reaches <InlineMath formula="\{1,4,5\}" /> on the right.
+
+The recipe was simple: to hit any target $T$, just take the complement of $T$ as your input. This worked for one target. The general proof shows it works for *every* target.
+
+### Proving Surjectivity (General)
+
+**Goal**:
+
+<DisplayMath formula="\forall T \in A_{n-k}.\; \exists S \in A_k.\; f(S) = T" />
+
+In words: every $(n-k)$-subset is reached by some $k$-subset.
+
+1. Let $T$ be any $(n-k)$-subset of <InlineMath formula="\{1, \ldots, n\}" />
+2. Define <InlineMath formula="S = \{1, \ldots, n\} \setminus T" />
+3. $|S| = n - (n - k) = k$, so <InlineMath formula="S \in A_k" />
+4. <InlineMath formula="f(S) = \{1,\ldots,n\} \setminus S = \{1,\ldots,n\} \setminus (\{1,\ldots,n\} \setminus T) = T" />
+5. We have found an $S$ that maps to $T$ <InlineMath formula="\quad \square" />
+
+This is the same recipe we used for <InlineMath formula="\{1,4,5\}" /> — take the complement of the target — but now it works for any target in <InlineMath formula="A_{n-k}" />. Every target subset is reached, confirming what we saw in the visualizer: no right-hand item was left without an arrow.
+
+### Concluding the Proof
+
+Since $f$ is both injective and surjective, it is **bijective**. Therefore <InlineMath formula="|A_k| = |A_{n-k}|" />, which means:
+
+<DisplayMath formula="\binom{n}{k} = \binom{n}{n-k} \qquad \square" />
+
+---
+
+## A Deeper Bijective Proof — Even vs. Odd Subsets
+
+In LN18 we proved the alternating sum identity algebraically: <InlineMath formula="\sum_{k=0}^{n} (-1)^k \binom{n}{k} = 0" /> for $n \geq 1$. This tells us that the number of even-sized subsets equals the number of odd-sized subsets of any non-empty set.
+
+Can we prove this *without algebra*, by constructing an explicit bijection?
+
+### The Toggle Function
+
+Fix one element — say element 1. Define:
+
+<DisplayMath formula="g = \lambda S.\; S \;\triangle\; \{1\}" />
+
+where $\triangle$ is the **symmetric difference** from LN10. In practice:
+
+- If $1 \in S$, then $g(S) = S \setminus \{1\}$ — remove element 1, size decreases by 1
+- If $1 \notin S$, then $g(S) = S \cup \{1\}$ — add element 1, size increases by 1
+
+Either way, the **parity flips**: even-sized subsets map to odd-sized subsets, and vice versa.
+
+### Proving the Bijection
+
+Here is the elegant part: $g$ is its own inverse. Applying it twice returns you to the original:
+
+<ReductionStepper
+  title="g(g({2, 3})) — toggling twice returns to start"
+  steps={[
+    { formula: "g(\\{2, 3\\})", description: "Start with {2, 3} (even-sized, size 2). Since 1 ∉ {2,3}, we add 1." },
+    { formula: "\\{1, 2, 3\\}", description: "Result: {1, 2, 3} (odd-sized, size 3). Now apply g again." },
+    { formula: "g(\\{1, 2, 3\\})", description: "Since 1 ∈ {1,2,3}, we remove 1." },
+    { formula: "\\{2, 3\\}", description: "Back to {2, 3}. Toggling twice = identity. g ∘ g = id." }
+  ]}
+/>
+
+A function that is its own inverse — $g \circ g = \text{id}$ — is called an **involution**. Every involution is automatically a bijection: injectivity and surjectivity both follow from the fact that every output has a unique pre-image (just apply $g$ again).
+
+Therefore, even-sized subsets and odd-sized subsets are in **perfect correspondence**. Their counts must be equal.
+
+This proof is more powerful than the algebraic one: it doesn't just say the numbers match — it gives an *explicit pairing*. For every even-sized subset, you can point to its odd-sized partner, and vice versa.
+
+In LN14, eta-reduction stripped and re-added an unnecessary lambda wrapper — applying the operation twice returned to the start. An involution is the same structural pattern: $g \circ g = \text{id}$.
+
+---
+
+## Bijective Proofs as a Technique
+
+<DefinitionBox term="Bijective Proof">
+
+A **bijective proof** that $|A| = |B|$ is a proof by construction: build an explicit bijection $f: A \to B$. If such a function exists, the two sets must have the same cardinality.
+
+To prove $f$ is a bijection, show:
+1. **Injective**: $f(x_1) = f(x_2) \implies x_1 = x_2$
+2. **Surjective**: $\forall y \in B.\; \exists x \in A.\; f(x) = y$
+
+Or, if $f$ is an involution ($f \circ f = \text{id}$), both properties follow automatically.
+
+</DefinitionBox>
+
+In LN15, we examined *given* functions and checked whether they were injective, surjective, or bijective. Here we flip the script: we *construct* functions with specific properties to prove theorems. **The function IS the proof.**
+
+This is the converse use of the lambda calculus — we write a lambda not to compute a value, but to establish a mathematical fact.
+
+### The Programmer's Perspective
+
+Constructing a bijection is like writing a **lossless encoder/decoder pair**:
+
+```python
+def encode(x):
+    # maps input type -> encoded type
+    ...
+
+def decode(y):
+    # maps encoded type -> input type
+    ...
+
+# Bijective if BOTH hold:
+assert decode(encode(x)) == x  # for all x (surjective decode)
+assert encode(decode(y)) == y  # for all y (surjective encode)
+```
+
+If you can write `encode` and `decode` satisfying both round-trip properties, you've built a bijective proof that the input and output types have the same number of valid values. Formats like JSON, Base64, and UTF-8 all rely on bijective encoding.
+
+<PracticeBox
+  title="Bijective Proof Steps"
+  question="In a bijective proof that |A| = |B| using a function f: A → B, which step establishes that no two elements of A map to the same element of B?"
+  choices={[
+    "Proving surjectivity",
+    "Proving injectivity",
+    "Proving f is an involution",
+    "Constructing the inverse function"
+  ]}
+  correctIndex={1}
+  hint="Injectivity means 'one-to-one' — different inputs always produce different outputs."
+  explanation="Injectivity (f(x₁) = f(x₂) → x₁ = x₂) ensures no two elements of A share an output. Surjectivity ensures every element of B is reached. Together they give a bijection."
+/>
+
+### Beyond Finite Sets: Cantor and the Sizes of Infinity
+
+Everything we've done so far has involved finite sets. But the technique of bijective proofs extends far beyond finite combinatorics — and when it does, something remarkable happens.
+
+In LN4, we mentioned that **Georg Cantor** founded set theory in the 1870s. What we didn't say was *why* he founded it. Cantor was trying to answer a deceptively simple question: are all infinities the same size?
+
+Using exactly the technique we just learned — constructing explicit bijections — Cantor showed that the integers and the even integers have the same size. The function $f(n) = 2n$ is a bijection from <InlineMath formula="\mathbb{Z}" /> to the even integers. Every integer maps to a unique even integer, and every even integer is reached. Same size — even though one is a proper subset of the other.
+
+In LN9, we posed this very question and left it open: *"Is the set of all integers the same size as the set of all even integers?"* We said we didn't have the formal tools to answer it. Now we do. The answer is yes — and the proof is a bijection.
+
+Cantor went further. He proved that the integers and the *rationals* also have the same size, using an ingenious diagonal arrangement that pairs every integer with a unique rational number.
+
+But what about the integers and the **reals**? Is <InlineMath formula="|\mathbb{Z}| = |\mathbb{R}|" />? Can we build a bijection between them, or is that impossible?
+
+This is one of the most famous questions in the history of mathematics. Cantor asked it, and he answered it — using the very tools you now have. That answer is waiting for you on the homework.
+
+What we can say here is this: Cantor's work revealed that bijective arguments are not just a clever proof technique — they are the *fundamental tool* for comparing the sizes of infinite sets. And his ideas didn't stop at mathematics. Decades later, **Alan Turing** generalized Cantor's reasoning to prove that some problems are **uncomputable** — that there are more possible problems than there are possible programs. That result is for a graduate course, but the tool Turing used is the same one you just learned today.
+
+---
+
+## When Bijections Fail
+
+We've been building functions and proving they're bijective. But what happens when we *can't* build a bijection — or even an injection? What if there are genuinely more items than slots?
+
+This leads us to one of the most powerful principles in all of combinatorics.
+
+---
+
+## The Pigeonhole Principle
+
+Imagine 5 people and 4 chairs. No matter how they arrange themselves, **at least one chair must hold more than one person** (or someone has no chair). There is no way to give each person their own unique seat when there are more people than seats.
+
+<PigeonholeDiagram defaultItems={5} defaultSlots={4} />
+
+Try adjusting the sliders — add more items, reduce slots. No matter how the items are distributed, when $n > m$, a collision is guaranteed.
+
+<DefinitionBox term="The Pigeonhole Principle">
+
+If $n$ items are placed into $m$ containers and $n > m$, then **at least one container holds more than one item**.
+
+Equivalently: there is **no injection** from a set of size $n$ to a set of size $m$ when $n > m$.
+
+</DefinitionBox>
+
+This connects directly to LN15: we defined injectivity as "different inputs always produce different outputs," which requires $|A| \leq |B|$. The pigeonhole principle is the *contrapositive*: when $|A| > |B|$, injectivity is impossible — some outputs **must** be shared.
+
+In lambda calculus terms: for any <InlineMath formula="f = \lambda x.\; \ldots" /> where the domain is larger than the codomain, there must exist distinct $a_1$ and $a_2$ such that $f(a_1) = f(a_2)$. No matter how cleverly you write the lambda body, you cannot avoid a collision.
+
+### Worked Examples
+
+**Birth months**: 13 people, 12 months. By pigeonhole, at least two people share a birth month. (13 items, 12 slots — collision guaranteed.)
+
+**Initials**: 27 students in a class, 26 letters. At least two students have last names starting with the same letter.
+
+---
+
+## The Generalized Pigeonhole Principle
+
+What if we have *many more* items than slots? We can say something stronger:
+
+<DefinitionBox term="Generalized Pigeonhole Principle">
+
+If $n$ items are placed into $m$ containers, then at least one container holds at least <InlineMath formula="\lceil n/m \rceil" /> items.
+
+</DefinitionBox>
+
+<PigeonholeDiagram defaultItems={10} defaultSlots={3} />
+
+### Worked Examples
+
+**Birth months (larger class)**: 100 students, 12 months. At least one month contains $\lceil 100/12 \rceil = 9$ students.
+
+**Card suits**: Deal 5 cards from a standard deck with 4 suits. At least one suit appears $\lceil 5/4 \rceil = 2$ times — you're guaranteed a pair of the same suit.
+
+<PracticeBox
+  title="Generalized Pigeonhole"
+  question="A drawer contains socks in 5 different colors. How many socks must you pull out (in the dark) to guarantee you have at least 3 socks of the same color?"
+  choices={[
+    "5",
+    "10",
+    "11",
+    "15"
+  ]}
+  correctIndex={2}
+  hint="You need ⌈n/5⌉ ≥ 3, so n ≥ 11. With 10 socks, you could have exactly 2 of each color."
+  explanation="By generalized pigeonhole: we need ⌈n/5⌉ ≥ 3. The worst case with 10 socks is exactly 2 per color (no triple). At 11 socks, at least one color must appear ⌈11/5⌉ = 3 times."
+/>
+
+---
+
+## The Birthday Paradox
+
+Here is a question that seems to require far more people than the answer suggests:
+
+> How many people do you need in a room before it's *more likely than not* that two share a birthday?
+
+The pigeonhole principle tells us we need **366** people for a *guaranteed* match (366 people, 365 possible birthdays). But the question asks about *probability*, not certainty.
+
+The shocking answer: just **23** people.
+
+### The Math
+
+Instead of computing the probability of a match directly, compute the probability that *everyone* has a different birthday, then subtract from 1.
+
+For $k$ people with 365 possible birthdays:
+
+<DisplayMath formula="P(\text{all different}) = \frac{365}{365} \cdot \frac{364}{365} \cdot \frac{363}{365} \cdots \frac{365 - k + 1}{365} = \frac{P(365, k)}{365^k}" />
+
+The first person can have any birthday (365/365). The second must avoid 1 birthday (364/365). The third avoids 2 (363/365). Each new person has a slightly smaller pool of "safe" birthdays.
+
+<BirthdayParadoxChart />
+
+At $k = 23$, this product drops below 0.5 — a shared birthday becomes **more likely than not**. By $k = 70$, the probability exceeds 99.9%.
+
+The birthday paradox is not the pigeonhole principle — pigeonhole gives *certainty* at $k = 366$. The paradox is about *probability*, and it tells us something crucial: **collisions arrive much sooner than our intuition expects**.
+
+This insight is critical for hashing.
+
+<PracticeBox
+  title="Birthday Paradox"
+  question="A hash function produces 32-bit outputs (2³² ≈ 4.3 billion possible values). Approximately how many random inputs do you need before a collision is more likely than not?"
+  choices={[
+    "About 2¹⁶ ≈ 65,536",
+    "About 2³² ≈ 4.3 billion",
+    "About 2³¹ ≈ 2.15 billion",
+    "About 2⁸ = 256"
+  ]}
+  correctIndex={0}
+  hint="The birthday paradox threshold is approximately √n where n is the number of possible values."
+  explanation="The birthday paradox threshold scales as √n. For n = 2³², collisions become likely at about √(2³²) = 2¹⁶ ≈ 65,536 inputs. This is why 32-bit hashes are considered insecure for large datasets."
+/>
+
+---
+
+## Case Study: Hashing
+
+We have been building toward this case study across many lectures. In LN7, we saw that hash tables use modular arithmetic: `hash(key) % table_size`. In LN9, we learned that Python sets require hashable elements. In LN11, we formalized the `__hash__` / `__eq__` contract as an equivalence relation. In LN15, we teased that we would "develop the formal tools to investigate exactly when perfect hashing is possible."
+
+Now we have those tools. Let's use them.
+
+### What Is a Hash Function?
+
+A hash function is a lambda that maps keys to bucket indices:
+
+<DisplayMath formula="h = \lambda x.\; \text{hash}(x) \bmod m" />
+
+The hash table has $m$ slots (buckets). The function $h$ tells you which bucket to store each key in. In Python:
+
+```python
+def get_bucket(key, table_size):
+    return hash(key) % table_size
+```
+
+### Collisions Are Inevitable
+
+The set of possible keys — all strings, all integers, all Python objects — is vastly larger than $m$ buckets. By the **pigeonhole principle**, some keys *must* hash to the same bucket. There is no way around it: when the domain is larger than the codomain, an injection is impossible.
+
+This is the formal answer to the question we asked in LN15: *when can a hash function avoid all collisions?*
+
+### Perfect Hashing — When Injectivity IS Possible
+
+<DefinitionBox term="Perfect Hash Function">
+
+A **perfect hash function** for a set $S$ of keys is an injection <InlineMath formula="h: S \to \{0, \ldots, m-1\}" /> — no two keys in $S$ collide.
+
+A **minimal perfect hash function** additionally has $m = |S|$ — the function is a bijection. Every bucket is used exactly once.
+
+</DefinitionBox>
+
+By the pigeonhole principle, this is only possible when $|S| \leq m$. You need at least as many slots as keys.
+
+**When it works**:
+- **Compiler keyword lookup**: A language like Python has ~35 reserved words (`if`, `else`, `for`, `while`, ...). A perfect hash maps each keyword to a unique index in a 35-element array. $O(1)$ lookup, zero collision handling.
+- **Static datasets**: Country codes, HTTP status codes, emoji shortcodes — any fixed, known set of keys.
+
+**When it doesn't**: When the key space is dynamic or unbounded. You can't build an injection from an effectively infinite domain to a finite codomain. General hash tables must **accept collisions and handle them gracefully**.
+
+### How Hash Tables Handle Collisions
+
+The most common strategy is **chaining**: each bucket stores a linked list (or in Python, a more sophisticated structure). Inserting a key that collides with existing keys appends to the chain. Looking up a key requires scanning the chain.
+
+- **Average case** (good hash distribution): chains stay short, each operation is $O(1)$
+- **Worst case** (all keys collide into one bucket): the chain grows to length $n$, and each operation becomes $O(n)$
+
+Step through the visualizer below to see the difference:
+
+<HashTableVisualizer />
+
+In **normal mode**, keys spread across buckets — chains stay short, operations grow linearly. Switch to **adversarial mode** and watch: every key piles into bucket 0. The chain grows with each insertion, and the total operations explode quadratically.
+
+### The Python Hash-Flooding Attack (2011)
+
+This is not a hypothetical problem. In December 2011, security researchers demonstrated a devastating attack against web servers running Python, PHP, Ruby, and Java.
+
+**The setup**: Python dicts (the data structure behind nearly everything in Python) use hash tables with chaining. Before Python 3.3, the string hash function was **deterministic and publicly documented**. Given the hash function's source code, you could compute exactly which strings would collide.
+
+**The vulnerability**: Attackers precomputed thousands of short strings that ALL hashed to the same value. By sending these as POST parameters in a single HTTP request to a web server, they forced every dict insertion to scan an ever-growing collision chain.
+
+**The math**: With $n$ adversarial keys all mapping to bucket 0:
+- Inserting the 1st key: 1 operation
+- Inserting the 2nd key: scan 1 existing key + insert = 2 operations
+- Inserting the 3rd key: scan 2 + insert = 3 operations
+- Inserting the $n$-th key: scan $n-1$ + insert = $n$ operations
+
+Total: $1 + 2 + 3 + \cdots + n = \frac{n(n+1)}{2} \approx \frac{n^2}{2}$
+
+For $n = 10000$ crafted keys, that is approximately **50 million operations** for what should have been ~10,000. A single HTTP request could consume **minutes** of CPU time. A handful of requests could take down an entire server. This is a **denial-of-service attack powered by combinatorics**.
+
+**The fix**: Python 3.3 introduced **hash randomization** via `PYTHONHASHSEED`. At the start of every Python process, a random secret is generated and mixed into every string hash computation. The same string produces **different hashes in different process runs**. Attackers can no longer precompute collision strings because they don't know the per-process secret.
+
+```python
+import os
+# Python sets PYTHONHASHSEED automatically at startup
+# Each process gets a different random seed
+print(hash("hello"))  # Different every time you restart Python!
+```
+
+**Connecting to our formal tools**:
+
+- The attack exploited **non-injectivity** — by pigeonhole, the hash function must have collisions. The attacker simply chose which collisions to trigger.
+- The fix didn't make the hash injective (impossible for infinite domain → finite codomain). It made the collision pattern **unpredictable** — shifting from a deterministic function to a randomized family of functions.
+- **Perfect hashing** would prevent this entirely, but it requires a static, bounded key set — incompatible with accepting arbitrary user input.
+- The **birthday paradox** explains why even *normal* (non-adversarial) workloads experience more collisions than developers expect.
+
+### Lessons from Hashing
+
+The hashing case study ties together all three acts of today's lecture:
+
+- **Bijective proofs** show when two sets match perfectly — constructing an injective + surjective lambda proves equal cardinality
+- **The pigeonhole principle** shows when perfect matching is impossible — no injective lambda can exist when the domain exceeds the codomain
+- **Hashing** is the real-world engineering arena where this tension plays out daily: we want injectivity (no collisions) but usually can't have it (unbounded keys, finite table), so we design systems that handle the inevitable collisions gracefully — and protect against adversaries who would exploit them
+
+---
+
+## Practice Problems
+
+<PracticeBox
+  title="Problem 1: Pigeonhole Application"
+  question="A company has 400 employees. What is the minimum number of employees who must share the same birthday (day of the year, ignoring leap years)?"
+  choices={[
+    "1",
+    "2",
+    "3",
+    "At least 2"
+  ]}
+  correctIndex={1}
+  hint="Apply the generalized pigeonhole principle: ⌈400/365⌉ = ?"
+  explanation="By generalized pigeonhole: ⌈400/365⌉ = ⌈1.096⌉ = 2. At least 2 employees must share a birthday. With 731 employees, we'd guarantee at least 3."
+/>
+
+<PracticeBox
+  title="Problem 2: Perfect Hashing"
+  question="A database stores records for exactly 50 US states using their 2-letter abbreviations as keys. Can a perfect hash function be designed for this dataset?"
+  choices={[
+    "No — hash collisions are always unavoidable",
+    "Yes — the key set is static and finite, so |S| ≤ m is achievable",
+    "Only if the table has at least 676 slots (26²)",
+    "Only if the keys are integers, not strings"
+  ]}
+  correctIndex={1}
+  hint="Perfect hashing requires |S| ≤ m. How many keys are there?"
+  explanation="The key set is fixed (50 state abbreviations), so |S| = 50. A table with m ≥ 50 slots is sufficient. Perfect hashing is specifically designed for static, finite key sets like this. A minimal perfect hash would use exactly 50 slots — a bijection."
+/>
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Bijective Proofs:**
+
+- Prove $|A| = |B|$ by constructing an explicit bijection $f: A \to B$
+- Requires showing injectivity ($f(x_1) = f(x_2) \implies x_1 = x_2$) AND surjectivity ($\forall y.\; \exists x.\; f(x) = y$)
+- An **involution** ($f \circ f = \text{id}$) is automatically a bijection
+- The function IS the proof — we construct lambdas to establish mathematical facts
+- Cantor used bijections to compare the sizes of infinite sets — the same tool extends to computability
+
+**Pigeonhole Principle:**
+
+- Basic: $n$ items into $m$ slots with $n > m$ forces at least one slot to hold $\geq 2$ items
+- Generalized: at least one slot holds $\geq \lceil n/m \rceil$ items
+- Formally: no injection exists from a larger set to a smaller set
+
+**Birthday Paradox:**
+
+- Collisions become more likely than not at approximately $\sqrt{n}$ items for $n$ possible values
+- 23 people for birthdays (365 values), ~$2^{16}$ inputs for 32-bit hashes
+- Probability of collision, not certainty — pigeonhole gives certainty at $n + 1$
+
+**Hashing:**
+
+- Hash functions are lambdas: $h = \lambda x.\; \text{hash}(x) \bmod m$
+- Collisions are inevitable (pigeonhole: infinite keys, finite buckets)
+- **Perfect hashing**: possible when $|S| \leq m$ (static, finite key sets)
+- The 2011 hash-flooding attack exploited deterministic collision patterns; hash randomization was the fix
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| Bijective proofs construct lambdas | LN12-14: lambda calculus syntax and reductions |
+| Involution = $f \circ f = \text{id}$ | LN14: eta-reduction strips/re-adds a wrapper |
+| Cantor's bijective arguments | LN9: "Is the set of integers the same size as the set of even integers?" |
+| Cantor founded set theory | LN4: Georg Cantor and the formalization of sets |
+| Pigeonhole = no injection possible | LN15: injectivity requires $\|A\| \leq \|B\|$ |
+| Perfect hashing = injectivity on key set | LN15: "when is perfect hashing possible?" |
+| Hash table mod arithmetic | LN7: modular arithmetic |
+| `__hash__` / `__eq__` contract | LN11: equivalence relations and hashability |
+| Symmetric difference in toggle proof | LN10: set operations |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Trefor Bazett: "Pigeonhole Principle"](https://www.youtube.com/watch?v=pPMPfTjJwSg) — Clear examples with visual proofs
+- [Numberphile: "The Birthday Problem"](https://www.youtube.com/watch?v=ofTb57aZHZs) — Intuitive walkthrough of the paradox
+
+### Further Reading
+
+- [Wikipedia: Bijective Proof](https://en.wikipedia.org/wiki/Bijective_proof) — Formal framework and classic examples
+- [Wikipedia: Pigeonhole Principle](https://en.wikipedia.org/wiki/Pigeonhole_principle) — History, generalizations, and applications
+- [Wikipedia: Birthday Problem](https://en.wikipedia.org/wiki/Birthday_problem) — Full derivation with extensions
+- [CVE-2011-4815: Hash-flooding DoS](https://www.ocert.org/advisories/ocert-2011-003.html) — The original security advisory
+
+### Connection to Programming
+
+- Bijective proofs correspond to lossless encoder/decoder pairs — `encode` + `decode` with round-trip guarantees
+- The pigeonhole principle explains why hash collisions, memory aliasing, and IP address exhaustion are unavoidable
+- Python's `PYTHONHASHSEED` and hash randomization directly resulted from combinatorial reasoning about worst-case collision behavior
+- The birthday paradox determines the security margins for cryptographic hashes (e.g., 128-bit hashes need ~$2^{64}$ inputs for a 50% collision chance)
+
+</LectureResources>
