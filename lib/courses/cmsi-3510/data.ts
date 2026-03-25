@@ -529,10 +529,7 @@ const allEvents: CourseEvent[] = [
     standard: "Memory",
     contentUrl: "/cmsi-3510/ln16",
     recordings: [
-      {
-        name: "Replacement Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/ytTcMxNEReEfUF7S-RycWjoOpz6aTFzx20FLhRrLJ6vwZ1v4TUX15K6FiCFIzfT5.VewM1G_22tdztE7z",
-      },
+      
     ],
   },
   {
@@ -546,10 +543,7 @@ const allEvents: CourseEvent[] = [
     standard: "I/O and Networking",
     contentUrl: "/cmsi-3510/ln17",
     recordings: [
-      {
-        name: "Class Video",
-        url: "https://lmula.zoom.us/rec/share/5MH_PbX2BSDbkpSfiW3c9_5OV3CUfUobDshrvxckch5xPYc5dhMNhhwj_2kAn7tk.Tte80Masnfh_TZ7-",
-      },
+      
     ],
   },
   {
@@ -563,10 +557,7 @@ const allEvents: CourseEvent[] = [
     standard: "I/O and Networking",
     contentUrl: "/cmsi-3510/ln18",
     recordings: [
-      {
-        name: "Class Video",
-        url: "https://lmula.zoom.us/rec/share/5M6AjS0aLaevjCE8B7mypomfbrzDQRjsV1eez6Zq0p_NNtpmd6Z4_kU-A8d_nnpA.zNNKFLwIZC4CXaNd",
-      },
+      
     ],
   },
 
