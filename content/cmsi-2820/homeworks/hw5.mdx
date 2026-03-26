@@ -10,86 +10,103 @@ import { QuestionBox, SubQuestion } from "@/components/question-box"
   brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/283545/event/802246/detailsview?searchString=&year=2025&month=8&day=27&typefilterguid=c103f27d-8e7a-4296-9d19-7f08175c8277"
 >
 
-<QuestionBox qid="Q1" points={3}>
+<QuestionBox qid="Q1" title="Breaking the Lottery" points="15 total">
 
-In your own words, describe the following rules/laws and give a real-world example of their use:
+A small charity runs the **"Lucky Fives"** lottery every week. The rules are simple: pick 5 distinct numbers from 1 to 30 (order does not matter). A ticket costs \$2. The guaranteed jackpot is \$500,000 — the charity always pays it out if someone wins, no splitting. You and your friends realize that if you could buy *every possible ticket*, you would be guaranteed to win. The question is whether the math works out in your favor.
 
-- a. Rule of Sums
-- b. Rule of Products
-- c. Inclusion-Exclusion Principle
+<SubQuestion qid="Q1a" points={3}>
 
-</QuestionBox>
-
-<QuestionBox qid="Q2" title="Counting Problems" points="12 total">
-
-Using the Rule of Sums, Rule of Products, and the Inclusion-Exclusion principle, give answers to the following questions:
-
-<SubQuestion qid="Q2a" points={4}>
-
-You are visiting a conference with a team of 4 individuals besides yourself. You are responsible for setting up everyone schedules for the events. The conference features talks, workshops, lectures, Q & A's, and even some one-on-one experiences. The full itinerary for the conference can be found below in a table (An x means that the event is happening at that time, a blank means it is not happening):
-
-| Event      | 8am - 10am | 10am - 12pm | 12pm - 2pm | 2pm - 4pm |
-| ---------- | ---------- | ----------- | ---------- | --------- |
-| Talk       | x          | x           | x          |           |
-| Workshop   |            | x           |            | x         |
-| Lecture    | x          | x           |            |           |
-| Q & A      |            |             | x          | x         |
-| One-on-One |            |             | x          | x         |
-
-Your 4 team members Sam, Martin, Heidi, and Terri have the following requests for the conference:
-
-**Sam:** "I'd like to go to only workshops, I prefer to be hands on."
-
-**Martin:** "Send me to one of everything if possible please!"
-
-**Heidi:** "I want to meet new people, so send me to all the events that Sam, Martin, and Terri are not going to!"
-
-**Terri:** "I don't mind going to any events you send me to as long as you send me to as many as possible!"
-
-Give a set for each team member that represents the events you have set up for them to attend that fulfills each members requests. Then give the total number of events visited by each team member.
+How many unique lottery tickets exist? Identify whether this is a permutation or combination problem, state the formula you are using, and compute the answer.
 
 </SubQuestion>
 
-<SubQuestion qid="Q2b" points={4}>
+<SubQuestion qid="Q1b" points={2}>
 
-A restaurant is testing 2 new menus. They would like to stand out by giving their customers the most options possible. They have outlined the menus in counts below:
+At \$2 per ticket, what is the total cost to buy every possible ticket? Is it profitable to buy them all? Show the comparison between total cost and the \$500,000 jackpot.
 
-**Menu 1:**
+</SubQuestion>
 
-| Course    | Options |
-| --------- | ------- |
-| Appetizer | 3       |
-| Entree    | 8       |
-| Dessert   | 4       |
+<SubQuestion qid="Q1c" points={3}>
 
-**Menu 2:**
+The charity catches on and adds a **"Mega Number"** — an additional number picked independently from 1 to 10 — to each ticket. How many unique tickets exist now? Identify the counting rule you are using to combine the original picks with the Mega Number.
 
-| Course    | Options |
-| --------- | ------- |
-| Appetizer | 5       |
-| Entree    | 2       |
-| Dessert   | 12      |
+</SubQuestion>
 
-Give the total numbers of possible 3-course-meals for each menu and then say which menu has more potential 3-course-meals.
+<SubQuestion qid="Q1d" points={2}>
+
+With the Mega Number in play, is buying every ticket still profitable? If not, what is the minimum jackpot (in whole dollars) the charity would need to offer to make buying every ticket profitable again?
+
+</SubQuestion>
+
+<SubQuestion qid="Q1e" points={3}>
+
+Worried about syndicates, the charity changes the rules: now the 5 main numbers are **ordered** (like a PIN — picking 1-2-3-4-5 is different from 5-4-3-2-1). The Mega Number stays. How many unique tickets exist under this new system?
+
+</SubQuestion>
+
+<SubQuestion qid="Q1f" points={2}>
+
+Comparing your answer from Q1a (unordered, no Mega Number) to Q1e (ordered, with Mega Number), by what factor did the total number of tickets increase? Express this factor using factorial notation and explain, in one sentence, why switching from unordered to ordered selections creates so many more possibilities.
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q2" title="Inclusion-Exclusion" points="10 total">
+
+A class of 120 computer science students is surveyed about their club memberships. The results are as follows:
+
+- 65 students are in the **Coding Club**
+- 45 students are in the **Math Club**
+- 30 students are in the **Gaming Club**
+- 20 students are in both Coding and Math
+- 15 students are in both Coding and Gaming
+- 10 students are in both Math and Gaming
+- 5 students are in all three clubs
+
+<SubQuestion qid="Q2a" points={3}>
+
+How many students are in **at least one** of the three clubs? Write out the full Inclusion-Exclusion formula for three sets, substitute the values, and compute the answer.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={3}>
+
+How many students are in **none** of the three clubs?
 
 </SubQuestion>
 
 <SubQuestion qid="Q2c" points={4}>
 
-You work for an airport conglomerate and work with ground teams to procure information about airplanes leaving and landing. Management has made a new financial plan to charge airline companies based on the number of unique aircraft that operate out of the hangars. You have collected flight-logs and must give the unique number of aircraft that have visited an airport. The flight logs are provided below:
+The department wants to send a special survey to students who are in **exactly one** club (not two, not three — just one). How many surveys need to be sent? Show your reasoning for how you remove the students who are in multiple clubs from each club's total.
 
-| Flight | From | To  | Departure | Aircraft ID |
-| ------ | ---- | --- | --------- | ----------- |
-| AA123  | JFK  | LAX | 08:00     | N123AA      |
-| BA456  | LHR  | JFK | 09:30     | G-BA456     |
-| DL789  | ATL  | ORD | 10:15     | JA606NH     |
-| UA101  | SFO  | SEA | 11:00     | N101UA      |
-| AF202  | CDG  | JFK | 07:45     | F-GAF202    |
-| LH303  | FRA  | LAX | 12:00     | F-GAF202    |
-| QF404  | SYD  | LAX | 22:00     | VH-QF404    |
-| EK505  | DXB  | JFK | 02:30     | N123AA      |
-| NH606  | NRT  | LAX | 23:00     | JA606NH     |
-| AC707  | YYZ  | LAX | 08:30     | N123AA      |
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q3" title="The Locksmith's Apprentice" points="7 total">
+
+You are working as an apprentice at a lock repair shop. Your boss sells refurbished locks with a guarantee: every repaired lock retains at least **50% of its original valid sequences**, or the customer gets a full refund.
+
+<SubQuestion qid="Q3a" points={2}>
+
+Your boss keeps calling them "combination locks," but you know from LN17 that the standard padlock with rotating cylinders is technically a *permutation* lock. Explain why the typical lock is a permutation lock and not a combination lock. Then, describe what a mathematically accurate "combination" lock would look like — what would be different about how it opens?
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={3}>
+
+A customer brings in a defective lock. It has 4 cylinders, each with digits 0 through 7 (octagonal design). The defect: **cylinder 2 is loose and cannot be set to the digit 3**. All other cylinders and digits work fine.
+
+- How many valid sequences did the lock originally have?
+- How many valid sequences does it have now with the defect?
+- Does this defect violate the 50% refund policy? Show the ratio.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={2}>
+
+Your boss storms in asking: *"What kind of defect would cause us to lose exactly half the sequences?"* Investigate: would you need to lose half the *cylinders*? Half the *choices on one cylinder*? Something else entirely? Show the math for at least two scenarios on the same 4-cylinder, 0-7 lock, and identify which scenario results in exactly 50% of the original sequences remaining.
 
 </SubQuestion>
 
@@ -101,87 +118,65 @@ You work for an airport conglomerate and work with ground teams to procure infor
 
 ---
 
-<QuestionBox qid="Q3" title="Combinations vs Permutations" points="8 total">
+<QuestionBox qid="Q4" title="Pascal's Triangle and Double Counting" points="10 total">
 
-You are shopping for locks so you can seal up your luggage for a flight. You pass many different designs in the airport, upset that many of them are overpriced. One cheap one in the back happens to catch your eye as it seems to be making an interesting claim: "World's Best Combination lock! 9/10 Combinatorialists recommend!" This doesn't make sense to you as Mathematicians are very careful with their language in combinatorics. Use this intuition to answer the following questions:
+<SubQuestion qid="Q4a" points={3}>
 
-<SubQuestion qid="Q3a" points={2}>
-
-Describe the difference between a combination and a permutation.
+Construct Pascal's Triangle out to **row 7** (where row 0 is just the single entry 1). Using your triangle, verify the **symmetry identity** by circling the entries for $C(7, 2)$ and $C(7, 5)$ and confirming they are equal. Then write one sentence explaining *why* symmetry holds, using the complement argument from lecture (choosing $k$ items to include is the same as choosing $n - k$ items to exclude).
 
 </SubQuestion>
 
-<SubQuestion qid="Q3b" points={2}>
+<SubQuestion qid="Q4b" points={3}>
 
-Argue the following claim: "Combination locks should be called Permutation locks".
+Using **Pascal's Rule**, show that $C(6, 2) + C(6, 3) = C(7, 3)$ by:
 
-</SubQuestion>
-
-<SubQuestion qid="Q3c" points={2}>
-
-Describe the function of an actual, mathematically accurate, "Combination" lock.
+1. Computing each of the three values individually
+2. Locating all three entries in your triangle from Q4a, and drawing arrows from the two parent cells down to the child cell
 
 </SubQuestion>
 
-<SubQuestion qid="Q3d" points={2}>
+<SubQuestion qid="Q4c" points={4}>
 
-Assuming you had a "permutation" lock and a "combination" lock, where each lock featured 4 cylinders with 10 choices each, divide the number of "combinations" by the number of "permutations" to find the ratio of the number of possible sequences for each lock. Which would you prefer to have on your luggage?
+**Double counting:** Show that the sum of all entries in row 5 of Pascal's Triangle equals $2^5 = 32$ by:
 
-</SubQuestion>
-
-</QuestionBox>
-
-<QuestionBox qid="Q4" title="Permutations and Combinations" points="15 total">
-
-The following questions involve solving for permutations or combinations. Provide the work used to reach your final answer. An example is provided below:
-
-**Example:** Find the total number of size 3 groups in a 17 person class
-
-**Answer:**
-
-- Given: $n=17$, $k=3$
-- Apply combination formula: $\binom{17}{3}$
-- Result: $680$
-
-<SubQuestion qid="Q4a" points={5}>
-
-You are interning at a library when you notice a pile of books with only 1 letter in bold on their spines. Since it was your birthday last week and your coworkers played a small prank on your to celebrate it, you decided some payback is in order. You devise a devious plan to spell out their names with the 1 letter books on the shelf. After setting up with books for John and Rachel, you realize that you do not remember the names of the other two coworkers involved. The only thing you can remember is that their names were 8 letters and 12 letters respectively. You have 24 books to use to spell their names, how many arrangements would you have to search to put their names on the shelf?
-
-</SubQuestion>
-
-<SubQuestion qid="Q4b" points={10}>
-
-You are working with a locksmith on repairing some **combination locks** (Think of this as the typical way we think of combinations locks which are actually permutation locks). You help sell repaired locks second-hand and guarantee that the repaired locks retain at least half of their original number of valid lock sequences or a refund is offered. One day a customer comes in complaining that a lock that was sold to them was defective and they want their money back. The customers says "Whenever I try a combo with a 3 on the second cylinder, the lock never locks! I deserve my money back for this!". They hand over the lock and allow you to inspect it. The combo lock is very old and of a very odd design. It has 4 total cylinders you can turn to make the lock sequence. However, the cylinders are octagonal only allowing for 0 through 7 instead of the typical 0 through 9. The customers claim checks out. No matter how many sequences you try, if cylinder two is ever on 3, the lock sequence never allows the lock to close. Investigate how many original arrangements this lock had when it was new, then decide wether the defect violates the refund policy.
+1. Writing out every entry in row 5 and computing their sum
+2. Explaining, in your own words, why the sum of every row of Pascal's Triangle is always a power of 2, using the "in or out" argument from LN18 (each element is either included or excluded from a subset)
 
 </SubQuestion>
 
 </QuestionBox>
 
-<QuestionBox qid="Q5" title="Lock Sequences Analysis" points="10 total">
+<QuestionBox qid="Q5" title="Vandermonde's Identity" points="15 total">
 
-Continuing your job with the locksmith, you notice your boss in a bad mood. You decide to ask why they are upset. "We've been giving so many refunds, we are about to go broke! I don't understand! I thought for sure having 50% of the original combos would be easy! How many locks do you come across where less than half the cylinders don't work!" They storm off to their office where you catch a glimpse of a spreadsheet filled with red before they close the door. You decide to investigate a few patterns to help out your boss.
+**Vandermonde's Identity** states that for non-negative integers $m$, $n$, and $r$ where $0 \leq r \leq m + n$:
+
+$$
+\binom{m+n}{r} = \sum_{k=0}^{r} \binom{m}{k} \binom{n}{r-k}
+$$
+
+Here is an intuitive way to read it: a pet shelter has $m$ dogs and $n$ cats, and you want to adopt a group of $r$ pets total. The **left side** simply says "choose $r$ pets from all $m + n$ animals." The **right side** counts the same thing differently: for each possible number of dogs $k$ you could adopt (from 0 dogs up to $r$ dogs), count how many ways to choose those $k$ dogs AND fill the remaining $r - k$ spots with cats, then sum over every valid $k$. Both sides count the exact same set of adoptions — this is double counting.
 
 <SubQuestion qid="Q5a" points={3}>
 
-Your boss mentioned the following: "How many locks do you come across where less than half the cylinders don't work!" This gets you wondering. What do you have to lose on the combo lock for your lock to lose half of your lock sequences? Is it actually half the cylinders? Investigate the following: If you have a combination lock with 0-9 on each cylinder and 5 total cylinders, How many sequences are lost if you lose just a single choice on one cylinder.
+Using $m = 3$ dogs, $n = 4$ cats, and $r = 3$ pets to adopt, compute the **left-hand side**: $\binom{7}{3}$.
 
 </SubQuestion>
 
-<SubQuestion qid="Q5b" points={3}>
+<SubQuestion qid="Q5b" points={5}>
 
-On the same lock as before, how many lock sequences are lost if you lose 2 entire cylinders?
+Compute the **right-hand side** by expanding the sum term by term for $k = 0, 1, 2, 3$. For each value of $k$, write out $\binom{3}{k} \cdot \binom{4}{3-k}$, compute the product, and then sum all four terms. Verify that the total matches your answer from Q5a.
 
 </SubQuestion>
 
 <SubQuestion qid="Q5c" points={3}>
 
-Given how the previous two answers came out, what do you have to lose on a lock to lose exactly half your lock sequences?
+Draw Pascal's Triangle out to row 7. **Circle** the entry for $\binom{7}{3}$ (the final answer). Then **circle** each individual factor from the four terms in Q5b and draw lines connecting the pairs that get multiplied together. Identify which rows of the triangle the factors come from and which row the answer sits in.
 
 </SubQuestion>
 
-<SubQuestion qid="Q5d" points={1}>
+<SubQuestion qid="Q5d" points={4}>
 
-Given how your investigation went, explain to your boss why a refund policy of half the combos is actually much easier to have happen than they thought!
+In your own words, explain why the right-hand side of Vandermonde's Identity counts the same thing as the left-hand side. Use the dog/cat framing: why does summing "choose $k$ dogs and $r - k$ cats" for every valid $k$ give the same answer as "choose $r$ pets from all animals"?
 
 </SubQuestion>
 
@@ -193,49 +188,63 @@ Given how your investigation went, explain to your boss why a refund policy of h
 
 ---
 
-<QuestionBox qid="Q6" title="Vandermonde's Identity" points="16 total">
+<QuestionBox qid="Q6" title="Bijective Proofs and the Sizes of Infinity" points="15 total">
 
-Vandermonde's Identity is a combinatorics identity that represents the following equivalence on the Integers:
+In LN19, we learned that constructing a bijection between two sets proves they have the same cardinality — the function IS the proof. Georg Cantor used this technique to make revolutionary claims about infinite sets. The following questions investigate this.
 
-**Where:** $0 \lt r \lt m+n$
+<SubQuestion qid="Q6a" points={5}>
 
-$$
-\binom{m+n}{r} = \sum_{k=0}^{r} \binom{m}{k} \binom{n}{r-k}
-$$
+Prove that the set of all integers $\mathbb{Z}$ and the set of all even integers have the **same size** by constructing a bijective function between them:
 
-As an example of how its read, we can make groups between cats and dogs. Given m dogs and n cats, making groups of r size would be m+n choose r. This gives us the left hand side, however, the right hand side is less obvious. Given m dogs and n cats, we can find the total ways to make groups of r size by summing the ways to make groups of only dogs from size 0 to k, and multiply it with the number of ways to make groups of only cats of size r to 0. In a simplified manner, the left hand side is trying to communicate the idea that making groups of cats and dogs can be done by simply making groups out of the dogs and cats combined or, what the right hand side is trying to communicate is, by finding all the ways to make a group filled with just dogs and then find the number of ways we could fill the remaining spots with just cats.
+**Q6a1:** Give a function $f: \mathbb{Z} \to \text{Evens}$ that maps every integer to a unique even integer.
 
-In the following sub-problems you will investigate a double counting proof of Vandermonde's Identity
+**Q6a2:** Prove your function is **injective** by showing that $f(a) = f(b) \implies a = b$.
 
-<SubQuestion qid="Q6a" points={4}>
-
-Investigate the left hand side of the identity using the following:
-
-$$
-m=3, n=2, r=2
-$$
+**Q6a3:** Prove your function is **surjective** by showing that for every even integer $e$, there exists an integer $a$ such that $f(a) = e$.
 
 </SubQuestion>
 
-<SubQuestion qid="Q6b" points={4}>
+<SubQuestion qid="Q6b" points={5}>
 
-Investigate the right hand side of the identity and ensure it holds with the left hand side for the same values:
-
-$$
-m=3, n=2, r=2
-$$
+Explain why having constructed this bijection proves that $|\mathbb{Z}| = |\text{Evens}|$, even though the even integers are a *proper subset* of $\mathbb{Z}$. This seems paradoxical — a set is "the same size" as one of its strict subsets. Reference the bijective proof technique from LN19 to explain why this is valid.
 
 </SubQuestion>
 
-<SubQuestion qid="Q6c" points={4}>
+<SubQuestion qid="Q6c" points={5}>
 
-Draw Pascal's Triangle out to the 5th row and use it to show that the left and right hand sides of Vandermonde's Identity are equal, for our previous values of m, n and r, by circling all entries that are used and draw a line to connect the entries that are multiplied together. Then place a square around the entry the represents the answer.
+Now consider the integers $\mathbb{Z}$ and the real numbers $\mathbb{R}$. Investigate whether a bijection can exist between them:
+
+**Q6c1:** Give an injective function from $\mathbb{Z}$ to $\mathbb{R}$. Then explain why you cannot make it surjective — what elements of $\mathbb{R}$ are unreachable?
+
+**Q6c2:** Give a surjective function from $\mathbb{R}$ to $\mathbb{Z}$ (such as the floor function). Then explain why you cannot make it injective — what goes wrong with the one-to-one property?
 
 </SubQuestion>
 
-<SubQuestion qid="Q6d" points={4}>
+</QuestionBox>
 
-Having completed the previous parts, summarize the process used for the right hand side of Vandermonde's Identity. Then, in your own words, give an explanation as to why it performs the same action as the left hand side.
+<QuestionBox qid="Q7" title="Pigeonhole Principle and Collisions" points="8 total">
+
+<SubQuestion qid="Q7a" points={2}>
+
+A computer science department has 53 students. Using the **pigeonhole principle**, explain why at least two students must have been born in the same week of the year. Clearly state what the "items" and "slots" are.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7b" points={3}>
+
+A server receives 500 user registrations. Each username is hashed into one of 128 buckets. Using the **generalized pigeonhole principle**, what is the minimum number of usernames that must end up in the same bucket? Show your work using $\lceil n / m \rceil$.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7c" points={2}>
+
+The **birthday paradox** tells us that collisions arrive much sooner than our intuition expects. If a system uses hash values with 365 possible outputs, approximately how many items must be inserted before a collision is *more likely than not*? The answer is roughly $\sqrt{365} \approx 19$. Explain, in your own words, why this number is so much smaller than the pigeonhole guarantee of 366.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7d" points={1}>
+
+In LN19, we studied the **2011 Python hash-flooding attack**. In 2-3 sentences, explain: (1) how the pigeonhole principle guaranteed that hash collisions existed in Python's dict, and (2) why the birthday paradox made the attack even more devastating than pigeonhole alone would suggest.
 
 </SubQuestion>
 
@@ -244,76 +253,6 @@ Having completed the previous parts, summarize the process used for the right ha
 ---
 
 ### END LN19
-
----
-
-<QuestionBox qid="Q7" title="Bijective Proof" points="15 total">
-
-George Cantor was famous for proving that there are different sizes of infinity. More specifically, that while the set of Integers and Real numbers are both infinite, the set of Real numbers is actually a larger infinity. Using a Bijective argument, we can show this fact. The following sub-problems will investigate this concept.
-
-<SubQuestion qid="Q7a" points={5}>
-
-Prove that the domain of the Integers and the Codomain of just the even integers are the same size by making a bijective function that maps one to the other in the following sub-problems:
-
-**Q7a1:** Give the function that maps all Integers to all Even Integers
-
-**Q7a2:** Explain why your function is injective
-
-**Q7a3:** Explain why your function is surjective
-
-</SubQuestion>
-
-<SubQuestion qid="Q7b" points={5}>
-
-Explain why drawing the previous bijection shows that the set of all integers and the set of all even integers are the same size.
-
-</SubQuestion>
-
-<SubQuestion qid="Q7c" points={5}>
-
-Prove that the domains of the Integers and the Real numbers are not the same size by explaining why it is impossible to make a bijective function between them by answering the following:
-
-**Q7c1:** Give an injective function from the Integers to the Reals and then explain why you cannot make one that is surjective
-
-**Q7c2:** Give a surjective function from the Reals to the Integers and then explain why you cannot make one that is injective.
-
-</SubQuestion>
-
-</QuestionBox>
-
-<QuestionBox qid="Q8" title="Pigeonhole Principle" points="4 total">
-
-The Pigeonhole Principle is a simple concept that states that if you have more pigeons than pigeonholes, at least one pigeonhole will have more than one pigeon. Put more generally, if you have a limited number of slots and have more items to place in those slots than you have slots, you will have to grapple with the resulting overflow. These "overflows" lead to very interesting an non-intuitive facts. The following sub-problems will display to you a few of them.
-
-<SubQuestion qid="Q8a" points={1}>
-
-Explain why in any 27 word English sentence, at least 2 words must start with the same letter.
-
-</SubQuestion>
-
-<SubQuestion qid="Q8b" points={1}>
-
-Explain why if you pick 5 numbers from the integers 1 to 8, then two of them must add up to 9.
-
-</SubQuestion>
-
-<SubQuestion qid="Q8c" points={1}>
-
-Given only names with English letters, explain why it takes only 677 people to guarantee that at least 2 people have the same initials.
-
-</SubQuestion>
-
-<SubQuestion qid="Q8d" points={1}>
-
-Given a infinite container holding an infinite number of colored balls, being either red, blue, black, or green, give the minimum of grabs out of this drawer to make a pair of balls that is the same color.
-
-</SubQuestion>
-
-</QuestionBox>
-
----
-
-### END LN20
 
 ---
 
@@ -411,14 +350,13 @@ Once you have completed your reflection and guide/intro, you can turn it in via 
 
 | Component        | Points  | Description                                     |
 | ---------------- | ------- | ----------------------------------------------- |
-| Q1               | 3       | Counting rules and principles                   |
-| Q2               | 12      | Applied counting problems                       |
-| Q3               | 8       | Combinations vs permutations                    |
-| Q4               | 15      | Permutations and combinations calculations      |
-| Q5               | 10      | Lock sequences analysis                         |
-| Q6               | 16      | Vandermonde's Identity and double counting      |
-| Q7               | 15      | Bijective proof and infinity                    |
-| Q8               | 4       | Pigeonhole Principle applications               |
+| Q1               | 15      | Breaking the Lottery (enumeration)              |
+| Q2               | 10      | Inclusion-Exclusion (3-set scenario)            |
+| Q3               | 7       | The Locksmith's Apprentice                      |
+| Q4               | 10      | Pascal's Triangle and Double Counting           |
+| Q5               | 15      | Vandermonde's Identity                          |
+| Q6               | 15      | Bijective Proofs and the Sizes of Infinity      |
+| Q7               | 8       | Pigeonhole Principle and Collisions             |
 | Programming      | 20      | Court proceedings implementation in Python      |
 | Optional Section | 20      | Hobby reflection and guide (Points For S4 Only) |
 | **Total**        | **100** |                                                 |
