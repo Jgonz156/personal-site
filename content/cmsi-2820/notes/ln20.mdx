@@ -1,0 +1,746 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+import { GraphVisualization } from "@/components/graph-visualization"
+import { EulerPathExplorer } from "@/components/euler-path-explorer"
+
+## Recap
+
+Last lecture we proved identities by constructing functions — bijective proofs that build explicit pairings between sets. We used the pigeonhole principle to show when injections are *impossible*, and applied both ideas to a real-world case study: Python hash tables and the 2011 hash-flooding attack.
+
+Those tools completed our combinatorics unit. Today we enter a new domain entirely — one that a single mathematician invented to solve a single puzzle, and that grew into one of the most important branches of modern mathematics and computer science.
+
+---
+
+## The Seven Bridges of Königsberg
+
+In 1736, a 29-year-old mathematician named **Leonhard Euler** was living in Saint Petersburg, Russia. Born in Basel, Switzerland, he had studied under the legendary Johann Bernoulli and moved east at age 20 to join the Imperial Russian Academy of Sciences. He was already prolific — publishing papers on number theory, mechanics, and optics. By the end of his life he would publish over 800 papers, more than any mathematician in history, continuing even after going blind in both eyes.
+
+But a puzzle from a nearby city caught his attention.
+
+**Königsberg** (modern-day Kaliningrad, Russia) sits on the Pregel River. The city center includes two large islands connected to each other and to the two riverbanks by **seven bridges**. The residents had a long-standing question: could you walk through the city crossing every bridge exactly once, without backtracking over any bridge you've already used?
+
+Here is a map of the city's layout:
+
+<img src="/cmsi-2820/notes/LN20-Konigsberg.jpg" alt="Historical map of Königsberg showing the four landmasses and seven bridges across the Pregel River" className="my-6 rounded-lg border" />
+
+Try to trace a path that crosses every edge exactly once. No matter how you approach it, you'll find it impossible. But *why*? What makes this particular arrangement fundamentally different from one where it *would* work?
+
+To answer this, Euler didn't just solve the puzzle — he invented an entirely new branch of mathematics. He stripped away the geography, the river, the specific layout of the city, and focused on the only thing that mattered: *which landmasses are connected to which, and how many connections each one has*. He called this *geometria situs* — the geometry of position. Today we call it **graph theory**.
+
+Interestingly, the word "graph" wasn't coined until 1878, when **James Joseph Sylvester** used it in a paper about chemical molecules. The vocabulary we use today took over a century to stabilize after Euler's original insight.
+
+---
+
+## Defining Graphs
+
+Let's formalize what Euler did. He identified two kinds of things: **landmasses** (the objects) and **bridges** (the connections between them). In graph theory, we call these **vertices** and **edges**.
+
+<DefinitionBox term="Graph (Informal)">
+
+A **graph** consists of a set of **vertices** (also called nodes) and a set of **edges** connecting pairs of vertices.
+
+An **undirected edge** connects two vertices without any direction — you can traverse it either way (like a bridge). A **directed edge** (or **arc**) goes from one vertex to another — it has a start and an end (like a one-way street).
+
+</DefinitionBox>
+
+Here is a simple undirected graph — five vertices and six edges:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+    { from: "B", to: "D" },
+    { from: "A", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+And here is the same set of vertices, but with **directed edges** — now each connection has a specific direction:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+    { from: "B", to: "D" },
+    { from: "A", to: "E" },
+  ]}
+  directed={true}
+  interactive={true}
+  height="300px"
+/>
+
+Notice that the Königsberg bridge graph is actually a **multigraph** — it has multiple edges between the same pair of vertices (two bridges between the Island and the South bank, two between the Island and the North bank). For most of this unit, we will work with **simple graphs** where at most one edge connects any pair of vertices. The Königsberg problem requires the multigraph generalization, but the core ideas we develop apply to both.
+
+---
+
+## Degrees, Walks, and Paths
+
+Now that we have the language of vertices and edges, we need vocabulary for talking about the *structure* around a vertex and the *routes* through a graph.
+
+<DefinitionBox term="Degree">
+
+The **degree** of a vertex $v$, written <InlineMath formula="\deg(v)" />, is the number of edges touching $v$.
+
+In a directed graph, we distinguish:
+- **In-degree** <InlineMath formula="\deg^-(v)" />: the number of edges pointing *into* $v$
+- **Out-degree** <InlineMath formula="\deg^+(v)" />: the number of edges pointing *out of* $v$
+
+</DefinitionBox>
+
+Here is our undirected graph with degree labels. Notice how each vertex's degree is simply the count of its connections:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A (deg 3)" },
+    { id: "B", label: "B (deg 3)" },
+    { id: "C", label: "C (deg 2)" },
+    { id: "D", label: "D (deg 3)" },
+    { id: "E", label: "E (deg 1)" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+    { from: "B", to: "D" },
+    { from: "A", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+And here is a directed graph with in-degree and out-degree labels:
+
+<GraphVisualization
+  nodes={[
+    { id: "X", label: "X (in:1 out:2)" },
+    { id: "Y", label: "Y (in:1 out:1)" },
+    { id: "Z", label: "Z (in:2 out:1)" },
+  ]}
+  edges={[
+    { from: "X", to: "Y" },
+    { from: "X", to: "Z" },
+    { from: "Y", to: "Z" },
+    { from: "Z", to: "X" },
+  ]}
+  directed={true}
+  interactive={true}
+  height="280px"
+/>
+
+Next, we need to formalize what it means to "travel through" a graph. There are three levels of rigor:
+
+<DefinitionBox term="Walk, Trail, and Path">
+
+A **walk** is any sequence of vertices connected by edges: <InlineMath formula="v_0, e_1, v_1, e_2, v_2, \ldots, e_k, v_k" />. Edges and vertices may repeat.
+
+A **trail** is a walk with **no repeated edges**. Vertices may still repeat.
+
+A **path** is a walk with **no repeated vertices** (and therefore no repeated edges either).
+
+</DefinitionBox>
+
+Let's see all three on the same graph. Here is a **walk** from A to E that revisits vertex A and reuses the A–B edge:
+
+**Walk**: A → B → A → E (reuses the edge A–B)
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", color: "#ef4444", width: 4, label: "1,2" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+    { from: "B", to: "D" },
+    { from: "A", to: "E", color: "#ef4444", width: 4, label: "3" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Here is a **trail** — no edge is reused, but vertex A is visited twice:
+
+**Trail**: A → B → D → A → E (A is visited at the start and middle, but no edge repeats)
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", color: "#f59e0b", width: 4, label: "1" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A", color: "#f59e0b", width: 4, label: "3" },
+    { from: "B", to: "D", color: "#f59e0b", width: 4, label: "2" },
+    { from: "A", to: "E", color: "#f59e0b", width: 4, label: "4" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+And here is a **path** — no vertex is visited more than once:
+
+**Path**: A → B → C → D (every vertex is new)
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", color: "#16a34a", width: 4, label: "1" },
+    { from: "B", to: "C", color: "#16a34a", width: 4, label: "2" },
+    { from: "C", to: "D", color: "#16a34a", width: 4, label: "3" },
+    { from: "D", to: "A" },
+    { from: "B", to: "D" },
+    { from: "A", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+<PracticeBox
+  title="Walk, Trail, or Path?"
+  question="In the graph above, the sequence A → D → B → C → D visits vertex D twice but uses no edge twice. What is this sequence?"
+  choices={[
+    "A walk (but not a trail)",
+    "A trail (but not a path)",
+    "A path",
+    "Not a valid walk"
+  ]}
+  correctIndex={1}
+  hint="Check: does it repeat any edges? Does it repeat any vertices?"
+  explanation="The edges used are A–D, D–B, B–C, C–D — all distinct, so it's a trail. But vertex D appears at positions 2 and 5, so it's not a path. It's a trail but not a path."
+/>
+
+---
+
+## Solving Königsberg with the New Vocabulary
+
+Now let's return to the Königsberg puzzle. With our new vocabulary, the question becomes: does the Königsberg multigraph have an **Euler trail** — a trail that uses every edge exactly once?
+
+Euler's key insight was to think about what happens at each vertex during such a trail.
+
+Consider a vertex in the *middle* of the trail (not the start or end). Every time you **arrive** at this vertex via one edge, you must **leave** via a different edge. The edges at this vertex get consumed in arrive/leave pairs. This means **middle vertices must have even degree** — otherwise you'd arrive one final time with no unused edge to leave by.
+
+What about the **start** and **end** vertices? The start vertex has one extra "leave" (the first move), and the end vertex has one extra "arrive" (the last move). So these may have **odd degree**.
+
+This gives us **Euler's theorem** for trails:
+
+<DefinitionBox term="Euler Trail / Euler Circuit">
+
+An **Euler trail** is a trail that uses every edge of the graph exactly once.
+
+An **Euler circuit** is an Euler trail that starts and ends at the same vertex.
+
+- A connected graph has an **Euler circuit** if and only if **every vertex has even degree**
+- A connected graph has an **Euler trail** (but not a circuit) if and only if **exactly two vertices have odd degree** — these must be the start and end
+
+</DefinitionBox>
+
+Let's practice. Can you determine whether each of these graphs has an Euler trail?
+
+**Graph 1** — All vertices have even degree:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A (deg 2)" },
+    { id: "B", label: "B (deg 2)" },
+    { id: "C", label: "C (deg 2)" },
+    { id: "D", label: "D (deg 2)" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+All degrees are even — an **Euler circuit** exists (e.g., A → B → C → D → A).
+
+**Graph 2** — Exactly two vertices have odd degree:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A (deg 2)" },
+    { id: "B", label: "B (deg 2)" },
+    { id: "C", label: "C (deg 3)", color: "#fca5a5" },
+    { id: "D", label: "D (deg 1)", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+C and D have odd degree — an **Euler trail** exists starting at one and ending at the other (e.g., D → C → A → B → C... wait, that reuses C. Try: D → C → B → A → C).
+
+**Graph 3** — Four vertices with odd degree:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A (deg 1)", color: "#fca5a5" },
+    { id: "B", label: "B (deg 1)", color: "#fca5a5" },
+    { id: "C", label: "C (deg 1)", color: "#fca5a5" },
+    { id: "D", label: "D (deg 1)", color: "#fca5a5" },
+    { id: "E", label: "E (deg 4)" },
+  ]}
+  edges={[
+    { from: "A", to: "E" },
+    { from: "B", to: "E" },
+    { from: "C", to: "E" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Four vertices have odd degree — **no Euler trail exists**. You can't cross every edge exactly once.
+
+<PracticeBox
+  title="Euler Trail Analysis"
+  question="A connected graph has 6 vertices. Five have degree 4 and one has degree 2. Does an Euler trail exist?"
+  choices={[
+    "Yes, an Euler trail exists",
+    "Yes, an Euler circuit exists",
+    "No, it is impossible",
+    "Not enough information"
+  ]}
+  correctIndex={1}
+  hint="Count the number of odd-degree vertices. Even degree = 4 and 2 — both are even."
+  explanation="All six vertices have even degree (4 or 2). When every vertex has even degree in a connected graph, an Euler circuit exists — which is also an Euler trail that starts and ends at the same vertex."
+/>
+
+### Solving the Königsberg Problem
+
+Now let's apply Euler's theorem to Königsberg. The degrees of the four landmasses are:
+
+- **Island (A)**: degree 5 (connected by 5 bridges) — **odd**
+- **South (B)**: degree 3 — **odd**
+- **North (C)**: degree 3 — **odd**
+- **East (D)**: degree 3 — **odd**
+
+**All four vertices have odd degree.** For an Euler trail we need exactly 0 or 2 odd-degree vertices. With 4, it is **impossible** to cross every bridge exactly once. Euler proved, with pure logic and no trial-and-error, that the residents' challenge could never be solved.
+
+### Modern Kaliningrad
+
+But how much has the city changed since 1736? Königsberg was heavily bombed in World War II, and today — as Kaliningrad, Russia — some bridges no longer exist.
+
+<img src="/cmsi-2820/notes/LN20-Kaliningrad.png" alt="Modern map of Kaliningrad showing the remaining bridges across the Pregolya River" className="my-6 rounded-lg border" />
+
+With 8 bridges remaining, the degrees are: Island = 3 (odd), South = 4 (even), North = 3 (odd), East = 6 (even). Exactly **two** vertices have odd degree (Island and North). By Euler's theorem, an Euler trail exists — starting at Island and ending at North (or vice versa). The puzzle that was impossible in 1736 is now solvable!
+
+Try it yourself with the interactive explorer below. Switch between the original Königsberg and modern Kaliningrad layouts, and try to cross every bridge exactly once:
+
+<EulerPathExplorer />
+
+---
+
+## Formalizing Graphs as Tuples of Sets
+
+So far we've been thinking about graphs visually and informally. But this course is built on **set theory** — and graphs turn out to have a beautifully clean set-theoretic definition that connects directly to the formalism we developed in LN4–5 and LN10.
+
+<DefinitionBox term="Graph (Formal)">
+
+An **undirected graph** is an ordered pair <InlineMath formula="G = (V, E)" /> where:
+- <InlineMath formula="V" /> is a finite set of **vertices**
+- <InlineMath formula="E \subseteq \{\{u, v\} \mid u, v \in V,\; u \neq v\}" /> is a set of **edges**, each being a 2-element subset of <InlineMath formula="V" />
+
+A **directed graph** (digraph) is an ordered pair <InlineMath formula="G = (V, E)" /> where:
+- <InlineMath formula="V" /> is a finite set of vertices
+- <InlineMath formula="E \subseteq \{(u, v) \mid u, v \in V\}" /> is a set of **arcs**, each being an ordered pair from <InlineMath formula="V" />
+
+The **order** of a graph is <InlineMath formula="|V|" /> (the number of vertices). The **size** is <InlineMath formula="|E|" /> (the number of edges).
+
+</DefinitionBox>
+
+Notice the difference: undirected edges are **sets** <InlineMath formula="\{u, v\}" /> (order doesn't matter — callbacks to LN9), while directed edges are **tuples** <InlineMath formula="(u, v)" /> (order matters — callbacks to LN8).
+
+Here is our example graph written formally:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+<DisplayMath formula="G = (V, E) \quad \text{where} \quad V = \{A, B, C, D\}, \quad E = \big\{\{A,B\},\;\{B,C\},\;\{C,D\},\;\{D,A\}\big\}" />
+
+This graph has order <InlineMath formula="|V| = 4" /> and size <InlineMath formula="|E| = 4" />.
+
+And here is a directed graph written formally:
+
+<GraphVisualization
+  nodes={[
+    { id: "X", label: "X" },
+    { id: "Y", label: "Y" },
+    { id: "Z", label: "Z" },
+  ]}
+  edges={[
+    { from: "X", to: "Y" },
+    { from: "Y", to: "Z" },
+    { from: "Z", to: "X" },
+  ]}
+  directed={true}
+  interactive={true}
+  height="250px"
+/>
+
+<DisplayMath formula="G = (V, E) \quad \text{where} \quad V = \{X, Y, Z\}, \quad E = \big\{(X,Y),\;(Y,Z),\;(Z,X)\big\}" />
+
+---
+
+## Graph Representations — From Math to Code
+
+We have the mathematical definition. How does a *computer* store a graph? There are three standard representations, and they connect directly to Python data structures you already know.
+
+### Adjacency Matrix
+
+An **adjacency matrix** is an <InlineMath formula="n \times n" /> matrix <InlineMath formula="A" /> where <InlineMath formula="A[i][j] = 1" /> if there is an edge between vertices <InlineMath formula="v_i" /> and <InlineMath formula="v_j" />, and 0 otherwise. For undirected graphs, the matrix is **symmetric** (<InlineMath formula="A[i][j] = A[j][i]" />).
+
+For our 4-vertex graph above:
+
+|       | A | B | C | D |
+| :---  |:-:|:-:|:-:|:-:|
+| **A** | 0 | 1 | 0 | 1 |
+| **B** | 1 | 0 | 1 | 0 |
+| **C** | 0 | 1 | 0 | 1 |
+| **D** | 1 | 0 | 1 | 0 |
+
+### Adjacency List
+
+An **adjacency list** stores, for each vertex, the set of its neighbors. More space-efficient for **sparse** graphs (few edges relative to vertices):
+
+- A → \{B, D\}
+- B → \{A, C\}
+- C → \{B, D\}
+- D → \{C, A\}
+
+The **trade-offs**: an adjacency matrix gives <InlineMath formula="O(1)" /> edge lookup ("is there an edge between A and C?") but uses <InlineMath formula="O(n^2)" /> space. An adjacency list uses <InlineMath formula="O(n + m)" /> space (where <InlineMath formula="m = |E|" />) but checking for a specific edge takes <InlineMath formula="O(\deg(v))" /> time.
+
+### Graphs in Python
+
+These representations map directly onto Python data structures from LN8 and LN9. Here are all three for the same graph:
+
+```python
+V = {"A", "B", "C", "D"}
+
+# Edge set — frozensets for undirected (LN9: hashable, unordered)
+E = {frozenset({"A","B"}), frozenset({"B","C"}),
+     frozenset({"C","D"}), frozenset({"D","A"})}
+
+# Adjacency list — dict of sets (LN9: sets for neighbors)
+adj_list = {
+    "A": {"B", "D"},
+    "B": {"A", "C"},
+    "C": {"B", "D"},
+    "D": {"C", "A"},
+}
+
+# Adjacency matrix — 2D list
+vertices = ["A", "B", "C", "D"]
+adj_matrix = [
+    [0, 1, 0, 1],  # A
+    [1, 0, 1, 0],  # B
+    [0, 1, 0, 1],  # C
+    [1, 0, 1, 0],  # D
+]
+```
+
+Notice: the formal definition <InlineMath formula="G = (V, E)" /> with set-pair edges maps directly to `frozenset` (unordered, hashable — LN9). For directed graphs, edges would be `tuple`s instead (ordered — LN8). The adjacency list is a `dict[str, set[str]]` — a dict mapping each vertex to its set of neighbors. Python's `dict` is itself a hash table (callback to LN19), and now we're using it to represent an entirely new mathematical structure.
+
+Computing degree is just `len()`:
+
+```python
+def degree(graph, v):
+    return len(graph[v])
+
+degree(adj_list, "A")  # 2 — A is connected to B and D
+```
+
+---
+
+## Graph Isomorphisms
+
+Look at these two graphs:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+<GraphVisualization
+  nodes={[
+    { id: "W", label: "W" },
+    { id: "X", label: "X" },
+    { id: "Y", label: "Y" },
+    { id: "Z", label: "Z" },
+  ]}
+  edges={[
+    { from: "W", to: "X" },
+    { from: "X", to: "Z" },
+    { from: "Z", to: "Y" },
+    { from: "Y", to: "W" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+Are these "the same" graph? They have different labels (A,B,C,D vs W,X,Y,Z), but their *structure* is identical — both are cycles of length 4. If we relabel W→A, X→B, Z→C, Y→D, one becomes the other.
+
+This notion of "same structure, different labels" is called **isomorphism**.
+
+<DefinitionBox term="Graph Isomorphism">
+
+Two graphs <InlineMath formula="G_1 = (V_1, E_1)" /> and <InlineMath formula="G_2 = (V_2, E_2)" /> are **isomorphic** (written <InlineMath formula="G_1 \cong G_2" />) if there exists a bijection <InlineMath formula="f: V_1 \to V_2" /> such that:
+
+<DisplayMath formula="\{u, v\} \in E_1 \iff \{f(u), f(v)\} \in E_2" />
+
+The function <InlineMath formula="f" /> is called an **isomorphism**. It relabels vertices while preserving all adjacency relationships.
+
+</DefinitionBox>
+
+This connects directly to LN15 (bijections) and LN19 (bijective proofs): an isomorphism is a *bijection* that preserves graph structure. And like the equivalence relations from LN11, isomorphism is an **equivalence relation** on graphs — it's reflexive, symmetric, and transitive.
+
+Isomorphism is a **weaker form of equality**. Two graphs can be equal (same V, same E — literally identical) or isomorphic (same structure, possibly different labels). In Python terms, think of it as the difference between `==` (LN11's `__eq__` — label-equality) and structural equivalence. Two `dict` graph representations can be `==` without being isomorphic (same labels but we check structure), or isomorphic without being `==` (different labels, same structure).
+
+Now consider these two graphs — they have the same number of vertices (4) and the same number of edges (3), but are they isomorphic?
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+<GraphVisualization
+  nodes={[
+    { id: "W", label: "W" },
+    { id: "X", label: "X" },
+    { id: "Y", label: "Y" },
+    { id: "Z", label: "Z" },
+  ]}
+  edges={[
+    { from: "W", to: "X" },
+    { from: "W", to: "Y" },
+    { from: "W", to: "Z" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+**No.** The first graph is a path (degree sequence: 1, 2, 2, 1). The second is a star (degree sequence: 3, 1, 1, 1). An isomorphism must preserve degrees — it's a bijection on vertices, so the degree of <InlineMath formula="v" /> equals the degree of <InlineMath formula="f(v)" />. Since the degree sequences differ, no isomorphism can exist.
+
+This gives us a quick necessary condition for isomorphism: **isomorphic graphs must have the same degree sequence**. But the same degree sequence is not *sufficient* — there exist non-isomorphic graphs with identical degree sequences (a topic for further exploration).
+
+One fascinating aside: determining whether two graphs are isomorphic is a famous open problem in computer science. The **graph isomorphism problem** is not known to be solvable in polynomial time, nor is it known to be NP-complete. It sits in a rare middle ground — one of very few natural problems with this ambiguous complexity status.
+
+<PracticeBox
+  title="Isomorphism Check"
+  question="Graph G₁ has vertices {1,2,3} and edges {{1,2},{2,3},{1,3}}. Graph G₂ has vertices {A,B,C} and edges {{A,B},{B,C},{A,C}}. Are they isomorphic?"
+  choices={[
+    "No — the vertex labels are different",
+    "Yes — the bijection f(1)=A, f(2)=B, f(3)=C preserves all edges",
+    "Not enough information — we need to check all possible bijections",
+    "No — they have different vertex sets so they can't be compared"
+  ]}
+  correctIndex={1}
+  hint="Isomorphism doesn't require same labels — it requires a label-preserving bijection."
+  explanation="Both graphs are complete triangles (K₃). The bijection f(1)=A, f(2)=B, f(3)=C maps each edge to the corresponding edge. Since it preserves adjacency, G₁ ≅ G₂."
+/>
+
+<PracticeBox
+  title="Adjacency Matrix and Isomorphism"
+  question="If two graphs have identical adjacency matrices, they must be:"
+  choices={[
+    "Equal (same graph)",
+    "Isomorphic but not necessarily equal",
+    "Neither equal nor isomorphic",
+    "Equal if undirected, isomorphic if directed"
+  ]}
+  correctIndex={0}
+  hint="The adjacency matrix encodes both the vertex labels (rows/columns) and the edges."
+  explanation="Identical adjacency matrices mean the same vertices are connected in the same way — the graphs are literally equal. Isomorphic graphs have adjacency matrices that are the same up to row/column permutation, but not necessarily identical."
+/>
+
+---
+
+## Practice Problems
+
+<PracticeBox
+  title="Degree Fundamentals"
+  question="In an undirected graph with 5 vertices, every vertex has degree 2. How many edges does the graph have?"
+  choices={[
+    "5",
+    "10",
+    "4",
+    "2"
+  ]}
+  correctIndex={0}
+  hint="The sum of all degrees equals 2 × |E|. What is the sum of all degrees here?"
+  explanation="Sum of degrees = 5 × 2 = 10. Since each edge contributes 2 to the total degree, |E| = 10/2 = 5. (This is the handshaking lemma, which we'll prove formally in LN21.)"
+/>
+
+<PracticeBox
+  title="Formal Graph Definition"
+  question="Which of these is a valid edge set for an undirected graph on V = {1, 2, 3}?"
+  choices={[
+    "E = {(1,2), (2,3)}",
+    "E = {{1,2}, {2,3}, {1,3}}",
+    "E = {{1,1}, {2,3}}",
+    "E = [{1,2}, {2,3}]"
+  ]}
+  correctIndex={1}
+  hint="Undirected edges are 2-element subsets (sets, not tuples), and a vertex cannot connect to itself in a simple graph."
+  explanation="Choice B uses 2-element subsets (correct for undirected). Choice A uses ordered pairs (directed). Choice C includes {1,1} which is a self-loop (not allowed in simple graphs). Choice D uses a list, not a set."
+/>
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Graph Basics:**
+
+- A graph $G = (V, E)$ consists of vertices (nodes) and edges (connections)
+- **Undirected** edges are sets $\{u, v\}$; **directed** edges are tuples $(u, v)$
+- **Degree** $\deg(v)$ counts edges touching $v$; directed graphs split into in-degree and out-degree
+- **Order** $= |V|$, **Size** $= |E|$
+
+**Walks, Trails, and Paths:**
+
+- **Walk**: any vertex-edge sequence (repeats allowed)
+- **Trail**: no repeated edges (but vertices may repeat)
+- **Path**: no repeated vertices
+
+**Euler's Theorem:**
+
+- **Euler circuit** exists iff every vertex has even degree
+- **Euler trail** (not circuit) exists iff exactly 2 vertices have odd degree
+- Königsberg: all 4 vertices odd → impossible. Modern Kaliningrad: 2 odd → possible
+
+**Representations:**
+
+- **Adjacency matrix**: $O(1)$ edge lookup, $O(n^2)$ space, symmetric for undirected
+- **Adjacency list**: $O(n + m)$ space, $O(\deg)$ lookup — `dict[str, set[str]]` in Python
+- **Edge set**: formal definition as set of `frozenset` (undirected) or `tuple` (directed)
+
+**Isomorphisms:**
+
+- Two graphs are isomorphic if a bijection $f: V_1 \to V_2$ preserves adjacency
+- Weaker than equality — same structure, possibly different labels
+- Same degree sequence is necessary but not sufficient
+- The graph isomorphism problem has unknown complexity (neither known to be in P nor NP-complete)
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| Edges as sets $\{u,v\}$ | LN9: sets are unordered collections |
+| Edges as tuples $(u,v)$ | LN8: tuples are ordered pairs |
+| Isomorphism is a bijection | LN15, LN19: bijections and bijective proofs |
+| Isomorphism is an equivalence relation | LN11: reflexive, symmetric, transitive |
+| `dict` for adjacency lists | LN19: dicts are hash tables |
+| Degree via `len()` | LN9: `len()` on sets |
+| `frozenset` for undirected edges | LN9: immutable, hashable sets |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Numberphile: "The Bridges of Königsberg"](https://www.youtube.com/watch?v=W18FDEA1jRQ) — Beautiful retelling of Euler's puzzle
+- [Trefor Bazett: "Introduction to Graph Theory"](https://www.youtube.com/watch?v=LFKZLXVO-Dg) — Clear introduction to vertices, edges, and degrees
+
+### Further Reading
+
+- [Wikipedia: Seven Bridges of Königsberg](https://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg) — Historical context and Euler's original argument
+- [Wikipedia: Graph Theory](https://en.wikipedia.org/wiki/Graph_theory) — Overview of the field Euler founded
+- [Wikipedia: Graph Isomorphism Problem](https://en.wikipedia.org/wiki/Graph_isomorphism_problem) — One of the most tantalizing open problems in complexity theory
+
+### Connection to Programming
+
+- Python's `dict` is the natural data structure for adjacency lists — `dict[str, set[str]]` maps vertices to neighbor sets
+- NetworkX, Python's standard graph library, uses a dict-of-dicts representation internally — the same pattern we showed above
+- Graph data structures underpin social networks (Facebook's friend graph), web crawlers (the hyperlink graph), and dependency resolution (`pip install` builds a dependency graph and topologically sorts it)
+- The `frozenset` vs `tuple` distinction for undirected vs directed edges mirrors the formal mathematical definition exactly
+
+</LectureResources>

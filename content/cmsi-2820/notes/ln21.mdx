@@ -1,0 +1,1166 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+import { GraphVisualization } from "@/components/graph-visualization"
+import { EdgeContractionStepper } from "@/components/edge-contraction-stepper"
+import { SubgraphExplorer } from "@/components/subgraph-explorer"
+import { GraphOperationStepper } from "@/components/graph-operation-stepper"
+import { EdgeCountingStepper } from "@/components/edge-counting-stepper"
+
+## Recap
+
+Last lecture we followed Euler to Königsberg and invented graph theory. We defined graphs as tuples of sets <InlineMath formula="G = (V, E)" />, learned about degrees, walks, trails, and paths, proved that the seven bridges puzzle is impossible using degree analysis, and defined isomorphisms as structure-preserving bijections. We also saw how graphs map directly to Python's `dict[str, set[str]]`.
+
+Today we ask: what *structural properties* can a graph have, and what *operations* can we perform on graphs? The formalization we built in LN20 is about to pay off — the same set-theoretic toolkit from LN10 works on this new structure.
+
+---
+
+## Connectedness
+
+Here is a simple but fundamental question: given two vertices in a graph, can you get from one to the other by following edges?
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "A" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+In this graph, you can walk from A to B to C and back — but there is **no path** from A to D. The graph is split into two unreachable clusters.
+
+<DefinitionBox term="Connected Graph">
+
+A graph <InlineMath formula="G = (V, E)" /> is **connected** if for every pair of vertices <InlineMath formula="u, v \in V" />, there exists a path from <InlineMath formula="u" /> to <InlineMath formula="v" />.
+
+A graph that is not connected is **disconnected**.
+
+</DefinitionBox>
+
+In Python, we can check connectivity with a BFS using only data structures from LN9 — a `set` for visited nodes and a list for the queue:
+
+```python
+def is_connected(graph):
+    start = next(iter(graph))
+    visited = {start}
+    queue = [start]
+    while queue:
+        node = queue.pop(0)
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+    return len(visited) == len(graph)
+```
+
+If we can reach every vertex from any starting vertex, the graph is connected.
+
+---
+
+## Graph Unions
+
+There is an elegant set-theoretic way to express disconnectedness. First, we need to define the **union** of two graphs:
+
+<DefinitionBox term="Graph Union">
+
+Given graphs <InlineMath formula="G_1 = (V_1, E_1)" /> and <InlineMath formula="G_2 = (V_2, E_2)" />, their **union** is:
+
+<DisplayMath formula="G_1 \cup G_2 = (V_1 \cup V_2,\; E_1 \cup E_2)" />
+
+</DefinitionBox>
+
+This is a direct application of set union (LN10) on both components of the graph tuple.
+
+Here are two graphs and their union:
+
+**Graph** <InlineMath formula="G_1" />:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "A" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+**Graph** <InlineMath formula="G_2" />:
+
+<GraphVisualization
+  nodes={[
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="200px"
+/>
+
+**Union** <InlineMath formula="G_1 \cup G_2" />:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "A" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Now we can give a second, equivalent definition: a graph is **disconnected** if it can be written as the union of two non-empty graphs with **disjoint vertex sets** — no edges cross between the two parts. A graph is **connected** if no such decomposition exists.
+
+---
+
+## Components
+
+Every graph — connected or not — can be uniquely decomposed into its maximal connected pieces:
+
+<DefinitionBox term="Connected Component">
+
+A **connected component** of a graph <InlineMath formula="G" /> is a maximal connected subgraph — a connected piece that cannot be made larger by adding more vertices from <InlineMath formula="G" />.
+
+Every graph decomposes uniquely into its connected components.
+
+</DefinitionBox>
+
+Here is a graph with three components, colored to make them visible:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A", color: "#86efac" },
+    { id: "B", label: "B", color: "#86efac" },
+    { id: "C", label: "C", color: "#86efac" },
+    { id: "D", label: "D", color: "#93c5fd" },
+    { id: "E", label: "E", color: "#93c5fd" },
+    { id: "F", label: "F", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Component 1: <InlineMath formula="\{A, B, C\}" /> with edges <InlineMath formula="\{\{A,B\}, \{B,C\}\}" />. Component 2: <InlineMath formula="\{D, E\}" /> with edge <InlineMath formula="\{\{D,E\}\}" />. Component 3: <InlineMath formula="\{F\}" /> (an isolated vertex, no edges). A connected graph has exactly one component.
+
+<PracticeBox
+  title="Counting Components"
+  question="A graph has 8 vertices and 0 edges. How many connected components does it have?"
+  choices={[
+    "1",
+    "0",
+    "8",
+    "Not enough information"
+  ]}
+  correctIndex={2}
+  hint="Each isolated vertex is its own component."
+  explanation="With no edges, every vertex is an isolated connected component. 8 vertices means 8 components."
+/>
+
+---
+
+## Cut Vertices and Bridges
+
+We know what connected means. Now: how *fragile* is that connectivity? What if removing a single vertex or edge breaks the graph apart?
+
+<DefinitionBox term="Cut Vertex and Bridge">
+
+A **cut vertex** (articulation point) of a connected graph is a vertex whose removal **disconnects** the graph.
+
+A **bridge** is an edge whose removal **disconnects** the graph.
+
+</DefinitionBox>
+
+Using the lambda calculus as a tool (LN19), we can express these tests formally — building the modified graph with set difference (LN10), then checking connectivity:
+
+<DisplayMath formula="\text{is_cut_vertex} = \lambda G.\; \lambda v.\; \text{connected}(G) \;\wedge\; \neg\,\text{connected}\!\big((V \setminus \{v\},\; \{e \in E \mid v \notin e\})\big)" />
+
+<DisplayMath formula="\text{is_bridge} = \lambda G.\; \lambda e.\; \text{connected}(G) \;\wedge\; \neg\,\text{connected}\!\big((V,\; E \setminus \{e\})\big)" />
+
+The cut vertex lambda removes <InlineMath formula="v" /> from <InlineMath formula="V" /> and filters out all incident edges; the bridge lambda removes just one edge from <InlineMath formula="E" />. Both then check whether the resulting graph is still connected.
+
+Here is a graph where vertex C is a cut vertex — removing it splits the graph into two pieces:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C", color: "#ef4444" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+After removing C:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+Now disconnected! And here is a graph where the edge C–D is a bridge:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D", color: "#ef4444", width: 4 },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+After removing the bridge C–D:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "A", to: "C" },
+    { from: "B", to: "C" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+For contrast, removing vertex B from the original graph does *not* disconnect it — there's still a path from every remaining vertex to every other:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+Still connected! B is not a cut vertex. In the real world, cut vertices and bridges represent **single points of failure** in networks. The 2021 Facebook outage was caused by a BGP configuration change that effectively removed a "bridge" in their network graph, disconnecting their DNS servers from the rest of the internet.
+
+### Multiple Cut Vertices and Bridges
+
+Our earlier examples each had one cut vertex or one bridge, but graphs can have several of each simultaneously. Here is a larger graph — walk through it and identify every cut vertex and bridge:
+
+<GraphVisualization
+  nodes={[
+    { id: "P", label: "P" },
+    { id: "Q", label: "Q" },
+    { id: "R", label: "R", color: "#ef4444" },
+    { id: "S", label: "S", color: "#ef4444" },
+    { id: "T", label: "T", color: "#ef4444" },
+    { id: "U", label: "U" },
+    { id: "W", label: "W" },
+  ]}
+  edges={[
+    { from: "P", to: "Q" },
+    { from: "P", to: "R" },
+    { from: "Q", to: "R" },
+    { from: "R", to: "S", color: "#ef4444", width: 4 },
+    { from: "S", to: "T" },
+    { from: "S", to: "U" },
+    { from: "T", to: "U" },
+    { from: "T", to: "W", color: "#ef4444", width: 4 },
+  ]}
+  interactive={true}
+  height="320px"
+/>
+
+The cut vertices are **R**, **S**, and **T** (highlighted in red). Removing any one of them disconnects the graph:
+
+- Remove **R**: the triangle <InlineMath formula="\{P, Q\}" /> loses its only connection to the rest
+- Remove **S**: the left side <InlineMath formula="\{P, Q, R\}" /> is severed from the right side <InlineMath formula="\{T, U, W\}" />
+- Remove **T**: vertex <InlineMath formula="W" /> becomes isolated from the rest
+
+The bridges are **R–S** and **T–W** (highlighted in red). Every other edge sits inside a triangle and has an alternate path — removing one edge from a triangle still leaves the other two sides connected.
+
+Notice the pattern: cut vertices and bridges tend to appear along "narrow corridors" in the graph, while vertices and edges inside tightly-connected clusters (like the triangles <InlineMath formula="\{P, Q, R\}" /> and <InlineMath formula="\{S, T, U\}" />) are never cut vertices or bridges. The more alternate paths exist between two parts of a graph, the more resilient it is.
+
+### Measuring Connectivity: Bisection Width
+
+Cut vertices and bridges ask: "Can we break this graph by removing *one* thing?" A stronger question is: how many edges must we remove to split the graph roughly in half?
+
+<DefinitionBox term="Bisection Width">
+
+The **bisection width** of a graph <InlineMath formula="G" /> with <InlineMath formula="n" /> vertices is the minimum number of edges whose removal splits <InlineMath formula="G" /> into two parts of sizes <InlineMath formula="\lfloor n/2 \rfloor" /> and <InlineMath formula="\lceil n/2 \rceil" />.
+
+</DefinitionBox>
+
+Here is a graph where the minimum bisection cuts exactly 2 edges — the two cross-connections (highlighted in red) between the left and right clusters:
+
+<GraphVisualization
+  nodes={[
+    { id: "J", label: "J" },
+    { id: "K", label: "K" },
+    { id: "L", label: "L" },
+    { id: "M", label: "M" },
+    { id: "N", label: "N" },
+    { id: "O", label: "O" },
+  ]}
+  edges={[
+    { from: "J", to: "K" },
+    { from: "K", to: "L" },
+    { from: "J", to: "L" },
+    { from: "M", to: "N" },
+    { from: "N", to: "O" },
+    { from: "M", to: "O" },
+    { from: "L", to: "M", color: "#ef4444", width: 4 },
+    { from: "K", to: "N", color: "#ef4444", width: 4 },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+The bisection <InlineMath formula="\{J, K, L\} \mid \{M, N, O\}" /> requires cutting exactly 2 edges, so this graph has bisection width 2. No bridge exists (removing just one red edge still leaves the graph connected via the other), but the graph can still be cleanly halved.
+
+Bisection width matters for **network design**. In supercomputer interconnects, a high bisection width means data can flow between any two halves of the machine with high bandwidth — there are many independent paths. A hub-and-spoke network (like a star graph, where one central node connects to all others) has bisection width 1 — a single edge removal halves the network. Data center architects actively optimize for high bisection width to avoid bottlenecks.
+
+---
+
+## Subgraphs
+
+<DefinitionBox term="Subgraph and Induced Subgraph">
+
+<InlineMath formula="H = (V_H, E_H)" /> is a **subgraph** of <InlineMath formula="G = (V, E)" /> if <InlineMath formula="V_H \subseteq V" /> and <InlineMath formula="E_H \subseteq E" />.
+
+The **induced subgraph** <InlineMath formula="G[S]" /> for a vertex subset <InlineMath formula="S \subseteq V" /> includes all edges from <InlineMath formula="G" /> that have *both* endpoints in <InlineMath formula="S" />.
+
+</DefinitionBox>
+
+These definitions translate directly into lambdas using the set operations from LN10. The subgraph test checks subset inclusion on both components of the tuple; the induced subgraph lambda constructs a new graph, keeping only edges whose both endpoints are in <InlineMath formula="S" />:
+
+<DisplayMath formula="\text{is_subgraph} = \lambda H.\; \lambda G.\; (V_H \subseteq V_G) \;\wedge\; (E_H \subseteq E_G)" />
+
+<DisplayMath formula="\text{induced} = \lambda G.\; \lambda S.\; \big(S,\; \{e \in E_G \mid e \subseteq S\}\big)" />
+
+Step through this explorer to see several kinds of subgraphs of the same parent graph G. On the left, G is always shown with the current subgraph highlighted in green. On the right, only the subgraph itself is displayed:
+
+<SubgraphExplorer
+  parentNodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  parentEdges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+    { from: "B", to: "D" },
+    { from: "A", to: "E" },
+  ]}
+  steps={[
+    {
+      label: "G itself (trivial subgraph)",
+      description: "Every graph is a subgraph of itself — all vertices and edges are included. This is the trivial subgraph.",
+      subNodes: ["A", "B", "C", "D", "E"],
+      subEdges: [
+        { from: "A", to: "B" },
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+        { from: "D", to: "A" },
+        { from: "B", to: "D" },
+        { from: "A", to: "E" },
+      ],
+    },
+    {
+      label: "A general subgraph H",
+      description: "Take vertices {A, B, C} and edges {A–B, B–C}. This is a valid subgraph: V_H ⊆ V and E_H ⊆ E.",
+      subNodes: ["A", "B", "C"],
+      subEdges: [
+        { from: "A", to: "B" },
+        { from: "B", to: "C" },
+      ],
+    },
+    {
+      label: "A different subgraph H' on a larger vertex set",
+      description: "Same parent graph, different selection: vertices {A, B, C, D} with edges {A–B, C–D}. Many different subgraphs can be extracted from the same G.",
+      subNodes: ["A", "B", "C", "D"],
+      subEdges: [
+        { from: "A", to: "B" },
+        { from: "C", to: "D" },
+      ],
+    },
+    {
+      label: "Induced subgraph G[{A, B, D}]",
+      description: "Choose vertices {A, B, D} — the induced subgraph forces ALL edges from G between those vertices: A–B, D–A, and B–D. You don't get to pick which edges to keep.",
+      subNodes: ["A", "B", "D"],
+      subEdges: [
+        { from: "A", to: "B" },
+        { from: "D", to: "A" },
+        { from: "B", to: "D" },
+      ],
+    },
+    {
+      label: "Non-induced subgraph on {A, B, D}",
+      description: "Same vertex set {A, B, D}, but only edges {A–B, B–D} — edge D–A is omitted. This is a subgraph but NOT an induced subgraph, because G has the edge D–A and we left it out.",
+      subNodes: ["A", "B", "D"],
+      subEdges: [
+        { from: "A", to: "B" },
+        { from: "B", to: "D" },
+      ],
+    },
+    {
+      label: "The empty subgraph",
+      description: "Zero vertices, zero edges. This is technically a subgraph of every graph — the empty set is a subset of any set.",
+      subNodes: [],
+      subEdges: [],
+    },
+  ]}
+  height="280px"
+/>
+
+### Properties Inherited by Subgraphs
+
+When you take a subgraph, some properties of the parent graph carry over and others can break:
+
+**Connectivity is not preserved.** Even if G is connected, a subgraph can be disconnected. In the explorer above, step 3 shows a subgraph with vertices <InlineMath formula="\{A, B, C, D\}" /> and edges <InlineMath formula="\{A\text{-}B, C\text{-}D\}" /> — two disconnected pairs inside a connected G. An induced subgraph <InlineMath formula="G[S]" /> is connected only when the vertices in <InlineMath formula="S" /> form a connected piece of G.
+
+**Degree can only decrease.** In a subgraph, every vertex has degree at most its degree in G — you can only *lose* edges, never gain them. Formally, for any subgraph <InlineMath formula="H" /> of <InlineMath formula="G" /> and any vertex <InlineMath formula="v \in V_H" />, <InlineMath formula="\deg_H(v) \leq \deg_G(v)" />.
+
+**Bipartiteness is preserved by induced subgraphs.** If a graph has no odd cycles (we will define this property — *bipartiteness* — next lecture), then no induced subgraph can create one. Removing vertices can only destroy cycles, never create them.
+
+---
+
+## Set Operations on Graphs
+
+Since graphs are tuples of sets, most set operations from LN10 carry over directly. We already defined union. Here are the others:
+
+**Intersection**: <InlineMath formula="G_1 \cap G_2 = (V_1 \cap V_2,\; E_1 \cap E_2)" />
+
+**Difference**: <InlineMath formula="G_1 \setminus G_2 = (V_1,\; E_1 \setminus E_2)" />
+
+**Symmetric Difference**: <InlineMath formula="G_1 \;\triangle\; G_2 = (V_1 \cup V_2,\; E_1 \;\triangle\; E_2)" />
+
+To see these operations in action, step through this example with two overlapping graphs:
+
+<GraphOperationStepper
+  title="Graph Intersection: G₁ ∩ G₂"
+  phases={[
+    {
+      label: "G₁",
+      description: "V₁ = {A, B, C, D}, E₁ = {A–B, B–C, C–D}",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+      ],
+    },
+    {
+      label: "G₂",
+      description: "V₂ = {B, C, D, E}, E₂ = {B–C, C–D, D–E}",
+      nodes: [
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+        { from: "D", to: "E" },
+      ],
+    },
+    {
+      label: "G₁ ∩ G₂ = (V₁ ∩ V₂, E₁ ∩ E₂)",
+      description: "Vertices in both: {B, C, D}. Edges in both: {B–C, C–D}. Only the overlap survives.",
+      nodes: [
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+      ],
+    },
+  ]}
+  height="280px"
+/>
+
+<GraphOperationStepper
+  title="Graph Difference: G₁ \ G₂"
+  phases={[
+    {
+      label: "G₁",
+      description: "V₁ = {A, B, C, D}, E₁ = {A–B, B–C, C–D}",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+      ],
+    },
+    {
+      label: "G₂",
+      description: "V₂ = {B, C, D, E}, E₂ = {B–C, C–D, D–E}",
+      nodes: [
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+        { from: "D", to: "E" },
+      ],
+    },
+    {
+      label: "G₁ \\ G₂ = (V₁, E₁ \\ E₂)",
+      description: "Keep all of G₁'s vertices. Remove edges that also appear in G₂. Only A–B survives — it was unique to G₁.",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+      ],
+    },
+  ]}
+  height="280px"
+/>
+
+<GraphOperationStepper
+  title="Symmetric Difference: G₁ △ G₂"
+  phases={[
+    {
+      label: "G₁",
+      description: "V₁ = {A, B, C, D}, E₁ = {A–B, B–C, C–D}",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+      ],
+    },
+    {
+      label: "G₂",
+      description: "V₂ = {B, C, D, E}, E₂ = {B–C, C–D, D–E}",
+      nodes: [
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+        { from: "D", to: "E" },
+      ],
+    },
+    {
+      label: "G₁ △ G₂ = (V₁ ∪ V₂, E₁ △ E₂)",
+      description: "All vertices from both. Edges in exactly one of the two: {A–B, D–E}. Shared edges B–C and C–D are removed.",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "D", to: "E" },
+      ],
+    },
+  ]}
+  height="280px"
+/>
+
+In Python, these are single-operator expressions on edge sets:
+
+```python
+edges_union = edges_G1 | edges_G2        # G₁ ∪ G₂
+edges_intersection = edges_G1 & edges_G2  # G₁ ∩ G₂
+edges_difference = edges_G1 - edges_G2    # G₁ \ G₂
+edges_sym_diff = edges_G1 ^ edges_G2      # G₁ △ G₂
+```
+
+The formalization pays off — the same algebra from LN10 works on this new structure.
+
+### The Graph Complement
+
+<DefinitionBox term="Graph Complement">
+
+The **complement** of a graph <InlineMath formula="G = (V, E)" />, written <InlineMath formula="\overline{G}" />, has the same vertices but *exactly the edges G is missing*:
+
+<DisplayMath formula="\overline{G} = \big(V,\; \{\{u,v\} \mid u,v \in V,\; u \neq v\} \setminus E\big)" />
+
+</DefinitionBox>
+
+Expressed as a lambda, the complement takes a graph and returns a new one. In LN10 we noted Python has no complement because there is no universal set; here the "universe" of possible edges is all 2-element subsets of <InlineMath formula="V" />:
+
+<DisplayMath formula="\text{complement} = \lambda G.\; \big(V,\; \{\{u,v\} \mid u,v \in V,\; u \neq v\} \setminus E\big)" />
+
+Step through to see a graph, its complement, and what happens when you combine them:
+
+<GraphOperationStepper
+  title="Graph Complement"
+  phases={[
+    {
+      label: "G",
+      description: "V = {A, B, C, D}, E = {A–B, B–C, C–D}. Three edges present.",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+      ],
+    },
+    {
+      label: "G̅ (complement)",
+      description: "Same vertices. Exactly the edges G is missing: {A–C, A–D, B–D}. Three edges as well.",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "C" },
+        { from: "A", to: "D" },
+        { from: "B", to: "D" },
+      ],
+    },
+    {
+      label: "G ∪ G̅",
+      description: "Their union contains every possible edge — every pair of vertices is connected. This type of graph is so important it has its own name; we will formally define it next lecture.",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "A", to: "C" },
+        { from: "A", to: "D" },
+        { from: "B", to: "C" },
+        { from: "B", to: "D" },
+        { from: "C", to: "D" },
+      ],
+    },
+  ]}
+  height="280px"
+/>
+
+In LN10 we noted that Python has no built-in complement operation because there's no universal set. But for graphs, we *do* have a "universal edge set" — all possible 2-element subsets of <InlineMath formula="V" />. The graph complement becomes a one-liner:
+
+```python
+all_possible = {frozenset({u, v}) for u in V for v in V if u != v}
+complement_edges = all_possible - edges_G
+```
+
+---
+
+## The Handshaking Lemma
+
+Here is a beautiful connection between degrees and edges that links back to our combinatorics unit:
+
+<DefinitionBox term="Handshaking Lemma">
+
+In any undirected graph <InlineMath formula="G = (V, E)" />:
+
+<DisplayMath formula="\sum_{v \in V} \deg(v) = 2|E|" />
+
+Every edge contributes exactly 2 to the total degree — one for each endpoint.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A (deg 2)" },
+    { id: "B", label: "B (deg 3)" },
+    { id: "C", label: "C (deg 2)" },
+    { id: "D", label: "D (deg 3)" },
+    { id: "E", label: "E (deg 2)" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+    { from: "D", to: "A" },
+    { from: "B", to: "D" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Sum of degrees: <InlineMath formula="2 + 3 + 2 + 3 + 2 = 12 = 2 \times 6 = 2|E|" />. It always works.
+
+One immediate corollary: the number of vertices with **odd degree** is always **even** — since the total degree is even, there can't be an odd number of odd terms.
+
+### What if every possible edge is present?
+
+We just showed that the degree sum equals <InlineMath formula="2|E|" />. Let's push this to an extreme: what if we add *every* edge we possibly can? Start with <InlineMath formula="n" /> vertices and no edges, then systematically connect every pair:
+
+<EdgeCountingStepper
+  title="Adding every possible edge (n = 5)"
+  steps={[
+    {
+      description: "Five isolated vertices. No edges yet.",
+      sumDisplay: "Total edges: 0",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [],
+    },
+    {
+      description: "Vertex A connects to B, C, D, E — four new edges (highlighted). A can connect to n − 1 = 4 others.",
+      sumDisplay: "Running sum: 4 edges",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B", isNew: true },
+        { from: "A", to: "C", isNew: true },
+        { from: "A", to: "D", isNew: true },
+        { from: "A", to: "E", isNew: true },
+      ],
+    },
+    {
+      description: "Vertex B connects to C, D, E — three new edges. A is already done, so n − 2 = 3 new connections.",
+      sumDisplay: "Running sum: 4 + 3 = 7 edges",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "A", to: "C" },
+        { from: "A", to: "D" },
+        { from: "A", to: "E" },
+        { from: "B", to: "C", isNew: true },
+        { from: "B", to: "D", isNew: true },
+        { from: "B", to: "E", isNew: true },
+      ],
+    },
+    {
+      description: "Vertex C connects to D, E — two new edges. A and B are done, so n − 3 = 2 new connections.",
+      sumDisplay: "Running sum: 4 + 3 + 2 = 9 edges",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "A", to: "C" },
+        { from: "A", to: "D" },
+        { from: "A", to: "E" },
+        { from: "B", to: "C" },
+        { from: "B", to: "D" },
+        { from: "B", to: "E" },
+        { from: "C", to: "D", isNew: true },
+        { from: "C", to: "E", isNew: true },
+      ],
+    },
+    {
+      description: "Vertex D connects to E — one final edge. Every earlier vertex is done, so just 1 new connection.",
+      sumDisplay: "Running sum: 4 + 3 + 2 + 1 = 10 edges",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "A", to: "C" },
+        { from: "A", to: "D" },
+        { from: "A", to: "E" },
+        { from: "B", to: "C" },
+        { from: "B", to: "D" },
+        { from: "B", to: "E" },
+        { from: "C", to: "D" },
+        { from: "C", to: "E" },
+        { from: "D", to: "E", isNew: true },
+      ],
+    },
+  ]}
+  height="300px"
+/>
+
+The pattern: <InlineMath formula="(n-1) + (n-2) + \cdots + 1" />. This is the sum of the first <InlineMath formula="n - 1" /> positive integers:
+
+<DisplayMath formula="|E| = \sum_{k=1}^{n-1} k = \frac{n(n-1)}{2}" />
+
+This is exactly <InlineMath formula="\binom{n}{2}" /> — the number of ways to choose 2 vertices from <InlineMath formula="n" />, from LN17. Each edge *is* a choice of 2 endpoints. Notice how this looks like the factorial pattern from our combinatorics unit, but with addition instead of multiplication — the "decaying options" pattern shows up again.
+
+We will meet this maximally-connected graph — where *every* pair of vertices is joined — formally next lecture. It is one of the most fundamental objects in graph theory.
+
+<PracticeBox
+  title="Handshaking Lemma"
+  question="A graph has 7 vertices, each with degree 4. How many edges does it have?"
+  choices={[
+    "14",
+    "28",
+    "7",
+    "This graph cannot exist"
+  ]}
+  correctIndex={0}
+  hint="What does the handshaking lemma say about the sum of degrees?"
+  explanation="Sum of degrees = 7 × 4 = 28. By the handshaking lemma, 2|E| = 28, so |E| = 14. All 7 vertices have even degree (4), so the parity condition is satisfied. A 4-regular graph on 7 vertices does exist."
+/>
+
+---
+
+## Edge Contraction
+
+We've seen how to combine graphs with set operations. Now let's define an operation that *modifies* a graph's structure: **edge contraction**.
+
+<DefinitionBox term="Edge Contraction">
+
+The **contraction** of edge <InlineMath formula="\{u, v\}" /> in graph <InlineMath formula="G = (V, E)" /> merges <InlineMath formula="u" /> and <InlineMath formula="v" /> into a single vertex <InlineMath formula="w" />, removing the contracted edge. Every other edge incident to <InlineMath formula="u" /> or <InlineMath formula="v" /> becomes incident to <InlineMath formula="w" />. **This operation preserves all edges** — if both <InlineMath formula="u" /> and <InlineMath formula="v" /> were adjacent to a common neighbor <InlineMath formula="x" />, the result has two parallel edges from <InlineMath formula="w" /> to <InlineMath formula="x" />, producing a **multigraph**.
+
+</DefinitionBox>
+
+<EdgeContractionStepper
+  title="Contracting edge {B, C}"
+  steps={[
+    {
+      description: "Original graph — a triangle A-B-C plus edge C-D. We will contract the edge B–C (highlighted in red). Notice that A is adjacent to BOTH B and C.",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "B", label: "B" },
+        { id: "C", label: "C" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "B" },
+        { from: "A", to: "C" },
+        { from: "B", to: "C" },
+        { from: "C", to: "D" },
+      ],
+      highlightEdge: { from: "B", to: "C" },
+    },
+    {
+      description: "Step 1: Remove vertices B and C. Add a new merged vertex BC.",
+      formal: "V' = (V \\ {B, C}) ∪ {BC}",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "BC", label: "BC", color: "#f59e0b" },
+        { id: "D", label: "D" },
+      ],
+      edges: [],
+    },
+    {
+      description: "Step 2: Reconnect — every edge that touched B or C now touches BC. A was adjacent to BOTH B and C, so two parallel edges A–BC arise. D was adjacent to C, so one edge BC–D. This is now a multigraph.",
+      formal: "A had edges to B and to C → two edges A–BC (parallel). C had edge to D → one edge BC–D.",
+      nodes: [
+        { id: "A", label: "A" },
+        { id: "BC", label: "BC", color: "#f59e0b" },
+        { id: "D", label: "D" },
+      ],
+      edges: [
+        { from: "A", to: "BC" },
+        { from: "A", to: "BC" },
+        { from: "BC", to: "D" },
+      ],
+    },
+  ]}
+  height="300px"
+/>
+
+---
+
+## Vertex Cleaving
+
+The inverse operation: **splitting** a vertex into two, duplicating its edges.
+
+<DefinitionBox term="Vertex Cleaving">
+
+**Vertex cleaving** splits a vertex <InlineMath formula="v" /> into two vertices <InlineMath formula="v_1, v_2" />. Every edge that was incident to <InlineMath formula="v" /> is **duplicated** — both <InlineMath formula="v_1" /> and <InlineMath formula="v_2" /> receive a copy, producing a **multigraph**. Optionally, an edge <InlineMath formula="\{v_1, v_2\}" /> is added.
+
+</DefinitionBox>
+
+Before cleaving vertex C:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C", label: "C", color: "#f59e0b" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "C" },
+    { from: "B", to: "C" },
+    { from: "C", to: "D" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+After cleaving C into <InlineMath formula="C_1" /> and <InlineMath formula="C_2" /> — every edge that touched C is duplicated to both new vertices:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" },
+    { id: "C1", label: "C₁", color: "#f59e0b" },
+    { id: "C2", label: "C₂", color: "#f59e0b" },
+    { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "C1" },
+    { from: "A", to: "C2" },
+    { from: "B", to: "C1" },
+    { from: "B", to: "C2" },
+    { from: "C1", to: "D" },
+    { from: "C2", to: "D" },
+    { from: "C1", to: "C2" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Edge contraction and vertex cleaving are duals — one merges, the other splits. Both are edge-preserving and can produce **multigraphs** (graphs with parallel edges between the same pair of vertices).
+
+**Dénes König (1884–1944)** wrote the first textbook on graph theory in 1936, formalizing many of the concepts we've covered today — components, connectivity, and operations like these. His work laid the foundation for the structural graph theory that would flourish in the following decades.
+
+---
+
+## Practice Problems
+
+<PracticeBox
+  title="Connectivity"
+  question="A graph G has 6 vertices and 4 edges. What is the maximum number of connected components G can have?"
+  choices={[
+    "2",
+    "3",
+    "4",
+    "6"
+  ]}
+  correctIndex={0}
+  hint="Each edge connects two vertices. 4 edges connect at most 8 vertex-endpoints, but can merge at most 4 pairs into connected groups."
+  explanation="Each edge reduces the number of components by at most 1. Starting with 6 isolated vertices (6 components), 4 edges reduce it to at minimum 6 - 4 = 2 components. Maximum components = 2 (e.g., connect 4 vertices into a path and leave 2 isolated... wait, that's 3 components). Actually, to maximize components: make each edge connect two previously-connected vertices (self-edges aren't allowed). Put 4 edges inside a group of 5 vertices, leaving 1 isolated: 2 components. Or: 2 edges on one pair+triangle, 2 edges elsewhere. The answer is 2."
+/>
+
+<PracticeBox
+  title="Cut Vertex"
+  question="In a path graph A-B-C-D-E (5 vertices in a line), which vertices are cut vertices?"
+  choices={[
+    "Only C (the middle vertex)",
+    "B, C, and D (all interior vertices)",
+    "A and E (the endpoints)",
+    "All vertices"
+  ]}
+  correctIndex={1}
+  hint="Removing a vertex from a path splits it into two paths (or removes an endpoint)."
+  explanation="Removing any interior vertex (B, C, or D) disconnects the path. Removing an endpoint (A or E) leaves a shorter but still connected path. So B, C, and D are all cut vertices."
+/>
+
+<PracticeBox
+  title="Graph Complement"
+  question="If G has 5 vertices and 3 edges, how many edges does its complement G̅ have?"
+  choices={[
+    "7",
+    "2",
+    "10",
+    "5"
+  ]}
+  correctIndex={0}
+  hint="G and G̅ together make K₅. How many edges does K₅ have?"
+  explanation="|E(K₅)| = 5(4)/2 = 10. Since G ∪ G̅ = K₅ and the edge sets are disjoint, |E(G̅)| = 10 - 3 = 7."
+/>
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Connectedness:**
+
+- Connected graph: a path exists between every pair of vertices
+- Disconnected graph: can be written as a union of graphs with disjoint vertex sets
+- Connected components: maximal connected subgraphs — unique decomposition
+
+**Cut Vertices, Bridges, and Bisection Width:**
+
+- Cut vertex: removal disconnects the graph (single point of failure)
+- Bridge: edge removal disconnects the graph
+- Bisection width: minimum edges to cut to split a graph into two equal halves
+- Real-world: network vulnerability, infrastructure resilience, data center design
+
+**Subgraphs and Inherited Properties:**
+
+- Subgraph: $V_H \subseteq V$, $E_H \subseteq E$
+- Induced subgraph $G[S]$: all edges between vertices in $S$
+- Connectivity is not preserved; degree can only decrease; bipartiteness is preserved by induced subgraphs
+
+**Set Operations and Complement:**
+
+- Set operations (union, intersection, difference, symmetric difference, complement) carry over from LN10
+- Graph complement $\overline{G}$: same vertices, exactly the missing edges
+- $G \cup \overline{G}$ produces a graph with every possible edge — formally defined next lecture
+
+**Handshaking Lemma:**
+
+- $\sum \deg(v) = 2|E|$ — every edge contributes 2 to total degree
+- Number of odd-degree vertices is always even
+- A graph with every possible edge has $\binom{n}{2} = n(n-1)/2$ edges (decaying options pattern from LN17)
+
+**Edge Contraction and Vertex Cleaving:**
+
+- Contraction: merge two adjacent vertices, preserving all edges — can produce multigraphs
+- Cleaving: split a vertex into two, duplicating all incident edges — can produce multigraphs
+- Dual operations: one merges, the other splits
+
+**Lambda Calculus as a Tool:**
+
+- is_cut_vertex, is_bridge: formalize "removal disconnects" using set difference
+- is_subgraph, induced: express subgraph tests and construction via subset operations
+- complement: builds the complement graph as a lambda
+- Callback to LN19: using lambdas to express mathematical properties, not just compute values
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| Graph union, intersection, complement | LN10: set operations |
+| Complement one-liner in Python | LN10: "Python has no complement (no universal set)" — now we have all 2-element subsets |
+| Set operators `\|`, `&`, `-`, `^` on edges | LN9, LN10: Python set operations |
+| BFS with `set` for visited | LN9: sets for membership testing |
+| Property-testing lambdas | LN12-14, LN19: lambda calculus as a tool |
+| $\binom{n}{2}$ edges in a maximally-connected graph | LN17: combinations and the "choosing" pattern |
+| `defaultdict(set)` for adjacency | LN9: sets, LN7: dict internals |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Trefor Bazett: "Connected Graphs"](https://www.youtube.com/watch?v=bSMYgaEPMaI) — Visual introduction to connectivity
+- [Numberphile: "Handshaking Lemma"](https://www.youtube.com/watch?v=fEAk_jZ4PYA) — Intuitive proof and applications
+
+### Further Reading
+
+- [Wikipedia: Connectivity (Graph Theory)](https://en.wikipedia.org/wiki/Connectivity_(graph_theory)) — Cut vertices, bridges, and k-connectivity
+- [Wikipedia: Bisection Width](https://en.wikipedia.org/wiki/Bisection_bandwidth) — Bisection width in network design and parallel computing
+- [Wikipedia: Graph Operations](https://en.wikipedia.org/wiki/Graph_operations) — Union, complement, contraction, and more
+
+### Connection to Programming
+
+- Finding connected components is the same as finding clusters in data (social network communities, image segmentation)
+- Python's `graphlib.TopologicalSorter` (stdlib since 3.9) operates on directed graph structure
+- `collections.defaultdict(set)` is the Pythonic way to build adjacency lists without initializing empty sets
+- High bisection width in network topologies (fat trees, hypercubes) is critical for parallel computing and data center design
+
+</LectureResources>

@@ -715,7 +715,7 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("2820-ln20"),
     description:
-      "In this lecture we follow in the footsteps of Euler and complete the Seven Bridges of Konigsberg problem to introduce graphs formally.",
+      "In this lecture we follow in the footsteps of Euler to solve the Seven Bridges of Königsberg, define graphs formally as tuples of sets, explore degrees, walks, trails, and paths, introduce adjacency matrices and lists, and define graph isomorphisms.",
     courseId: "cmsi-2820",
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln20",
@@ -736,7 +736,7 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("2820-ln21"),
     description:
-      "In this lecture we investigate how the alterations to the formal graph definition propagate to change our visuals. We take a look at isomorphisms, connectedness, and the handshaking Lemma.",
+      "In this lecture we investigate connectedness, graph unions, components, cut vertices and bridges, subgraphs, set operations on graphs including the complement, the handshaking lemma, edge contraction, and vertex cleaving.",
     courseId: "cmsi-2820",
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln21",
@@ -757,7 +757,7 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("2820-ln22"),
     description:
-      "In this lecture we take a look at special graphs (Complete, Bipartite, Euler, Hamiltonian) and their special properties. We also take a look at cycles as a useful tool for analyzing graph properties.",
+      "In this lecture we catalog special graph families — complete, bipartite, k-partite, wheels, and hypercubes — solve the eight circles constraint-satisfaction puzzle, define cycles, explore Hamiltonian graphs and the Petersen graph, and introduce the Traveling Salesman Problem.",
     courseId: "cmsi-2820",
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln22",
@@ -778,7 +778,7 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("2820-ln23"),
     description:
-      "In this lecture we cover a few more special graphs in the form of trees and forests. We then end the graph theory unit by investigating minimum spanning trees and how their solutions and structures represent many real-world problems.",
+      "In this lecture we define trees and forests, build trees by cutting down from complete graphs and building up from isolated vertices, introduce spanning trees and weighted graphs, explore minimum spanning trees and shortest paths, and preview planarity, coloring, and network flows.",
     courseId: "cmsi-2820",
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln23",

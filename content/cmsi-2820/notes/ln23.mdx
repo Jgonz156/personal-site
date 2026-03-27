@@ -1,0 +1,733 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+import { GraphVisualization } from "@/components/graph-visualization"
+import { TreeBuilderStepper } from "@/components/tree-builder-stepper"
+
+## Recap
+
+Last lecture we cataloged the most important families of graphs — complete graphs, bipartite graphs, wheels, hypercubes, and the Petersen graph. We discovered the stark contrast between Euler's problem (every *edge* once — efficiently testable) and Hamilton's problem (every *vertex* once — NP-complete), and met the Traveling Salesman Problem.
+
+Today we study the **simplest connected graphs** — trees — and discover that finding the *cheapest* way to connect everything is a problem with beautiful, efficient solutions. We then look ahead to where graph theory goes from here.
+
+---
+
+## Trees
+
+Strip a connected graph down to its bare minimum — remove edges until one more removal would disconnect it. What remains is a **tree**.
+
+<DefinitionBox term="Tree">
+
+A **tree** is a connected, acyclic graph. Equivalently, any two of these conditions imply the third:
+
+1. <InlineMath formula="G" /> is connected
+2. <InlineMath formula="G" /> is acyclic (no cycles)
+3. <InlineMath formula="G" /> has exactly <InlineMath formula="n - 1" /> edges (where <InlineMath formula="n = |V|" />)
+
+</DefinitionBox>
+
+Here are two trees with very different shapes — a "star" and a "path":
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" },
+    { id: "B", label: "B" }, { id: "C", label: "C" },
+    { id: "D", label: "D" }, { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "A", to: "C" },
+    { from: "A", to: "D" }, { from: "A", to: "E" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "B", to: "C" },
+    { from: "C", to: "D" }, { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+Both are trees: connected, acyclic, and both have <InlineMath formula="n - 1 = 4" /> edges.
+
+Trees are **fragile**: removing any edge disconnects the graph (since there's exactly one path between any two vertices). And adding any edge creates a cycle (since a path already existed):
+
+Remove an edge from a tree — it disconnects:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "C", to: "D" },
+  ]}
+  interactive={true}
+  height="220px"
+/>
+
+Add an edge to a tree — a cycle appears:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "B", to: "C" },
+    { from: "C", to: "D" }, { from: "D", to: "E" },
+    { from: "A", to: "E", color: "#ef4444", width: 3 },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+The red edge A–E creates the cycle A–B–C–D–E–A.
+
+### Trees Everywhere in CS
+
+Trees are arguably the most important structure in all of computer science, and you've been using them without knowing it:
+
+- **File systems**: `os.walk()` traverses the directory tree. Every path from root `/` to a file is unique — that's because it's a tree
+- **Abstract Syntax Trees**: `import ast; ast.parse("x + 1")` produces a tree. Python parses every program into a tree before executing it (callback to LN12–14 — lambda calculus expressions are parsed into trees too)
+- **Class hierarchies**: Python's MRO (Method Resolution Order) linearizes the inheritance tree. `ClassName.__mro__` shows the path
+- **JSON/nested dicts**: `json.loads()` produces nested dicts — a tree structure where every key path is unique
+
+---
+
+## Forests
+
+<DefinitionBox term="Forest">
+
+A **forest** is an acyclic graph — a graph where every connected component is a tree.
+
+A forest with <InlineMath formula="n" /> vertices and <InlineMath formula="k" /> components has exactly <InlineMath formula="n - k" /> edges.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A", color: "#86efac" },
+    { id: "B", label: "B", color: "#86efac" },
+    { id: "C", label: "C", color: "#86efac" },
+    { id: "D", label: "D", color: "#93c5fd" },
+    { id: "E", label: "E", color: "#93c5fd" },
+    { id: "F", label: "F", color: "#fca5a5" },
+    { id: "G", label: "G", color: "#fca5a5" },
+    { id: "H", label: "H", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "B", to: "C" },
+    { from: "D", to: "E" },
+    { from: "F", to: "G" }, { from: "G", to: "H" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+This forest has <InlineMath formula="n = 8" /> vertices, <InlineMath formula="k = 3" /> components, and <InlineMath formula="n - k = 5" /> edges. Each component is a tree.
+
+---
+
+## Two Intuitions for Building Trees
+
+Trees sit at exactly <InlineMath formula="n - 1" /> edges — the minimum for connectivity. We can approach this number from two directions:
+
+**Cutting down** (top-down): Start from <InlineMath formula="K_n" /> — the maximally connected graph. Remove edges while maintaining connectivity until you reach <InlineMath formula="n - 1" /> edges. You must have a tree.
+
+**Building up** (bottom-up): Start from <InlineMath formula="n" /> isolated vertices (a forest of <InlineMath formula="n" /> components). Add edges without creating cycles until you have exactly one component. You must have a tree.
+
+These two directions **sandwich** toward the same <InlineMath formula="n - 1" /> edge count. Step through both processes below:
+
+<TreeBuilderStepper
+  cuttingSteps={[
+    {
+      description: "K₅: the complete graph on 5 vertices. 10 edges — maximally connected.",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B" }, { from: "A", to: "C" },
+        { from: "A", to: "D" }, { from: "A", to: "E" },
+        { from: "B", to: "C" }, { from: "B", to: "D" },
+        { from: "B", to: "E" }, { from: "C", to: "D" },
+        { from: "C", to: "E" }, { from: "D", to: "E" },
+      ],
+    },
+    {
+      description: "Remove edges in cycles. 7 edges remain — still connected.",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B" }, { from: "A", to: "C" },
+        { from: "A", to: "D" }, { from: "B", to: "C" },
+        { from: "B", to: "E" }, { from: "C", to: "D" },
+        { from: "D", to: "E" },
+      ],
+    },
+    {
+      description: "Keep removing edges from cycles. 5 edges — still connected.",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B" }, { from: "A", to: "C" },
+        { from: "B", to: "E" }, { from: "C", to: "D" },
+        { from: "D", to: "E" },
+      ],
+    },
+    {
+      description: "4 edges = n-1. Connected and acyclic — a tree!",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B", color: "#16a34a", width: 3 },
+        { from: "A", to: "C", color: "#16a34a", width: 3 },
+        { from: "C", to: "D", color: "#16a34a", width: 3 },
+        { from: "D", to: "E", color: "#16a34a", width: 3 },
+      ],
+    },
+  ]}
+  buildingSteps={[
+    {
+      description: "5 isolated vertices. 0 edges, 5 components.",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [],
+    },
+    {
+      description: "Add edge A–B. 1 edge, 4 components.",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B", color: "#16a34a", width: 3 },
+      ],
+    },
+    {
+      description: "Add edge C–D. 2 edges, 3 components.",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B", color: "#16a34a", width: 3 },
+        { from: "C", to: "D", color: "#16a34a", width: 3 },
+      ],
+    },
+    {
+      description: "Add edge B–C (merges two components). 3 edges, 2 components.",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B", color: "#16a34a", width: 3 },
+        { from: "B", to: "C", color: "#16a34a", width: 3 },
+        { from: "C", to: "D", color: "#16a34a", width: 3 },
+      ],
+    },
+    {
+      description: "Add edge D–E (merges the last component). 4 = n-1 edges, 1 component — a tree!",
+      nodes: [
+        { id: "A", label: "A" }, { id: "B", label: "B" },
+        { id: "C", label: "C" }, { id: "D", label: "D" },
+        { id: "E", label: "E" },
+      ],
+      edges: [
+        { from: "A", to: "B", color: "#16a34a", width: 3 },
+        { from: "B", to: "C", color: "#16a34a", width: 3 },
+        { from: "C", to: "D", color: "#16a34a", width: 3 },
+        { from: "D", to: "E", color: "#16a34a", width: 3 },
+      ],
+    },
+  ]}
+  height="300px"
+/>
+
+This dual perspective directly sets up the next topic: the "building up" approach mirrors **Kruskal's** algorithm (add cheapest edges without creating cycles), while a variant of "building out from a single vertex" mirrors **Prim's** algorithm. You'll explore this connection concretely in your homework!
+
+**Arthur Cayley (1821–1895)**, a British mathematician, proved a remarkable counting result about trees in 1889: the number of distinct labeled trees on <InlineMath formula="n" /> vertices is <InlineMath formula="n^{n-2}" />. For 4 vertices, that's <InlineMath formula="4^2 = 16" /> different trees — a surprising number! Cayley was motivated by chemistry: counting structural isomers of hydrocarbon chains.
+
+---
+
+## Spanning Trees
+
+<DefinitionBox term="Spanning Tree">
+
+A **spanning tree** of a connected graph <InlineMath formula="G" /> is a subgraph that:
+1. Is a tree (connected and acyclic)
+2. Includes **all vertices** of <InlineMath formula="G" />
+
+Every connected graph has at least one spanning tree (by the "cutting down" process above — keep removing cycle edges until none remain).
+
+</DefinitionBox>
+
+Here is a graph with one of its spanning trees highlighted:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" }, { id: "F", label: "F" },
+  ]}
+  edges={[
+    { from: "A", to: "B", color: "#16a34a", width: 4 },
+    { from: "B", to: "C", color: "#16a34a", width: 4 },
+    { from: "A", to: "D" },
+    { from: "B", to: "E", color: "#16a34a", width: 4 },
+    { from: "C", to: "F", color: "#16a34a", width: 4 },
+    { from: "D", to: "E", color: "#16a34a", width: 4 },
+    { from: "E", to: "F" },
+    { from: "A", to: "E" },
+    { from: "B", to: "D" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+The green edges form a spanning tree — 5 edges connecting all 6 vertices with no cycles. But this graph has other spanning trees too:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" }, { id: "F", label: "F" },
+  ]}
+  edges={[
+    { from: "A", to: "B" },
+    { from: "B", to: "C" },
+    { from: "A", to: "D", color: "#2563eb", width: 4 },
+    { from: "B", to: "E" },
+    { from: "C", to: "F", color: "#2563eb", width: 4 },
+    { from: "D", to: "E", color: "#2563eb", width: 4 },
+    { from: "E", to: "F", color: "#2563eb", width: 4 },
+    { from: "A", to: "E", color: "#2563eb", width: 4 },
+    { from: "B", to: "D" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+A different spanning tree of the same graph (blue edges). Spanning trees are not unique — a graph can have many.
+
+---
+
+## Weighted Graphs
+
+So far, all edges have been equal. What if some connections are more expensive, longer, or faster than others?
+
+<DefinitionBox term="Weighted Graph">
+
+A **weighted graph** is a triple <InlineMath formula="(V, E, w)" /> where <InlineMath formula="w: E \to \mathbb{R}" /> assigns a real-valued **weight** to each edge.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", label: "4" },
+    { from: "A", to: "C", label: "2" },
+    { from: "B", to: "C", label: "5" },
+    { from: "B", to: "D", label: "10" },
+    { from: "C", to: "D", label: "3" },
+    { from: "C", to: "E", label: "8" },
+    { from: "D", to: "E", label: "7" },
+  ]}
+  interactive={true}
+  height="320px"
+/>
+
+In Python, a weighted graph extends the `dict[str, set[str]]` pattern from LN20 — now each neighbor maps to a weight:
+
+```python
+weighted_graph = {
+    "A": {"B": 4, "C": 2},
+    "B": {"A": 4, "C": 5, "D": 10},
+    "C": {"A": 2, "B": 5, "D": 3, "E": 8},
+    "D": {"B": 10, "C": 3, "E": 7},
+    "E": {"C": 8, "D": 7},
+}
+```
+
+This formalization unlocks two optimization questions: "What's the cheapest way to **connect everything**?" (MST) and "What's the cheapest way to **get from A to B**?" (shortest path).
+
+---
+
+## Minimum Spanning Trees
+
+<DefinitionBox term="Minimum Spanning Tree (MST)">
+
+A **minimum spanning tree** of a weighted connected graph is a spanning tree with the **minimum total edge weight** among all spanning trees.
+
+</DefinitionBox>
+
+Using our weighted graph above, here is its MST:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", label: "4", color: "#16a34a", width: 4 },
+    { from: "A", to: "C", label: "2", color: "#16a34a", width: 4 },
+    { from: "B", to: "C", label: "5" },
+    { from: "B", to: "D", label: "10" },
+    { from: "C", to: "D", label: "3", color: "#16a34a", width: 4 },
+    { from: "C", to: "E", label: "8" },
+    { from: "D", to: "E", label: "7", color: "#16a34a", width: 4 },
+  ]}
+  interactive={true}
+  height="320px"
+/>
+
+MST edges: A–C (2) + C–D (3) + A–B (4) + D–E (7) = **16**. No other spanning tree has a lower total weight.
+
+For comparison, here is a non-optimal spanning tree:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", label: "4", color: "#ef4444", width: 4 },
+    { from: "A", to: "C", label: "2" },
+    { from: "B", to: "C", label: "5", color: "#ef4444", width: 4 },
+    { from: "B", to: "D", label: "10", color: "#ef4444", width: 4 },
+    { from: "C", to: "D", label: "3" },
+    { from: "C", to: "E", label: "8", color: "#ef4444", width: 4 },
+    { from: "D", to: "E", label: "7" },
+  ]}
+  interactive={true}
+  height="320px"
+/>
+
+This spanning tree costs 4 + 5 + 10 + 8 = **27** — valid, but far from optimal.
+
+### Applications and Algorithms
+
+MSTs arise naturally across many fields:
+- **Network design**: minimum cable to connect buildings
+- **Circuit design**: minimum wire to connect components
+- **Clustering**: group data points by removing the longest MST edges
+- **Approximation algorithms**: MSTs provide near-optimal solutions for TSP
+
+Three classical algorithms find MSTs efficiently:
+
+- **Borůvka's** (1926): every component picks its cheapest outgoing edge, all simultaneously
+- **Kruskal's** (1956): sort all edges by weight, add cheapest that doesn't create a cycle (building up)
+- **Prim's** (1957): grow the tree outward from a single vertex, always adding the cheapest edge to a new vertex
+
+Notice the connection to our two tree-building intuitions: Kruskal's mirrors "building up" (adding edges without cycles), while Prim's mirrors "growing outward."
+
+You will implement all three algorithms in Python in the HW6 programming assignment (`prim.py`, `kruskal.py`, `boruvka.py`), which provides a guided, hands-on treatment.
+
+**Otakar Borůvka (1899–1995)** developed the first MST algorithm not as an abstract exercise, but to solve a real engineering problem: **electrifying Moravia**. The regional power company needed to connect cities with minimum total wire. His solution — let every city independently pick its cheapest outgoing connection, merge the resulting components, and repeat — predates Kruskal's and Prim's by three decades. He lived to 96 and saw his algorithm rediscovered for parallel computing in the 1990s.
+
+---
+
+## Shortest Paths
+
+The second optimization question on weighted graphs: given a source vertex, find the minimum-weight path to every other vertex.
+
+<DefinitionBox term="Shortest Path">
+
+The **shortest path** from vertex <InlineMath formula="s" /> to vertex <InlineMath formula="t" /> in a weighted graph is the path from <InlineMath formula="s" /> to <InlineMath formula="t" /> with minimum total edge weight.
+
+</DefinitionBox>
+
+MST and shortest path answer *different* questions: MST connects everyone as cheaply as possible; shortest path finds the cheapest route between two specific nodes. To see the difference:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", label: "4" },
+    { from: "A", to: "C", label: "2", color: "#2563eb", width: 4 },
+    { from: "B", to: "C", label: "5" },
+    { from: "B", to: "D", label: "10" },
+    { from: "C", to: "D", label: "3", color: "#2563eb", width: 4 },
+    { from: "C", to: "E", label: "8" },
+    { from: "D", to: "E", label: "7", color: "#2563eb", width: 4 },
+  ]}
+  interactive={true}
+  height="320px"
+/>
+
+The **shortest path** from A to E goes A → C → D → E with total weight 2 + 3 + 7 = **12** (blue edges). But the MST path from A to E is the same in this case. In general, the MST does **not** guarantee shortest paths between specific pairs — it minimizes *total* cost, not *pairwise* cost.
+
+**Edsger Dijkstra (1930–2002)** designed his shortest path algorithm in about 20 minutes while sitting at a café in Amsterdam in 1956. His original motivation: "What is the shortest way to travel from Rotterdam to Groningen?" The algorithm greedily expands a frontier from the source, always picking the closest unvisited vertex — similar to Prim's (both are greedy, both grow outward from a single node). When you implement Prim's in the homework you'll recognize the pattern.
+
+Dijkstra went on to win the Turing Award in 1972 and became one of the most influential voices in software engineering — coining the term "structured programming" and arguing passionately against `goto` statements.
+
+In Python, both Prim's and Dijkstra's rely on efficiently finding the minimum — Python's `heapq` module implements a binary heap, which is itself a tree data structure:
+
+```python
+import heapq
+frontier = [(2, "C"), (4, "B")]  # (weight, node)
+heapq.heappop(frontier)          # (2, "C") — always returns minimum
+```
+
+Applications of shortest paths: GPS navigation, network routing (OSPF — the protocol that routes packets across the internet), and game pathfinding.
+
+---
+
+## Where Graph Theory Goes from Here
+
+We have covered the fundamentals of graph theory in four lectures. But this is just the beginning — graph theory is a living, expansive field. Here are three directions that connect directly to what we've learned.
+
+### Planarity
+
+Can a graph be drawn in the plane without any edge crossings? A graph with this property is called **planar**. This is relevant to circuit board design — components on a single-layer board can only be connected without crossing wires if the circuit graph is planar.
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "B", to: "C" },
+    { from: "C", to: "D" }, { from: "D", to: "A" },
+    { from: "A", to: "C" },
+  ]}
+  interactive={true}
+  height="260px"
+/>
+
+This graph is planar — it can be drawn without crossings. But try drawing <InlineMath formula="K_5" /> or <InlineMath formula="K_{3,3}" /> (from LN22) without crossings — you can't. **Kuratowski's theorem** says a graph is planar if and only if it contains no "copy" of <InlineMath formula="K_5" /> or <InlineMath formula="K_{3,3}" /> (technically, no subdivision of either as a subgraph).
+
+For planar graphs, Euler discovered another elegant formula: <InlineMath formula="V - E + F = 2" />, where <InlineMath formula="F" /> is the number of faces (regions) in the planar drawing. This invariant holds for every planar graph.
+
+### Graph Coloring
+
+Assign colors to vertices so that **no two adjacent vertices share a color**. The minimum number of colors needed is the **chromatic number** <InlineMath formula="\chi(G)" />.
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A", color: "#fca5a5" },
+    { id: "B", label: "B", color: "#93c5fd" },
+    { id: "C", label: "C", color: "#86efac" },
+    { id: "D", label: "D", color: "#93c5fd" },
+    { id: "E", label: "E", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "B", to: "C" },
+    { from: "C", to: "D" }, { from: "D", to: "E" },
+    { from: "E", to: "A" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+This <InlineMath formula="C_5" /> requires 3 colors (<InlineMath formula="\chi(C_5) = 3" />). The constraint placement puzzles from LN22 were secretly graph coloring problems — you were assigning "colors" (letters) to vertices subject to adjacency constraints. You solved a coloring problem without knowing it!
+
+#### Chromatic Numbers of Familiar Families
+
+Here's where the vocabulary from LN22 pays off. We can immediately determine the chromatic number of every graph family we studied:
+
+- <InlineMath formula="\chi(K_n) = n" />: In a complete graph, every vertex is adjacent to every other, so every vertex needs its own color.
+- <InlineMath formula="\chi(C_n) = 2" /> if <InlineMath formula="n" /> is even, <InlineMath formula="\chi(C_n) = 3" /> if <InlineMath formula="n" /> is odd: Even cycles can alternate two colors; odd cycles need a third.
+- <InlineMath formula="\chi(G) = 2" /> for any bipartite graph <InlineMath formula="G" />: The two partitions *are* the two color classes. This is precisely why bipartiteness and 2-colorability are equivalent.
+- <InlineMath formula="\chi(T) = 2" /> for any tree <InlineMath formula="T" /> (with at least one edge): Trees are bipartite (no cycles at all, so certainly no *odd* cycles).
+
+#### The k-Partite Connection
+
+In LN22, we noted that k-partite graphs partition vertices into independent sets — groups with no internal edges. Graph coloring reveals why that matters: **a graph is k-colorable if and only if it is a subgraph of a complete k-partite graph**. Each color class is an independent set, and the partition into color classes is precisely a k-partition. The concept of k-partite graphs and graph coloring are two sides of the same coin.
+
+#### Ramsey Theory: Coloring Complete Graphs
+
+Here's a surprising result about coloring. Take <InlineMath formula="K_6" /> and color every *edge* either red or blue — any way you like. No matter how you choose, **a monochromatic triangle must exist**: three vertices whose connecting edges are all the same color. This is the simplest case of **Ramsey theory**, which studies what structures inevitably emerge as graphs grow. The result connects complete graphs (LN22) to coloring in an unexpected way — even at the edge level, structure is inescapable.
+
+#### The Four-Color Theorem
+
+The **four-color theorem** — one of the most famous results in mathematics — states that every planar graph can be colored with at most 4 colors. It was the first major theorem proved with the aid of a computer (1976), when Kenneth Appel and Wolfgang Haken reduced it to checking 1,936 configurations by machine.
+
+Applications: exam scheduling (no student has two exams at the same time), register allocation in compilers, and the classic problem of map coloring.
+
+### Network Flows
+
+Model a graph as a network with **capacities** on edges. How much "stuff" (data, water, traffic) can flow from a source to a sink?
+
+<GraphVisualization
+  nodes={[
+    { id: "S", label: "Source", color: "#86efac" },
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" },
+    { id: "T", label: "Sink", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "S", to: "A", label: "10" },
+    { from: "S", to: "B", label: "8" },
+    { from: "A", to: "C", label: "6" },
+    { from: "A", to: "B", label: "2" },
+    { from: "B", to: "C", label: "5" },
+    { from: "C", to: "T", label: "10" },
+    { from: "B", to: "T", label: "7" },
+  ]}
+  directed={true}
+  interactive={true}
+  height="300px"
+/>
+
+The **max-flow/min-cut theorem** states: the maximum flow from source to sink equals the minimum capacity you'd need to cut to disconnect them. Applications include transportation, communication networks, and even baseball elimination.
+
+---
+
+These three directions — planarity, coloring, and flows — connect to circuit design, optimization, logistics, and theoretical CS. The vocabulary and intuitions from these four lectures are the foundation for all of it.
+
+---
+
+## Practice Problems
+
+<PracticeBox
+  title="Tree Properties"
+  question="A tree has 10 vertices. How many edges does it have?"
+  choices={["9", "10", "11", "It depends on the tree's shape"]}
+  correctIndex={0}
+  hint="All trees on n vertices have exactly n-1 edges."
+  explanation="By definition, a tree with n vertices has exactly n-1 edges. For n = 10, that's 9 edges regardless of shape."
+/>
+
+<PracticeBox
+  title="Forest Components"
+  question="A forest has 12 vertices and 8 edges. How many components does it have?"
+  choices={["2", "3", "4", "8"]}
+  correctIndex={2}
+  hint="A forest with n vertices and k components has n-k edges."
+  explanation="n - k = edges, so 12 - k = 8, giving k = 4 components."
+/>
+
+<PracticeBox
+  title="MST vs Shortest Path"
+  question="True or false: The path between two vertices in an MST is always the shortest path between them in the original weighted graph."
+  choices={[
+    "True — the MST minimizes total weight so it must also minimize individual paths",
+    "False — the MST minimizes total weight, not individual pairwise distances",
+    "True — but only for undirected graphs",
+    "False — but only for graphs with negative weights"
+  ]}
+  correctIndex={1}
+  hint="MST optimizes total cost; shortest path optimizes pairwise cost. Are these the same objective?"
+  explanation="The MST minimizes the sum of all edge weights in the tree, not the weight of any particular path. A direct edge with weight 100 might not be in the MST, but it's still the shortest path between its endpoints."
+/>
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Trees and Forests:**
+
+- Tree: connected + acyclic + $n-1$ edges (any two imply the third)
+- Forest: acyclic graph; each component is a tree; $n$ vertices, $k$ components → $n-k$ edges
+- Trees are fragile: removing any edge disconnects, adding any edge creates a cycle
+- Trees are everywhere in CS: file systems, ASTs, class hierarchies, JSON, heaps
+
+**Two Intuitions for Trees:**
+
+- **Cutting down**: remove edges from $K_n$ while staying connected → tree
+- **Building up**: add edges to isolated vertices without creating cycles → tree
+- These mirror Kruskal's (building up) and Prim's (growing outward) MST algorithms
+
+**Spanning Trees and MSTs:**
+
+- Spanning tree: subgraph that is a tree and includes all vertices
+- MST: spanning tree with minimum total edge weight
+- Three classical algorithms: Borůvka (1926), Kruskal (1956), Prim (1957)
+- Applications: network design, circuit layout, clustering, TSP approximation
+
+**Weighted Graphs and Shortest Paths:**
+
+- Weighted graph: $(V, E, w)$ with $w: E \to \mathbb{R}$
+- MST ≠ shortest paths — different optimization objectives
+- Dijkstra's algorithm: greedy expansion from source, similar to Prim's
+- `heapq` in Python implements the priority queue both algorithms need
+
+**Where Graph Theory Goes Next:**
+
+- Planarity: <InlineMath formula="K_5" /> and <InlineMath formula="K_{3,3}" /> are not planar; Euler's formula <InlineMath formula="V - E + F = 2" />
+- Coloring: chromatic number $\chi(G)$; $\chi(K_n) = n$, $\chi(\text{bipartite}) = 2$, $\chi(\text{tree}) = 2$; four-color theorem for planar graphs
+- k-colorable iff subgraph of complete k-partite — LN22 vocabulary meets coloring
+- Ramsey theory: monochromatic triangles inevitable in 2-edge-colored $K_6$
+- Network flows: max-flow/min-cut theorem
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| Trees as CS data structures | LN12-14: lambda expressions parsed into trees |
+| $n^{n-2}$ labeled trees (Cayley) | LN17: combinatorial counting |
+| Weighted graph `dict[str, dict[str, float]]` | LN20: `dict[str, set[str]]` for unweighted |
+| `heapq` (binary heap = tree) | Trees in CS |
+| `graphlib.TopologicalSorter` | Directed graphs, DAGs |
+| MST algorithms and tree building | LN21: connectivity, LN22: $K_n$ |
+| $\chi(K_n) = n$, $\chi(\text{bipartite}) = 2$ | LN22: complete graphs, bipartite graphs |
+| k-partite ↔ k-colorable | LN22: k-partite graphs |
+| Constraint puzzles ↔ graph coloring | LN22: eight circles puzzle |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Numberphile: "Spanning Trees"](https://www.youtube.com/watch?v=A2z-KKhSISg) — Beautiful visual explanation
+- [Computerphile: "Dijkstra's Algorithm"](https://www.youtube.com/watch?v=GazC3A4OQTE) — Step-by-step walkthrough
+
+### Further Reading
+
+- [Wikipedia: Tree (Graph Theory)](https://en.wikipedia.org/wiki/Tree_(graph_theory)) — Properties, counting, and applications
+- [Wikipedia: Minimum Spanning Tree](https://en.wikipedia.org/wiki/Minimum_spanning_tree) — Algorithms and history
+- [Wikipedia: Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) — The café in Amsterdam story
+
+### Connection to Programming
+
+- MST algorithms power Cisco's Spanning Tree Protocol (STP), which prevents loops in Ethernet networks — literally computing a spanning tree
+- Dijkstra's algorithm powers OSPF (Open Shortest Path First), the routing protocol used across the internet
+- Trees are the most common data structure in CS after arrays and hash tables — BSTs, heaps, tries, B-trees, red-black trees
+- Python's `pip` dependency resolver builds a dependency graph and computes a topological ordering — combining graphs, trees, and DAGs
+
+</LectureResources>

@@ -1,0 +1,635 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { PracticeBox } from "@/components/practice-box"
+import { GraphVisualization } from "@/components/graph-visualization"
+import { EightCirclesPuzzle } from "@/components/eight-circles-puzzle"
+
+## Recap
+
+Last lecture we explored the *structural* properties of graphs — connectedness, components, cut vertices, bridges — and the *operations* we can perform on them — union, intersection, complement, edge contraction, and vertex cleaving. We proved the handshaking lemma (<InlineMath formula="\sum \deg(v) = 2|E|" />) and showed that graphs inherit the full algebra of set operations from LN10.
+
+Today we catalog the most important **families** of graphs — graphs with special structural properties — and discover that some simple-sounding questions about them are extraordinarily hard.
+
+---
+
+## Cycles
+
+<DefinitionBox term="Cycle">
+
+A **cycle** <InlineMath formula="C_n" /> is a closed path — a sequence of <InlineMath formula="n" /> distinct vertices where each is connected to the next, and the last connects back to the first.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "1", label: "1" }, { id: "2", label: "2" }, { id: "3", label: "3" },
+  ]}
+  edges={[
+    { from: "1", to: "2" }, { from: "2", to: "3" }, { from: "3", to: "1" },
+  ]}
+  interactive={true}
+  height="220px"
+/>
+
+<GraphVisualization
+  nodes={[
+    { id: "1", label: "1" }, { id: "2", label: "2" },
+    { id: "3", label: "3" }, { id: "4", label: "4" },
+    { id: "5", label: "5" },
+  ]}
+  edges={[
+    { from: "1", to: "2" }, { from: "2", to: "3" },
+    { from: "3", to: "4" }, { from: "4", to: "5" }, { from: "5", to: "1" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+<InlineMath formula="C_3" /> (triangle) and <InlineMath formula="C_5" /> (pentagon).
+
+Cycles will be a central concept throughout this lecture — they determine whether a graph is bipartite, and the question of whether a cycle can visit *every* vertex leads to one of the hardest problems in computer science.
+
+---
+
+## Complete Graphs
+
+<DefinitionBox term="Complete Graph">
+
+The **complete graph** <InlineMath formula="K_n" /> has <InlineMath formula="n" /> vertices, with an edge between **every** pair. It has <InlineMath formula="\binom{n}{2} = \frac{n(n-1)}{2}" /> edges.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "1", label: "1" },
+    { id: "2", label: "2" },
+    { id: "3", label: "3" },
+  ]}
+  edges={[
+    { from: "1", to: "2" },
+    { from: "2", to: "3" },
+    { from: "1", to: "3" },
+  ]}
+  interactive={true}
+  height="250px"
+/>
+
+<InlineMath formula="K_3" />: 3 edges.
+
+<GraphVisualization
+  nodes={[
+    { id: "1", label: "1" },
+    { id: "2", label: "2" },
+    { id: "3", label: "3" },
+    { id: "4", label: "4" },
+  ]}
+  edges={[
+    { from: "1", to: "2" },
+    { from: "1", to: "3" },
+    { from: "1", to: "4" },
+    { from: "2", to: "3" },
+    { from: "2", to: "4" },
+    { from: "3", to: "4" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+<InlineMath formula="K_4" />: 6 edges.
+
+<GraphVisualization
+  nodes={[
+    { id: "1", label: "1" },
+    { id: "2", label: "2" },
+    { id: "3", label: "3" },
+    { id: "4", label: "4" },
+    { id: "5", label: "5" },
+  ]}
+  edges={[
+    { from: "1", to: "2" },
+    { from: "1", to: "3" },
+    { from: "1", to: "4" },
+    { from: "1", to: "5" },
+    { from: "2", to: "3" },
+    { from: "2", to: "4" },
+    { from: "2", to: "5" },
+    { from: "3", to: "4" },
+    { from: "3", to: "5" },
+    { from: "4", to: "5" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+<InlineMath formula="K_5" />: 10 edges. Note how rapidly the edge count grows — this is the <InlineMath formula="\binom{n}{2}" /> from LN17.
+
+In Python, the edge set of <InlineMath formula="K_n" /> is exactly `itertools.combinations`:
+
+```python
+from itertools import combinations
+vertices = ["A", "B", "C", "D", "E"]
+edges_K5 = list(combinations(vertices, 2))  # 10 edges = C(5,2)
+```
+
+### Properties of Complete Graphs
+
+Complete graphs pack in every possible connection, which gives them a number of striking properties we can state using terms we've already built up:
+
+**Regularity:** Every vertex in <InlineMath formula="K_n" /> has degree <InlineMath formula="n - 1" />. That makes <InlineMath formula="K_n" /> an <InlineMath formula="(n{-}1)" />-regular graph — every vertex is structurally identical.
+
+**Complement:** The complement of <InlineMath formula="K_n" /> is the **empty graph** — the graph on <InlineMath formula="n" /> vertices with zero edges. Since <InlineMath formula="K_n" /> already has every possible edge, there's nothing left. Conversely, <InlineMath formula="G \cup \overline{G} = K_n" /> for any graph <InlineMath formula="G" /> on <InlineMath formula="n" /> vertices, as we saw in LN21.
+
+**Resilience:** <InlineMath formula="K_n" /> has no cut vertices and no bridges. Removing any single vertex leaves <InlineMath formula="K_{n-1}" />, which is still complete — and therefore still connected. You'd need to remove <InlineMath formula="n - 1" /> vertices to disconnect it.
+
+### Where Complete Graphs Appear
+
+Complete graphs model "every pair interacts" scenarios, which arise more often than you might expect:
+
+**Full-mesh networks:** In networking, a full-mesh topology connects every node to every other. This guarantees maximum fault tolerance — any single link failure still leaves all nodes reachable. But the cost is <InlineMath formula="\binom{n}{2}" /> connections, which grows quadratically. This is why full-mesh is practical only for small clusters; at data-center scale, engineers use cleverer topologies (like the hypercubes we'll see shortly).
+
+**All-pairs testing:** In software QA, if you have <InlineMath formula="n" /> components that might interact, testing every pair requires <InlineMath formula="\binom{n}{2}" /> test cases — the edge set of <InlineMath formula="K_n" />. Python's `itertools.combinations(components, 2)` generates exactly these pairs.
+
+**Round-robin tournaments:** A tournament where every team plays every other team is a complete graph with directed edges (the winner of each game gets an outgoing edge). With <InlineMath formula="n" /> teams, there are <InlineMath formula="\binom{n}{2}" /> games — and scheduling them efficiently is itself a combinatorics problem from LN17.
+
+---
+
+## Bipartite Graphs
+
+<DefinitionBox term="Bipartite Graph">
+
+A graph is **bipartite** if its vertices can be split into two disjoint sets <InlineMath formula="U" /> and <InlineMath formula="W" /> such that every edge connects a vertex in <InlineMath formula="U" /> to one in <InlineMath formula="W" /> — no edges exist within either set.
+
+A **complete bipartite graph** <InlineMath formula="K_{m,n}" /> has every vertex in <InlineMath formula="U" /> (size <InlineMath formula="m" />) connected to every vertex in <InlineMath formula="W" /> (size <InlineMath formula="n" />), giving <InlineMath formula="m \cdot n" /> edges.
+
+</DefinitionBox>
+
+A general bipartite graph:
+
+<GraphVisualization
+  nodes={[
+    { id: "U1", label: "U₁", color: "#93c5fd" },
+    { id: "U2", label: "U₂", color: "#93c5fd" },
+    { id: "U3", label: "U₃", color: "#93c5fd" },
+    { id: "W1", label: "W₁", color: "#fca5a5" },
+    { id: "W2", label: "W₂", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "U1", to: "W1" },
+    { from: "U1", to: "W2" },
+    { from: "U2", to: "W1" },
+    { from: "U3", to: "W2" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+Complete bipartite <InlineMath formula="K_{2,3}" /> and <InlineMath formula="K_{3,3}" />:
+
+<GraphVisualization
+  nodes={[
+    { id: "U1", label: "U₁", color: "#93c5fd" },
+    { id: "U2", label: "U₂", color: "#93c5fd" },
+    { id: "W1", label: "W₁", color: "#fca5a5" },
+    { id: "W2", label: "W₂", color: "#fca5a5" },
+    { id: "W3", label: "W₃", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "U1", to: "W1" },
+    { from: "U1", to: "W2" },
+    { from: "U1", to: "W3" },
+    { from: "U2", to: "W1" },
+    { from: "U2", to: "W2" },
+    { from: "U2", to: "W3" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+<GraphVisualization
+  nodes={[
+    { id: "U1", label: "U₁", color: "#93c5fd" },
+    { id: "U2", label: "U₂", color: "#93c5fd" },
+    { id: "U3", label: "U₃", color: "#93c5fd" },
+    { id: "W1", label: "W₁", color: "#fca5a5" },
+    { id: "W2", label: "W₂", color: "#fca5a5" },
+    { id: "W3", label: "W₃", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "U1", to: "W1" },
+    { from: "U1", to: "W2" },
+    { from: "U1", to: "W3" },
+    { from: "U2", to: "W1" },
+    { from: "U2", to: "W2" },
+    { from: "U2", to: "W3" },
+    { from: "U3", to: "W1" },
+    { from: "U3", to: "W2" },
+    { from: "U3", to: "W3" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+### The Odd-Cycle Characterization
+
+**A graph is bipartite if and only if it contains no odd-length cycle.**
+
+The intuition is elegant: in a bipartite graph, every walk alternates between the two parts <InlineMath formula="U" /> and <InlineMath formula="W" />. If you start in <InlineMath formula="U" />, after an even number of steps you're back in <InlineMath formula="U" />, and after an odd number you're in <InlineMath formula="W" />. An odd-length cycle would require you to return to your starting part after an odd number of steps — a contradiction.
+
+This means <InlineMath formula="C_4" /> and <InlineMath formula="C_6" /> are bipartite (try splitting their vertices!), but <InlineMath formula="C_3" /> and <InlineMath formula="C_5" /> are not.
+
+### Where Bipartite Graphs Appear
+
+Bipartite graphs model any situation where two distinct groups interact, with connections only *between* groups, never *within*:
+
+**Assignment and matching:** The classic use case. Students to projects, workers to tasks, applicants to positions, university courses to classrooms, organ donors to recipients. Whenever you're pairing items from two pools, you're working with a bipartite graph.
+
+**Recommendation engines:** When Netflix suggests a movie or Amazon recommends a product, the underlying structure is a bipartite graph of users and items. Edges represent interactions (ratings, purchases). Finding patterns in this graph powers collaborative filtering — "users who liked X also liked Y."
+
+**Compiler register allocation:** When a compiler assigns variables to CPU registers, it builds a bipartite graph mapping variables to available registers. Constraints (two variables alive at the same time can't share a register) restrict which edges are allowed.
+
+**Biology:** Enzyme-substrate interaction networks are naturally bipartite — enzymes in one set, substrates in the other, edges representing catalytic relationships. Predator-prey food webs often have a bipartite core. In bioinformatics, sequence alignment can be modeled as bipartite matching between nucleotide positions.
+
+In Python, a bipartite graph can be cleanly represented with two dictionaries tracking each partition:
+
+```python
+left = {"Alice", "Bob", "Carol"}
+right = {"Project1", "Project2"}
+edges = {("Alice", "Project1"), ("Bob", "Project1"), ("Carol", "Project2")}
+```
+
+### König's Theorem
+
+One of the most elegant results about bipartite graphs is **König's theorem** (1931): in a bipartite graph, the size of the **maximum matching** (largest set of edges with no shared endpoints) equals the size of the **minimum vertex cover** (smallest set of vertices touching every edge). This duality fails for general graphs but always holds for bipartite ones — a beautiful structural consequence of having no odd cycles.
+
+---
+
+## k-Partite Graphs
+
+<DefinitionBox term="k-Partite Graph">
+
+A **k-partite** graph has vertices split into <InlineMath formula="k" /> disjoint independent sets. Edges only connect vertices in *different* sets, never within the same set.
+
+The **complete k-partite** graph <InlineMath formula="K_{n_1, n_2, \ldots, n_k}" /> has every possible cross-set edge.
+
+</DefinitionBox>
+
+Observe: <InlineMath formula="K_n = K_{1,1,\ldots,1}" /> (n parts of size 1). Every vertex is in its own part, so all cross-part edges exist — that's every pair!
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A", color: "#86efac" },
+    { id: "B", label: "B", color: "#86efac" },
+    { id: "C", label: "C", color: "#93c5fd" },
+    { id: "D", label: "D", color: "#93c5fd" },
+    { id: "E", label: "E", color: "#fca5a5" },
+    { id: "F", label: "F", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "A", to: "C" }, { from: "A", to: "D" },
+    { from: "A", to: "E" }, { from: "A", to: "F" },
+    { from: "B", to: "C" }, { from: "B", to: "D" },
+    { from: "B", to: "E" }, { from: "B", to: "F" },
+    { from: "C", to: "E" }, { from: "C", to: "F" },
+    { from: "D", to: "E" }, { from: "D", to: "F" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Complete 3-partite <InlineMath formula="K_{2,2,2}" />: three groups of two, all cross-edges present.
+
+The idea of partitioning vertices into independent sets — groups with no internal edges — will reappear in LN23, where it connects to a powerful problem-solving framework.
+
+---
+
+## Wheels and Hypercubes
+
+<DefinitionBox term="Wheel Graph">
+
+The **wheel graph** <InlineMath formula="W_n" /> is formed by taking a cycle <InlineMath formula="C_n" /> and adding one central "hub" vertex connected to every cycle vertex.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "H", label: "Hub", color: "#f59e0b" },
+    { id: "1", label: "1" }, { id: "2", label: "2" },
+    { id: "3", label: "3" }, { id: "4", label: "4" },
+  ]}
+  edges={[
+    { from: "1", to: "2" }, { from: "2", to: "3" },
+    { from: "3", to: "4" }, { from: "4", to: "1" },
+    { from: "H", to: "1" }, { from: "H", to: "2" },
+    { from: "H", to: "3" }, { from: "H", to: "4" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+<InlineMath formula="W_4" />: a cycle of 4 plus a hub.
+
+Wheels model **hub-and-spoke** topologies that appear throughout engineering. Airlines route flights through hub airports (Chicago O'Hare, Atlanta Hartsfield); data centers use star topologies where a central switch connects to every server. The wheel's structure also makes it robust: <InlineMath formula="W_n" /> is 3-connected, meaning you must remove at least 3 vertices to disconnect it — a property directly relevant to **fault tolerance** in network design.
+
+<DefinitionBox term="Hypercube Graph">
+
+The **hypercube graph** <InlineMath formula="Q_n" /> has vertices labeled by all <InlineMath formula="n" />-bit binary strings. Two vertices are adjacent if and only if their labels **differ in exactly one bit**.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "000", label: "000" }, { id: "001", label: "001" },
+    { id: "010", label: "010" }, { id: "011", label: "011" },
+    { id: "100", label: "100" }, { id: "101", label: "101" },
+    { id: "110", label: "110" }, { id: "111", label: "111" },
+  ]}
+  edges={[
+    { from: "000", to: "001" }, { from: "000", to: "010" }, { from: "000", to: "100" },
+    { from: "001", to: "011" }, { from: "001", to: "101" },
+    { from: "010", to: "011" }, { from: "010", to: "110" },
+    { from: "011", to: "111" },
+    { from: "100", to: "101" }, { from: "100", to: "110" },
+    { from: "101", to: "111" },
+    { from: "110", to: "111" },
+  ]}
+  interactive={true}
+  height="350px"
+/>
+
+<InlineMath formula="Q_3" />: 8 vertices (3-bit strings), 12 edges. This is a cube!
+
+In Python, adjacency in <InlineMath formula="Q_n" /> has an elegant bitwise characterization:
+
+```python
+def adjacent_in_hypercube(a, b):
+    return bin(a ^ b).count('1') == 1
+```
+
+Two vertices are adjacent iff their XOR has exactly one 1-bit — that's the **Hamming distance** being exactly 1.
+
+### Hypercubes and Communication Hardware
+
+Hypercubes aren't just mathematical curiosities — they shaped the history of parallel computing. In 1986, **Danny Hillis** built the **Connection Machine (CM-1)** at MIT, connecting 65,536 processors in a hypercube topology. Each processor could reach any other in at most <InlineMath formula="\log_2 n" /> hops — for 65,536 processors, that's just 16 hops. Intel's **iPSC** (Intel Personal SuperComputer) also used hypercube interconnects. Modern data center topologies like fat-trees and Clos networks evolved from these hypercube ideas, trading perfect symmetry for practical wiring constraints.
+
+The hypercube also connects to **Gray codes**: a Hamiltonian path through <InlineMath formula="Q_n" /> visits every <InlineMath formula="n" />-bit string such that consecutive strings differ by exactly one bit. Gray codes are used in analog-to-digital converters and error correction, where changing multiple bits simultaneously could cause transient wrong values.
+
+### Graph Theory in Biology
+
+Graph theory reaches far beyond computer science. In **computational biology**, protein interaction networks map which proteins bind to one another in a cell — these networks exhibit "small-world" properties similar to hypercubes, where most proteins can reach any other through a short chain of interactions. Neural connectivity in the brain is modeled as a graph where neurons are vertices and synapses are edges. Even DNA assembly algorithms use graph traversal (Euler paths on de Bruijn graphs) to reconstruct genomes from short sequencing reads — a direct descendant of the bridge-walking we studied in LN20.
+
+---
+
+## The Constraint Placement Puzzles
+
+Here is a family of puzzles: place letters into the circles below such that **no two alphabetically adjacent letters** (like A-B, or D-E) share an edge. Switch between the three difficulty levels and try them all!
+
+<EightCirclesPuzzle />
+
+After solving (or struggling with) these puzzles, reflect: we just solved a constraint problem on a graph. How hard are problems like this in general? As we'll see next, some graph problems are trivially easy, and some are impossibly hard.
+
+Problems like these are called **constraint satisfaction problems (CSPs)**. In your algorithms course, you'll learn general techniques for solving CSPs — including **backtracking**, **arc consistency**, and strategies like **minimax** — that apply to puzzles, game AI, and scheduling alike.
+
+---
+
+## Hamiltonian Graphs and the Petersen Graph
+
+We now encounter a beautiful parallel to Euler's problem from LN20 — but with a twist that transforms the question from easy to extraordinarily hard.
+
+**William Rowan Hamilton (1805–1865)** was an Irish mathematician and child prodigy who mastered multiple languages by age 13. He's famous for carving the quaternion equations into Brougham Bridge in Dublin in 1843. In 1857, he invented the **Icosian Game** — a commercial puzzle where players tried to find a path visiting every vertex of a dodecahedron exactly once. The irony: Hamilton's puzzle was a commercial failure, but the mathematical concept it inspired became one of the most studied problems in computer science.
+
+<DefinitionBox term="Hamiltonian Path and Cycle">
+
+A **Hamiltonian path** visits every **vertex** exactly once.
+
+A **Hamiltonian cycle** visits every vertex exactly once and returns to the starting vertex.
+
+A graph containing a Hamiltonian cycle is called **Hamiltonian**.
+
+</DefinitionBox>
+
+The parallel to Euler is striking: an Euler trail visits every *edge* once, a Hamiltonian path visits every *vertex* once. Same spirit, **vastly different difficulty**.
+
+One immediate observation: every complete graph <InlineMath formula="K_n" /> with <InlineMath formula="n \geq 3" /> is Hamiltonian — since every vertex connects to every other, you can always find a cycle visiting them all. But as we'll see, having *fewer* edges makes the question dramatically harder.
+
+Here is a Hamiltonian graph with a Hamiltonian cycle highlighted:
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", color: "#16a34a", width: 4, label: "1" },
+    { from: "B", to: "C", color: "#16a34a", width: 4, label: "2" },
+    { from: "C", to: "D", color: "#16a34a", width: 4, label: "3" },
+    { from: "D", to: "E", color: "#16a34a", width: 4, label: "4" },
+    { from: "E", to: "A", color: "#16a34a", width: 4, label: "5" },
+    { from: "A", to: "C" },
+    { from: "B", to: "D" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+And here is the **Petersen graph** — a famous counterexample. **Julius Petersen (1839–1910)**, a Danish mathematician, published it in 1898. It is 3-regular (every vertex has degree 3), connected, and highly symmetric — yet it has **no Hamiltonian cycle**. It appears as a counterexample in over a dozen different graph theory theorems.
+
+<GraphVisualization
+  nodes={[
+    { id: "0", label: "0" }, { id: "1", label: "1" },
+    { id: "2", label: "2" }, { id: "3", label: "3" },
+    { id: "4", label: "4" }, { id: "5", label: "5" },
+    { id: "6", label: "6" }, { id: "7", label: "7" },
+    { id: "8", label: "8" }, { id: "9", label: "9" },
+  ]}
+  edges={[
+    { from: "0", to: "1" }, { from: "1", to: "2" },
+    { from: "2", to: "3" }, { from: "3", to: "4" },
+    { from: "4", to: "0" },
+    { from: "5", to: "7" }, { from: "7", to: "9" },
+    { from: "9", to: "6" }, { from: "6", to: "8" },
+    { from: "8", to: "5" },
+    { from: "0", to: "5" }, { from: "1", to: "6" },
+    { from: "2", to: "7" }, { from: "3", to: "8" },
+    { from: "4", to: "9" },
+  ]}
+  interactive={true}
+  height="350px"
+/>
+
+For Euler's question (LN20), we had an elegant degree-based test: count odd-degree vertices. For Hamilton's question, **no such efficient test exists**. Determining whether a graph is Hamiltonian is **NP-complete** — no known polynomial-time algorithm solves it. A small change in problem formulation ("every edge" vs "every vertex") transforms the problem from easy to intractable.
+
+---
+
+## Graph Theory Meets Optimization
+
+Hamilton and Petersen showed us that some graph questions are *hard*. But difficulty doesn't mean we give up — it means we look for clever strategies. And here graph theory reveals one of its greatest strengths: it gives optimization problems a **visual structure**.
+
+In our combinatorics unit (LN16–19), we counted arrangements, computed probabilities, and measured how fast possibilities grow. Optimization asks a related but different question: among all those arrangements, which is *best*? Which route is shortest? Which assignment costs the least? Which network is cheapest to build?
+
+Graphs turn these abstract questions into something you can *see*. Routes become paths, assignments become matchings, networks become spanning trees. The vertices and edges aren't just notation — they're a map of the search space. And the tools we've built across this course — set operations, degree analysis, complement, connectivity — become the vocabulary for navigating that space.
+
+The most famous optimization problem on graphs asks a deceptively simple question:
+
+---
+
+## The Traveling Salesman Problem
+
+If every vertex must be visited, what's the **cheapest** way to do it?
+
+<DefinitionBox term="Traveling Salesman Problem (TSP)">
+
+Given a weighted complete graph on <InlineMath formula="n" /> cities, find the **Hamiltonian cycle of minimum total weight** — the cheapest round trip visiting every city exactly once.
+
+</DefinitionBox>
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+  ]}
+  edges={[
+    { from: "A", to: "B", label: "10" },
+    { from: "A", to: "C", label: "15" },
+    { from: "A", to: "D", label: "20" },
+    { from: "B", to: "C", label: "35" },
+    { from: "B", to: "D", label: "25" },
+    { from: "C", to: "D", label: "30" },
+  ]}
+  interactive={true}
+  height="300px"
+/>
+
+Try mentally finding the cheapest route visiting all four cities. The brute-force approach: check all <InlineMath formula="n!" /> permutations. For 4 cities, that's 24 routes — manageable. But:
+
+```python
+from itertools import permutations
+cities = list(range(20))
+all_routes = list(permutations(cities))
+# 2,432,902,008,176,640,000 routes — utterly infeasible
+```
+
+For 20 cities, brute force would outlast the sun. TSP is **NP-hard** — one of the most famous problems in all of computer science and mathematics.
+
+The problem was formalized by **Karl Menger** in the 1930s in Vienna, but became famous when mathematicians at the **RAND Corporation** (Dantzig, Fulkerson, Johnson) solved a 49-city instance in 1954 — by hand, using clever cutting-plane methods. Today, the largest optimally solved instance has 85,900 cities (2006). The gap between "solved optimally" and "too large to solve" is one of the deepest open questions in all of mathematics — the **P vs NP** problem.
+
+---
+
+## Practice Problems
+
+<PracticeBox
+  title="Complete Graph Edges"
+  question="How many edges does K₈ have?"
+  choices={["28", "56", "36", "64"]}
+  correctIndex={0}
+  hint="Use the formula n(n-1)/2."
+  explanation="|E(K₈)| = 8(7)/2 = 28."
+/>
+
+<PracticeBox
+  title="Bipartite Check"
+  question="Is the cycle C₅ (a pentagon) bipartite?"
+  choices={[
+    "Yes — it has an even number of edges",
+    "No — it contains an odd-length cycle",
+    "Yes — every cycle is bipartite",
+    "Not enough information"
+  ]}
+  correctIndex={1}
+  hint="A graph is bipartite iff it has no odd-length cycle. C₅ IS an odd-length cycle."
+  explanation="C₅ is itself an odd-length cycle (length 5). A graph is bipartite iff it has no odd-length cycle, so C₅ is not bipartite."
+/>
+
+---
+
+## Looking Ahead to LN23
+
+We've now cataloged the key families of graphs and encountered one of the deepest divides in all of mathematics: problems that are easy to solve (Euler trails) versus problems that are impossibly hard (Hamiltonian cycles, TSP). But there's a family of graphs we haven't yet met — one so simple and so fundamental that it deserves its own lecture.
+
+**Trees** are connected graphs with no cycles. Strip a connected graph down to its bare minimum — remove edges until one more removal would disconnect it — and what remains is a tree. If we can build a tree that **spans** every vertex of a graph using the cheapest edges, we get a **minimum spanning tree (MST)** — a problem with beautiful, efficient solutions that power real-world network design.
+
+We'll also add **weights** to edges and ask a different optimization question: what's the **shortest path** between two vertices? **Dijkstra's algorithm** answers this with an elegant greedy strategy remarkably similar to how MSTs are built.
+
+Finally, we'll peek beyond this course at three directions graph theory explores: **planarity** (can a graph be drawn without crossing edges?), **graph coloring** (remember the constraint puzzles?), and **network flows** (how much can flow through a graph?). These topics connect to circuit design, scheduling, and logistics — the foundations of entire subfields.
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Special Graph Families:**
+
+- Cycle $C_n$: closed path of length $n$; bipartite iff $n$ is even
+- Complete graph $K_n$: every pair connected, $\binom{n}{2}$ edges, <InlineMath formula="(n{-}1)" />-regular, complement is empty graph
+- Bipartite: vertices split into two sets, edges only between sets; iff no odd-length cycle
+- Complete bipartite <InlineMath formula="K_{m,n}" />: <InlineMath formula="m \cdot n" /> edges
+- k-partite: $k$ independent sets, generalizes bipartite
+- Wheel $W_n$: cycle plus hub, 3-connected (fault-tolerant)
+- Hypercube $Q_n$: binary string vertices, adjacent iff Hamming distance = 1
+
+**Key Properties:**
+
+- König's theorem: in bipartite graphs, max matching = min vertex cover
+- $K_n$ has no cut vertices or bridges — maximally resilient
+- Constraint placement puzzles are constraint satisfaction problems (CSPs)
+
+**Cycles and Hamiltonicity:**
+
+- Hamiltonian path visits every vertex once; Hamiltonian cycle returns to start
+- $K_n$ for $n \geq 3$ is always Hamiltonian
+- Euler (every edge) → polynomial test. Hamilton (every vertex) → NP-complete
+- Petersen graph: 3-regular but not Hamiltonian (classic counterexample)
+
+**Optimization and TSP:**
+
+- Graphs give optimization problems a visual structure
+- TSP: find minimum-weight Hamiltonian cycle — NP-hard
+- Brute force is $n!$ — factorial growth makes it infeasible
+- One of the most studied problems in CS and optimization
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| $\binom{n}{2}$ edges in $K_n$ | LN17: combinations |
+| `itertools.combinations` for $K_n$ edges | LN17: Python combinatorics |
+| `itertools.permutations` for TSP brute force | LN17: factorials and permutations |
+| Bitwise XOR for hypercube adjacency | Binary encoding |
+| <InlineMath formula="(n{-}1)" />-regular, complement, no cut vertices | LN20: degree, LN21: complement, cut vertices |
+| Constraint puzzles ↔ CSPs | LN22: forward to algorithms course |
+| Euler vs Hamilton parallel | LN20: Euler trails |
+| Optimization on graphs | LN16–19: combinatorics, counting arrangements |
+| Hypercube interconnects | Connection Machine, Intel iPSC |
+| Bipartite matching in biology | Enzyme-substrate networks, predator-prey |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Numberphile: "The Traveling Salesman Problem"](https://www.youtube.com/watch?v=GiDsjIBOVoA) — Accessible overview of TSP and its significance
+- [Trefor Bazett: "Bipartite Graphs"](https://www.youtube.com/watch?v=HqlUbSA9cEY) — Visual explanation of bipartiteness and the odd-cycle characterization
+
+### Further Reading
+
+- [Wikipedia: Petersen Graph](https://en.wikipedia.org/wiki/Petersen_graph) — The universal counterexample in graph theory
+- [Wikipedia: Travelling Salesman Problem](https://en.wikipedia.org/wiki/Travelling_salesman_problem) — History, algorithms, and the P vs NP connection
+- [Wikipedia: Hamiltonian Path Problem](https://en.wikipedia.org/wiki/Hamiltonian_path_problem) — NP-completeness and known results
+- [Wikipedia: König's Theorem](https://en.wikipedia.org/wiki/K%C3%B6nig%27s_theorem_(graph_theory)) — The matching-cover duality in bipartite graphs
+- [Wikipedia: Hypercube Graph](https://en.wikipedia.org/wiki/Hypercube_graph) — Properties, Hamiltonian paths, and Gray codes
+
+### Connection to Programming
+
+- Complete graphs model "every pair must communicate" scenarios (all-pairs testing, full-mesh networks, round-robin tournaments)
+- Bipartite matching powers recommendation engines (users ↔ products), job scheduling (workers ↔ tasks), compiler register allocation, and biological network analysis
+- Hamiltonian/TSP solvers underpin logistics software (UPS, FedEx route optimization)
+- Hypercube networks shaped parallel computing history (Connection Machine, Intel iPSC) and modern data center topologies
+- Graph models in biology: protein interaction networks, neural connectivity, DNA assembly via Euler paths
+
+</LectureResources>
