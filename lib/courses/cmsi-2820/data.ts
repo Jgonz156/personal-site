@@ -667,7 +667,10 @@ const allEvents: CourseEvent[] = [
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln18",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/HSFe94Jav3OUsVxhik4x8q5ep-PIn_NdcjFlWf59keUB1ftwiIPXR7mE2QqmkfBL.wa59iaXTypDUQsR9"
+      }
     ],
   },
   {
@@ -681,7 +684,10 @@ const allEvents: CourseEvent[] = [
     standard: "Combinatorics",
     contentUrl: "/cmsi-2820/ln19",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/3TN60uDF4ubfyN-ZH2kSBFjkRJAIbZe7ji2dyy4ykfZA0XM4So12_v_J_uEO02s.ZannX54nnjTyxX7u"
+      }
     ],
   },
   {
@@ -720,14 +726,7 @@ const allEvents: CourseEvent[] = [
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln20",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/yS52nBNF811ET7QsScfoYaw04TJpp7tAHqWqqllpwN4AlETxzAvyHv1on2xcQGsH.uE-dvcz2AIEjHFa0",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/TqfYcgkOMCJepyTbG6xxzWlB2loXMIjDl2Q1wyxqiHoQkmBj52HRTHSBRwVaJfL-.eHPHtFXKQZkodFAT",
-      },
+      
     ],
   },
   {
@@ -741,14 +740,7 @@ const allEvents: CourseEvent[] = [
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln21",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/bXaSl3vXmnj_6mRqwRZaUE8DbVK6pP2eR_dkFAzMaoqKQ6IWyDWQO9x3IRWcK8k1.vrHzaiy8ZQ4pZBFi",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/tGWZySUBivCGQ09X9LjqEDAUMhQ9AwPRxEDpmAcoAfvgbZr8jlg3_8hDQk1-X81V.UM2tMSVrhA8U5Kyu",
-      },
+      
     ],
   },
   {
@@ -762,14 +754,7 @@ const allEvents: CourseEvent[] = [
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln22",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/f-Z4lV-b5e7yxB88dhGmL93qtLoB06NPjpPHY7R5gP6mDr2L-tJBZQVMI0Zuzm5-.WoW-bJt1BHt07IWM",
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/kN5Z9rUKrZB4tv0rxgx7Gjnb2Ug45_Of-yuwTcDywXQxTP1ZyJcjK0AXqDH-ySWG.Ja2TFiSMtBiY64lw",
-      },
+      
     ],
   },
   {
@@ -782,14 +767,8 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln23",
-    recordings: [{
-      name: "Morning Lecture Video",
-      url: "https://lmula.zoom.us/rec/share/jSCGR8zpceMC20WVE_VBdiUtQqeuVLyMC_KEtfBEnMVEto1kJhkVggRTNsZPb_Vt.J9s-lh332GXnTS0E"
-    },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/xRct1kJalvAdhSd-QXxVS4D5zUCn4kZ4fqhO5J1OhyHNzqcoTmtT5FDNzz1ARtIo.27_g-Mh-ZUgfRLsG"
-      },
+    recordings: [
+      
     ],
   },
   {
