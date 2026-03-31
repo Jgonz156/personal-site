@@ -1,0 +1,607 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath, InlineMath } from "@/components/math"
+import { FullPipelineVisualizer } from "@/components/full-pipeline-visualizer"
+import { TypeInferenceStepper } from "@/components/type-inference-stepper"
+
+## Recap
+
+We began this course with nothing. No assumptions, no inherited definitions, no "you should already know this." We started with propositions and truth tables (LN 1-2), built up sets and functions (LN 3), formalized computation itself through the lambda calculus (LN 4), surveyed the four pillars of computer science (LN 5), examined how pragmatic choices shape languages (LN 6), constructed formal language theory from alphabets to grammars (LN 7), designed a syntax from scratch (LN 8), built a parser (LN 9), and gave our language meaning three different ways — by running it (LN 11), by translating it (LN 12), and by proving properties about it (LN 13).
+
+Today we bring it all together. Every concept from the course maps to a real component of language implementation. Petal — the language we designed from nothing — completes its journey.
+
+---
+
+## Today's Agenda
+
+- **The Full Compilation Pipeline** — Mapping every stage to a lecture
+- **Type Systems in Depth** — From type checking to type inference
+- **The Unification Algorithm** — How Hindley-Milner infers types
+- **Modern Language Design Trends** — Algebraic effects, ownership, ADTs, DSLs
+- **Formal Verification in Practice** — Verified compilers, model checkers, proof assistants
+- **Theory to Industry** — How every course concept shows up in production
+- **Reflection: The Course Arc** — From nothing to everything
+
+---
+
+## The Full Compilation Pipeline
+
+Every programming language implementation follows some variant of this pipeline:
+
+```
+Source → Characters → Tokens → CST → AST → [Semantic Analysis] → Output
+```
+
+Each stage transforms one representation into another. And each stage corresponds to a lecture in this course:
+
+<DefinitionBox term="Compilation Pipeline">
+
+The **compilation pipeline** is the sequence of transformations that converts human-readable source code into executable behavior. Each stage operates on a different representation, and each stage is grounded in a different branch of formal language theory.
+
+</DefinitionBox>
+
+| Stage | Transformation | Lecture | Theory |
+|-------|---------------|---------|--------|
+| **Lexing** | Characters → Tokens | LN 8 | Type 3 grammars, DFAs |
+| **Parsing** | Tokens → CST | LN 8-9 | Type 2 grammars, LL/LR/PEG |
+| **Tree transformation** | CST → AST | LN 8-9 | Semantic actions, tree grammars |
+| **Semantic analysis** | AST → Annotated AST | LN 10 | Scope, type checking |
+| **Interpretation** | AST → Output | LN 11 | Operational semantics → interpreter |
+| **Compilation** | AST → Target code | LN 12 | Denotational semantics → transpiler |
+| **Verification** | AST → Proof of correctness | LN 13 | Axiomatic semantics → static verifier |
+
+> This table is the thesis of the course in tabular form. The "theory" column shows that every engineering tool has a mathematical foundation. Lexers aren't just programs; they're implementations of Type 3 grammar recognizers. Parsers aren't just programs; they're implementations of Type 2 grammar recognizers. Compilers aren't just programs; they're implementations of meaning functions.
+
+The `FullPipelineVisualizer` below shows a Petal program flowing through each stage. At the final stage, toggle between the interpreter path (LN 11) and the transpiler path (LN 12) — both produce the same result:
+
+<FullPipelineVisualizer
+  title="Petal: Source to Meaning"
+  source={"x = 3 + 5;\nprint x;"}
+  stages={[
+    {
+      name: "Tokens",
+      lecture: "LN 8",
+      content: "ID(x)  ASSIGN  NUM(3)  PLUS  NUM(5)  SEMI\nPRINT  ID(x)  SEMI",
+      description: "Lexical analysis breaks the character stream into tokens. Each token has a type and a value. This is a Type 3 (regular) transformation — implementable with a DFA."
+    },
+    {
+      name: "CST",
+      lecture: "LN 8-9",
+      content: "Program\n├─ Statement\n│  ├─ id: \"x\"\n│  ├─ \"=\"\n│  └─ Exp\n│     ├─ Term: 3\n│     ├─ \"+\"\n│     └─ Term: 5\n└─ Statement\n   ├─ \"print\"\n   └─ Exp\n      └─ id: \"x\"",
+      description: "Parsing builds a Concrete Syntax Tree that mirrors the grammar structure. This is a Type 2 (context-free) transformation — we used Ohm.js (a PEG parser) to implement it."
+    },
+    {
+      name: "AST",
+      lecture: "LN 9",
+      content: "Program\n├─ Assignment\n│  ├─ name: \"x\"\n│  └─ BinaryOp(+)\n│     ├─ Number(3)\n│     └─ Number(5)\n└─ Print\n   └─ Identifier(\"x\")",
+      description: "Semantic actions strip syntactic sugar (semicolons, keywords, parentheses) to produce the Abstract Syntax Tree — the essential structure the semantic phases operate on."
+    },
+    {
+      name: "Result",
+      lecture: "LN 11-12",
+      content: "Environment: { x: 8 }\nOutput: [8]",
+      description: "The AST is given meaning. The interpreter (LN 11) walks the tree and computes the result. The transpiler (LN 12) generates JavaScript that produces the same output. Toggle below to compare."
+    },
+  ]}
+  interpreterResult={"evaluate(ast, {})\n→ env = { x: 8 }\n→ console.log(8)\n\nOutput: 8"}
+  transpilerResult={"compile(ast) produces:\n\nlet x = (3 + 5);\nconsole.log(x);\n\n// Running this JavaScript → Output: 8"}
+/>
+
+This is the thesis of the course visualized: every stage in the pipeline is grounded in the formal theory we developed. Lexing uses Type 3 grammars (LN 7). Parsing uses Type 2 grammars (LN 7-9). Semantic analysis uses the meaning function (LN 10). Interpretation uses operational semantics (LN 11). Compilation uses denotational semantics (LN 12). Verification uses axiomatic semantics (LN 13).
+
+---
+
+## Type Systems in Depth
+
+We've mentioned type checking several times — in LN 8 as a "context constraint," in LN 10 as part of semantic analysis, and in LN 13 as a "lightweight axiomatic system." Now we can see it clearly: type checking is **semantic analysis** that verifies properties of programs before execution.
+
+<DefinitionBox term="Type System">
+
+A **type system** is a tractable syntactic method for proving the absence of certain program behaviors by classifying expressions according to the kinds of values they compute. A type system is a restricted form of axiomatic semantics where the "assertions" are types and the "proof" is type checking or type inference.
+
+</DefinitionBox>
+
+### Type Checking vs. Type Inference
+
+<DefinitionBox term="Type Checking">
+
+**Type checking** verifies that explicitly annotated types are consistent with the operations performed. The programmer provides the types; the checker verifies them.
+
+</DefinitionBox>
+
+```typescript
+const x: number = 3 + 5;     // OK: 3 + 5 has type number
+const y: string = 3 + 5;     // ERROR: number ≠ string
+```
+
+<DefinitionBox term="Type Inference">
+
+**Type inference** deduces types without explicit annotations. The algorithm examines the program structure and infers the most general type for each expression. The programmer writes no types; the system figures them out.
+
+</DefinitionBox>
+
+```python
+x = 3 + 5       # inferred: x is int
+y = x * 2       # inferred: y is int
+z = str(x)      # inferred: z is str
+```
+
+```haskell
+-- Haskell: full type inference (Hindley-Milner)
+double x = x + x    -- inferred: Num a => a -> a
+greet name = "Hello, " ++ name  -- inferred: String -> String
+```
+
+```rust
+// Rust: local type inference
+let x = 3 + 5;       // inferred: i32
+let y = x as f64;    // inferred: f64
+let v = vec![1, 2];  // inferred: Vec<i32>
+```
+
+> The relationship between type checking and type inference mirrors the relationship between proof checking and proof search in logic. Checking a proof is easy (verify each step). Finding a proof is hard (search the space of possible derivations). Type checking is easy; type inference is hard — but Hindley-Milner showed it's still tractable for a wide class of programs.
+
+The most elegant type inference algorithm is **Hindley-Milner**, which can infer the most general type of any expression in a language with polymorphism — without a single type annotation from the programmer.
+
+---
+
+## The Unification Algorithm
+
+<DefinitionBox term="Hindley-Milner Type Inference">
+
+**Hindley-Milner** type inference (Algorithm W) works in three phases:
+
+1. **Assign fresh type variables** to every AST node ($T_0, T_1, T_2, \ldots$)
+2. **Generate constraint equations** from the AST structure ($T_i = T_j \to T_k$, etc.)
+3. **Unify** the constraints — find assignments to type variables that satisfy all equations simultaneously
+
+The algorithm is guaranteed to find the **most general type** (principal type) if one exists, or report a type error if the constraints are contradictory.
+
+</DefinitionBox>
+
+<DefinitionBox term="Unification">
+
+**Unification** is the process of finding a substitution $\theta$ (a mapping from type variables to types) that makes two type expressions identical. For example, unifying $T_0 \to \text{Int}$ with $\text{Int} \to T_1$ yields $\theta = \{T_0 \mapsto \text{Int}, T_1 \mapsto \text{Int}\}$.
+
+</DefinitionBox>
+
+The `TypeInferenceStepper` below shows this process on a simple expression. Watch how type variables get assigned, constraints get generated, and unification resolves everything:
+
+<TypeInferenceStepper
+  title="Type Inference: f(3) + 1"
+  steps={[
+    {
+      nodes: [
+        { id: "plus", label: "+", typeLabel: "T0", level: 0 },
+        { id: "call", label: "f(3)", typeLabel: "T1", level: 1 },
+        { id: "one", label: "1", typeLabel: "T2", isTerminal: true, level: 1 },
+        { id: "f", label: "f", typeLabel: "T3", isTerminal: true, level: 2 },
+        { id: "three", label: "3", typeLabel: "T4", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "plus", to: "call" },
+        { from: "plus", to: "one" },
+        { from: "call", to: "f" },
+        { from: "call", to: "three" },
+      ],
+      constraints: [],
+      substitution: {},
+      description: "Step 1: Assign fresh type variables (T0-T4) to every node in the AST. We know nothing about the types yet."
+    },
+    {
+      nodes: [
+        { id: "plus", label: "+", typeLabel: "T0", level: 0 },
+        { id: "call", label: "f(3)", typeLabel: "T1", level: 1 },
+        { id: "one", label: "1", typeLabel: "Int", isTerminal: true, level: 1 },
+        { id: "f", label: "f", typeLabel: "T3", isTerminal: true, level: 2 },
+        { id: "three", label: "3", typeLabel: "Int", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "plus", to: "call" },
+        { from: "plus", to: "one" },
+        { from: "call", to: "f" },
+        { from: "call", to: "three" },
+      ],
+      constraints: [
+        { left: "T2", right: "Int" },
+        { left: "T4", right: "Int" },
+      ],
+      substitution: { T2: "Int", T4: "Int" },
+      description: "Step 2: Literals have known types. The number 1 has type Int (T2 = Int). The number 3 has type Int (T4 = Int)."
+    },
+    {
+      nodes: [
+        { id: "plus", label: "+", typeLabel: "T0", level: 0 },
+        { id: "call", label: "f(3)", typeLabel: "T1", level: 1 },
+        { id: "one", label: "1", typeLabel: "Int", isTerminal: true, level: 1 },
+        { id: "f", label: "f", typeLabel: "Int → T1", isTerminal: true, level: 2 },
+        { id: "three", label: "3", typeLabel: "Int", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "plus", to: "call" },
+        { from: "plus", to: "one" },
+        { from: "call", to: "f" },
+        { from: "call", to: "three" },
+      ],
+      constraints: [
+        { left: "T2", right: "Int", resolved: true },
+        { left: "T4", right: "Int", resolved: true },
+        { left: "T3", right: "Int → T1" },
+      ],
+      substitution: { T2: "Int", T4: "Int", T3: "Int → T1" },
+      description: "Step 3: f is applied to 3 (type Int), so f must be a function: T3 = Int → T1. The return type T1 is still unknown."
+    },
+    {
+      nodes: [
+        { id: "plus", label: "+", typeLabel: "Int", level: 0 },
+        { id: "call", label: "f(3)", typeLabel: "Int", level: 1 },
+        { id: "one", label: "1", typeLabel: "Int", isTerminal: true, level: 1 },
+        { id: "f", label: "f", typeLabel: "Int → Int", isTerminal: true, level: 2 },
+        { id: "three", label: "3", typeLabel: "Int", isTerminal: true, level: 2 },
+      ],
+      edges: [
+        { from: "plus", to: "call" },
+        { from: "plus", to: "one" },
+        { from: "call", to: "f" },
+        { from: "call", to: "three" },
+      ],
+      constraints: [
+        { left: "T2", right: "Int", resolved: true },
+        { left: "T4", right: "Int", resolved: true },
+        { left: "T3", right: "Int → T1", resolved: true },
+        { left: "T0", right: "Int", resolved: true },
+        { left: "T1", right: "Int", resolved: true },
+      ],
+      substitution: { T0: "Int", T1: "Int", T2: "Int", T3: "Int → Int", T4: "Int" },
+      description: "Step 4: The + operator requires both operands to be Int and returns Int. So T1 = Int and T0 = Int. All constraints resolved! f : Int → Int, and the expression has type Int."
+    },
+  ]}
+/>
+
+The algorithm is guaranteed to find the **most general type** — the type with the fewest constraints. If `f` had type `Int → String`, the constraint `T1 = Int` (from `+`) would conflict with `T1 = String` (from `f`'s return type), and unification would fail — a type error, caught without running the program.
+
+### A Second Example: Polymorphism
+
+<TypeInferenceStepper
+  title="Type Inference: identity function"
+  steps={[
+    {
+      nodes: [
+        { id: "lam", label: "λx", typeLabel: "T0", level: 0 },
+        { id: "x", label: "x", typeLabel: "T1", isTerminal: true, level: 1 },
+      ],
+      edges: [
+        { from: "lam", to: "x" },
+      ],
+      constraints: [],
+      substitution: {},
+      description: "The identity function λx.x — what is its type? Assign fresh type variables."
+    },
+    {
+      nodes: [
+        { id: "lam", label: "λx", typeLabel: "T1 → T1", level: 0 },
+        { id: "x", label: "x", typeLabel: "T1", isTerminal: true, level: 1 },
+      ],
+      edges: [
+        { from: "lam", to: "x" },
+      ],
+      constraints: [
+        { left: "T0", right: "T1 → T1", resolved: true },
+      ],
+      substitution: { T0: "T1 → T1" },
+      description: "The lambda takes parameter x of type T1 and returns x, also of type T1. So the function has type T1 → T1. But T1 is unconstrained — it can be ANY type!"
+    },
+  ]}
+/>
+
+The identity function has type $\forall a.\; a \to a$ — it works for any type $a$. This is **parametric polymorphism**, the same polymorphism we studied in LN 4's Simply Typed Lambda Calculus. Hindley-Milner infers the most general polymorphic type automatically.
+
+> The connection to LN 4 is direct. The typing rule for lambda abstraction:
+>
+> <DisplayMath formula="\frac{\Gamma, x : A \vdash e : B}{\Gamma \vdash \lambda x.\, e : A \to B}" />
+>
+> is exactly the constraint generation step in Algorithm W. The premise "if $x$ has type $A$, then $e$ has type $B$" generates the constraint. The conclusion "$\lambda x.\, e$ has type $A \to B$" is the result. Type inference mechanizes the typing rules from LN 4.
+
+### The Occurs Check
+
+What happens when type inference encounters a recursive type? Consider the expression $\lambda x.\, x\, x$ (the $\omega$ combinator from LN 4). The argument $x$ is both a function (it's applied to something) and an argument (it's passed to itself). This generates the constraint:
+
+<DisplayMath formula="T_x = T_x \to T_{\text{result}}" />
+
+A type that contains itself! The **occurs check** detects this circularity and reports a type error. This is why $\omega = \lambda x.\, x\, x$ and $\Omega = \omega\, \omega$ are untypable in the Simply Typed Lambda Calculus — they would require infinite types, which Hindley-Milner rejects.
+
+> This is the type-theoretic explanation for why $\Omega$ diverges. The type system can't assign a finite type to it, which means it can't guarantee termination. The Simply Typed Lambda Calculus rejects $\Omega$ precisely because it can express only terminating computations — a restriction that makes type checking decidable (connecting to LN 5's computability theory).
+
+---
+
+## The Type System Spectrum
+
+<DefinitionBox term="Type System Spectrum">
+
+Modern languages sit at different points along a spectrum of type system expressiveness, trading off safety against flexibility:
+
+</DefinitionBox>
+
+| System | Types Checked | Annotations | Example |
+|--------|--------------|-------------|---------|
+| **No types** | Nothing | None | Assembly, Bash |
+| **Dynamic** | Values at runtime | None | Python, JavaScript |
+| **Static (inferred)** | All expressions at compile time | Minimal | Haskell, OCaml, Rust |
+| **Static (annotated)** | All expressions at compile time | Required | Java, C |
+| **Gradual** | Mix of static and dynamic | Optional | TypeScript, Python (mypy) |
+| **Dependent** | Types depend on values | Extensive | Idris, Agda, Lean |
+
+> Dependent types are the ultimate expression of the Curry-Howard correspondence: types ARE propositions, and programs ARE proofs. In Idris, you can write a type `Vec n a` — a vector of exactly `n` elements of type `a`. The type system guarantees at compile time that you can't access the 5th element of a 3-element vector. This is axiomatic semantics (LN 13) pushed to its logical extreme — every property that can be expressed as a type can be verified at compile time.
+
+---
+
+## Modern Language Design Trends
+
+The concepts from this course aren't historical relics — they're the foundation of active language design research and the newest programming languages.
+
+### Algebraic Effects and Handlers
+
+<DefinitionBox term="Algebraic Effects">
+
+**Algebraic effects** are a structured approach to side effects where a function declares what effects it performs (I/O, mutation, exceptions), and the caller provides **handlers** that define how those effects are implemented. Effects are specified algebraically (by their operations and laws), just like the abstract data types from LN 13.
+
+</DefinitionBox>
+
+Traditional approaches to side effects in functional languages use **monads** (Haskell) or ignore the problem (most other languages). Algebraic effects (Koka, OCaml 5) offer a third way:
+
+```
+// Koka: algebraic effects declared in function signatures
+effect ask {
+  fun ask() : string
+}
+
+fun greet() : ask string {
+  val name = ask()       // performs the 'ask' effect
+  "Hello, " ++ name
+}
+
+// The caller decides how to handle the effect:
+val result = with handler { fun ask() { "World" } } greet()
+// result = "Hello, World"
+```
+
+The handler is the "initial algebra" from LN 13's algebraic semantics — it gives concrete meaning to abstract operations.
+
+### Ownership and Borrowing
+
+Rust's ownership system proves memory safety at compile time — no garbage collector, no manual memory management. The borrow checker ensures:
+- Every value has exactly one owner
+- References can't outlive their data
+- Mutable and immutable references don't coexist
+
+```rust
+fn main() {
+    let s1 = String::from("hello");  // s1 owns the string
+    let s2 = s1;                      // ownership moves to s2
+    // println!("{}", s1);            // ERROR: s1 no longer owns it
+    println!("{}", s2);               // OK: s2 is the owner
+}
+```
+
+This is LN 13's axiomatic semantics made practical: ownership annotations are preconditions, borrow rules are inference rules, and successful compilation is a proof of memory safety. The connection to LN 10's scoping rules is direct — ownership is scope made explicit and verified.
+
+### Pattern Matching and Algebraic Data Types
+
+<DefinitionBox term="Algebraic Data Type (ADT)">
+
+An **algebraic data type** is a composite type formed by combining other types using sum (variants/union) and product (tuples/structs). ADTs and exhaustive pattern matching ensure that every possible case is handled, eliminating "missing case" bugs at compile time.
+
+</DefinitionBox>
+
+Languages like Rust, Swift, and Kotlin use ADTs and pattern matching to make data handling safer and more expressive:
+
+```rust
+enum Exp {
+    Num(i64),
+    BinOp { op: char, left: Box<Exp>, right: Box<Exp> },
+    Var(String),
+}
+
+fn evaluate(exp: &Exp, env: &HashMap<String, i64>) -> i64 {
+    match exp {
+        Exp::Num(n) => *n,
+        Exp::BinOp { op: '+', left, right } =>
+            evaluate(left, env) + evaluate(right, env),
+        Exp::BinOp { op: '*', left, right } =>
+            evaluate(left, env) * evaluate(right, env),
+        Exp::Var(name) => *env.get(name).unwrap(),
+        _ => panic!("Unknown operator"),
+    }
+}
+```
+
+> This is Petal's AST as a Rust type, with the interpreter as a `match` expression. Notice how naturally the big-step inference rules from LN 11 map to Rust's pattern matching. The `match` is exhaustive — the compiler checks that every variant of `Exp` is handled. This is a type-level guarantee (LN 13) about the interpreter's completeness.
+
+### Domain-Specific Languages
+
+<DefinitionBox term="Domain-Specific Language (DSL)">
+
+A **domain-specific language** (DSL) is a programming language specialized for a particular application domain. DSLs apply the entire course in miniature: design a syntax (LN 7-8), parse it (LN 9), give it meaning (LN 10-12). Examples include SQL, HTML, CSS, regex, GraphQL, and Terraform.
+
+</DefinitionBox>
+
+Each DSL makes specific pragmatic trade-offs (LN 6) for its domain:
+
+| DSL | Domain | Chomsky Level | Turing Complete? | Key Trade-off |
+|-----|--------|---------------|------------------|---------------|
+| SQL | Databases | Type 2 | No (intentionally) | Declarative simplicity over computational power |
+| HTML | Document structure | Type 2 | No | Structure description over computation |
+| CSS | Styling | Type 3 (selectors) | No | Visual specification over logic |
+| Regex | Text patterns | Type 3 | No | Pattern matching over general computation |
+| GraphQL | API queries | Type 2 | No | Data fetching over data transformation |
+| Terraform | Infrastructure | Type 2 | No | Declarative infrastructure over imperative scripting |
+
+> Notice that every DSL in the table is deliberately non-Turing-complete. This connects to LN 5 and LN 6: by limiting computational power, DSLs gain analyzability, predictability, and domain-specific optimization. SQL queries can be optimized by the query planner precisely because SQL can't express arbitrary computation. The Chomsky Hierarchy (LN 7) predicts exactly what each language can and cannot express.
+
+---
+
+## Formal Verification in Practice
+
+From LN 13's Hoare Logic to real-world tools:
+
+### Verified Compilers
+
+**CompCert** is a C compiler written and verified in the Coq proof assistant. The compiler is *proven correct*: for any input program, the compiled output has the same semantics as the source. This is the ultimate synthesis of syntax (LN 7-9) and semantics (LN 10-12) — the proof guarantees that the compilation pipeline preserves meaning.
+
+> CompCert is not a toy. It has been used in production for safety-critical aerospace software. In a famous study, Csmith (a random C program generator) found hundreds of bugs in GCC and LLVM but zero bugs in CompCert. The formal proof guarantee is real.
+
+### Model Checkers
+
+**TLA+** (designed by Leslie Lamport) lets you write formal specifications of concurrent systems and automatically check that properties hold across all possible interleavings. Amazon uses TLA+ to verify the correctness of AWS services — formal methods at scale.
+
+**Alloy** (Daniel Jackson, MIT) takes a different approach: it uses SAT solvers to automatically find counterexamples to specifications. If the solver finds no counterexample within a bounded search, the property likely holds.
+
+### Proof Assistants
+
+**Lean 4** is both a programming language and a proof assistant. You can write programs and prove properties about them in the same language. The four-color theorem, the Kepler conjecture, and properties of real-world software have all been verified in proof assistants.
+
+```lean
+-- Lean 4: prove that addition is commutative
+theorem add_comm (n m : Nat) : n + m = m + n := by
+  induction n with
+  | zero => simp
+  | succ n ih => simp [Nat.succ_add, ih]
+```
+
+> These tools push against the boundary set by LN 5's computability theory. Rice's Theorem says we can't verify everything about all programs — but within the decidable fragment, formal methods provide mathematical certainty that no amount of testing can match.
+
+### The Verification Spectrum
+
+Tools exist at every point on the spectrum from lightweight to heavyweight verification:
+
+| Tool | Approach | What It Proves | Effort |
+|------|----------|---------------|--------|
+| ESLint | Pattern matching | Stylistic consistency | Minimal |
+| TypeScript | Type checking | Type safety | Low (annotations) |
+| Rust borrow checker | Ownership analysis | Memory safety | Medium (lifetime annotations) |
+| Dafny | Design by Contract | Functional correctness | High (specifications) |
+| Coq/Lean | Proof assistant | Any expressible property | Very high (full proofs) |
+
+> The trade-off is always the same: **more guarantee requires more effort**. ESLint catches simple mistakes for free. Lean can prove anything, but requires human guidance to construct the proofs. The art of practical verification is choosing the right point on this spectrum for your project's risk profile.
+
+---
+
+## The Relationship Between Theory and Industry
+
+Every concept in this course is at work in production software:
+
+| Course Concept | Industry Application |
+|----------------|---------------------|
+| Regular expressions (LN 7) | Every text editor, search engine, log parser |
+| Context-free grammars (LN 7) | Every compiler, every parser generator |
+| Lexers and parsers (LN 8-9) | GCC, LLVM, V8, every language runtime |
+| Type systems (LN 4, LN 14) | TypeScript, Rust, Kotlin, Swift |
+| Lambda calculus (LN 4) | Every functional language, closures in JS/Python/C++ |
+| Operational semantics (LN 11) | Tree-walking interpreters (Ruby, early Python) |
+| Denotational semantics (LN 12) | Optimizing compilers (GCC -O3, LLVM passes) |
+| Axiomatic semantics (LN 13) | Rust borrow checker, SPARK Ada, CompCert |
+| Formal verification (LN 13) | AWS (TLA+), Airbus (SPARK), Intel (hardware verification) |
+| Chomsky Hierarchy (LN 7) | Choosing the right parser for the right grammar |
+
+> The theory isn't separate from practice — it IS the practice, formalized. Every production compiler uses the same pipeline we built for Petal. Every type checker implements inference rules like the ones we wrote. Every optimizing compiler relies on semantic equivalence to transform programs. The distance from this classroom to industry is zero.
+
+---
+
+## Reflection: The Course Arc
+
+Let's trace Petal's journey one final time:
+
+**Arc 1 — Mathematical Foundations (LN 1-4)**: We built the tools. Logic gave us inference rules. Set theory gave us domains and functions. The lambda calculus gave us the ability to define computation itself — and showed us that beta reduction is the simplest form of operational semantics.
+
+**Arc 2 — Theory Bridge (LN 5-6)**: We surveyed the landscape. Four foundational theories — Language, Automata, Computability, Complexity — showed us what computation can and cannot do. Pragmatics showed us that language design is not just about capability but about how effectively the tool serves its user.
+
+**Arc 3 — Syntax (LN 7-9)**: We defined what languages look like. From alphabets and strings, we built grammars. We designed Petal's syntax, separated lexical and phrase structure, and built a parser that transforms flat text into structured trees.
+
+**Arc 4 — Semantics (LN 10-13)**: We defined what languages mean. Three lenses on the same programs: running them (operational → interpreter), translating them (denotational → transpiler), and proving properties about them (axiomatic → static verifier). The Y combinator returned to give meaning to loops. Logic returned to prove programs correct.
+
+**Arc 5 — Synthesis (LN 14)**: We brought it all together. The full compilation pipeline maps every stage to a lecture. Type inference shows the unification algorithm at work. Modern language trends — algebraic effects, ownership, dependent types — are all built on the foundations we developed.
+
+### What Comes Next
+
+This course gave you the foundations. Here's where each topic leads:
+
+| Foundation | Advanced Topic | Where to Learn More |
+|------------|---------------|-------------------|
+| Grammars (LN 7) | Parser generators, language workbenches | Spoofax, Xtext, Langium |
+| Parsing (LN 9) | Incremental parsing, error recovery | Tree-sitter, LSP protocol |
+| Type inference (LN 14) | Dependent types, gradual typing | Idris, TypeScript internals |
+| Operational semantics (LN 11) | Abstract interpretation, JIT compilation | V8, LLVM, GraalVM |
+| Denotational semantics (LN 12) | Category theory, effect systems | Haskell, Koka, Eff |
+| Axiomatic semantics (LN 13) | SMT solvers, automated theorem proving | Z3, Dafny, Lean |
+| Lambda calculus (LN 4) | System F, dependent type theory | Coq, Agda, Lean |
+
+> Each row in this table is an entire graduate course (or career) in itself. The foundations you've built — the ability to reason formally about syntax, semantics, and types — will serve you regardless of which direction you choose.
+
+### The Central Thesis
+
+> Programming languages are **formal mathematical objects**. Understanding their foundations — how they're defined, how they're parsed, and how they're given meaning — makes you a better **designer**, **implementer**, and **user** of languages.
+
+You didn't just learn about programming languages in this course. You learned to think about them the way a language designer thinks: with precision, with formal tools, and with an awareness of the trade-offs that every design decision entails.
+
+Petal was the proof. We built it from nothing — from an empty alphabet to a parsed, interpreted, transpiled, and partially verified language. Every step was grounded in mathematics, and every piece of mathematics turned out to be a practical tool.
+
+> "The limits of my language mean the limits of my world." — Ludwig Wittgenstein. This course has expanded the limits of *your* language — not just the programming languages you can use, but the mathematical language you have for thinking about computation itself. That language is your most powerful tool.
+
+That's the power of foundations.
+
+<LectureNotes>
+
+**The Full Pipeline:**
+- Source → Characters → Tokens (LN 8: Type 3/DFA)
+- Tokens → CST (LN 8-9: Type 2/PEG)
+- CST → AST (LN 9: semantic actions)
+- AST → Meaning (LN 10-12: semantics)
+- AST → Proof (LN 13: verification)
+
+**Key Definitions:**
+- **Compilation Pipeline**: the sequence of transformations from source to output
+- **Type System**: a tractable syntactic method for proving absence of bad behaviors
+- **Type Checking**: verifying explicit type annotations
+- **Type Inference**: deducing types without annotations (Hindley-Milner)
+- **Unification**: finding a substitution that makes two types identical
+- **Algebraic Effects**: structured side effects with user-defined handlers
+- **Algebraic Data Type**: composite type built from sum and product types
+- **Domain-Specific Language**: language specialized for a particular domain
+
+**Type Inference (Hindley-Milner):**
+1. Assign fresh type variables to AST nodes
+2. Generate constraint equations from AST structure
+3. Unify constraints via substitution
+4. Result: most general type assignment
+
+**Three Semantic Implementations:**
+- Operational → Interpreter (walk the tree, compute the result)
+- Denotational → Transpiler (generate equivalent code)
+- Axiomatic → Verifier (prove properties without running)
+
+**Course Arc:**
+- LN 1-4: Build the tools (logic, sets, lambda calculus)
+- LN 5-6: Survey the landscape (theories, pragmatics)
+- LN 7-9: Define how languages look (grammars, parsing)
+- LN 10-13: Define what languages mean (semantics)
+- LN 14: Bring it all together (pipeline, type systems, modern trends)
+
+</LectureNotes>
+
+<LectureResources>
+
+### Additional Resources
+
+- [Kenneth Slonneger and Barry Kurtz, *Formal Syntax and Semantics of Programming Languages*](https://cdn.preterhuman.net/texts/science_and_technology/artificial_intelligence/Formal%20Syntax%20and%20Semantics%20of%20Programming%20Languages%20-%20Kenneth%20Slonneger.pdf) — The course textbook
+- [Robert Nystrom, *Crafting Interpreters*](https://craftinginterpreters.com/) — Build a full language implementation from scratch
+- [Benjamin Pierce, *Types and Programming Languages*](https://www.cis.upenn.edu/~bcpierce/tapl/) — The definitive reference on type systems
+- [Robin Milner, "A Theory of Type Polymorphism in Programming" (1978)](https://homepages.inf.ed.ac.uk/wadler/papers/papers-we-love/milner-type-polymorphism.pdf) — The original Hindley-Milner paper
+- [CompCert](https://compcert.org/) — A formally verified C compiler
+- [Lean 4](https://lean-lang.org/) — A modern theorem prover and programming language
+- [Koka Language](https://koka-lang.github.io/koka/doc/index.html) — A language with algebraic effects and handlers
+- [Ohm.js](https://ohmjs.org/) — The PEG parser we used for Petal
+
+</LectureResources>

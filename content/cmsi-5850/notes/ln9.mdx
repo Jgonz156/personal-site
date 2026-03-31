@@ -60,7 +60,7 @@ The solution: **restrict your grammars** to specific subclasses that can be pars
 
 ## Top-Down Parsing: The LL Family
 
-<DefinitionBox title="LL(k) Parsing">
+<DefinitionBox term="LL(k) Parsing">
 
 **LL(k)** stands for:
 - **L**eft-to-right scan of the input
@@ -346,7 +346,7 @@ Despite these weaknesses, recursive descent is the most common parsing technique
 
 ## Bottom-Up Parsing: The LR Family
 
-<DefinitionBox title="LR(k) Parsing">
+<DefinitionBox term="LR(k) Parsing">
 
 **LR(k)** stands for:
 - **L**eft-to-right scan of the input
@@ -603,7 +603,7 @@ This is the same tool we'll use later in this lecture to build Petal's full pars
 
 A naive PEG parser might have exponential worst-case time, because backtracking can retry the same rule at the same position multiple times. **Packrat parsing** eliminates this by memoizing every rule application at every input position.
 
-<DefinitionBox title="Packrat Parsing">
+<DefinitionBox term="Packrat Parsing">
 
 A Packrat parser maintains a **memoization table** indexed by (rule, input position). Before applying any rule at any position, it checks the table:
 - If the result is already cached: return it immediately (**cache hit**)

@@ -34,6 +34,12 @@ const withMDX = createMDX({
       [
         rehypeMathjax,
         {
+          tex: {
+            macros: {
+              llbracket: "\\mathopen{⟦}",
+              rrbracket: "\\mathclose{⟧}",
+            },
+          },
           chtml: {
             fontURL:
               "https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2",

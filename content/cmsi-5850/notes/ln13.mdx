@@ -1,0 +1,637 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath, InlineMath } from "@/components/math"
+import { HoareTripleStepper } from "@/components/hoare-triple-stepper"
+
+## Recap
+
+Over the last two lectures, we developed two complete approaches to semantics:
+
+| Lecture | Approach | Question | Implementation |
+|---------|----------|----------|----------------|
+| LN 11 | Operational | How does it *run*? | Interpreter |
+| LN 12 | Denotational | What does it *compute*? | Transpiler |
+
+Both require **execution** to verify correctness. The interpreter runs the program; the transpiler generates code that gets run. If the program loops forever, we wait forever. If the program has a bug, we discover it only when we test the specific input that triggers it.
+
+Today we ask a different question entirely: **can we know things about a program without running it?**
+
+---
+
+## Today's Agenda
+
+- **The Third Perspective** — Meaning by proving, not by running
+- **Hoare Logic** — Programs as logical propositions
+- **The Assignment Axiom** — Working backward from postconditions
+- **Sequencing, Conditional, and Loop Rules** — Building proofs compositionally
+- **Weakest Preconditions** — Mechanical proof construction
+- **Loop Invariants** — The creative challenge of axiomatic reasoning
+- **Partial vs. Total Correctness** — The limits of proof
+- **Real-World Static Verification** — Type checkers, borrow checkers, and verified compilers
+- **The Broader Landscape** — Algebraic, action, and modern semantic approaches
+
+---
+
+## The Third Perspective
+
+Imagine you're writing software for an aircraft's autopilot system. You can't just "test it and see" — a bug at 35,000 feet is not a learning opportunity. You need to **prove** that the software behaves correctly for *all* possible inputs, not just the ones you tested.
+
+> "Testing shows the presence, not the absence, of bugs." — Edsger W. Dijkstra. This famous observation captures exactly why axiomatic semantics exists. No amount of testing can prove a program correct for all inputs. Only formal proof can provide that guarantee.
+
+This is what axiomatic semantics gives us: the ability to reason about programs using **logic alone**, without ever executing them. The meaning of a program is not what it does (operational) or what function it computes (denotational) — it's **what you can prove about it**.
+
+<DefinitionBox term="Axiomatic Semantics">
+
+**Axiomatic semantics** defines the meaning of a program through logical assertions about its behavior. Programs are annotated with preconditions and postconditions, and inference rules describe how to derive properties of compound programs from properties of their parts.
+
+</DefinitionBox>
+
+| Approach | Question | Implementation |
+|----------|----------|----------------|
+| Operational | How does it *run*? | Interpreter |
+| Denotational | What does it *compute*? | Transpiler |
+| **Axiomatic** | **What can we *guarantee*?** | **Static Verifier** |
+
+---
+
+## Hoare Logic: Programs as Logical Propositions
+
+In 1969, C.A.R. Hoare published a landmark paper that proposed a simple but powerful idea: **annotate programs with logical assertions**, then use inference rules to prove that the annotations are consistent.
+
+> C.A.R. Hoare (later Sir Tony Hoare) also invented Quicksort, CSP (Communicating Sequential Processes), and the concept of null references (which he later called his "billion-dollar mistake"). His 1969 paper "An Axiomatic Basis for Computer Programming" launched the entire field of program verification.
+
+<DefinitionBox term="Hoare Triple">
+
+A **Hoare triple** has the form:
+
+<DisplayMath formula="\{P\} \; C \; \{Q\}" />
+
+where:
+- $P$ is the **precondition** — what must be true *before* $C$ executes
+- $C$ is a **command** (statement or program)
+- $Q$ is the **postcondition** — what is guaranteed to be true *after* $C$ executes
+
+The triple asserts: **if $P$ holds before executing $C$, then $Q$ holds after.**
+
+</DefinitionBox>
+
+For example:
+
+<DisplayMath formula="\{x = 5\} \quad y = x + 1 \quad \{y = 6\}" />
+
+This says: if $x = 5$ before the assignment, then $y = 6$ after. We didn't run the program — we *proved* a property about it by reasoning about what the assignment does.
+
+Here's a more general example:
+
+<DisplayMath formula="\{x > 0\} \quad y = x * 2 \quad \{y > 0 \wedge y = 2x\}" />
+
+This says: for **any** positive $x$, after multiplying by 2, $y$ is positive and equals $2x$. This is a universal statement — it holds for infinitely many inputs, yet we proved it without running a single one.
+
+---
+
+## The Assignment Axiom
+
+The foundation of Hoare Logic is the **assignment axiom** — and it runs *backward*:
+
+<DefinitionBox term="Assignment Axiom">
+
+The **assignment axiom** states:
+
+<DisplayMath formula="\{Q[x / e]\} \quad x = e \quad \{Q\}" />
+
+To establish postcondition $Q$ after the assignment $x = e$, the precondition must be $Q$ with every occurrence of $x$ replaced by $e$. The notation $Q[x/e]$ means "substitute $e$ for $x$ in $Q$."
+
+</DefinitionBox>
+
+> The backward direction is counterintuitive at first. Most people think forward: "I know $x$ is 5, so after $y = x + 1$, $y$ is 6." The axiom works backward: "I want $y = 6$ after the assignment. What must be true before?" This backward reasoning is the key to mechanical proof construction — we start with the goal and work toward the assumptions.
+
+For example, to prove $\{?\} \; y = x + 1 \; \{y = 6\}$, we substitute $x + 1$ for $y$ in the postcondition: $y = 6$ becomes $x + 1 = 6$, which simplifies to $x = 5$. So the precondition is $\{x = 5\}$.
+
+### More Assignment Examples
+
+<DisplayMath formula="\{x + 1 > 0\} \quad y = x + 1 \quad \{y > 0\}" />
+
+Substitute $x + 1$ for $y$ in $\{y > 0\}$: get $\{x + 1 > 0\}$. This simplifies to $\{x > -1\}$.
+
+<DisplayMath formula="\{(x + 1)^2 = 9\} \quad y = x + 1 \quad \{y^2 = 9\}" />
+
+Substitute $x + 1$ for $y$ in $\{y^2 = 9\}$: get $\{(x+1)^2 = 9\}$, which means $x = 2$ or $x = -4$.
+
+> The proper substitution operator $[x/e]$ is the same operation we formalized in LN 4 for the lambda calculus. The assignment axiom and beta reduction share the same core mechanism: replace a name with a value. The difference is context — in lambda calculus, substitution defines computation; in Hoare Logic, substitution defines proof.
+
+---
+
+## Building Proofs: The Remaining Rules
+
+### The Sequencing Rule
+
+<DefinitionBox term="Sequencing Rule">
+
+For sequential statements:
+
+<DisplayMath formula="\frac{\{P\} \; C_1 \; \{R\} \quad \{R\} \; C_2 \; \{Q\}}{\{P\} \; C_1;\, C_2 \; \{Q\}}" />
+
+The intermediate assertion $R$ is the "handoff" between the two statements — $C_1$'s postcondition becomes $C_2$'s precondition.
+
+</DefinitionBox>
+
+This rule mirrors LN 12's sequencing equation $S\llbracket s_1; s_2 \rrbracket = S\llbracket s_2 \rrbracket \circ S\llbracket s_1 \rrbracket$. Both express the same idea: sequential execution threads through an intermediate state.
+
+### The Conditional Rule
+
+<DefinitionBox term="Conditional Rule">
+
+<DisplayMath formula="\frac{\{P \wedge B\} \; C_1 \; \{Q\} \quad \{P \wedge \neg B\} \; C_2 \; \{Q\}}{\{P\} \; \text{if } B \; \{C_1\} \text{ else } \{C_2\} \; \{Q\}}" />
+
+Both branches must establish the same postcondition $Q$. The condition $B$ is added to the precondition for the then-branch and negated for the else-branch.
+
+</DefinitionBox>
+
+### The Consequence Rule
+
+<DefinitionBox term="Consequence Rule">
+
+<DisplayMath formula="\frac{P' \implies P \quad \{P\} \; C \; \{Q\} \quad Q \implies Q'}{\{P'\} \; C \; \{Q'\}}" />
+
+If we can strengthen the precondition (from $P$ to $P'$ where $P'$ implies $P$) or weaken the postcondition (from $Q$ to $Q'$ where $Q$ implies $Q'$), the triple still holds. This rule is essential for connecting proofs — it lets us adapt preconditions and postconditions to fit together.
+
+</DefinitionBox>
+
+> The consequence rule is what makes Hoare Logic flexible enough for real proofs. Without it, we'd need the exact precondition and postcondition produced by the other rules. With it, we can strengthen assumptions and weaken guarantees — a principle familiar from LN 2's logical implication.
+
+### The Loop Rule
+
+<DefinitionBox term="Loop Rule">
+
+<DisplayMath formula="\frac{\{I \wedge B\} \; C \; \{I\}}{\{I\} \; \text{while } B \; \{C\} \; \{I \wedge \neg B\}}" />
+
+Here $I$ is the **loop invariant** — a property that holds before and after each iteration. When the loop terminates (because $B$ is false), both $I$ and $\neg B$ hold.
+
+</DefinitionBox>
+
+Notice: these rules look exactly like the inference rules from LN 2 and LN 11. Hoare Logic IS logical deduction applied to programs. The rules are axioms and inference rules of a formal system; a proof of program correctness is a derivation in that system.
+
+---
+
+## Weakest Preconditions
+
+<DefinitionBox term="Weakest Precondition">
+
+Given a postcondition $Q$ and a command $C$, the **weakest precondition** $\text{wp}(C, Q)$ is the *least restrictive* precondition that guarantees $Q$ after executing $C$. Any other valid precondition implies it: if $\{P\} \; C \; \{Q\}$ is valid, then $P \implies \text{wp}(C, Q)$.
+
+</DefinitionBox>
+
+The assignment axiom directly computes weakest preconditions:
+
+<DisplayMath formula="\text{wp}(x = e, Q) = Q[x / e]" />
+
+For sequential statements:
+
+<DisplayMath formula="\text{wp}(C_1; C_2, Q) = \text{wp}(C_1, \text{wp}(C_2, Q))" />
+
+This works **backward** through the program: start with the desired postcondition, propagate it through each statement from last to first, and arrive at the weakest precondition for the entire program. If that precondition is $\text{true}$, the program is correct for all inputs.
+
+> Edsger Dijkstra formalized weakest preconditions in his 1975 book *A Discipline of Programming*. He saw wp as a way to make program derivation mechanical: instead of writing a program and then verifying it, you start with the desired postcondition and *derive* the program that achieves it. This "program construction by stepwise refinement" influenced an entire generation of software engineers.
+
+### Watching a Proof Build Itself
+
+The `HoareTripleStepper` below shows weakest-precondition propagation on a Petal program. We start with the desired postcondition and work backward, applying Hoare rules at each step. Watch the preconditions appear — each one is derived mechanically from the postcondition:
+
+<HoareTripleStepper
+  title="Proving: x = 5; y = x + 1; {y = 6}"
+  steps={[
+    {
+      programLines: [
+        { code: "x = 5;", precondition: "?" },
+        { code: "y = x + 1;", postcondition: "y = 6" },
+      ],
+      rule: "",
+      description: "Goal: prove that after executing these two statements, y = 6. We work BACKWARD from the postcondition."
+    },
+    {
+      programLines: [
+        { code: "x = 5;", precondition: "?" },
+        { code: "y = x + 1;", isActive: true, precondition: "x + 1 = 6", postcondition: "y = 6" },
+      ],
+      rule: "\\text{wp}(y = x + 1,\\; y = 6) = (x + 1 = 6)",
+      description: "Apply the assignment axiom to 'y = x + 1' with postcondition y = 6. Replace y with (x + 1) in the postcondition: y = 6 becomes x + 1 = 6."
+    },
+    {
+      programLines: [
+        { code: "x = 5;", isActive: true, precondition: "5 + 1 = 6", postcondition: "x + 1 = 6" },
+        { code: "y = x + 1;", precondition: "x + 1 = 6", postcondition: "y = 6" },
+      ],
+      rule: "\\text{wp}(x = 5,\\; x + 1 = 6) = (5 + 1 = 6)",
+      description: "Apply the assignment axiom to 'x = 5' with postcondition x + 1 = 6. Replace x with 5: becomes 5 + 1 = 6."
+    },
+    {
+      programLines: [
+        { code: "x = 5;", precondition: "true  (since 5 + 1 = 6 is true)", postcondition: "x + 1 = 6" },
+        { code: "y = x + 1;", precondition: "x + 1 = 6", postcondition: "y = 6" },
+      ],
+      rule: "5 + 1 = 6 \\equiv \\text{true} \\quad \\checkmark",
+      description: "The precondition 5 + 1 = 6 simplifies to true. Proof complete! We have shown {true} x=5; y=x+1; {y=6} — the program is correct for ALL inputs (no assumptions needed)."
+    },
+  ]}
+/>
+
+We just **proved** that `y = 6` after execution — without running a single line. The proof was constructed mechanically by applying rules backward. This is the power of axiomatic semantics.
+
+### A Second Proof: Swapping Variables
+
+Let's prove something more interesting — a variable swap using a temporary:
+
+<HoareTripleStepper
+  title="Proving: swap x and y using temp"
+  steps={[
+    {
+      programLines: [
+        { code: "temp = x;", precondition: "?" },
+        { code: "x = y;", precondition: "?" },
+        { code: "y = temp;", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "",
+      description: "Goal: starting with x = A and y = B, prove that after the swap, x = B and y = A. Work backward from the postcondition."
+    },
+    {
+      programLines: [
+        { code: "temp = x;", precondition: "?" },
+        { code: "x = y;", precondition: "?" },
+        { code: "y = temp;", isActive: true, precondition: "x = B ∧ temp = A", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "\\text{wp}(y = \\text{temp},\\; x = B \\wedge y = A) = (x = B \\wedge \\text{temp} = A)",
+      description: "Apply assignment axiom: replace y with temp in postcondition. y = A becomes temp = A."
+    },
+    {
+      programLines: [
+        { code: "temp = x;", precondition: "?" },
+        { code: "x = y;", isActive: true, precondition: "y = B ∧ temp = A", postcondition: "x = B ∧ temp = A" },
+        { code: "y = temp;", precondition: "x = B ∧ temp = A", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "\\text{wp}(x = y,\\; x = B \\wedge \\text{temp} = A) = (y = B \\wedge \\text{temp} = A)",
+      description: "Apply assignment axiom: replace x with y. x = B becomes y = B."
+    },
+    {
+      programLines: [
+        { code: "temp = x;", isActive: true, precondition: "y = B ∧ x = A", postcondition: "y = B ∧ temp = A" },
+        { code: "x = y;", precondition: "y = B ∧ temp = A", postcondition: "x = B ∧ temp = A" },
+        { code: "y = temp;", precondition: "x = B ∧ temp = A", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "\\text{wp}(\\text{temp} = x,\\; y = B \\wedge \\text{temp} = A) = (y = B \\wedge x = A)",
+      description: "Apply assignment axiom: replace temp with x. temp = A becomes x = A. The precondition is x = A ∧ y = B — exactly what we assumed! ✓"
+    },
+  ]}
+/>
+
+> The swap proof is elegant because it proves correctness for **all** possible values of A and B simultaneously. Testing could only check specific values (e.g., A = 3, B = 7). The proof covers infinitely many cases in four mechanical steps.
+
+---
+
+## Loop Invariants
+
+The loop rule introduces the **invariant** $I$ — a property that must hold before and after every iteration. Finding the right invariant is the key challenge (and the creative part) of axiomatic reasoning.
+
+<DefinitionBox term="Loop Invariant">
+
+A **loop invariant** is a logical predicate $I$ that satisfies:
+1. $I$ holds before the loop begins (initialization)
+2. If $I$ holds before an iteration and the loop condition $B$ is true, then $I$ holds after the iteration (preservation)
+3. When the loop terminates, $I \wedge \neg B$ implies the desired postcondition
+
+</DefinitionBox>
+
+Consider this Petal program that computes the sum $1 + 2 + \ldots + n$:
+
+```
+s = 0;
+i = 1;
+while i <= n {
+  s = s + i;
+  i = i + 1;
+}
+```
+
+We want to prove: $\{n \geq 0\} \; \text{program} \; \{s = n(n+1)/2\}$.
+
+What invariant should we use? Let's try candidates:
+
+**Candidate 1**: $I = (s \geq 0)$. This is true before and after each iteration, but it's too weak — it doesn't tell us anything about the relationship between `s`, `i`, and `n`. When the loop ends, we know $s \geq 0$ and $i > n$, but not what `s` actually equals.
+
+**Candidate 2**: $I = (s = i(i-1)/2 \wedge 1 \leq i \leq n + 1)$. This captures the essential relationship: at every point in the loop, `s` holds the sum of integers from 1 to $i - 1$. When the loop terminates ($i = n + 1$), we get $s = n(n+1)/2$.
+
+> Finding invariants requires understanding *what the loop is computing at each stage* — it's the property preserved by each iteration, exactly like the property preserved by each approximation in the fixed-point construction from LN 12. In fact, the loop invariant IS the property that holds at every level of the approximation sequence: $w_k$ handles inputs where the loop runs at most $k$ times, and the invariant holds at every $w_k$.
+
+### Finding Invariants: A Systematic Approach
+
+Finding invariants is often called the "creative" part of program verification, but there's a systematic heuristic that works for many loops:
+
+1. **Look at the postcondition.** What property do you want to hold when the loop ends?
+2. **Generalize it.** Replace the "final" value with the loop variable. The postcondition says $s = n(n+1)/2$; the generalization is $s = i(i-1)/2$.
+3. **Add bounds.** The loop variable has known bounds: $1 \leq i \leq n + 1$.
+4. **Verify.** Check that the invariant is (a) true before the loop, (b) preserved by each iteration, and (c) sufficient to prove the postcondition when combined with the negation of the loop condition.
+
+> This heuristic works because loops compute their results incrementally. The invariant captures the "progress so far" — at step $k$, the loop has processed $k$ items and accumulated a partial result. This is the same idea as the denotational approximation sequence (LN 12): each $w_k$ handles $k$ iterations, and the invariant holds for every $w_k$.
+
+### A Second Invariant Example
+
+Consider computing integer exponentiation:
+
+```
+result = 1;
+count = 0;
+while count < exp {
+  result = result * base;
+  count = count + 1;
+}
+```
+
+We want to prove: $\{base \geq 0 \wedge exp \geq 0\} \; \text{program} \; \{result = base^{exp}\}$.
+
+The invariant is: $I = (result = base^{count} \wedge 0 \leq count \leq exp)$
+
+**Initialization**: Before the loop, $result = 1 = base^0$ and $count = 0$. ✓
+
+**Preservation**: If $I$ holds and $count < exp$, then after `result = result * base`, we have $result' = result \times base = base^{count} \times base = base^{count+1}$. After `count = count + 1`, we have $count' = count + 1$. So $I$ holds with the updated values. ✓
+
+**Termination**: When $count = exp$ (the negation of $count < exp$), the invariant gives us $result = base^{exp}$, which is the desired postcondition. ✓
+
+---
+
+## Partial vs. Total Correctness
+
+There's a subtlety we've been glossing over. The Hoare triple $\{P\} \; C \; \{Q\}$ says: *if* $P$ holds and $C$ **terminates**, *then* $Q$ holds. But what if $C$ doesn't terminate?
+
+Consider:
+<DisplayMath formula="\{\text{true}\} \quad \text{while } 1 \; \{\; \} \quad \{x = 42\}" />
+
+This triple is **valid** under partial correctness! The loop never terminates, so the postcondition is vacuously satisfied — it's an "if-then" with a false antecedent.
+
+<DefinitionBox term="Partial vs. Total Correctness">
+
+- **Partial correctness** ($\{P\} \; C \; \{Q\}$): IF $C$ terminates, THEN $Q$ holds.
+- **Total correctness** ($[P] \; C \; [Q]$): $C$ TERMINATES and $Q$ holds.
+
+Proving total correctness requires an additional ingredient: a **variant** (also called a "ranking function") — a quantity that decreases on each iteration and is bounded below, guaranteeing termination.
+
+</DefinitionBox>
+
+<DefinitionBox term="Variant (Ranking Function)">
+
+A **variant** is an expression $V$ that:
+1. Is a non-negative integer (or ordinal) — bounded below by 0
+2. Strictly decreases with each loop iteration
+
+If such a $V$ exists, the loop must terminate: it can decrease at most $V_0$ times before reaching 0.
+
+</DefinitionBox>
+
+For our summation loop, the variant is $V = n + 1 - i$. It starts at $n$ and decreases by 1 each iteration, reaching 0 when $i = n + 1$ (at which point $i > n$, so the loop exits).
+
+For the exponentiation loop, the variant is $V = exp - count$.
+
+> This connects to LN 5. Rice's Theorem tells us that many program properties are **undecidable** — no algorithm can determine them for all programs. Total correctness is one such property. We can prove termination for specific programs (using variants), but there is no general procedure that works for all programs. The Halting Problem is the most famous example: no algorithm can determine, for all programs and inputs, whether the program terminates.
+
+---
+
+## Real-World Static Verification
+
+Axiomatic semantics might seem like a mathematical exercise, but its applications are everywhere — often in disguise.
+
+### Type Checkers as Lightweight Axiomatics
+
+Every time TypeScript rejects `const x: number = "hello"`, it's applying an axiomatic rule. The type annotation `number` is a precondition: "this variable holds a number." The type checker verifies that all uses of `x` are consistent with this annotation — without running the program.
+
+```typescript
+// TypeScript: the type annotation IS a Hoare-style assertion
+function double(x: number): number {  // {x: number} → {result: number}
+  return x * 2;
+}
+
+// The type checker proves: {x: number} x * 2 {result: number}
+// This is a restricted Hoare triple verified at compile time
+```
+
+Type systems are **restricted Hoare Logics** where the "assertions" are types and the "proof" is type checking. The restriction (only tracking types, not arbitrary properties) makes the system **decidable** — type checking always terminates. This is a pragmatic trade-off (LN 6): we sacrifice expressiveness (can't prove `y = 6`) for decidability (the checker always gives an answer).
+
+### Rust's Borrow Checker
+
+Rust's borrow checker is a more sophisticated static verification system. It proves at compile time that:
+- No data races (at most one mutable reference at a time)
+- No use-after-free (references don't outlive their data)
+- No null pointer dereferences (the `Option` type forces explicit handling)
+
+```rust
+fn main() {
+    let mut data = vec![1, 2, 3];
+    let r = &data;          // immutable borrow
+    // data.push(4);        // ERROR: can't mutate while borrowed
+    println!("{:?}", r);    // borrow ends here
+    data.push(4);           // OK: borrow has ended
+}
+```
+
+These are Hoare-style properties: "after this line, no other reference can mutate this data" is a postcondition that the compiler verifies for every borrow. The result: **memory safety without a garbage collector**, verified before a single line executes.
+
+> Rust's borrow checker proves that **ownership** — the right to read, write, or deallocate data — is always well-defined. This is an axiomatic guarantee about the program's memory behavior. The compiler rejects programs that might violate ownership rules, just as Hoare Logic rejects programs whose preconditions don't imply the desired postconditions.
+
+### Industrial Formal Verification
+
+When the stakes are highest, full axiomatic verification is employed:
+
+- **SPARK Ada** (aviation): used in the DO-178C standard for flight control software. Hoare-style contracts are written alongside the code, and the SPARK prover verifies them automatically.
+- **Frama-C** (nuclear): used to verify C code in safety-critical nuclear systems. Annotations are written in ACSL (ANSI/ISO C Specification Language), a Hoare-style assertion language.
+- **CompCert** (compilers): a C compiler written and verified in the Coq proof assistant. The compiler itself is *proven correct* — the compiled output is guaranteed to have the same semantics as the source. This is the ultimate synthesis of LN 9 (parsing), LN 11 (operational semantics), and today's verification.
+- **seL4** (operating systems): a formally verified microkernel used in critical defense and infrastructure systems. Every line of code is proven correct against a formal specification.
+
+> These tools don't eliminate all bugs, but they provide **mathematical guarantees** about specific properties. The Halting Problem (LN 5) means we can't prove everything, but within the decidable fragment, we can prove remarkable things. When a verified compiler produces code, you know the code is correct — not because you tested it, but because you proved it.
+
+### Design by Contract
+
+<DefinitionBox term="Design by Contract">
+
+**Design by Contract** (DbC) is a software design methodology where functions specify their preconditions, postconditions, and invariants as part of their interface. The "contract" is a Hoare triple: the caller guarantees the precondition, the function guarantees the postcondition.
+
+</DefinitionBox>
+
+```python
+def binary_search(arr, target):
+    """
+    Contract:
+    Pre:  arr is sorted in ascending order
+    Post: returns index i where arr[i] == target, or -1 if not found
+    Invariant: target is in arr[lo..hi] if it exists
+    """
+    lo, hi = 0, len(arr) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+```
+
+The docstring is an informal Hoare triple. Languages like Eiffel and D build contracts into the language syntax; others use assertion libraries or documentation conventions.
+
+### Static Analysis Tools
+
+Even without full formal verification, many tools use axiomatic reasoning to catch bugs:
+
+```javascript
+// ESLint: enforces code conventions (a very weak form of axiomatics)
+// "if x is undefined, accessing x.property is an error"
+const y = x.property;  // ESLint warns if x might be null
+
+// Flow / TypeScript: type-level assertions
+function add(a: number, b: number): number {
+  return a + b;  // compiler proves return type matches
+}
+```
+
+```rust
+// Clippy: Rust's linter uses ownership axioms
+let v = vec![1, 2, 3];
+let first = &v[0];
+v.push(4);  // Clippy + compiler: ERROR — v is borrowed
+println!("{}", first);
+```
+
+```python
+# mypy: gradual typing for Python
+def greet(name: str) -> str:
+    return "Hello, " + name
+
+greet(42)  # mypy error: expected str, got int
+```
+
+These tools exist on a spectrum from very simple (linters checking naming conventions) to very powerful (Rust's borrow checker proving memory safety). All of them are forms of axiomatic reasoning: establishing preconditions and postconditions and verifying that the code satisfies them.
+
+---
+
+## The Broader Landscape
+
+Operational, denotational, and axiomatic semantics are the "big three," but the field has developed several more frameworks, each with unique strengths.
+
+### Algebraic Semantics
+
+<DefinitionBox term="Algebraic Semantics">
+
+**Algebraic semantics** defines meaning through **equations between terms**. An abstract data type (ADT) is specified by a signature (the operations available) and axioms (equational properties). The meaning is the **initial algebra** — the most constrained interpretation satisfying all axioms.
+
+</DefinitionBox>
+
+For example, a stack is specified by:
+
+| Operation | Axiom |
+|-----------|-------|
+| `top(push(s, x))` | `= x` |
+| `pop(push(s, x))` | `= s` |
+| `isEmpty(empty)` | `= true` |
+| `isEmpty(push(s, x))` | `= false` |
+
+These equations define the meaning of stack operations without describing any implementation. Any data structure that satisfies these axioms IS a stack — whether it's an array, a linked list, or a cons cell. This connects to LN 3: algebras generalize set-theoretic structures by adding operations and equations.
+
+> This is the mathematical foundation for interface/trait/protocol design in modern languages. When you define a `Stack` interface in Java or a `Stack` trait in Rust, you're specifying an algebra. Any type that implements the interface satisfies the axioms.
+
+### Action Semantics
+
+Peter Mosses developed Action Semantics in 1992 to address a practical problem: operational and denotational semantics don't scale well to full language specifications. The Standard ML specification is hundreds of pages of denotational semantics — readable only by experts.
+
+Action Semantics uses three "facets" — functional, imperative, and declarative — to decompose a language's semantics into independently understandable parts. It combines the rigor of formal semantics with the readability needed for practical language specification.
+
+### Modern Directions
+
+- **Game semantics**: meaning as strategies in a game between the program and its environment. Captures interaction patterns that denotational semantics struggles with.
+- **Categorical semantics**: meaning in terms of category theory (functors, monads). Provides deep structural insights but requires significant mathematical background.
+- **Probabilistic semantics**: meaning for programs that use randomness. Essential for machine learning and cryptography.
+- **Algebraic effects**: a modern approach to tracking side effects in types. Gaining traction as a replacement for monads in languages like OCaml 5 and Koka.
+
+### The Three Approaches: A Unified View
+
+Now that we've seen all three approaches, we can appreciate how they're related. They're not competing theories — they're different perspectives on the same mathematical reality:
+
+<DisplayMath formula="\text{Operational} \xrightarrow{\text{adequacy}} \text{Denotational} \xrightarrow{\text{soundness}} \text{Axiomatic}" />
+
+- **Adequacy** (LN 12): the operational and denotational semantics agree — they produce the same results for terminating programs.
+- **Soundness**: if a Hoare triple is derivable using the axiomatic rules, then it is true according to the operational/denotational semantics. The axiomatic system only proves correct things.
+
+The reverse directions are also important:
+- **Completeness**: if a Hoare triple is true (according to operational/denotational semantics), can it always be proved using the axiomatic rules? Cook showed in 1978 that Hoare Logic is **relatively complete** — it can prove any true triple, as long as the underlying assertion logic is expressive enough. But the assertion logic itself may be undecidable, which connects back to Rice's Theorem (LN 5).
+
+> This triangle of relationships shows that the three approaches are consistent with each other. They define the same "meaning" — just described in different ways. This consistency is not accidental; it's a deep mathematical fact about the nature of computation.
+
+---
+
+## Choosing the Right Tool
+
+No single semantic approach is "best." Each illuminates different aspects of meaning:
+
+| Goal | Best Approach |
+|------|---------------|
+| Debugging, understanding execution | Operational |
+| Compiler optimization, equivalence proofs | Denotational |
+| Program verification, safety guarantees | Axiomatic |
+| Library/API specification | Algebraic |
+| Full language specification | Action or Operational |
+| Theoretical foundations | Denotational or Categorical |
+
+The three lectures (LN 11-13) gave you three lenses on the same programs. The interpreter shows what *happens*. The transpiler shows what *function* is computed. The verifier shows what *must be true*. Together, they form a complete toolkit for understanding and implementing programming languages.
+
+---
+
+## Summary
+
+Today we completed the trio of semantic approaches with **axiomatic semantics — meaning by proving**. Hoare Logic lets us annotate programs with preconditions and postconditions, then use inference rules to prove properties without execution.
+
+We learned the assignment axiom (the foundation, running backward), the sequencing rule (chaining proofs), the conditional rule (branching), the consequence rule (adapting proofs), and the loop rule (requiring an invariant). We watched weakest preconditions propagate backward through two programs — a simple calculation and a variable swap — mechanically constructing proofs.
+
+We confronted **partial vs. total correctness** and connected the distinction to LN 5's computability limits — Rice's Theorem means total correctness is undecidable in general. But within decidable fragments, axiomatic reasoning powers real-world tools: TypeScript's type checker, Rust's borrow checker, SPARK Ada's prover, CompCert's verified compiler, and the seL4 verified microkernel.
+
+We surveyed the broader landscape: algebraic semantics for modular data type specifications, action semantics for scalable language specifications, and modern directions like game semantics, categorical semantics, and algebraic effects.
+
+Next lecture, we bring everything together: the **full compilation pipeline**, mapping every stage to the lecture that taught it. Petal completes its journey from design to execution to verification.
+
+<LectureNotes>
+
+**Key Definitions:**
+- **Axiomatic Semantics**: meaning by proving — programs are characterized by logical assertions
+- **Hoare Triple**: $\{P\} \; C \; \{Q\}$ — if $P$ holds before $C$, then $Q$ holds after (if $C$ terminates)
+- **Assignment Axiom**: $\{Q[x/e]\} \; x = e \; \{Q\}$ — substitute backward
+- **Weakest Precondition**: $\text{wp}(C, Q)$ — the least restrictive precondition guaranteeing $Q$
+- **Loop Invariant**: a property $I$ preserved by every iteration of a loop
+- **Variant (Ranking Function)**: a decreasing quantity that guarantees termination
+- **Partial Correctness**: IF the program terminates, THEN the postcondition holds
+- **Total Correctness**: the program terminates AND the postcondition holds
+- **Design by Contract**: functions specify pre/postconditions as part of their interface
+- **Algebraic Semantics**: meaning through equational axioms on operations
+
+**Key Connections:**
+- Hoare rules ARE inference rules (LN 2, LN 11) — same logical framework
+- Proper substitution in Hoare Logic IS the same $[x/e]$ operation from LN 4
+- Loop invariants ARE fixed-point approximation properties (LN 12)
+- Total correctness is undecidable (LN 5, Rice's Theorem, Halting Problem)
+- Type checkers are restricted Hoare Logics (decidable fragment)
+- Axiomatic semantics completes the triad: run (LN 11) / translate (LN 12) / prove (LN 13)
+- Algebraic semantics IS the foundation for interfaces and traits in modern languages
+- CompCert synthesizes parsing (LN 9), operational semantics (LN 11), and verification (LN 13)
+
+</LectureNotes>
+
+<LectureResources>
+
+### Additional Resources
+
+- [C.A.R. Hoare, "An Axiomatic Basis for Computer Programming" (1969)](https://dl.acm.org/doi/10.1145/363235.363259) — The original paper
+- [Kenneth Slonneger and Barry Kurtz, *Formal Syntax and Semantics of Programming Languages*, Chapters 11-13](https://cdn.preterhuman.net/texts/science_and_technology/artificial_intelligence/Formal%20Syntax%20and%20Semantics%20of%20Programming%20Languages%20-%20Kenneth%20Slonneger.pdf) — Axiomatic and algebraic semantics
+- [Edsger Dijkstra, *A Discipline of Programming* (1976)](https://seriouscomputerist.atariverse.com/media/pdf/book/Discipline%20of%20Programming.pdf) — The foundational text on weakest preconditions
+- [Dafny](https://dafny.org/) — A verification-aware programming language with built-in Hoare-style specifications
+- [Lean 4](https://lean-lang.org/) — A modern proof assistant and programming language
+- [CompCert](https://compcert.org/) — A formally verified C compiler, proven correct in Coq
+- [The SPARK Language](https://www.adacore.com/about-spark) — Industrial-strength formal verification for Ada
+
+</LectureResources>

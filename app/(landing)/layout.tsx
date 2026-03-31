@@ -48,8 +48,8 @@ export default function RootLayout({
                   inlineMath: [['$', '$']],
                   displayMath: [['$$', '$$']],
                   macros: {
-                    llbracket: '\\unicode{x27E6}',
-                    rrbracket: '\\unicode{x27E7}',
+                    llbracket: '\\\\mathopen{⟦}',
+                    rrbracket: '\\\\mathclose{⟧}',
                   },
                 },
                 options: {

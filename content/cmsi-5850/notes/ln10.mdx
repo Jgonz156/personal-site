@@ -1,0 +1,729 @@
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { DisplayMath, InlineMath } from "@/components/math"
+import { SemanticEvaluator } from "@/components/semantic-evaluator"
+import { ScopeChainVisualizer } from "@/components/scope-chain-visualizer"
+
+## Recap
+
+In LN 7, we learned how to define **what a language looks like** — alphabets, strings, grammars, the Chomsky Hierarchy. In LN 8, we designed **Petal's syntax** — tokens, CSTs, ASTs. In LN 9, we built a **parser** that mechanically transforms a flat stream of characters into a structured tree. We can now take any Petal program and produce a JSON AST like this:
+
+```json
+{
+  "type": "Program",
+  "body": [
+    { "type": "Assignment", "name": "x", "value": { "type": "BinaryOp", "op": "+", "left": { "type": "Number", "value": 3 }, "right": { "type": "Number", "value": 5 } } },
+    { "type": "Assignment", "name": "y", "value": { "type": "BinaryOp", "op": "*", "left": { "type": "Identifier", "name": "x" }, "right": { "type": "Number", "value": 2 } } },
+    { "type": "Print", "expression": { "type": "Identifier", "name": "y" } }
+  ]
+}
+```
+
+This tree is beautifully structured. It captures precedence, associativity, and nesting. But ask yourself a simple question: **what does this program print?**
+
+You can probably figure it out — `x` gets `8`, `y` gets `16`, so it prints `16`. But *how* did you figure it out? You performed a mental simulation. You walked through the tree, kept track of variable values in your head, and computed the result. You gave the program **meaning**.
+
+That mental process — the thing you just did in your head — is exactly what this half of the course formalizes. Everything before this lecture asked "what does a program *look like*?" Everything from here forward asks "what does it *mean*?"
+
+---
+
+## Today's Agenda
+
+Today we cross the boundary from syntax to semantics — the most important pivot point in the entire course.
+
+- **The Central Question** — From structure to meaning: what does an AST *compute*?
+- **The Meaning Function** — The lambda abstraction that maps syntax to semantics
+- **Semantic Domains** — The mathematical spaces where meanings live
+- **Informal Semantics of Petal** — Tracing evaluation step by step
+- **When Informal Semantics Fails** — Edge cases that demand precision
+- **Environments and State** — How variable bindings evolve during execution
+- **Scoping Rules** — Lexical vs. dynamic: the same syntax, different meanings
+- **Errors and Undefined Behavior** — Semantic design decisions across real languages
+- **Preview of Three Formal Approaches** — Operational, denotational, axiomatic
+
+---
+
+## The Central Question
+
+An AST is a data structure. It has nodes and edges, types and labels. But it doesn't *do* anything on its own. It's a tree sitting in memory. The question of semantics is: **what does this tree compute?**
+
+<DefinitionBox term="Semantics">
+
+**Semantics** is the study of **meaning**. In the context of programming languages, semantics answers the question: "given a syntactically valid program, what is its behavior?" A semantic specification maps every well-formed program to a precisely defined mathematical object representing its meaning.
+
+</DefinitionBox>
+
+This seems obvious for simple programs. `3 + 5` means `8`. But consider:
+
+- What does `x + 5` mean when `x` hasn't been declared?
+- What does `x / 0` mean?
+- What does `print x` mean if `x` was assigned in a different scope?
+- What does `while 1 { print 0; }` mean? (It never terminates — does it have a "meaning"?)
+
+These questions don't have obvious answers. Different programming languages answer them differently. C says division by zero is *undefined behavior* — the compiler can do anything it wants, including setting your computer on fire (in principle). Python raises an exception. JavaScript produces `Infinity` or `NaN`. Each of these is a **semantic choice**, and each has consequences for how programs behave.
+
+> The goal of formal semantics is to answer these questions **precisely and unambiguously**. No more "it depends" or "it's obvious" — instead, a mathematical specification that tells you exactly what every program computes.
+
+---
+
+## The Meaning Function
+
+Here is the central concept of this entire unit. Every approach to semantics boils down to defining a **meaning function**:
+
+<DefinitionBox term="Meaning Function">
+
+The **meaning function** is a mapping from the syntactic domain (ASTs) to a semantic domain (mathematical objects representing behavior):
+
+<DisplayMath formula="M : \text{AST} \to \text{Semantic Domain}" />
+
+The meaning function takes a tree and produces a mathematical object that represents what the tree computes.
+
+</DefinitionBox>
+
+For an expression like `3 + 5`, the meaning is the number `8`. For a statement like `x = 8`, the meaning is a transformation of the program's environment — the variable `x` now maps to `8`.
+
+This is where LN 3 and LN 4 pay their biggest dividend. Functions as mappings (LN 3) and lambda abstractions (LN 4) are exactly the tools we need to define meaning. The meaning function is a lambda:
+
+<DisplayMath formula="M = \lambda\text{ast}.\; \text{(the value or effect computed by ast)}" />
+
+> Notice that the meaning function itself is a function in the mathematical sense from LN 3 and the computational sense from LN 4. We are applying our own foundational tools to investigate programming languages — the tools are turning inward.
+
+### Compositionality
+
+<DefinitionBox term="Compositionality">
+
+A semantic specification is **compositional** if the meaning of a compound expression is determined entirely by the meanings of its parts. Formally, if $e = f(e_1, e_2, \ldots, e_n)$, then:
+
+<DisplayMath formula="M\llbracket e \rrbracket = g(M\llbracket e_1 \rrbracket, M\llbracket e_2 \rrbracket, \ldots, M\llbracket e_n \rrbracket)" />
+
+for some function $g$ that depends only on $f$, not on the internal structure of the $e_i$.
+
+</DefinitionBox>
+
+Compositionality is the key property. The meaning of `3 + 5` is determined by the meaning of `3`, the meaning of `5`, and the meaning of `+`. This mirrors the tree structure of ASTs — to evaluate a parent node, evaluate its children first.
+
+This isn't a new idea. In LN 2, the truth value of a compound proposition was determined by the truth values of its parts. In LN 4, the meaning of a lambda application was determined by the function and its argument. Compositionality is a thread that runs through all of formal reasoning.
+
+---
+
+## Semantic Domains
+
+If the meaning function maps ASTs to "meanings," what are those meanings? What is the codomain? The answer depends on what kind of AST node we're looking at:
+
+<DefinitionBox term="Semantic Domain">
+
+A **semantic domain** is the mathematical set that serves as the codomain of a meaning function. It is the space of all possible "meanings" for a particular syntactic category.
+
+</DefinitionBox>
+
+For Petal, the domains are:
+
+<DefinitionBox term="Petal's Semantic Domains">
+
+**For expressions**: the meaning is a **number** — the value the expression computes.
+
+<DisplayMath formula="\text{ExpDomain} = \mathbb{Z}" />
+
+**For statements**: the meaning is a **transformation of state** — how the statement changes the environment and produces output.
+
+<DisplayMath formula="\text{StmDomain} = \text{State} \to \text{State} \times \text{Output}" />
+
+**For programs**: the meaning is the **output** — the observable result of running the entire program.
+
+<DisplayMath formula="\text{ProDomain} = \text{Output}" />
+
+Where:
+- **State** (also called **Environment** or **Memory**) is a map from variable names to values: $\text{State} = \text{Identifier} \to \text{Value}$
+- **Output** is a sequence of values: $\text{Output} = \text{Value}^*$
+
+</DefinitionBox>
+
+Notice how these domains connect to the mathematics we've already built:
+- **State** is a function from identifiers to values — a set-theoretic function from LN 3
+- **Statement meaning** is a function from state to state — a higher-order function from LN 4
+- **Output** is a sequence — an element of a Kleene closure from LN 7
+
+> The tools we built in the first four lectures weren't abstract exercises. They were preparation for exactly this moment. The semantic domains of a programming language are constructed from set-theoretic functions (LN 3), higher-order transformations (LN 4), and string-theoretic operations (LN 7).
+
+---
+
+## Informal Semantics of Petal
+
+Before we formalize anything, let's be precise in English about what each Petal construct means. We'll trace through a complete program and watch the meaning emerge step by step.
+
+Consider this Petal program:
+
+```
+x = 3 + 5;
+y = x * 2;
+print y;
+```
+
+The `SemanticEvaluator` below shows the AST on the left, and the **environment** (variable bindings) and **output** on the right. Step through to see how meaning flows through the tree:
+
+<SemanticEvaluator
+  title="Evaluating: x = 3 + 5; y = x * 2; print y;"
+  astNodes={[
+    { id: "prog", label: "P", level: 0 },
+    { id: "a1", label: "x = ...", level: 1 },
+    { id: "add", label: "+", level: 2 },
+    { id: "n3", label: "3", isTerminal: true, level: 3 },
+    { id: "n5", label: "5", isTerminal: true, level: 3 },
+    { id: "a2", label: "y = ...", level: 1 },
+    { id: "mul", label: "*", level: 2 },
+    { id: "idx", label: "x", isTerminal: true, level: 3 },
+    { id: "n2", label: "2", isTerminal: true, level: 3 },
+    { id: "pr", label: "print", level: 1 },
+    { id: "idy", label: "y", isTerminal: true, level: 2 },
+  ]}
+  astEdges={[
+    { from: "prog", to: "a1" },
+    { from: "prog", to: "a2" },
+    { from: "prog", to: "pr" },
+    { from: "a1", to: "add" },
+    { from: "add", to: "n3" },
+    { from: "add", to: "n5" },
+    { from: "a2", to: "mul" },
+    { from: "mul", to: "idx" },
+    { from: "mul", to: "n2" },
+    { from: "pr", to: "idy" },
+  ]}
+  steps={[
+    { astHighlight: ["prog"], environment: {}, output: [], description: "Begin evaluation. The environment is empty — no variables are bound yet. We process the program's statements top to bottom." },
+    { astHighlight: ["a1", "add", "n3", "n5"], environment: {}, output: [], description: "First statement: x = 3 + 5. To execute the assignment, we must first evaluate the right-hand side expression." },
+    { astHighlight: ["n3"], environment: {}, output: [], description: "Evaluate the literal 3. Number literals are self-evaluating — their meaning IS their value." },
+    { astHighlight: ["n5"], environment: {}, output: [], description: "Evaluate the literal 5. Same rule: the meaning of a number node is the number itself." },
+    { astHighlight: ["add"], environment: {}, output: [], description: "Evaluate 3 + 5. The + node's meaning is: evaluate left child (3), evaluate right child (5), return their sum (8)." },
+    { astHighlight: ["a1"], environment: { x: 8 }, output: [], description: "Execute x = 8. The assignment's meaning is: bind the name 'x' to the value 8 in the environment. The environment now has one entry." },
+    { astHighlight: ["a2", "mul", "idx", "n2"], environment: { x: 8 }, output: [], description: "Second statement: y = x * 2. Again, evaluate the right-hand side first." },
+    { astHighlight: ["idx"], environment: { x: 8 }, output: [], description: "Evaluate the identifier x. Look up 'x' in the environment → found: 8. The meaning of an identifier is whatever the environment says it is." },
+    { astHighlight: ["n2"], environment: { x: 8 }, output: [], description: "Evaluate the literal 2." },
+    { astHighlight: ["mul"], environment: { x: 8 }, output: [], description: "Evaluate x * 2 = 8 * 2 = 16. Same rule as addition: evaluate children, apply the operator." },
+    { astHighlight: ["a2"], environment: { x: 8, y: 16 }, output: [], description: "Execute y = 16. The environment now has two entries: x → 8, y → 16." },
+    { astHighlight: ["pr", "idy"], environment: { x: 8, y: 16 }, output: [], description: "Third statement: print y. Evaluate the expression (the identifier y), then emit the result to the output stream." },
+    { astHighlight: ["idy"], environment: { x: 8, y: 16 }, output: [], description: "Look up y in the environment → found: 16." },
+    { astHighlight: ["pr"], environment: { x: 8, y: 16 }, output: [16], description: "Print 16. The output stream now contains [16]. This is the observable result of the program." },
+  ]}
+/>
+
+### The Rules
+
+What we just did can be summarized as a small set of **evaluation rules**:
+
+| AST Node | Rule |
+|----------|------|
+| `Number(n)` | Evaluates to `n` |
+| `Identifier(name)` | Look up `name` in the environment; return its value |
+| `BinaryOp(op, left, right)` | Evaluate `left`, evaluate `right`, apply `op` to results |
+| `Assignment(name, expr)` | Evaluate `expr`, bind `name` to the result in the environment |
+| `Print(expr)` | Evaluate `expr`, append the result to the output stream |
+| `Program(body)` | Execute each statement in `body` sequentially |
+
+These six rules define the **informal semantics** of Petal. Every Petal program's meaning is determined by applying these rules recursively to the AST. The process is mechanical: given an AST and an empty environment, the rules uniquely determine the output.
+
+Notice how the tree structure of the AST enables this. To evaluate a parent node, we first evaluate its children — this is compositionality in action. The meaning of the whole is built from the meanings of the parts, exactly as we described with the meaning function.
+
+### A Second Example: Variable Shadowing
+
+What happens when a variable is assigned more than once? Let's trace through:
+
+```
+x = 10;
+x = x + 5;
+print x;
+```
+
+<SemanticEvaluator
+  title="Evaluating: x = 10; x = x + 5; print x;"
+  astNodes={[
+    { id: "prog", label: "P", level: 0 },
+    { id: "a1", label: "x = ...", level: 1 },
+    { id: "n10", label: "10", isTerminal: true, level: 2 },
+    { id: "a2", label: "x = ...", level: 1 },
+    { id: "add", label: "+", level: 2 },
+    { id: "idx", label: "x", isTerminal: true, level: 3 },
+    { id: "n5", label: "5", isTerminal: true, level: 3 },
+    { id: "pr", label: "print", level: 1 },
+    { id: "idx2", label: "x", isTerminal: true, level: 2 },
+  ]}
+  astEdges={[
+    { from: "prog", to: "a1" },
+    { from: "prog", to: "a2" },
+    { from: "prog", to: "pr" },
+    { from: "a1", to: "n10" },
+    { from: "a2", to: "add" },
+    { from: "add", to: "idx" },
+    { from: "add", to: "n5" },
+    { from: "pr", to: "idx2" },
+  ]}
+  steps={[
+    { astHighlight: ["prog"], environment: {}, output: [], description: "Begin evaluation. Empty environment." },
+    { astHighlight: ["a1", "n10"], environment: {}, output: [], description: "First statement: x = 10. The literal 10 evaluates to 10." },
+    { astHighlight: ["a1"], environment: { x: 10 }, output: [], description: "Bind x to 10. Environment: { x: 10 }." },
+    { astHighlight: ["a2", "add", "idx", "n5"], environment: { x: 10 }, output: [], description: "Second statement: x = x + 5. We need to evaluate x + 5 first." },
+    { astHighlight: ["idx"], environment: { x: 10 }, output: [], description: "Look up x in the environment → 10. The identifier's meaning depends on the CURRENT state." },
+    { astHighlight: ["add"], environment: { x: 10 }, output: [], description: "Evaluate 10 + 5 = 15." },
+    { astHighlight: ["a2"], environment: { x: 15 }, output: [], description: "Rebind x to 15. The old binding (x → 10) is OVERWRITTEN. The environment is mutable — assignments change state." },
+    { astHighlight: ["pr", "idx2"], environment: { x: 15 }, output: [], description: "Print x. Look up x → 15." },
+    { astHighlight: ["pr"], environment: { x: 15 }, output: [15], description: "Output: [15]. The program prints the updated value." },
+  ]}
+/>
+
+This example illustrates a crucial point: the same identifier `x` has different meanings at different points in the program. The first time we look up `x`, it means 10. After the reassignment, it means 15. The **meaning of an identifier depends on the state**, and the state changes over time. This is what makes imperative programming inherently stateful.
+
+---
+
+## When Informal Semantics Fails
+
+Our English-language rules seem perfectly adequate. But natural language has a long history of failing when precision matters. Consider these programs where the "obvious" answer turns out to be language-dependent:
+
+### Evaluation Order
+
+```
+x = 1;
+y = (x = 2) + x;
+```
+
+What is `y`? It depends on whether the language evaluates left-to-right (the assignment `x = 2` happens first, then we read `x` as 2, giving `y = 4`) or right-to-left (we read `x` as 1 first, then assign `x = 2`, giving `y = 3`). Our informal rules said "evaluate left, evaluate right" — but that's an implicit decision with real consequences.
+
+> In C, the expression `(x = 2) + x` is actually **undefined behavior** — the language specification deliberately leaves it unspecified, allowing the compiler to choose either order (or something else entirely). This is not a bug in the specification; it's a deliberate decision to give compilers freedom to optimize. The price is that programmers cannot rely on any particular evaluation order.
+
+### Short-Circuit Evaluation
+
+```
+x = 0;
+if (x != 0) && (10 / x > 2) { ... }
+```
+
+Does this crash? In most languages, `&&` uses **short-circuit evaluation**: if the left operand is false, the right operand is never evaluated. So `10 / x` never executes, and there's no division by zero. But if `&&` evaluated both sides eagerly (as it does in some languages and contexts), the program would crash.
+
+Our informal rules don't mention short-circuit evaluation at all. We need formal rules to make these choices explicit.
+
+### Integer Overflow
+
+What does `2147483647 + 1` evaluate to? In different languages:
+
+| Language | Result | Why |
+|----------|--------|-----|
+| Python | `2147483648` | Arbitrary-precision integers |
+| Java | `-2147483648` | 32-bit two's complement wraparound |
+| C | **Undefined** | Signed integer overflow is UB |
+| Rust | **Panic** (debug) or wrap (release) | Configurable behavior |
+| JavaScript | `2147483648` | All numbers are 64-bit floats |
+
+The "meaning" of addition depends on the semantic choices the language makes about number representation. Our informal rules just say "apply the operator" — but the operator's behavior is itself a design decision.
+
+> These examples aren't contrived edge cases. They represent the kinds of decisions that language designers must make explicitly. Formal semantics forces us to confront every one of them, eliminating the "it's obvious" trap that natural language descriptions fall into.
+
+---
+
+## Environments and State
+
+The **environment** is the central data structure of evaluation. Let's formalize it.
+
+<DefinitionBox term="Environment (State)">
+
+An **environment** (also called **state** or **store**) is a mapping from variable names to values:
+
+<DisplayMath formula="\sigma : \text{Identifier} \to \text{Value}" />
+
+We write $\sigma(x)$ to mean "the value of $x$ in environment $\sigma$." We write $\sigma[x \mapsto v]$ to mean "the environment $\sigma$ updated so that $x$ maps to $v$."
+
+</DefinitionBox>
+
+The environment is a *function* — a set-theoretic function from LN 3. The update operation $\sigma[x \mapsto v]$ creates a new function:
+
+<DisplayMath formula="\sigma[x \mapsto v](y) = \begin{cases} v & \text{if } y = x \\ \sigma(y) & \text{otherwise} \end{cases}" />
+
+This is exactly how functional programming languages model state — not by mutating an existing mapping, but by creating a new one that overrides a single binding. In practice, imperative languages mutate in place (for efficiency), but the mathematical model is substitution.
+
+### Environment Operations in Real Languages
+
+Every language implements environments, even if they don't call them that:
+
+```python
+# Python: a dictionary IS an environment
+env = {}
+env["x"] = 8        # σ[x ↦ 8]
+env["y"] = env["x"] * 2  # σ(x) = 8, σ[y ↦ 16]
+print(env["y"])      # σ(y) = 16
+```
+
+```javascript
+// JavaScript: same idea
+const env = {};
+env.x = 8;           // σ[x ↦ 8]
+env.y = env.x * 2;   // σ[y ↦ 16]
+console.log(env.y);  // σ(y) = 16
+```
+
+```haskell
+-- Haskell: environments are immutable maps
+import qualified Data.Map as Map
+let env0 = Map.empty
+    env1 = Map.insert "x" 8 env0      -- σ[x ↦ 8]
+    env2 = Map.insert "y" (env1 Map.! "x" * 2) env1  -- σ[y ↦ 16]
+in env2 Map.! "y"                      -- σ(y) = 16
+```
+
+> The Haskell version reveals the mathematical reality: `env1` and `env2` are *different* environments. The assignment doesn't modify `env0`; it creates `env1`. This is $\sigma[x \mapsto v]$ in action — a new function, not a mutation of the old one.
+
+### The Empty Environment
+
+<DefinitionBox term="Initial Environment">
+
+The **initial environment** $\sigma_0$ is the empty mapping — no variables are bound:
+
+<DisplayMath formula="\sigma_0 = \lambda x.\; \text{undefined}" />
+
+Any identifier lookup in the empty environment produces an error. This is the starting state of every Petal program.
+
+</DefinitionBox>
+
+### The Output Stream
+
+<DefinitionBox term="Output Stream">
+
+The **output stream** $o$ is a sequence of values representing the observable output of the program:
+
+<DisplayMath formula="o \in \text{Value}^*" />
+
+The `print` statement appends to this stream. The initial output is the empty sequence $\epsilon$.
+
+</DefinitionBox>
+
+The environment and output together form the **program state**: <InlineMath formula="(\sigma, o)" />. Evaluation begins at <InlineMath formula="(\sigma_0, \epsilon)" /> and ends at some <InlineMath formula="(\sigma_{\text{final}}, o_{\text{final}})" />. The program's "meaning" is <InlineMath formula="o_{\text{final}}" /> — the output that an observer can see.
+
+We can think of this pair as a **configuration** — a complete snapshot of the machine at a single point in time. Every step of execution takes one configuration and produces a new one. When we formalize this in LN 11, each evaluation step will be written as a transition between configurations:
+
+<DisplayMath formula="\langle S,\; \sigma,\; o \rangle \;\to\; \langle \sigma',\; o' \rangle" />
+
+This reads: "executing statement $S$ in environment $\sigma$ with current output $o$ produces a new environment $\sigma'$ and new output $o'$." The inference rules we'll write in LN 11 are precisely the rules that govern which transitions are allowed — one rule per AST node type.
+
+---
+
+## Scoping Rules
+
+There is a subtlety hiding in the `Identifier` rule: "look up `name` in the environment." But *which* environment? When programs have nested scopes — functions calling functions, blocks inside blocks — there can be multiple environments in play, and the same variable name might appear in more than one.
+
+<DefinitionBox term="Scope">
+
+The **scope** of a variable binding is the region of the program where that binding is visible and can be referenced. Scoping rules determine which binding a variable reference refers to when multiple bindings for the same name exist.
+
+</DefinitionBox>
+
+Consider this pseudo-Petal program (we'll add functions to Petal formally in LN 11):
+
+```
+x = 1;
+
+function f() {
+  print x;
+}
+
+function g() {
+  x = 2;
+  f();
+}
+
+g();
+```
+
+When `f()` executes `print x`, which `x` does it see? The answer depends on the **scoping rule** the language uses:
+
+<DefinitionBox term="Lexical (Static) Scope">
+
+Under **lexical scope**, a variable reference is resolved by looking at where the function was *defined* in the source text. The binding comes from the nearest enclosing scope in the *lexical structure* of the program. Most modern languages use lexical scope: JavaScript, Python, Rust, Java, C, Haskell.
+
+</DefinitionBox>
+
+<DefinitionBox term="Dynamic Scope">
+
+Under **dynamic scope**, a variable reference is resolved by looking at the *call stack* at runtime. The binding comes from the nearest enclosing scope in the *execution history*. Some older or specialized languages use dynamic scope: Emacs Lisp, some shell scripting, some Lisps before Common Lisp.
+
+</DefinitionBox>
+
+The `ScopeChainVisualizer` below shows how the same program resolves the variable `x` differently under each scoping strategy. Toggle between Lexical and Dynamic to see the difference:
+
+<ScopeChainVisualizer
+  title="Lexical vs. Dynamic Scope"
+  lexicalSteps={[
+    { scopes: [{ name: "Global", bindings: { x: 1 }, parentIndex: null }], description: "Program starts. The global scope contains x = 1 (and function definitions f and g, omitted for clarity)." },
+    { scopes: [{ name: "Global", bindings: { x: 1 }, parentIndex: null }, { name: "g()", bindings: {}, parentIndex: 0 }], description: "g() is called. A new scope is created for g, with the global scope as its parent." },
+    { scopes: [{ name: "Global", bindings: { x: 2 }, parentIndex: null }, { name: "g()", bindings: {}, parentIndex: 0 }], description: "Inside g(), the assignment x = 2 updates the global x (since g has no local x)." },
+    { scopes: [{ name: "Global", bindings: { x: 2 }, parentIndex: null }, { name: "g()", bindings: {}, parentIndex: 0 }, { name: "f()", bindings: {}, parentIndex: 0 }], description: "f() is called from g(). Under LEXICAL scope, f's parent is the scope where f was DEFINED — the global scope." },
+    { scopes: [{ name: "Global", bindings: { x: 2 }, parentIndex: null }, { name: "g()", bindings: {}, parentIndex: 0 }, { name: "f()", bindings: {}, parentIndex: 0 }], lookupVariable: "x", lookupPath: [2, 0], resolvedValue: 2, description: "f() looks up x: check f's scope (empty) → follow parent to Global → find x = 2. Under lexical scope, f follows the DEFINITION chain." },
+  ]}
+  dynamicSteps={[
+    { scopes: [{ name: "Global", bindings: { x: 1 }, parentIndex: null }], description: "Program starts. The global scope contains x = 1." },
+    { scopes: [{ name: "Global", bindings: { x: 1 }, parentIndex: null }, { name: "g()", bindings: {}, parentIndex: 0 }], description: "g() is called. A new scope is created." },
+    { scopes: [{ name: "Global", bindings: { x: 1 }, parentIndex: null }, { name: "g()", bindings: { x: 2 }, parentIndex: 0 }], description: "Inside g(), x = 2 creates a LOCAL x in g's scope (dynamic scope often uses local bindings)." },
+    { scopes: [{ name: "Global", bindings: { x: 1 }, parentIndex: null }, { name: "g()", bindings: { x: 2 }, parentIndex: 0 }, { name: "f()", bindings: {}, parentIndex: 1 }], description: "f() is called from g(). Under DYNAMIC scope, f's parent is the scope where f was CALLED — g's scope." },
+    { scopes: [{ name: "Global", bindings: { x: 1 }, parentIndex: null }, { name: "g()", bindings: { x: 2 }, parentIndex: 0 }, { name: "f()", bindings: {}, parentIndex: 1 }], lookupVariable: "x", lookupPath: [2, 1], resolvedValue: 2, description: "f() looks up x: check f's scope (empty) → follow parent to g() → find x = 2. Under dynamic scope, f follows the CALL chain." },
+  ]}
+/>
+
+### Why Lexical Scope Won
+
+The scoping rule is a **semantic design decision** — it changes what programs mean without changing what they look like. The same syntax produces different behavior depending on which rule the language implements.
+
+This connects directly to LN 4. Remember **free and bound variables** in the lambda calculus? A variable is free if it's not bound by an enclosing lambda. The question "which binding does this variable refer to?" is exactly the scoping question. **Lexical scope** corresponds to the lambda calculus's standard notion of binding — variables refer to the nearest enclosing lambda in the *source text*. **Dynamic scope** would correspond to a lambda calculus where variables refer to the nearest enclosing lambda on the *call stack*, which we showed in LN 4 leads to variable capture bugs.
+
+> This is why lexical scope won: it matches the lambda calculus, which means it's easier to reason about. When you read lexically scoped code, you can determine what a variable refers to by looking at the source — you don't need to know how the function was called.
+
+### Closures: Lexical Scope in Practice
+
+<DefinitionBox term="Closure">
+
+A **closure** is a function bundled together with its lexical environment — the set of variable bindings that were in scope when the function was defined. Closures are the runtime mechanism that implements lexical scope for higher-order functions.
+
+</DefinitionBox>
+
+Closures are how languages implement lexical scope when functions are passed around as values:
+
+```python
+def make_adder(n):
+    def adder(x):
+        return x + n   # n comes from the enclosing scope
+    return adder
+
+add5 = make_adder(5)
+print(add5(3))          # 8 — the closure remembers n = 5
+```
+
+```javascript
+function makeAdder(n) {
+  return (x) => x + n;  // n captured by closure
+}
+
+const add5 = makeAdder(5);
+console.log(add5(3));    // 8
+```
+
+```rust
+fn make_adder(n: i32) -> impl Fn(i32) -> i32 {
+    move |x| x + n  // `move` captures n by value
+}
+
+let add5 = make_adder(5);
+println!("{}", add5(3)); // 8
+```
+
+In each case, when `make_adder(5)` returns, the local variable `n` would normally go out of scope. But because the inner function references `n`, the language creates a **closure** that captures the binding `n = 5`. The returned function carries its environment with it.
+
+> Closures are the practical realization of LN 4's insight: in the lambda calculus, $\lambda x.\, x + n$ is meaningful only when $n$ is resolved. The closure is the runtime data structure that resolves it — it pairs the code with its environment.
+
+---
+
+## Errors and Undefined Behavior
+
+What happens when our evaluation rules break down? Consider these problematic Petal programs:
+
+```
+print x;
+```
+
+The `Identifier` rule says "look up `x` in the environment." But if `x` was never assigned, the lookup fails. What should happen?
+
+```
+y = 10 / 0;
+```
+
+The `BinaryOp` rule says "evaluate left, evaluate right, apply the operator." But division by zero is mathematically undefined. What should the meaning be?
+
+<DefinitionBox term="Undefined Behavior">
+
+**Undefined behavior** (UB) occurs when a program performs an operation whose meaning is not specified by the language. The language makes no guarantees about the result — the program might crash, produce garbage, or appear to work correctly. C and C++ famously include undefined behavior as a design choice, allowing compilers maximum optimization freedom.
+
+</DefinitionBox>
+
+Different languages make different semantic choices for these edge cases:
+
+| Error | Python | JavaScript | C | Rust | Haskell |
+|-------|--------|------------|---|------|---------|
+| Undeclared variable | `NameError` (runtime) | `ReferenceError` (runtime) | Compile error | Compile error | Compile error |
+| Division by zero | `ZeroDivisionError` | `Infinity` or `NaN` | **Undefined behavior** | **Panic** | Runtime exception |
+| Integer overflow | Auto-bignum | Wraps to float | **Undefined behavior** | Panic or wrap | Arbitrary precision |
+| Null dereference | `AttributeError` | `TypeError` | **Undefined behavior** | **Impossible** (no null) | **Impossible** (no null) |
+
+> These differences are **semantic choices** — design decisions about what meaning to give edge cases. They connect directly to LN 6's pragmatics: error handling is a design dimension. Python and JavaScript choose to give runtime feedback. C chooses to leave the behavior unspecified, allowing compilers maximum optimization freedom. Rust and Haskell prevent certain errors entirely through their type systems — they remove the problematic constructs from the language.
+
+For Petal, we'll make a simple choice: undeclared variables and division by zero produce **errors** that halt the program. When we formalize this in LN 11 and LN 12, we'll see how each semantic framework handles errors:
+- **Operational semantics**: the computation "gets stuck" — no rule applies, so the machine stops
+- **Denotational semantics**: the result is the special value $\bot$ ("bottom"), representing divergence or failure
+- **Axiomatic semantics**: the precondition prevents us from ever reaching the error
+
+### The Spectrum of Error Handling
+
+The design space for error handling reflects a deeper tension between **safety** and **freedom**:
+
+| Strategy | Philosophy | Trade-off |
+|----------|-----------|-----------|
+| Compile-time rejection | Prevent errors statically | Some valid programs are rejected |
+| Runtime exception | Detect and report at runtime | Performance cost of checking |
+| Undefined behavior | No checking at all | Maximum performance, minimum safety |
+| Default value | Silently continue | Bugs may propagate silently |
+
+This connects to LN 5's computability theory. Rice's Theorem tells us that most non-trivial semantic properties are **undecidable** — no compiler can catch *all* errors at compile time for all programs. Every language navigates this boundary differently, and the choice is fundamentally pragmatic (LN 6).
+
+---
+
+## Preview of Three Formal Approaches
+
+We've been doing semantics informally — describing evaluation in English and stepping through examples by hand. The rest of Arc 4 will formalize this using three different mathematical frameworks. Each gives us a different way to make the meaning of programs precise, and each corresponds to a different **implementation strategy**.
+
+### Operational Semantics: Meaning by Running
+
+<DefinitionBox term="Operational Semantics">
+
+**Operational semantics** defines meaning by describing how a program *executes*. An abstract machine is defined, and the program's behavior is specified as a sequence of state transitions on that machine.
+
+</DefinitionBox>
+
+The operational approach says: "The meaning of a program is what it *does* when you run it." We define an abstract machine and show how the program executes on that machine, step by step.
+
+For our Petal expression `3 + 5`, the operational meaning might be written as a sequence of transitions:
+
+<DisplayMath formula="\langle 3 + 5, \sigma \rangle \Downarrow 8" />
+
+This reads: "the expression `3 + 5` in state $\sigma$ evaluates to 8." The formal rules for how to derive this judgment are called **inference rules**, and they look exactly like the logical deduction rules from LN 2.
+
+> The operational approach leads naturally to an **interpreter** — a program that walks the AST and recursively evaluates each node. This is what you already did mentally with the `SemanticEvaluator` above. In LN 11, we'll show that inference rules are literally pseudocode for the interpreter.
+
+### Denotational Semantics: Meaning by Translating
+
+<DefinitionBox term="Denotational Semantics">
+
+**Denotational semantics** defines meaning by mapping programs to mathematical objects (typically functions). The meaning of a compound expression is a function of the meanings of its parts (compositionality).
+
+</DefinitionBox>
+
+The denotational approach says: "The meaning of a program is the mathematical *function* it computes." Instead of simulating execution, we map each AST node directly to a mathematical object.
+
+For our expression `3 + 5`, the denotational meaning might be:
+
+<DisplayMath formula="E\llbracket 3 + 5 \rrbracket \sigma = E\llbracket 3 \rrbracket \sigma + E\llbracket 5 \rrbracket \sigma = 3 + 5 = 8" />
+
+The key difference: operational semantics shows you *how* the computation unfolds; denotational semantics tells you *what function* it computes, directly, without simulating.
+
+> Strictly speaking, denotational semantics maps syntax to **pure mathematics** — functions, sets, domains. But in practice, since JavaScript functions behave as mathematical mappings, we can *implement* our denotational semantics as a transpiler that converts Petal ASTs into JavaScript functions. The textbook (Slonneger, Chapter 7) calls this practical bridge **translational semantics**. In LN 12, we'll develop the mathematical equations first, then show that the transpiler falls out naturally as their implementation.
+
+### Axiomatic Semantics: Meaning by Proving
+
+<DefinitionBox term="Axiomatic Semantics">
+
+**Axiomatic semantics** defines meaning through **logical assertions** about programs. The meaning of a program is characterized by the relationship between its preconditions and postconditions — what must be true before and after execution.
+
+</DefinitionBox>
+
+The axiomatic approach says: "The meaning of a program is what you can *prove* about it — without ever running it."
+
+For our assignment `x = 3 + 5`, the axiomatic meaning might be the **Hoare triple**:
+
+<DisplayMath formula="\{true\} \; x = 3 + 5 \; \{x = 8\}" />
+
+This reads: "If `true` holds before execution, then `x = 8` holds after." We've specified the relationship between the program's precondition and postcondition without describing execution at all.
+
+> The axiomatic approach leads naturally to **static verification tools** — type checkers, model checkers, proof assistants. These tools guarantee properties about programs without running them, which is essential when the program controls an aircraft or a nuclear reactor. In LN 13, we'll show how Hoare Logic enables exactly this.
+
+### The Tree Grammar as Semantic Blueprint
+
+Before we compare the three approaches side by side, let's pause and recall the **tree grammar** we defined for Petal back in LN 8. This grammar describes every possible shape of a Petal AST:
+
+<DisplayMath formula="e : \text{Exp} = n \mid i \mid \text{-}e \mid e\text{+}e \mid e\text{-}e \mid e\text{*}e \mid e\text{/}e \mid e\text{\%}e \mid e\text{**}e \mid i\text{(}e^*\text{)}" />
+
+<DisplayMath formula="s : \text{Stmt} = i\text{=}e \mid \textbf{print}\; e" />
+
+<DisplayMath formula="p : \text{Program} = s^+" />
+
+This grammar is more than a description of syntax — it is the **interface** between the syntax phase (LN 7–9) and the semantics phase (LN 11–13). Each production is a "case" that the semantics *must* handle. Think of the tree grammar as an API contract: every semantic approach must provide a complete implementation of this interface, or programs will have undefined meaning.
+
+Each of the three approaches consumes this grammar differently:
+
+| Tree Grammar Production | Operational (LN 11) | Denotational (LN 12) | Axiomatic (LN 13) |
+|---|---|---|---|
+| <InlineMath formula="n" /> (number literal) | Inference rule: <InlineMath formula="\langle n, \sigma \rangle \Downarrow n" /> | Semantic equation: <InlineMath formula="E\llbracket n \rrbracket\, \sigma = n" /> | *(absorbed into assertion logic)* |
+| <InlineMath formula="i\text{=}e" /> (assignment) | Inference rule for assignment | Equation: <InlineMath formula="S\llbracket i\text{=}e \rrbracket" /> | Hoare axiom: <InlineMath formula="\{Q[e/x]\}\; x = e\; \{Q\}" /> |
+| <InlineMath formula="\textbf{print}\; e" /> | Inference rule for print | Equation: <InlineMath formula="S\llbracket \textbf{print}\; e \rrbracket" /> | *(side effect — not naturally Hoare)* |
+
+Notice the asymmetry in the rightmost column. Operational and denotational semantics need one rule or equation for every production — *both* expressions and statements. Axiomatic semantics, however, only needs Hoare rules for **statements**. Why? Because expressions are absorbed into the *assertion language* — the preconditions and postconditions are themselves mathematical formulas that can reference any expression. The tree grammar for <InlineMath formula="\text{Exp}" /> tells you what can appear *inside* assertions; the tree grammar for <InlineMath formula="\text{Stmt}" /> tells you what Hoare rules you need.
+
+> This structural difference is one reason axiomatic semantics has a fundamentally different character from the other two. Operational and denotational semantics define how to *compute* meaning; axiomatic semantics defines how to *reason about* meaning. The tree grammar reveals this distinction before we write a single formal rule.
+
+Each of the next three lectures fills in one column of this table — turning the tree grammar's productions into formal rules, equations, or axioms.
+
+### Three Lenses, One Program
+
+Each approach answers a different question about the same program:
+
+| Approach | Question | Implementation | We Build It In |
+|----------|----------|----------------|----------------|
+| Operational | How does it *run*? | Interpreter | LN 11 |
+| Denotational | What does it *compute*? | Transpiler | LN 12 |
+| Axiomatic | What can we *guarantee*? | Static Verifier | LN 13 |
+
+> Dana Scott and Christopher Strachey developed denotational semantics in the late 1960s at Oxford. Gordon Plotkin formalized structural operational semantics in 1981. C.A.R. Hoare published the axiomatic approach in 1969. All three were developed within a span of about 15 years — a golden age of programming language theory that transformed how we think about the meaning of computation.
+
+Over the next three lectures, we'll develop each of these approaches formally, apply them to Petal, and build the corresponding implementation in JavaScript. By the end, you'll have three complete, mathematically-grounded ways to understand what programs mean — and three engineering tools for making them work.
+
+---
+
+## Summary
+
+Today we crossed the boundary from syntax to semantics — from "what does a program look like?" to "what does it mean?" This is the pivot point of the entire course.
+
+We defined the **meaning function** <InlineMath formula="$M : \text{AST} \to \text{Semantic Domain}$" /> as the central concept, connecting to the set-theoretic functions of LN 3 and the lambda abstractions of LN 4. We identified the **semantic domains** for Petal: numbers for expressions, state transformations for statements, and output for programs. We formalized **compositionality** — the principle that the meaning of a compound expression is determined by the meanings of its parts.
+
+We traced through complete Petal programs step by step with the `SemanticEvaluator`, watching the environment grow and output appear. We saw how the same identifier can have different meanings at different points in execution, depending on the state.
+
+We confronted the **scoping question** — lexical vs. dynamic — and connected it to LN 4's free and bound variables. We saw closures as the runtime mechanism for lexical scope, and understood why lexical scope won (it matches the lambda calculus).
+
+We explored **when informal semantics fails** — evaluation order ambiguity, short-circuit evaluation, integer overflow — and saw how different languages make different semantic choices for edge cases. These connect to LN 6's pragmatics: error handling is a design dimension.
+
+Finally, we previewed the three formal approaches — operational, denotational, and axiomatic — and saw that each corresponds to a different implementation strategy: interpreter, transpiler, and verifier. Starting next lecture, we formalize the first of these and build an interpreter for Petal.
+
+<LectureNotes>
+
+**Key Definitions:**
+- **Semantics**: the study of meaning — what a syntactically valid program computes
+- **Meaning Function**: <InlineMath formula="$M : \text{AST} \to \text{Semantic Domain}$" /> — maps syntax to meaning
+- **Semantic Domain**: the mathematical set of all possible "meanings" for a construct
+- **Compositionality**: the meaning of a compound is determined by the meanings of its parts
+- **Environment (State)**: a mapping from variable names to values: $\sigma : \text{Identifier} \to \text{Value}$
+- **Environment Update**: $\sigma[x \mapsto v]$ — new environment where $x$ maps to $v$
+- **Scope**: the region of a program where a variable binding is visible
+- **Lexical Scope**: variables resolved by where they are *defined* in the source text
+- **Dynamic Scope**: variables resolved by where they are *called* at runtime
+- **Closure**: a function bundled with its lexical environment
+- **Undefined Behavior**: operations whose meaning is not specified by the language
+- **Operational Semantics**: meaning by running — leads to interpreters
+- **Denotational Semantics**: meaning by translating — leads to transpilers
+- **Axiomatic Semantics**: meaning by proving — leads to static verifiers
+
+**Key Connections:**
+- The meaning function is a lambda abstraction (LN 4) — $M = \lambda\text{ast}.\; \ldots$
+- Environments are set-theoretic functions (LN 3) — $\sigma : \text{Identifier} \to \text{Value}$
+- Lexical scope corresponds to the lambda calculus's standard binding rules (LN 4)
+- Free and bound variables (LN 4) formalize the scoping question
+- Output sequences are Kleene closures (LN 7) — $o \in \text{Value}^*$
+- Error handling is a pragmatic design decision (LN 6)
+- Rice's Theorem (LN 5) limits what errors can be detected statically
+- Each formal approach maps to an implementation strategy: interpreter, transpiler, verifier
+
+</LectureNotes>
+
+<LectureResources>
+
+### Additional Resources
+
+- [Dr. Ray Toal, Semantics Notes](https://cs.lmu.edu/~ray/notes/semantics/) — Reference material on the three approaches
+- [Kenneth Slonneger and Barry Kurtz, *Formal Syntax and Semantics of Programming Languages*, Chapters 5-7](https://cdn.preterhuman.net/texts/science_and_technology/artificial_intelligence/Formal%20Syntax%20and%20Semantics%20of%20Programming%20Languages%20-%20Kenneth%20Slonneger.pdf) — Overview of semantic approaches
+- [Crafting Interpreters — Robert Nystrom, "Evaluating Expressions"](https://craftinginterpreters.com/evaluating-expressions.html) — Practical guide to expression evaluation
+- [MDN Web Docs — Closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures) — JavaScript closures as lexical scoping in practice
+- [Andrew Appel, *Modern Compiler Implementation in ML*, Chapter 5](https://www.cs.princeton.edu/~appel/modern/ml/) — Semantic analysis and scope
+- [Shriram Krishnamurthi, *Programming Languages: Application and Interpretation*](https://cs.brown.edu/courses/cs173/2012/book/) — Accessible introduction to language semantics
+
+</LectureResources>
