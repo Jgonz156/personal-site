@@ -1,0 +1,556 @@
+import { WrittenSection } from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+import { DisplayMath, InlineMath } from "@/components/math"
+
+This homework covers material from **Lecture 10: Introduction to Semantics** and **Lecture 11: Operational Semantics**. You will cross the boundary from syntax to semantics — formalizing what programs *mean*, tracing evaluation through environments, reading and deriving inference rules, and constructing proof trees.
+
+All questions require written responses. Show your work where applicable, and provide clear justifications for your answers. Several questions require independent research — cite your sources. Partial credit will be awarded based on the quality of your reasoning.
+
+---
+
+<WrittenSection points={100}
+brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/295659/event/881302/detailsview?searchString=&year=2026&month=4&day=1&typefilterguid=8a9b6cdb-6880-4581-8cfc-8f4a9cd09763"
+>
+
+## Part 1: Semantic Foundations (15 points)
+
+---
+
+<QuestionBox qid="Q1" title="Compositionality" points={8}>
+
+In LN 10, we defined the **meaning function** <InlineMath formula="M : \text{AST} \to \text{Semantic Domain}" /> and introduced the principle of **compositionality** — the idea that the meaning of a compound expression is determined entirely by the meanings of its parts.
+
+<SubQuestion qid="Q1a" points={3}>
+
+State the formal definition of compositionality from LN 10. Then demonstrate it concretely on the Petal expression `(2 + 3) * 4`: show that $M\llbracket (2+3) \times 4 \rrbracket$ is determined entirely by $M\llbracket 2 + 3 \rrbracket$, $M\llbracket 4 \rrbracket$, and the meaning of `*`. Identify the semantic domain each sub-expression belongs to.
+
+</SubQuestion>
+
+<SubQuestion qid="Q1b" points={3}>
+
+The C preprocessor defines macros via textual substitution. Consider:
+
+```c
+#define SQUARE(x) x * x
+int result = SQUARE(1 + 2);
+```
+
+After macro expansion, this becomes `int result = 1 + 2 * 1 + 2;`, which evaluates to `5`, not `9`.
+
+Explain why this violates compositionality. Specifically: what is the "meaning" of the argument `1 + 2`, and why can't the meaning of `SQUARE(1 + 2)` be determined from it? What external information, beyond the meanings of the sub-expressions, does the macro system depend on?
+
+</SubQuestion>
+
+<SubQuestion qid="Q1c" points={2}>
+
+Explain why compositionality is a desirable property for programming language design. Connect your answer to the pipeline we have built across this course — how does compositionality enable the transition from parser (LN 9) to interpreter (LN 11)?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q2" title="When Informal Semantics Fails" points={7}>
+
+In LN 10, we saw that natural language descriptions of program behavior break down when hidden semantic choices are involved. For each of the following programs, identify the ambiguity, give two valid interpretations with their resulting values, and name a real programming language that picks each interpretation.
+
+<SubQuestion qid="Q2a" points={2}>
+
+**Evaluation Order**
+
+```
+x = 1;
+y = (x = 2) + x;
+```
+
+What is the value of `y`? Identify the hidden semantic decision and give both possible results.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={3}>
+
+**Short-Circuit Evaluation**
+
+```
+x = 0;
+if (x != 0) && (10 / x > 2) {
+  print 1;
+}
+```
+
+Does this program crash? Explain the two possible behaviors depending on whether the language uses **short-circuit** or **eager** evaluation of `&&`. For the short-circuit case, explain which inference rule concept from LN 11 formalizes the idea of "not evaluating an expression" — connect to how the conditional rules in LN 11 leave one branch unevaluated.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2c" points={2}>
+
+**Integer Overflow**
+
+What does `2147483647 + 1` evaluate to? Using the LN 10 error-handling comparison table, give the result in at least three different languages and identify the semantic choice each language makes.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 2: Environments and Scoping (20 points)
+
+---
+
+<QuestionBox qid="Q3" title="Environments and State" points={15}>
+
+In LN 10, we formalized the **environment** as a mapping from variable names to values: <InlineMath formula="\sigma : \text{Identifier} \to \text{Value}" />. The update operation $\sigma[x \mapsto v]$ creates a new environment:
+
+<DisplayMath formula="\sigma[x \mapsto v](y) = \begin{cases} v & \text{if } y = x \\ \sigma(y) & \text{otherwise} \end{cases}" />
+
+<SubQuestion qid="Q3a" points={5}>
+
+**Formal Environment Tracing**
+
+Trace the complete environment evolution for the following Petal program. For each statement, show the environment update using the $\sigma[x \mapsto v]$ notation, display the complete environment after the update, and show the output stream.
+
+```
+x = 3 + 4;
+y = x * 2;
+x = y - 5;
+z = x + y;
+print z;
+print x;
+```
+
+Your trace should begin with $\sigma_0 = \emptyset$ and $o_0 = \epsilon$, and end with the final environment $\sigma_f$ and the complete output stream $o_f$.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={5}>
+
+**Environment Update Algebra**
+
+Compute each environment step-by-step using the formal update definition above. No Petal syntax — just the mathematical notation.
+
+<DisplayMath formula="\sigma_0 = \emptyset" />
+<DisplayMath formula="\sigma_1 = \sigma_0[x \mapsto 5]" />
+<DisplayMath formula="\sigma_2 = \sigma_1[y \mapsto \sigma_1(x) + 3]" />
+<DisplayMath formula="\sigma_3 = \sigma_2[x \mapsto \sigma_2(y) \times 2]" />
+<DisplayMath formula="\sigma_4 = \sigma_3[z \mapsto \sigma_3(x) - \sigma_3(y)]" />
+
+1. What is $\sigma_4(x)$?
+2. What is $\sigma_4(y)$?
+3. What is $\sigma_4(z)$?
+4. What is $\sigma_4(w)$? Explain what happens when you look up a variable that was never bound.
+
+</SubQuestion>
+
+<SubQuestion qid="Q3c" points={5}>
+
+**Reverse-Engineering from Final State**
+
+You are given the following observable information about a Petal program that uses **only assignments and print statements**:
+
+- **Final environment:** <InlineMath formula="\sigma_f = \{x \mapsto 10,\; y \mapsto 6,\; z \mapsto 4\}" />
+- **Output stream:** $[6, 10]$
+
+Reconstruct a valid Petal program that produces this exact final state and output. Then verify your answer by tracing the environment forward from $\sigma_0 = \emptyset$ using the formal rules from Q3a, showing each $\sigma_i$ and confirming the output stream matches.
+
+*(There are multiple valid programs — you only need to provide one.)*
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q4" title="Scoping in Unfamiliar Languages" points={5}>
+
+In LN 10, we distinguished **lexical scope** (variables resolved by where a function is *defined*) from **dynamic scope** (variables resolved by where a function is *called*). Most modern languages use lexical scope, but some use dynamic scope by default.
+
+<SubQuestion qid="Q4a" points={3}>
+
+Consider the following **Emacs Lisp** program:
+
+```elisp
+(setq x 1)
+
+(defun f ()
+  (print x))
+
+(defun g ()
+  (let ((x 2))
+    (f)))
+
+(g)
+```
+
+Predict what this program prints. Which scoping strategy does Emacs Lisp use? Trace the variable lookup for `x` inside `f`: does it follow the *definition chain* (lexical) or the *call chain* (dynamic)? Justify your answer using the formal scoping definitions from LN 10.
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={2}>
+
+Now consider this **OCaml** program:
+
+```ocaml
+let x = 1
+
+let f () = print_int x
+
+let g () =
+  let x = 2 in
+  f ()
+
+let () = g ()
+```
+
+Predict what this program prints. Which scoping strategy does OCaml use? Explain why the result differs from (or matches) the Emacs Lisp program above, and connect the difference to the formal distinction between definition-site and call-site variable resolution from LN 10.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 3: Operational Semantics (35 points)
+
+---
+
+<QuestionBox qid="Q5" title="Reading and Applying Rules" points={15}>
+
+In LN 11, we formalized operational semantics using **inference rules** — premises above the line, conclusion below — and introduced the **Omega (Ω) technique** for reading them: start at the bottom-left (what you have), loop up through the premises (what you must check), and come back down to the bottom-right (what you get).
+
+<SubQuestion qid="Q5a" points={5}>
+
+**The Omega Technique**
+
+For each of the following inference rules, trace the Ω path and explain what the rule does in plain English. Identify each rule's name and state whether it is an **axiom** (no premises) or a **proper rule** (has premises).
+
+**Rule 1:**
+
+<DisplayMath formula="\frac{\sigma(x) = v}{\langle x, \sigma \rangle \Downarrow v}" />
+
+**Rule 2:**
+
+<DisplayMath formula="\frac{\langle e_1, \sigma \rangle \Downarrow v_1 \quad \langle e_2, \sigma \rangle \Downarrow v_2 \quad v_1 \oplus v_2 = v}{\langle e_1 \oplus e_2, \sigma \rangle \Downarrow v}" />
+
+**Rule 3:**
+
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v}{\langle x = e, \sigma, o \rangle \Downarrow \langle \sigma[x \mapsto v], o \rangle}" />
+
+**Rule 4** (novel — not from LN 11):
+
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v \quad v < 0 \quad (-1) \times v = v'}{\langle \textbf{abs}(e), \sigma \rangle \Downarrow v'} \qquad \frac{\langle e, \sigma \rangle \Downarrow v \quad v \geq 0}{\langle \textbf{abs}(e), \sigma \rangle \Downarrow v}" />
+
+</SubQuestion>
+
+<SubQuestion qid="Q5b" points={5}>
+
+**Big-Step Evaluation**
+
+Evaluate the following Petal program using the **big-step** inference rules from LN 11. For each statement, write the complete big-step judgment, cite the rule you are applying, and show the resulting environment and output.
+
+```
+a = 4 + 2;
+b = a * 3;
+print b - a;
+```
+
+Start from $\sigma_0 = \emptyset$ and $o_0 = \epsilon$. Show the judgment for each expression evaluation and each statement execution.
+
+</SubQuestion>
+
+<SubQuestion qid="Q5c" points={5}>
+
+**Small-Step Evaluation**
+
+Now evaluate the **same program** from Q5b using the **small-step** (SOS) transition rules from LN 11. Show each transition $\langle \ldots \rangle \to \langle \ldots \rangle$ individually.
+
+After completing the trace, answer:
+1. How many transitions did small-step require compared to the number of judgments in your big-step evaluation?
+2. What specific information did the small-step trace reveal that the big-step trace hid?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q6" title="Deriving and Understanding Rules" points={20}>
+
+In LN 11, we showed that inference rules are **mechanically derived** from the tree grammar — every production becomes one or more rules. This question tests your ability to derive new rules, reverse-engineer existing ones, and connect rules to code.
+
+<SubQuestion qid="Q6a" points={6}>
+
+**Ternary Conditional Expression**
+
+Petal currently has an if-else **statement**. Suppose we want to add a ternary conditional **expression**: <InlineMath formula="e_1\; \textbf{?}\; e_2\; \textbf{:}\; e_3" />. Unlike the if-else statement from LN 11, this is an *expression* — it evaluates to a value rather than transforming state.
+
+Follow the 4-step derivation process from LN 11:
+
+1. **Identify the node:** The tree grammar production is <InlineMath formula="e_1\; \textbf{?}\; e_2\; \textbf{:}\; e_3" />. It has three children — all expressions.
+2. **Determine the cases:** How does the value of $e_1$ determine the result? How many big-step rules do you need?
+3. **Write the big-step rules.** Your rules should have the form <InlineMath formula="\langle e_1\; \textbf{?}\; e_2\; \textbf{:}\; e_3,\; \sigma \rangle \Downarrow v" />. Note the configuration shape — this is an *expression* evaluation (no output stream), unlike the if-else *statement* rules from LN 11.
+4. **Write the small-step rules.** How many SOS rules do you need? *(Hint: consider the cases where $e_1$ is still reducing, where $e_1$ is a truthy value, and where $e_1$ is a falsy value.)*
+
+</SubQuestion>
+
+<SubQuestion qid="Q6b" points={6}>
+
+**Do-While Loop**
+
+Suppose we want to add a **do-while** loop to Petal: <InlineMath formula="\textbf{do}\; s\; \textbf{while}\; e" />. Unlike the `while` loop from LN 11, the body executes *before* the condition is checked — the body always runs at least once.
+
+Follow the same 4-step process:
+
+1. **Identify the node:** The tree grammar production is <InlineMath formula="\textbf{do}\; s^+\; \textbf{while}\; e" />. It has one statement-list child (the body) and one expression child (the condition).
+2. **Determine the cases:** After the body executes and the condition is evaluated, what are the two possible outcomes? Compare to the `while` rules from LN 11 — what structural difference does "body first, then check" create?
+3. **Write the big-step rules.** You may reference the `while` rules from LN 11 side-by-side for comparison:
+
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow 0}{\langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma,\; o \rangle \Downarrow \langle \sigma, o \rangle}" />
+
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v \quad v \neq 0 \quad \langle s, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle \quad \langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma',\; o' \rangle \Downarrow \langle \sigma'', o'' \rangle}{\langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma,\; o \rangle \Downarrow \langle \sigma'', o'' \rangle}" />
+
+4. **Write the small-step unfolding rule.** Recall that the `while` unfolding rule from LN 11 rewrites the loop into a conditional. How does the do-while unfolding differ?
+
+</SubQuestion>
+
+<SubQuestion qid="Q6c" points={4}>
+
+**Reverse Engineering**
+
+The following inference rule describes a construct that was **not covered in LN 11**. No name or description is provided — only the rule itself.
+
+<DisplayMath formula="\frac{\langle e_1, \sigma \rangle \Downarrow v_1 \quad \langle e_2, \sigma[x \mapsto v_1] \rangle \Downarrow v_2}{\langle \textbf{??}\; x = e_1\; \textbf{in}\; e_2,\; \sigma \rangle \Downarrow v_2}" />
+
+By reading these rules:
+
+1. Describe in plain English what this construct does. What happens to $x$, $e_1$, and $e_2$ during evaluation?
+2. What would you name this construct?
+3. Write the tree grammar production that these rules implement. Is this an expression or a statement? How can you tell from the configuration shape?
+
+</SubQuestion>
+
+<SubQuestion qid="Q6d" points={4}>
+
+**Rules-to-Code Reasoning**
+
+In LN 11, we showed that every big-step inference rule maps directly to a clause in a recursive interpreter. Consider the **print** rule and its corresponding JavaScript code from LN 11:
+
+**The Rule:**
+
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v}{\langle \textbf{print}\; e, \sigma, o \rangle \Downarrow \langle \sigma, o \cdot v \rangle}" />
+
+**The Code:**
+
+```javascript
+case "Print": {
+  const value = evaluate(node.expression, env);
+  console.log(value);
+  return;
+}
+```
+
+1. Identify the premise $\langle e, \sigma \rangle \Downarrow v$ in the rule. Which line of code implements this premise?
+2. Identify the conclusion's $o \cdot v$ (appending to the output stream). What is the JavaScript equivalent?
+3. The rule says the environment $\sigma$ is unchanged after printing. How does the code reflect this?
+
+Now consider the **while** rule and its code:
+
+**The Rule:**
+
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v \quad v \neq 0 \quad \langle s, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle \quad \langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma',\; o' \rangle \Downarrow \langle \sigma'', o'' \rangle}{\langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma,\; o \rangle \Downarrow \langle \sigma'', o'' \rangle}" />
+
+**The Code:**
+
+```javascript
+case "While":
+  while (evaluate(node.condition, env) !== 0) {
+    for (const stmt of node.body) evaluate(stmt, env);
+  }
+  return;
+```
+
+4. The while rule is **self-referential** — the conclusion <InlineMath formula="\langle \textbf{while}\; e\; \textbf{do}\; s, \ldots \rangle" /> appears in its own fourth premise. What JavaScript construct plays the role of this self-reference in the code?
+5. Why does the JavaScript `while` loop correctly implement the two big-step rules (the termination rule and the continuation rule) despite appearing as a single construct?
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 4: Proof Trees and Semantic Analysis (15 points)
+
+---
+
+<QuestionBox qid="Q7" title="Proof Trees" points={15}>
+
+In LN 11, we showed that inference rules compose into **proof trees** (derivation trees) — tree-shaped proofs that a specific program produces a specific result. Each node is a judgment, each edge is a rule application, and the leaves are axioms.
+
+This is a **guided exercise**. Each sub-question builds on the previous one. By the end, you will have constructed a complete proof tree for a Petal program with arithmetic, assignment, and control flow.
+
+Consider the following Petal program:
+
+```
+x = 2 + 3;
+if x - 4 {
+  y = x * 2;
+} else {
+  y = 0;
+}
+print y;
+```
+
+<SubQuestion qid="Q7a" points={3}>
+
+**Step 1: The Innermost Expression**
+
+Build the proof tree for evaluating the expression `2 + 3` in the initial empty environment $\sigma_0$. Your tree should show:
+- The numeral valuation axioms for `2` and `3` (the leaves)
+- The binary operation rule combining them (the root)
+
+Write the proof tree using the nested fraction notation from LN 11. For example, the proof tree from LN 11 for `3 + 5` looks like:
+
+<DisplayMath formula="\frac{\displaystyle\frac{}{\langle 3, \sigma \rangle \Downarrow 3} \quad \frac{}{\langle 5, \sigma \rangle \Downarrow 5} \quad 3 + 5 = 8}{\langle 3 + 5, \sigma \rangle \Downarrow 8}" />
+
+</SubQuestion>
+
+<SubQuestion qid="Q7b" points={3}>
+
+**Step 2: The First Assignment**
+
+Now build the proof tree for the complete first statement: $\langle x = 2 + 3,\; \sigma_0,\; \epsilon \rangle \Downarrow \langle \sigma_1,\; \epsilon \rangle$
+
+Your expression proof tree from Q7a becomes the **premise** of the assignment rule. State the resulting environment $\sigma_1$.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7c" points={4}>
+
+**Step 3: The Conditional and Full Program**
+
+Now tackle the rest of the program:
+
+1. Evaluate the condition `x - 4` in environment $\sigma_1$. What value does it produce? Is it truthy or falsy?
+2. Based on the condition, which branch of the if-else executes? Build the proof tree for the selected branch.
+3. Compose the **full program proof tree** using the sequencing rule from LN 11, threading state through all three top-level statements (the assignment, the if-else, and the print). What is the final output?
+
+</SubQuestion>
+
+<SubQuestion qid="Q7d" points={2}>
+
+**When Proof Trees Get Stuck**
+
+Consider the program `print x;` with the initial empty environment $\sigma_0 = \emptyset$.
+
+Attempt to build the proof tree. Which rule do you try to apply? What premise cannot be satisfied? In your own words, define what a **stuck configuration** is and explain how the absence of an applicable rule models a runtime error.
+
+</SubQuestion>
+
+<SubQuestion qid="Q7e" points={3}>
+
+**When Proof Trees Never End**
+
+Consider the program `while 1 { print 0; }`.
+
+1. Explain why the big-step proof tree for this program would be **infinitely deep**. Which rule keeps re-appearing in its own premises, and why does the base case (the termination rule) never fire?
+2. How does **small-step** semantics handle this differently? What does the small-step transition sequence look like, and why is an infinite sequence of finite steps mathematically well-defined in a way that an infinite proof tree is not?
+3. Using the error-handling comparison table from LN 10, pick two real languages and explain what semantic choice each makes for the undeclared variable error from Q7d. Connect to the concept of stuck configurations.
+
+</SubQuestion>
+
+</QuestionBox>
+
+---
+
+## Part 5: Semantics in Practice (15 points)
+
+---
+
+<QuestionBox qid="Q8" title="Connecting Formal Semantics to Real Languages" points={15}>
+
+<SubQuestion qid="Q8a" points={5}>
+
+**Concrete Operational Semantics**
+
+In LN 11, we showed that ASTs can be translated into instructions for a **stack machine** using a post-order traversal, and that the stack reconstructs the tree's nesting at runtime.
+
+Consider the following Petal program:
+
+```
+y = (1 + 2) * 3;
+print y;
+```
+
+1. Translate this program's AST into a sequence of **stack machine instructions** (`PUSH`, `ADD`, `MUL`, `STORE`, `LOAD`, `PRINT`).
+2. Trace execution by showing the **stack contents** after each instruction executes.
+3. Briefly describe what the **register machine** translation would look like for the same program. What is the key trade-off between stack machines (implicit operands) and register machines (explicit register names)? You do not need to write the full register instruction sequence — just identify the structural difference.
+
+</SubQuestion>
+
+<SubQuestion qid="Q8b" points={5}>
+
+**Interpreters in the Wild**
+
+Choose **one** of the following language implementations to research:
+
+- **CPython** (the reference Python implementation)
+- **Ruby MRI** (versions 1.8 vs. 1.9+)
+- **The JVM** (Java Virtual Machine)
+- **Lua** (the PUC-Rio implementation)
+
+For your chosen implementation, answer the following:
+
+1. **What intermediate representation** does the implementation use internally? Does it walk the AST directly, compile to bytecode for a virtual machine, or use some other strategy? Identify specific instruction names or data structures used (e.g., "CPython compiles to bytecodes like `LOAD_FAST`, `BINARY_ADD`, ...").
+2. **What kind of abstract machine** executes the intermediate representation? Is it a stack machine, register machine, or tree-walker? Provide specific evidence from the implementation that supports your answer.
+3. **Map it to LN 11:** Which section of LN 11 does this implementation most closely correspond to — Concrete Operational Semantics (stack/register machine), Big-Step (tree-walking interpreter), or Small-Step (transition system)? Justify your mapping with a specific example: pick one construct (e.g., `if-else` or `while`) and describe how the implementation handles it in terms that connect to the LN 11 formalism.
+4. **Historical evolution:** Has this implementation changed its evaluation strategy over time? If so, what motivated the change? If not, why has the original strategy persisted?
+
+Cite your sources.
+
+</SubQuestion>
+
+<SubQuestion qid="Q8c" points={5}>
+
+**The Meaning Function in the Wild**
+
+Choose a programming language **not discussed in LN 10 or LN 11** (i.e., not Petal, Python, JavaScript, C, Rust, Haskell, or Java).
+
+Find a specific **semantic edge case** in that language — a situation where the language must make a choice about evaluation order, error handling for undefined variables, division by zero behavior, integer overflow, or scoping rules.
+
+1. Describe the edge case and the **semantic choice** the language makes. Provide a short code example that demonstrates the behavior.
+2. **Write the inference rule** (big-step or small-step) that formalizes this choice.
+3. **Compare to Petal's choice:** How would Petal handle the same situation under the rules from LN 11? What are the trade-offs between the two approaches?
+
+</SubQuestion>
+
+</QuestionBox>
+
+</WrittenSection>
+
+---
+
+## Submission Guidelines
+
+- Submit your responses as a **single PDF** to Brightspace
+- Clearly label each question and subquestion (Q1a, Q1b, etc.)
+- For proof trees (Q7), use the nested fraction notation shown in the examples — ensure your work is legible (typed or neatly handwritten)
+- For inference rule derivations (Q6a, Q6b), show all rules you derive and label them clearly
+- For research questions (Q4, Q8b, Q8c), **cite your sources**
+- Show your reasoning — partial credit is awarded for correct methodology
+
+---
+
+## Point Summary
+
+| Section | Question | Points |
+| :--- | :--- | :---: |
+| **Part 1: Semantic Foundations** | Q1: Compositionality | 8 |
+| | Q2: When Informal Semantics Fails | 7 |
+| **Part 2: Environments and Scoping** | Q3: Environments and State | 15 |
+| | Q4: Scoping in Unfamiliar Languages | 5 |
+| **Part 3: Operational Semantics** | Q5: Reading and Applying Rules | 15 |
+| | Q6: Deriving and Understanding Rules | 20 |
+| **Part 4: Proof Trees** | Q7: Proof Trees | 15 |
+| **Part 5: Semantics in Practice** | Q8: Connecting Semantics to Real Languages | 15 |
+| **Total** | | **100** |

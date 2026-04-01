@@ -1,0 +1,1048 @@
+import {
+  ProgrammingSection,
+} from "@/components/homework-sections"
+import { QuestionBox, SubQuestion } from "@/components/question-box"
+import { DisplayMath, InlineMath } from "@/components/math"
+
+This homework covers material from **Lecture 12: Denotational Semantics** and **Lecture 13: Axiomatic Semantics**. It is a **programming-only** assignment in which you build a verified compilation pipeline for a domain-specific language.
+
+You may use **any programming language** you wish. Your choice of language does not affect grading — only correctness and adherence to the structural constraints.
+
+---
+
+<ProgrammingSection points={100}
+brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/295659/event/881303/detailsview?searchString=&year=2026&month=4&day=1&typefilterguid=8a9b6cdb-6880-4581-8cfc-8f4a9cd09763"
+githubClassroomUrl="https://classroom.github.com/a/8kDkV26V"
+>
+
+## General Requirements
+
+Before diving into the two parts, please note the following requirements that apply to your entire submission:
+
+**The Premise:**
+
+You work at an autonomous drone operations company. Every drone in your fleet runs a lightweight Node.js runtime connected via WiFi to an edge device (a ruggedized tablet at the ground station). Missions are written in **FlightScript**, a domain-specific language that controls altitude, fuel management, heading, and telemetry. Before any FlightScript program is transmitted to a drone, two things must happen:
+
+1. **Transpilation and Optimization** — The FlightScript program is compiled to JavaScript so it can run on the edge device, and constant-folded to reduce code size (less code means less transmission latency and more battery for flying).
+2. **Verification** — A safety property (e.g., "fuel never goes negative") is *proven* without executing the program. A mission that cannot be verified does not fly.
+
+Your job is to build both phases of this pipeline.
+
+> **Why JavaScript?**
+>
+> Transpiling a control language to JavaScript is less unusual than it sounds. In this architecture, the drone carries only lightweight sensors and a radio link — all mission logic runs on a nearby edge device (a tablet, a laptop at the ground station) over WiFi. JavaScript runs on any device with a browser or Node.js, making it a practical target for this deployment model.
+>
+> Alternatively, if the drone carried only a small set of weak embedded chips, we could transpile to something closer to concrete operational semantics — mapping directly to a machine with a specific architecture, such as a restricted register-access machine. The transpiler structure would be identical; only the target language changes. JavaScript happens to be the most practical target for this course because it matches the lecture examples and is immediately runnable.
+
+**Repository Structure:**
+
+Your repository must include a `README.md` at the root with:
+
+1. The **programming language** you chose and why.
+2. **Exact terminal commands** to install any dependencies.
+3. **Exact terminal commands** to run Part 1 (transpiler and optimizer).
+4. **Exact terminal commands** to run Part 2 (verification engine).
+
+I will clone your repository and follow your README to run your code. If I cannot run it from your instructions, points will be deducted.
+
+**Output Format:**
+
+All output should be printed to the terminal during execution AND written to plain text files in the `outputs/` folder within each part directory. Compare your output against the corresponding `expected_outputs/` files to verify correctness.
+
+**Test Files:**
+
+Four mission files are provided in the `ast/` directory as JSON. Each file contains a `"program"` field with the FlightScript AST and, for missions used in verification, a `"postcondition"` field with the safety property to prove. A FlightScript Ohm.js grammar and parser are also provided in `grammar/` so you can write your own FlightScript programs, parse them to ASTs, and test your pipeline beyond the provided missions.
+
+---
+
+### The FlightScript Language
+
+FlightScript is syntactically identical to Petal from LN 12, with one domain-specific change: `transmit` replaces `print` (sending telemetry data to ground control). The tree grammar is:
+
+<DisplayMath formula="e : \text{Exp} = n \mid i \mid \text{-}e \mid \text{!}e \mid e \;\textit{op}\; e" />
+
+<DisplayMath formula="\text{where } \textit{op} \in \{+, -, *, /, \%, **, >, <, \geq, \leq, \text{==}, \text{!=}, \text{\&\&}, \text{||}\}" />
+
+<DisplayMath formula="s : \text{Stmt} = i\text{=}e \mid \textbf{transmit}\; e \mid \textbf{if}\; e\; \textbf{then}\; s^+\; \textbf{else}\; s^+ \mid \textbf{while}\; e\; \textbf{do}\; s^+" />
+
+<DisplayMath formula="p : \text{Program} = s^+" />
+
+Every AST node is a JSON object with a `"type"` field. The full node vocabulary is:
+
+**Expression nodes:**
+
+| Type | Fields | Example |
+| :--- | :--- | :--- |
+| `Number` | `value` (integer) | `{ "type": "Number", "value": 42 }` |
+| `Identifier` | `name` (string) | `{ "type": "Identifier", "name": "fuel" }` |
+| `UnaryOp` | `op` (`"-"` or `"!"`), `operand` (Exp) | `{ "type": "UnaryOp", "op": "-", "operand": ... }` |
+| `BinaryOp` | `op` (string), `left` (Exp), `right` (Exp) | `{ "type": "BinaryOp", "op": "+", "left": ..., "right": ... }` |
+
+BinaryOp operators: `+`, `-`, `*`, `/`, `%`, `**`, `>`, `<`, `>=`, `<=`, `==`, `!=`, `&&`, `||`. One additional operator, `=>` (implication), is never present in program ASTs but will be constructed by your verification engine and must be handled by your formula printer.
+
+**Statement nodes:**
+
+| Type | Fields |
+| :--- | :--- |
+| `Assignment` | `name` (string), `value` (Exp) |
+| `Transmit` | `expression` (Exp) |
+| `IfElse` | `condition` (Exp), `then` (Stmt[]), `else` (Stmt[]) |
+| `While` | `condition` (Exp), `body` (Stmt[]), `invariant` (Exp or null) |
+
+The `invariant` field on `While` nodes carries the loop invariant as an expression AST. It is used by the verification engine and ignored by the transpiler.
+
+**Program node:**
+
+| Type | Fields |
+| :--- | :--- |
+| `Program` | `body` (Stmt[]) |
+
+---
+
+## Part 1: Meaning by Translation (40 points)
+
+In LN 12, we saw that denotational semantics defines meaning by mapping each AST node to a mathematical function — and that the implementation of these semantic equations is a **transpiler**. Each `case` in a `compile()` function corresponds to one semantic equation. You are now building that transpiler for FlightScript.
+
+---
+
+<QuestionBox qid="Q1" title="The Transpiler" points={25}>
+
+Implement a `compile()` function that takes a FlightScript AST (as parsed from the mission JSON files) and returns a string of runnable JavaScript. The function should handle every node type in the tree grammar by structural recursion.
+
+<SubQuestion qid="Q1a" points={8}>
+
+**Expression Compilation** — Handle the four expression node types:
+
+*   `Number` — Return the value as a string (e.g., `42` becomes `"42"`)
+*   `Identifier` — Return the variable name (e.g., `fuel` becomes `"fuel"`)
+*   `UnaryOp` — Wrap in parentheses: `(-operand)` or `(!operand)`
+*   `BinaryOp` — Wrap in parentheses: `(left op right)` with spaces around the operator
+
+These cases map directly to the semantic equations from LN 12: <InlineMath formula="E\llbracket n \rrbracket\, \sigma = n" />, <InlineMath formula="E\llbracket i \rrbracket\, \sigma = \sigma(i)" />, and <InlineMath formula="E\llbracket e_1 \;\textit{op}\; e_2 \rrbracket = E\llbracket e_1 \rrbracket \;\textit{op}\; E\llbracket e_2 \rrbracket" />.
+
+</SubQuestion>
+
+<SubQuestion qid="Q1b" points={12}>
+
+**Statement and Program Compilation** — Extend `compile()` for statement and program nodes:
+
+*   `Assignment` — Emit `name = compile(value);` (note: we use bare assignment rather than `let` to avoid JavaScript block-scoping issues inside `if`/`while` bodies)
+*   `Transmit` — Emit `console.log(compile(expression));`
+*   `IfElse` — Emit `if (compile(condition)) {\n...\n} else {\n...\n}` with each branch's statements compiled and joined by newlines
+*   `While` — Emit `while (compile(condition)) {\n...\n}` with body statements compiled and joined by newlines (ignore the `invariant` field)
+*   `Program` — Compile each statement in `body` and join them with newlines
+
+The generated JavaScript must be syntactically valid and produce correct output when executed.
+
+</SubQuestion>
+
+<SubQuestion qid="Q1c" points={5}>
+
+**End-to-End Test** — Run `compile()` on all four mission ASTs (`mission1.json` through `mission4.json`). Save the generated JavaScript to `part1/outputs/mission1_compiled.js` through `part1/outputs/mission4_compiled.js`. Compare your output against the `expected_outputs/` files.
+
+Additionally, run the generated JavaScript for Mission 3 in Node.js and verify that it prints `0` (the drone lands with exactly 0 fuel remaining after a 50-unit patrol at a burn rate of 2 per unit).
+
+</SubQuestion>
+
+> **Implementation Hints for Q1:**
+>
+> *   Compare your `compile()` to the transpiler in LN 12 — the structure is identical. Each case handles one production from the tree grammar.
+> *   The double parentheses in output like `if ((altitude > 1000))` are expected. The condition `altitude > 1000` is a BinaryOp, so `compile()` wraps it as `(altitude > 1000)`. The `if` template then wraps the compiled condition in its own parentheses.
+> *   The transpiler is structurally identical to the interpreter from LN 11 — instead of computing values, it produces code strings. Both follow the same recursive AST traversal because both are defined by structural induction on the same tree grammar.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q2" title="The Optimizer" points={15}>
+
+<SubQuestion qid="Q2a" points={10}>
+
+**Constant Folding** — Implement an `optimize()` function that takes a FlightScript AST and returns a new AST with all constant subexpressions evaluated at compile time.
+
+The algorithm is bottom-up: recursively optimize children first, then check if the current node can be folded:
+
+*   If a `BinaryOp` has two `Number` children after optimization, evaluate the operation and replace the entire node with a single `Number` node. For example, `BinaryOp("+", Number(100), Number(50))` becomes `Number(150)`.
+*   If a `UnaryOp` has a `Number` child after optimization, evaluate and replace. For example, `UnaryOp("-", Number(5))` becomes `Number(-5)`.
+*   For statement and program nodes, recursively optimize all child expressions and sub-statements.
+
+Only fold **arithmetic** operators (`+`, `-`, `*`, `/`, `%`, `**`) and unary negation (`-`). Leave comparison and logical operators (`>`, `<`, `>=`, `<=`, `==`, `!=`, `&&`, `||`, `!`) unfolded even if both operands are constants — these produce boolean values, not numbers, and folding them would require a separate boolean representation.
+
+Run `optimize()` followed by `compile()` on Mission 4 and save the result to `part1/outputs/mission4_optimized.js`. Compare against the expected output — the optimized version should be noticeably smaller.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={5}>
+
+**Denotational Equivalence** — Run both `compile(ast)` and `compile(optimize(ast))` on Mission 4's AST. Execute both generated JavaScript files in Node.js and verify that they produce identical output. Save a text file to `part1/outputs/equivalence_test.txt` showing both outputs and whether they match. The exact format is up to you.
+
+This works because constant folding preserves the denotation: <InlineMath formula="E\llbracket 3 + 5 \rrbracket\, \sigma = E\llbracket 8 \rrbracket\, \sigma" /> for all states <InlineMath formula="\sigma" />. The formal proof is in LN 12. Any transformation that preserves the denotation is a valid optimization — this is the practical payoff of denotational semantics.
+
+</SubQuestion>
+
+> **Implementation Hints for Q2:**
+>
+> *   Optimize children **before** checking the parent. If you have `(2 * 3) + 4`, first optimize `2 * 3` to `6`, then the parent becomes `6 + 4`, which folds to `10`.
+> *   Be careful with division — integer division by zero should not be folded (it would crash at compile time instead of runtime). If the right operand of `/` or `%` is `Number(0)`, leave the node unfolded.
+> *   Mission 4 has three folding opportunities: `100 + 50`, `2 * 3` (then `6 + 4`), and `10 + 5`. The optimized output replaces these with `150`, `10`, and `15`.
+
+</QuestionBox>
+
+---
+
+## Part 2: Safety Without Execution (60 points)
+
+In LN 13, we developed axiomatic semantics — the ability to reason about programs using logic alone, without ever executing them. The implementation is a **Verification Condition Generator (VCG)**: a recursive function that walks the AST backward, applying Hoare rules mechanically to compute the **weakest precondition**. This is the third AST traversal in the course: the interpreter (LN 11) produces *values*, the transpiler (LN 12) produces *code*, and the VCG produces *logical formulas*. Same tree, three different outputs.
+
+---
+
+<QuestionBox qid="Q3" title="Substitution" points={10}>
+
+Implement a `substitute(Q, x, e)` function that performs the substitution <InlineMath formula="Q[x / e]" /> — walk the expression AST `Q` and replace every `Identifier` node whose `name` matches `x` with a deep copy of the expression AST `e`. All other nodes are preserved (recursing into their children).
+
+This is the same substitution operation from the assignment axiom in LN 13:
+
+<DisplayMath formula="\text{wp}(x = e,\; Q) = Q[x / e]" />
+
+For example, substituting `fuel` with `Number(100)` in the expression `(fuel > 0)` produces `(100 > 0)`.
+
+**Deep copying is essential**: when the same expression `e` replaces multiple occurrences of `x`, each replacement must be an independent copy of the AST, not a shared reference.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q4" title="Weakest Preconditions" points={25}>
+
+Implement a `wp(node, Q)` function that takes a statement AST and a postcondition (expression AST) and returns the weakest precondition (also an expression AST). Handle each statement type:
+
+<SubQuestion qid="Q4a" points={5}>
+
+**Assignment and Transmit** — These are the base cases:
+
+*   `Assignment`: Return `substitute(Q, node.name, node.value)` — this IS the assignment axiom.
+*   `Transmit`: Return `Q` unchanged — transmitting telemetry does not modify program state, so the precondition equals the postcondition.
+
+</SubQuestion>
+
+<SubQuestion qid="Q4b" points={5}>
+
+**Sequencing** — For a `Program` node (or any sequence of statements), apply the sequencing rule from LN 13:
+
+<DisplayMath formula="\text{wp}(s_1;\, s_2,\; Q) = \text{wp}(s_1,\; \text{wp}(s_2,\; Q))" />
+
+Fold **right** through the statement list: start with the postcondition `Q`, then process statements from last to first. Each step's result becomes the next step's postcondition.
+
+</SubQuestion>
+
+<SubQuestion qid="Q4c" points={10}>
+
+**Conditionals** — For an `IfElse` node, compute the weakest precondition of each branch, then combine with the conditional rule from LN 13:
+
+<DisplayMath formula="\text{wp}(\textbf{if}\; e\; \textbf{then}\; C_1\; \textbf{else}\; C_2,\; Q) = (e \Rightarrow \text{wp}(C_1, Q)) \;\wedge\; (\neg e \Rightarrow \text{wp}(C_2, Q))" />
+
+You must construct new AST nodes to represent this formula:
+
+*   Compute `thenWP` by applying `wp` to the then-branch statements (folding right, as in Q4b)
+*   Compute `elseWP` by applying `wp` to the else-branch statements
+*   Build a `BinaryOp("=>", condition, thenWP)` node
+*   Build a `UnaryOp("!", condition)` node, then `BinaryOp("=>", negatedCondition, elseWP)`
+*   Return `BinaryOp("&&", impliesThen, impliesElse)`
+
+</SubQuestion>
+
+<SubQuestion qid="Q4d" points={5}>
+
+**While** — Return `node.invariant`. The loop rule in LN 13 requires a **loop invariant** that holds before and after each iteration:
+
+<DisplayMath formula="\text{wp}(\textbf{while}\; e\; \textbf{do}\; C,\; Q) = I" />
+
+The invariant is provided in the AST's `invariant` field — your VCG trusts it rather than discovering it. This trust is necessary: discovering loop invariants automatically is equivalent to solving the Halting Problem (LN 5). No algorithm can compute invariants for all programs. In practice, invariants are supplied by the programmer or by specialized tools that use heuristics — the VCG's job is to propagate them, not to find them.
+
+</SubQuestion>
+
+> **Implementation Hints for Q4:**
+>
+> *   The `wp()` function is structurally identical to `compile()` and the `evaluate()` interpreter from LN 11. All three are recursive AST traversals — the only difference is the output: values, code strings, or logical formulas.
+> *   For conditional branches with multiple statements, fold right through the branch's statement list (just as you do for `Program` in Q4b).
+> *   The `=>` (implies) operator nodes you construct in Q4c will never go through `compile()`. They exist only in the wp output and are handled by the formula printer (Q5).
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q5" title="Formula Printer" points={10}>
+
+Implement a `prettyPrint(expressionAST)` function that converts an expression AST into a human-readable formula string. This is structurally identical to `compile()` for expressions, but targets mathematical notation rather than JavaScript:
+
+*   `Number` — Return the value as a string
+*   `Identifier` — Return the variable name
+*   `UnaryOp` — Return `"(" + op + prettyPrint(operand) + ")"`, e.g., `(-5)` or `(!(altitude > 1000))`
+*   `BinaryOp` — Return `"(" + prettyPrint(left) + " " + op + " " + prettyPrint(right) + ")"`, e.g., `(fuel >= 0)` or `((altitude > 1000) => ((altitude - 100) >= 0))`
+
+The `=>` operator must be handled here — it appears in wp output for conditionals.
+
+</QuestionBox>
+
+---
+
+<QuestionBox qid="Q6" title="Mission Verification" points={15}>
+
+<SubQuestion qid="Q6a" points={5}>
+
+**Verify Missions 1 and 2** — For each mission, read the AST and postcondition from the JSON file, compute `prettyPrint(wp(program, postcondition))`, and save the result to `part2/outputs/verify1_wp.txt` and `part2/outputs/verify2_wp.txt`. Compare against the expected outputs.
+
+For Mission 1, the weakest precondition should simplify to a tautology involving only constants (all concrete values from the assignments propagate into the postcondition). For Mission 2, the weakest precondition is a formula involving `altitude` — it describes the set of initial altitudes for which the safety property holds.
+
+</SubQuestion>
+
+<SubQuestion qid="Q6b" points={10}>
+
+**Verify Mission 3: The Fuel Proof** — This is the payoff of the entire assignment. Mission 3 is a patrol loop that burns fuel over a fixed distance. The postcondition is `fuel >= 0` — the drone must not run out of fuel.
+
+Run `wp()` on Mission 3's AST with the provided postcondition. Begin by printing the initial postcondition, then output the weakest precondition after each backward step:
+
+1. After `transmit fuel` — the postcondition passes through unchanged
+2. After the `while` loop — the VCG returns the loop invariant
+3. After `distance = 0` — substitute into the invariant
+4. After `fuel = 100` — substitute again, producing a formula with only constants
+
+Save the staged output to `part2/outputs/verify3_wp.txt`. The final weakest precondition should contain only constants and evaluate to true — meaning the mission is safe for *all* inputs (there are no free variables left to constrain).
+
+You have just proven that this drone will never exhaust its fuel — without executing a single instruction of FlightScript. This is the power of axiomatic semantics. Consider: what would change if FlightScript allowed unbounded recursion? The loop invariant approach relies on the loop being the only source of repetition, with a known structure. Unbounded recursion would require proving termination (LN 13's **total correctness**), which demands a ranking function — and finding ranking functions is, in general, undecidable.
+
+</SubQuestion>
+
+</QuestionBox>
+
+</ProgrammingSection>
+
+---
+
+## Submission Guidelines
+
+- Submit your repository via **GitHub Classroom** (link at the top of this page)
+- Your `README.md` must contain exact terminal commands to run both parts
+- All output files must be committed in the `part1/outputs/` and `part2/outputs/` folders
+- Ensure your code compiles/runs without errors from a fresh clone
+- Include a `.gitignore` appropriate for your language
+
+---
+
+## Repository Structure
+
+Your assignment repository will contain the following files:
+
+```text
+hw6-flightscript/
+├── README.md
+├── package.json
+├── .gitignore
+├── grammar/
+│   ├── flightscript.ohm
+│   └── parser.js
+├── ast/
+│   ├── mission1.json
+│   ├── mission2.json
+│   ├── mission3.json
+│   └── mission4.json
+├── part1/
+│   ├── expected_outputs/
+│   │   ├── mission1_compiled.js
+│   │   ├── mission2_compiled.js
+│   │   ├── mission3_compiled.js
+│   │   ├── mission4_compiled.js
+│   │   └── mission4_optimized.js
+│   └── outputs/
+│       └── .gitkeep
+├── part2/
+│   ├── expected_outputs/
+│   │   ├── verify1_wp.txt
+│   │   ├── verify2_wp.txt
+│   │   └── verify3_wp.txt
+│   └── outputs/
+│       └── .gitkeep
+```
+
+Write all of your output files into the `outputs/` folder within the corresponding part. The `.gitkeep` files ensure the empty folders are tracked by git — you can leave them in place.
+
+---
+
+## Provided File Contents
+
+Below are the full contents of every provided file. If you experience any issues with your repository, you can reconstruct the files from here.
+
+---
+
+### Mission AST Files
+
+#### `ast/mission1.json` — Pre-flight Telemetry
+
+FlightScript source (for reference — your input is the JSON AST below):
+
+```text
+altitude = 0;
+fuel = 100;
+transmit fuel;
+```
+
+```json
+{
+  "program": {
+    "type": "Program",
+    "body": [
+      {
+        "type": "Assignment",
+        "name": "altitude",
+        "value": { "type": "Number", "value": 0 }
+      },
+      {
+        "type": "Assignment",
+        "name": "fuel",
+        "value": { "type": "Number", "value": 100 }
+      },
+      {
+        "type": "Transmit",
+        "expression": { "type": "Identifier", "name": "fuel" }
+      }
+    ]
+  },
+  "postcondition": {
+    "type": "BinaryOp",
+    "op": ">",
+    "left": { "type": "Identifier", "name": "fuel" },
+    "right": { "type": "Number", "value": 0 }
+  }
+}
+```
+
+---
+
+#### `ast/mission2.json` — Altitude Safety Check
+
+```text
+if altitude > 1000 {
+  altitude = altitude - 100;
+} else {
+  altitude = altitude + 50;
+}
+transmit altitude;
+```
+
+```json
+{
+  "program": {
+    "type": "Program",
+    "body": [
+      {
+        "type": "IfElse",
+        "condition": {
+          "type": "BinaryOp",
+          "op": ">",
+          "left": { "type": "Identifier", "name": "altitude" },
+          "right": { "type": "Number", "value": 1000 }
+        },
+        "then": [
+          {
+            "type": "Assignment",
+            "name": "altitude",
+            "value": {
+              "type": "BinaryOp",
+              "op": "-",
+              "left": { "type": "Identifier", "name": "altitude" },
+              "right": { "type": "Number", "value": 100 }
+            }
+          }
+        ],
+        "else": [
+          {
+            "type": "Assignment",
+            "name": "altitude",
+            "value": {
+              "type": "BinaryOp",
+              "op": "+",
+              "left": { "type": "Identifier", "name": "altitude" },
+              "right": { "type": "Number", "value": 50 }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Transmit",
+        "expression": { "type": "Identifier", "name": "altitude" }
+      }
+    ]
+  },
+  "postcondition": {
+    "type": "BinaryOp",
+    "op": ">=",
+    "left": { "type": "Identifier", "name": "altitude" },
+    "right": { "type": "Number", "value": 0 }
+  }
+}
+```
+
+---
+
+#### `ast/mission3.json` — Patrol Loop (The Fuel Proof)
+
+```text
+fuel = 100;
+distance = 0;
+while distance < 50 {
+  fuel = fuel - 2;
+  distance = distance + 1;
+}
+transmit fuel;
+```
+
+```json
+{
+  "program": {
+    "type": "Program",
+    "body": [
+      {
+        "type": "Assignment",
+        "name": "fuel",
+        "value": { "type": "Number", "value": 100 }
+      },
+      {
+        "type": "Assignment",
+        "name": "distance",
+        "value": { "type": "Number", "value": 0 }
+      },
+      {
+        "type": "While",
+        "condition": {
+          "type": "BinaryOp",
+          "op": "<",
+          "left": { "type": "Identifier", "name": "distance" },
+          "right": { "type": "Number", "value": 50 }
+        },
+        "body": [
+          {
+            "type": "Assignment",
+            "name": "fuel",
+            "value": {
+              "type": "BinaryOp",
+              "op": "-",
+              "left": { "type": "Identifier", "name": "fuel" },
+              "right": { "type": "Number", "value": 2 }
+            }
+          },
+          {
+            "type": "Assignment",
+            "name": "distance",
+            "value": {
+              "type": "BinaryOp",
+              "op": "+",
+              "left": { "type": "Identifier", "name": "distance" },
+              "right": { "type": "Number", "value": 1 }
+            }
+          }
+        ],
+        "invariant": {
+          "type": "BinaryOp",
+          "op": "&&",
+          "left": {
+            "type": "BinaryOp",
+            "op": "==",
+            "left": {
+              "type": "BinaryOp",
+              "op": "+",
+              "left": { "type": "Identifier", "name": "fuel" },
+              "right": {
+                "type": "BinaryOp",
+                "op": "*",
+                "left": { "type": "Number", "value": 2 },
+                "right": { "type": "Identifier", "name": "distance" }
+              }
+            },
+            "right": { "type": "Number", "value": 100 }
+          },
+          "right": {
+            "type": "BinaryOp",
+            "op": "&&",
+            "left": {
+              "type": "BinaryOp",
+              "op": ">=",
+              "left": { "type": "Identifier", "name": "distance" },
+              "right": { "type": "Number", "value": 0 }
+            },
+            "right": {
+              "type": "BinaryOp",
+              "op": "<=",
+              "left": { "type": "Identifier", "name": "distance" },
+              "right": { "type": "Number", "value": 50 }
+            }
+          }
+        }
+      },
+      {
+        "type": "Transmit",
+        "expression": { "type": "Identifier", "name": "fuel" }
+      }
+    ]
+  },
+  "postcondition": {
+    "type": "BinaryOp",
+    "op": ">=",
+    "left": { "type": "Identifier", "name": "fuel" },
+    "right": { "type": "Number", "value": 0 }
+  }
+}
+```
+
+---
+
+#### `ast/mission4.json` — Full Mission (Optimization Target)
+
+```text
+altitude = 100 + 50;
+speed = 2 * 3 + 4;
+fuel = 200;
+if altitude > 100 {
+  fuel = fuel - speed * (10 + 5);
+} else {
+  fuel = fuel - speed * 5;
+}
+transmit fuel;
+```
+
+```json
+{
+  "program": {
+    "type": "Program",
+    "body": [
+      {
+        "type": "Assignment",
+        "name": "altitude",
+        "value": {
+          "type": "BinaryOp",
+          "op": "+",
+          "left": { "type": "Number", "value": 100 },
+          "right": { "type": "Number", "value": 50 }
+        }
+      },
+      {
+        "type": "Assignment",
+        "name": "speed",
+        "value": {
+          "type": "BinaryOp",
+          "op": "+",
+          "left": {
+            "type": "BinaryOp",
+            "op": "*",
+            "left": { "type": "Number", "value": 2 },
+            "right": { "type": "Number", "value": 3 }
+          },
+          "right": { "type": "Number", "value": 4 }
+        }
+      },
+      {
+        "type": "Assignment",
+        "name": "fuel",
+        "value": { "type": "Number", "value": 200 }
+      },
+      {
+        "type": "IfElse",
+        "condition": {
+          "type": "BinaryOp",
+          "op": ">",
+          "left": { "type": "Identifier", "name": "altitude" },
+          "right": { "type": "Number", "value": 100 }
+        },
+        "then": [
+          {
+            "type": "Assignment",
+            "name": "fuel",
+            "value": {
+              "type": "BinaryOp",
+              "op": "-",
+              "left": { "type": "Identifier", "name": "fuel" },
+              "right": {
+                "type": "BinaryOp",
+                "op": "*",
+                "left": { "type": "Identifier", "name": "speed" },
+                "right": {
+                  "type": "BinaryOp",
+                  "op": "+",
+                  "left": { "type": "Number", "value": 10 },
+                  "right": { "type": "Number", "value": 5 }
+                }
+              }
+            }
+          }
+        ],
+        "else": [
+          {
+            "type": "Assignment",
+            "name": "fuel",
+            "value": {
+              "type": "BinaryOp",
+              "op": "-",
+              "left": { "type": "Identifier", "name": "fuel" },
+              "right": {
+                "type": "BinaryOp",
+                "op": "*",
+                "left": { "type": "Identifier", "name": "speed" },
+                "right": { "type": "Number", "value": 5 }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Transmit",
+        "expression": { "type": "Identifier", "name": "fuel" }
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Expected Output Files
+
+#### `part1/expected_outputs/mission1_compiled.js`
+
+```javascript
+altitude = 0;
+fuel = 100;
+console.log(fuel);
+```
+
+#### `part1/expected_outputs/mission2_compiled.js`
+
+```javascript
+if ((altitude > 1000)) {
+altitude = (altitude - 100);
+} else {
+altitude = (altitude + 50);
+}
+console.log(altitude);
+```
+
+#### `part1/expected_outputs/mission3_compiled.js`
+
+```javascript
+fuel = 100;
+distance = 0;
+while ((distance < 50)) {
+fuel = (fuel - 2);
+distance = (distance + 1);
+}
+console.log(fuel);
+```
+
+#### `part1/expected_outputs/mission4_compiled.js`
+
+```javascript
+altitude = (100 + 50);
+speed = ((2 * 3) + 4);
+fuel = 200;
+if ((altitude > 100)) {
+fuel = (fuel - (speed * (10 + 5)));
+} else {
+fuel = (fuel - (speed * 5));
+}
+console.log(fuel);
+```
+
+#### `part1/expected_outputs/mission4_optimized.js`
+
+```javascript
+altitude = 150;
+speed = 10;
+fuel = 200;
+if ((altitude > 100)) {
+fuel = (fuel - (speed * 15));
+} else {
+fuel = (fuel - (speed * 5));
+}
+console.log(fuel);
+```
+
+---
+
+#### `part2/expected_outputs/verify1_wp.txt`
+
+```
+(100 > 0)
+```
+
+#### `part2/expected_outputs/verify2_wp.txt`
+
+```
+(((altitude > 1000) => ((altitude - 100) >= 0)) && ((!(altitude > 1000)) => ((altitude + 50) >= 0)))
+```
+
+#### `part2/expected_outputs/verify3_wp.txt`
+
+```
+Postcondition: (fuel >= 0)
+After transmit: (fuel >= 0)
+After while: (((fuel + (2 * distance)) == 100) && ((distance >= 0) && (distance <= 50)))
+After distance = 0: (((fuel + (2 * 0)) == 100) && ((0 >= 0) && (0 <= 50)))
+After fuel = 100: (((100 + (2 * 0)) == 100) && ((0 >= 0) && (0 <= 50)))
+```
+
+---
+
+### `grammar/flightscript.ohm`
+
+This Ohm.js grammar defines FlightScript's concrete syntax. Use it with the provided parser to convert FlightScript text into JSON ASTs for additional testing beyond the four provided missions.
+
+```text
+FlightScript {
+  Program = Statement+
+
+  Statement = Assignment
+            | Transmit
+            | IfElse
+            | While
+
+  Assignment = identifier "=" Exp ";"
+  Transmit = "transmit" Exp ";"
+  IfElse = "if" Exp "{" Statement+ "}" "else" "{" Statement+ "}"
+  While = "while" Exp "{" Statement+ "}"
+
+  Exp = LogOr
+
+  LogOr = LogOr "||" LogAnd  --or
+        | LogAnd
+
+  LogAnd = LogAnd "&&" Compare  --and
+         | Compare
+
+  Compare = AddSub "==" AddSub  --eq
+          | AddSub "!=" AddSub  --neq
+          | AddSub "<=" AddSub  --lte
+          | AddSub ">=" AddSub  --gte
+          | AddSub "<" AddSub   --lt
+          | AddSub ">" AddSub   --gt
+          | AddSub
+
+  AddSub = AddSub "+" MulDivMod  --add
+         | AddSub "-" MulDivMod  --sub
+         | MulDivMod
+
+  MulDivMod = MulDivMod "*" Power  --mul
+            | MulDivMod "/" Power   --div
+            | MulDivMod "%" Power   --mod
+            | Power
+
+  Power = Unary "**" Power  --pow
+        | Unary
+
+  Unary = "-" Unary   --neg
+        | "!" Unary    --not
+        | Primary
+
+  Primary = "(" Exp ")"  --parens
+          | number
+          | identifier
+
+  number = digit+
+  identifier = ~keyword letter (alnum | "_")*
+
+  keyword = ("if" | "else" | "while" | "transmit") ~(alnum | "_")
+
+  space += "//" (~"\n" any)*
+}
+```
+
+---
+
+### `grammar/parser.js`
+
+This Node.js script parses a FlightScript source file into a JSON AST. Run `npm install` from the repository root to install the `ohm-js` dependency (declared in `package.json`).
+
+```javascript
+const ohm = require("ohm-js");
+const fs = require("fs");
+
+const grammarText = fs.readFileSync(__dirname + "/flightscript.ohm", "utf-8");
+const grammar = ohm.grammar(grammarText);
+const semantics = grammar.createSemantics();
+
+semantics.addOperation("toAST", {
+  Program(stmts) {
+    return { type: "Program", body: stmts.children.map(c => c.toAST()) };
+  },
+  Assignment(id, _eq, exp, _semi) {
+    return { type: "Assignment", name: id.sourceString, value: exp.toAST() };
+  },
+  Transmit(_kw, exp, _semi) {
+    return { type: "Transmit", expression: exp.toAST() };
+  },
+  IfElse(_if, cond, _lb1, thenStmts, _rb1, _else, _lb2, elseStmts, _rb2) {
+    return {
+      type: "IfElse",
+      condition: cond.toAST(),
+      then: thenStmts.children.map(c => c.toAST()),
+      else: elseStmts.children.map(c => c.toAST()),
+    };
+  },
+  While(_while, cond, _lb, body, _rb) {
+    return {
+      type: "While",
+      condition: cond.toAST(),
+      body: body.children.map(c => c.toAST()),
+      invariant: null,
+    };
+  },
+  LogOr_or(left, _op, right) {
+    return { type: "BinaryOp", op: "||", left: left.toAST(), right: right.toAST() };
+  },
+  LogAnd_and(left, _op, right) {
+    return { type: "BinaryOp", op: "&&", left: left.toAST(), right: right.toAST() };
+  },
+  Compare_eq(left, _op, right) {
+    return { type: "BinaryOp", op: "==", left: left.toAST(), right: right.toAST() };
+  },
+  Compare_neq(left, _op, right) {
+    return { type: "BinaryOp", op: "!=", left: left.toAST(), right: right.toAST() };
+  },
+  Compare_lte(left, _op, right) {
+    return { type: "BinaryOp", op: "<=", left: left.toAST(), right: right.toAST() };
+  },
+  Compare_gte(left, _op, right) {
+    return { type: "BinaryOp", op: ">=", left: left.toAST(), right: right.toAST() };
+  },
+  Compare_lt(left, _op, right) {
+    return { type: "BinaryOp", op: "<", left: left.toAST(), right: right.toAST() };
+  },
+  Compare_gt(left, _op, right) {
+    return { type: "BinaryOp", op: ">", left: left.toAST(), right: right.toAST() };
+  },
+  AddSub_add(left, _op, right) {
+    return { type: "BinaryOp", op: "+", left: left.toAST(), right: right.toAST() };
+  },
+  AddSub_sub(left, _op, right) {
+    return { type: "BinaryOp", op: "-", left: left.toAST(), right: right.toAST() };
+  },
+  MulDivMod_mul(left, _op, right) {
+    return { type: "BinaryOp", op: "*", left: left.toAST(), right: right.toAST() };
+  },
+  MulDivMod_div(left, _op, right) {
+    return { type: "BinaryOp", op: "/", left: left.toAST(), right: right.toAST() };
+  },
+  MulDivMod_mod(left, _op, right) {
+    return { type: "BinaryOp", op: "%", left: left.toAST(), right: right.toAST() };
+  },
+  Power_pow(base, _op, exp) {
+    return { type: "BinaryOp", op: "**", left: base.toAST(), right: exp.toAST() };
+  },
+  Unary_neg(_op, operand) {
+    return { type: "UnaryOp", op: "-", operand: operand.toAST() };
+  },
+  Unary_not(_op, operand) {
+    return { type: "UnaryOp", op: "!", operand: operand.toAST() };
+  },
+  Primary_parens(_lp, exp, _rp) {
+    return exp.toAST();
+  },
+  number(_digits) {
+    return { type: "Number", value: parseInt(this.sourceString) };
+  },
+  identifier(_first, _rest) {
+    return { type: "Identifier", name: this.sourceString };
+  },
+});
+
+const inputFile = process.argv[2];
+if (!inputFile) {
+  console.error("Usage: node parser.js <input.fs>");
+  process.exit(1);
+}
+
+const source = fs.readFileSync(inputFile, "utf-8");
+const match = grammar.match(source);
+
+if (match.failed()) {
+  console.error("Parse error:", match.message);
+  process.exit(1);
+}
+
+const ast = semantics(match).toAST();
+console.log(JSON.stringify(ast, null, 2));
+```
+
+Usage:
+
+```bash
+npm install
+echo 'fuel = 50; transmit fuel;' > test.fs
+node grammar/parser.js test.fs
+```
+
+This outputs the JSON AST, which you can pipe into your transpiler or verifier for testing.
+
+---
+
+### `package.json`
+
+This file declares the `ohm-js` dependency used by the grammar parser. Run `npm install` from the repository root before using `grammar/parser.js`.
+
+```json
+{
+  "name": "hw6-flightscript",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Grammar tools for FlightScript (used by grammar/parser.js only)",
+  "dependencies": {
+    "ohm-js": "^17.1.0"
+  }
+}
+```
+
+---
+
+### `README.md`
+
+This template will be provided. Please fill it out.
+
+```markdown
+# HW6: FlightScript — The Verified Compilation Pipeline
+
+**Name:** [Your Name]
+**Language Used:** [Your Language Choice]
+
+## Setup Instructions
+[Provide exact commands to install any necessary dependencies]
+
+## Part 1 Run Instructions (Transpiler + Optimizer)
+[Provide exact commands to run your transpiler on each mission]
+[Provide exact commands to run your optimizer on mission 4]
+[Provide exact commands to run the equivalence test]
+
+## Part 2 Run Instructions (Verification Engine)
+[Provide exact commands to run verification on missions 1, 2, and 3]
+```
+
+---
+
+## Point Summary
+
+| Part | Question | Points |
+| :--- | :--- | :---: |
+| **Part 1** | Q1: The Transpiler | 25 |
+| | Q1a: Expression Compilation | 8 |
+| | Q1b: Statement + Program Compilation | 12 |
+| | Q1c: End-to-End Test | 5 |
+| | Q2: The Optimizer | 15 |
+| | Q2a: Constant Folding | 10 |
+| | Q2b: Equivalence Verification | 5 |
+| **Part 2** | Q3: Substitution | 10 |
+| | Q4: Weakest Preconditions | 25 |
+| | Q4a: Assignment + Transmit | 5 |
+| | Q4b: Sequencing | 5 |
+| | Q4c: Conditionals | 10 |
+| | Q4d: While | 5 |
+| | Q5: Formula Printer | 10 |
+| | Q6: Mission Verification | 15 |
+| | Q6a: Missions 1 and 2 | 5 |
+| | Q6b: Mission 3 (The Fuel Proof) | 10 |
+| **Total** | | **100** |

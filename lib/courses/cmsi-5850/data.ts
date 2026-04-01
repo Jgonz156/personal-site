@@ -455,7 +455,7 @@ const allEvents: CourseEvent[] = [
   },
   {
     id: "5850-ln10",
-    title: "LN 10: Semantics — What Does It All Mean?",
+    title: "LN 10: Semantics",
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln10"),
     description:
@@ -498,7 +498,7 @@ const allEvents: CourseEvent[] = [
   },
   {
     id: "5850-ln11",
-    title: "LN 11: Operational Semantics — Meaning by Running",
+    title: "LN 11: Operational Semantics",
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln11"),
     description:
@@ -519,7 +519,7 @@ const allEvents: CourseEvent[] = [
   },
   {
     id: "5850-ln12",
-    title: "LN 12: Denotational Semantics — Meaning by Translating",
+    title: "LN 12: Denotational Semantics",
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln12"),
     description:
@@ -547,21 +547,26 @@ const allEvents: CourseEvent[] = [
     availableDate: schedule.getSpecificDate(2026, 3, 27, "5850-hw5-available"),
     dueTime: "11:59 PM",
     description:
-      "In this homework you must add interpretation and meaning to the parser we created in HW4!",
+      "A written assignment exploring the pivot from syntax to semantics — meaning functions, compositionality, environments, scoping, operational semantics (small-step and big-step), inference rules, and proof trees.",
     courseId: "cmsi-5850",
-    standard: "Mathematical Foundations",
-    contentUrl: "/cmsi-5850/hw1",
+    standard: "Semantics",
+    contentUrl: "/cmsi-5850/hw5",
     hwTopics: [
-      "Semantics",
-      "Interpretation",
+      "Meaning Functions",
+      "Semantic Domains",
+      "Compositionality",
+      "Environments and State",
+      "Scoping",
+      "Operational Semantics",
+      "Inference Rules",
+      "Proof Trees",
     ],
-    hwPoints: { written: 0, programming: 100, optional: 0 },
-    hwGithubClassroomUrl: "",
+    hwPoints: { written: 100, programming: 0, optional: 0 },
     hwBrightspaceUrl: "",
   },
   {
     id: "5850-ln13",
-    title: "LN 13: Beyond Execution — Proving Programs Correct",
+    title: "LN 13: Additional Topics in Semantics",
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln13"),
     description:
@@ -583,7 +588,7 @@ const allEvents: CourseEvent[] = [
   },
   {
     id: "5850-ln14",
-    title: "LN 14: Modern Applications — The Full Pipeline",
+    title: "LN 14: Modern Applications",
     type: "lecture",
     date: schedule.getNextRecurringDate("5850-ln14"),
     description:
@@ -610,15 +615,19 @@ const allEvents: CourseEvent[] = [
     availableDate: schedule.getSpecificDate(2026, 4, 17, "5850-hw6-available", true),
     dueTime: "11:59 PM",
     description:
-      "In this homework you will reason about operational and denotational semantics for some small languages!",
+      "Build a verified compilation pipeline for FlightScript, a drone control DSL: transpile to JavaScript, optimize with constant folding, and prove safety properties using weakest preconditions.",
     courseId: "cmsi-5850",
-    standard: "Mathematical Foundations",
-    contentUrl: "/cmsi-5850/hw1",
+    standard: "Semantics",
+    contentUrl: "/cmsi-5850/hw6",
     hwTopics: [
-      "Operational Semantics",
       "Denotational Semantics",
+      "Axiomatic Semantics",
+      "Transpilation",
+      "Constant Folding",
+      "Weakest Preconditions",
+      "Hoare Logic",
     ],
-    hwPoints: { written: 100, programming: 0, optional: 0 },
+    hwPoints: { written: 0, programming: 100, optional: 0 },
     hwGithubClassroomUrl: "",
     hwBrightspaceUrl: "",
     pinned: true,
