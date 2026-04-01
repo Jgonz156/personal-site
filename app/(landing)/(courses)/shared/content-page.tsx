@@ -168,8 +168,10 @@ export function ContentPage({ courseId, id, children }: ContentPageProps) {
   const counts = deriveContentTypeCounts(courseId)
   const total = counts[contentType.prefix] || 0
 
-  // Validate the item number
-  if (itemNumber < contentType.minNumber || itemNumber > total) {
+  // Validate the item number (lower bound only — upper bound is
+  // enforced by whether the MDX file exists, so that content beyond
+  // the current schedule cutoff is still reachable by direct URL)
+  if (itemNumber < contentType.minNumber) {
     notFound()
   }
 

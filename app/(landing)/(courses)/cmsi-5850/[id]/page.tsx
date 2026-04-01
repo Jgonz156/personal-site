@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation"
 import { ContentPage } from "../../shared/content-page"
 import {
   getContentTypeFromId,
@@ -48,9 +49,13 @@ export default async function CoursePage({ params }: PageProps) {
     itemNumber
   )
 
+  if (!MDXContent) {
+    notFound()
+  }
+
   return (
     <ContentPage courseId={COURSE_ID} id={id}>
-      {MDXContent && <MDXContent />}
+      <MDXContent />
     </ContentPage>
   )
 }

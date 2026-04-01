@@ -6,6 +6,7 @@ import { DefinitionBox } from "@/components/interactive-example"
 import { DisplayMath, InlineMath } from "@/components/math"
 import { TranspilerOutput } from "@/components/transpiler-output"
 import { FixedPointUnroller } from "@/components/fixed-point-unroller"
+import { DenotationalStepper } from "@/components/denotational-stepper"
 
 ## Recap
 
@@ -20,13 +21,11 @@ Today we develop the second approach: **denotational semantics — meaning by tr
 ## Today's Agenda
 
 - **The Denotational Intuition** — Meaning as function, not simulation
-- **Semantic Domains** — The mathematical spaces where meanings live, with $\bot$
-- **Semantic Functions** — The double-bracket notation
-- **Compositionality** — The defining principle of denotational semantics
-- **From Equations to Code** — The transpiler reveal
-- **Fixed Points and Recursion** — How the Y combinator solves while loops
-- **Domain Theory (Intuition)** — Why plain sets aren't enough
-- **Comparing Operational and Denotational** — Two lenses, one language
+- **The Blueprint** — From tree grammar to semantic functions
+- **The Machinery** — Semantic equations and compositionality
+- **The Challenge** — Loops, fixed points, and domain theory
+- **The Payoff** — The transpiler reveal and denotational equivalence
+- **Two Lenses, One Language** — Comparing operational and denotational
 
 ---
 
@@ -50,7 +49,33 @@ The core idea: every program is a **function** — a mapping from inputs to outp
 
 ---
 
-## Semantic Domains
+## The Blueprint: From Tree Grammar to Semantic Functions
+
+The tree grammar from LN 8 told us what AST shapes Petal programs can take. Now we need to assign mathematical meaning to each shape. Slonneger and Kurtz describe this as a three-step process: identify the **syntactic domains** (what goes in), define the **semantic domains** (what comes out), and write the **function signatures** connecting them.
+
+### Recalling the Tree Grammar
+
+In LN 8 we defined Petal's abstract syntax, and in LN 11 we extended it with control flow. Here is the current tree grammar:
+
+<DisplayMath formula="e : \text{Exp} = n \mid i \mid \text{-}e \mid e\text{+}e \mid e\text{-}e \mid e\text{*}e \mid e\text{/}e \mid e\text{\%}e \mid e\text{**}e" />
+
+<DisplayMath formula="s : \text{Stmt} = i\text{=}e \mid \textbf{print}\; e \mid \textbf{if}\; e\; \textbf{then}\; s^+\; \textbf{else}\; s^+ \mid \textbf{while}\; e\; \textbf{do}\; s^+" />
+
+<DisplayMath formula="p : \text{Program} = s^+" />
+
+Each production names a syntactic category — a set of possible AST shapes. These categories are our **syntactic domains**: the inputs to the meaning functions we're about to define.
+
+<DefinitionBox term="Syntactic Domain">
+
+A **syntactic domain** is a set of abstract syntax trees belonging to a single grammatical category. For Petal, the syntactic domains are **Exp** (expressions), **Stmt** (statements), and **Program**. Each domain is defined by its tree grammar productions — they enumerate every possible shape an AST node of that category can take.
+
+</DefinitionBox>
+
+Think of the tree grammar as an API contract: every semantic approach must provide a complete implementation of this interface, handling every production, or programs will have undefined meaning. In LN 11, we wrote one inference rule per production. Here, we write one semantic equation per production. The tree grammar is the checklist.
+
+### Semantic Domains
+
+Now we define the mathematical spaces where meanings live — the **outputs** of our meaning functions.
 
 <DefinitionBox term="Semantic Domain">
 
@@ -94,9 +119,9 @@ A function $f$ is **strict** if $f(\bot) = \bot$. Most programming operations ar
 
 </DefinitionBox>
 
----
+### From Domains to Functions
 
-## Semantic Functions
+Now we can write the signatures that bridge syntax and semantics. Each syntactic domain gets its own semantic function:
 
 <DefinitionBox term="Semantic Function">
 
@@ -112,10 +137,16 @@ The double-bracket notation $E\llbracket e \rrbracket$ means "the meaning of exp
 
 > The double-bracket notation $\llbracket \cdot \rrbracket$ (called "Oxford brackets" or "semantic brackets") was invented by Strachey. They serve as a visual reminder that we're crossing from the syntactic world (inside the brackets) to the semantic world (outside). Think of them as a function call: $E\llbracket e \rrbracket\, \sigma$ means "call the meaning function $E$ on expression $e$ with environment $\sigma$."
 
+The rest of this lecture fills in these signatures — one equation per tree grammar production.
+
+---
+
+## Semantic Equations and Compositionality
+
 ### Expression Semantics
 
 <DisplayMath formula="E\llbracket n \rrbracket\, \sigma = n" />
-<DisplayMath formula="E\llbracket x \rrbracket\, \sigma = \sigma(x)" />
+<DisplayMath formula="E\llbracket i \rrbracket\, \sigma = \sigma(i)" />
 <DisplayMath formula="E\llbracket e_1 + e_2 \rrbracket\, \sigma = E\llbracket e_1 \rrbracket\, \sigma + E\llbracket e_2 \rrbracket\, \sigma" />
 <DisplayMath formula="E\llbracket e_1 * e_2 \rrbracket\, \sigma = E\llbracket e_1 \rrbracket\, \sigma \times E\llbracket e_2 \rrbracket\, \sigma" />
 
@@ -138,7 +169,7 @@ Comparisons produce integers (1 for true, 0 for false), matching the C conventio
 
 ### Statement Semantics
 
-<DisplayMath formula="S\llbracket x = e \rrbracket\, (\sigma, o) = (\sigma[x \mapsto E\llbracket e \rrbracket\, \sigma],\; o)" />
+<DisplayMath formula="S\llbracket i\text{=}e \rrbracket\, (\sigma, o) = (\sigma[i \mapsto E\llbracket e \rrbracket\, \sigma],\; o)" />
 <DisplayMath formula="S\llbracket \text{print } e \rrbracket\, (\sigma, o) = (\sigma,\; o \cdot E\llbracket e \rrbracket\, \sigma)" />
 <DisplayMath formula="S\llbracket s_1;\, s_2 \rrbracket = S\llbracket s_2 \rrbracket \circ S\llbracket s_1 \rrbracket" />
 
@@ -148,7 +179,7 @@ Notice the sequencing equation: $S\llbracket s_1; s_2 \rrbracket = S\llbracket s
 
 ### Conditional Semantics
 
-<DisplayMath formula="S\llbracket \text{if } e \; \{s_1\} \text{ else } \{s_2\} \rrbracket\, (\sigma, o) = \begin{cases} S\llbracket s_1 \rrbracket\, (\sigma, o) & \text{if } E\llbracket e \rrbracket\, \sigma \neq 0 \\ S\llbracket s_2 \rrbracket\, (\sigma, o) & \text{if } E\llbracket e \rrbracket\, \sigma = 0 \end{cases}" />
+<DisplayMath formula="S\llbracket \textbf{if}\; e\; \textbf{then}\; s_1\; \textbf{else}\; s_2 \rrbracket\, (\sigma, o) = \begin{cases} S\llbracket s_1 \rrbracket\, (\sigma, o) & \text{if } E\llbracket e \rrbracket\, \sigma \neq 0 \\ S\llbracket s_2 \rrbracket\, (\sigma, o) & \text{if } E\llbracket e \rrbracket\, \sigma = 0 \end{cases}" />
 
 The conditional is a function that selects between two other functions. No recursion, no fixed points — just a piecewise definition. This is why conditionals cause no theoretical difficulty in denotational semantics: they're perfectly compositional.
 
@@ -158,9 +189,7 @@ The conditional is a function that selects between two other functions. No recur
 
 where $\sigma_0$ is the initial (empty) state, $\epsilon$ is the empty output, and $\pi_2$ projects the output component.
 
----
-
-## Compositionality: The Key Principle
+### The Key Principle: Compositionality
 
 Look at the equation for addition again:
 
@@ -178,9 +207,72 @@ This connects directly to LN 4. Church encodings *are* denotational semantics fo
 
 > Compositionality has a powerful practical consequence: **modular reasoning**. If two subexpressions have the same denotation (they compute the same function), then replacing one with the other doesn't change the meaning of the program. This is the mathematical foundation of compiler optimization: the optimizer can replace `3 + 5` with `8` precisely because $E\llbracket 3 + 5 \rrbracket = E\llbracket 8 \rrbracket$ — they have the same denotation.
 
+### Seeing Compositionality in Action
+
+The stepper below shows how the semantic equations unfold compositionally through an AST. Watch how each node's meaning is computed from its children's meanings — leaves first, then upward:
+
+<DenotationalStepper
+  title="Expression Evaluation: 3 + 5 × 2"
+  astNodes={[
+    { id: "plus", label: "+", level: 0 },
+    { id: "three", label: "3", isTerminal: true, level: 1 },
+    { id: "times", label: "×", level: 1 },
+    { id: "five", label: "5", isTerminal: true, level: 2 },
+    { id: "two", label: "2", isTerminal: true, level: 2 },
+  ]}
+  astEdges={[
+    { from: "plus", to: "three" },
+    { from: "plus", to: "times" },
+    { from: "times", to: "five" },
+    { from: "times", to: "two" },
+  ]}
+  steps={[
+    { astHighlight: ["plus"], equation: "E\\llbracket 3 + 5 \\times 2 \\rrbracket\\, \\sigma = E\\llbracket 3 \\rrbracket\\, \\sigma \\;+\\; E\\llbracket 5 \\times 2 \\rrbracket\\, \\sigma", environment: {}, output: [], description: "Start at the root. The addition equation decomposes the expression into its two children's meanings." },
+    { astHighlight: ["times"], equation: "E\\llbracket 5 \\times 2 \\rrbracket\\, \\sigma = E\\llbracket 5 \\rrbracket\\, \\sigma \\;\\times\\; E\\llbracket 2 \\rrbracket\\, \\sigma", environment: {}, output: [], description: "Recurse into the right subtree. The multiplication equation does the same decomposition." },
+    { astHighlight: ["five"], equation: "E\\llbracket 5 \\rrbracket\\, \\sigma = 5", environment: {}, output: [], description: "Leaf node: the numeral 5 denotes the number 5. No recursion needed." },
+    { astHighlight: ["two"], equation: "E\\llbracket 2 \\rrbracket\\, \\sigma = 2", environment: {}, output: [], description: "Leaf node: the numeral 2 denotes the number 2." },
+    { astHighlight: ["times"], equation: "E\\llbracket 5 \\times 2 \\rrbracket\\, \\sigma = 5 \\times 2 = 10", environment: {}, output: [], description: "Both children evaluated — combine: 5 × 2 = 10. The multiplication node's denotation is 10." },
+    { astHighlight: ["three"], equation: "E\\llbracket 3 \\rrbracket\\, \\sigma = 3", environment: {}, output: [], description: "Left child of the root: the numeral 3 denotes 3." },
+    { astHighlight: ["plus"], equation: "E\\llbracket 3 + 5 \\times 2 \\rrbracket\\, \\sigma = 3 + 10 = 13", environment: {}, output: [], description: "Both children of the root evaluated — combine: 3 + 10 = 13. The entire expression denotes 13." },
+  ]}
+/>
+
+Now let's see how statement equations thread state through a program:
+
+<DenotationalStepper
+  title="Program Evaluation: x = 3 + 5; print x;"
+  astNodes={[
+    { id: "prog", label: "P", level: 0 },
+    { id: "assign", label: "x =", level: 1 },
+    { id: "print", label: "print", level: 1 },
+    { id: "plus", label: "+", level: 2 },
+    { id: "xref", label: "x", isTerminal: true, level: 2 },
+    { id: "three", label: "3", isTerminal: true, level: 3 },
+    { id: "five", label: "5", isTerminal: true, level: 3 },
+  ]}
+  astEdges={[
+    { from: "prog", to: "assign" },
+    { from: "prog", to: "print" },
+    { from: "assign", to: "plus" },
+    { from: "print", to: "xref" },
+    { from: "plus", to: "three" },
+    { from: "plus", to: "five" },
+  ]}
+  steps={[
+    { astHighlight: ["prog"], equation: "P\\llbracket \\text{program} \\rrbracket = \\pi_2(S\\llbracket \\text{print } x \\rrbracket(S\\llbracket x = 3+5 \\rrbracket(\\sigma_0, \\epsilon)))", environment: {}, output: [], description: "The program's meaning is built by composing its statement meanings — right to left, just like function composition." },
+    { astHighlight: ["assign"], equation: "S\\llbracket x = 3 + 5 \\rrbracket\\, (\\sigma_0, \\epsilon) = (\\sigma_0[x \\mapsto E\\llbracket 3 + 5 \\rrbracket\\, \\sigma_0],\\; \\epsilon)", environment: {}, output: [], description: "The assignment equation expands: bind x to whatever E⟦3 + 5⟧ σ₀ evaluates to. But we don't know that value yet — we must evaluate the expression first." },
+    { astHighlight: ["plus", "three", "five"], equation: "E\\llbracket 3 + 5 \\rrbracket\\, \\sigma_0 = E\\llbracket 3 \\rrbracket\\, \\sigma_0 + E\\llbracket 5 \\rrbracket\\, \\sigma_0 = 3 + 5 = 8", environment: {}, output: [], description: "Compositional expression evaluation: decompose, evaluate leaves, combine. The expression denotes 8." },
+    { astHighlight: ["assign"], equation: "S\\llbracket x = 3 + 5 \\rrbracket\\, (\\sigma_0, \\epsilon) = (\\sigma_0[x \\mapsto 8],\\; \\epsilon) = (\\sigma_1, \\epsilon)", environment: { x: 8 }, output: [], description: "The assignment equation: update the state by binding x to 8. The output stream is unchanged." },
+    { astHighlight: ["print"], equation: "S\\llbracket \\text{print } x \\rrbracket\\, (\\sigma_1, \\epsilon)", environment: { x: 8 }, output: [], description: "Second statement: print. We evaluate the expression x in the current state σ₁." },
+    { astHighlight: ["xref"], equation: "E\\llbracket x \\rrbracket\\, \\sigma_1 = \\sigma_1(x) = 8", environment: { x: 8 }, output: [], description: "Variable lookup: the identifier x denotes whatever σ₁ maps it to — which is 8." },
+    { astHighlight: ["print"], equation: "S\\llbracket \\text{print } x \\rrbracket\\, (\\sigma_1, \\epsilon) = (\\sigma_1,\\; \\epsilon \\cdot 8) = (\\sigma_1, [8])", environment: { x: 8 }, output: [8], description: "The print equation: state unchanged, but 8 is appended to the output stream." },
+    { astHighlight: ["prog"], equation: "P\\llbracket \\text{program} \\rrbracket = \\pi_2(\\sigma_1, [8]) = [8]", environment: { x: 8 }, output: [8], description: "Project the output component: the program's denotation is [8]. Pure mathematics — no machine, no steps, just function application." },
+  ]}
+/>
+
 ### Worked Example: Tracing the Semantic Functions
 
-Let's trace the semantic functions through a complete program to see compositionality in action:
+Let's trace a slightly larger program to see how the equations compose:
 
 ```
 x = 3 + 5;
@@ -209,168 +301,17 @@ Starting with the initial state $(\sigma_0, \epsilon)$ where $\sigma_0$ is empty
 
 The program's denotation is the output `[16]`. Notice how each step is purely mathematical — we're computing with functions and sets, not simulating a machine. There are no "states" or "transitions"; there are only function applications.
 
-### Denotational Equivalence
-
-Two programs are **denotationally equivalent** if they have the same meaning function. This gives us a powerful tool for reasoning about programs:
-
-<DisplayMath formula="E\llbracket (a + b) + c \rrbracket = E\llbracket a + (b + c) \rrbracket" />
-
-because integer addition is associative. A compiler can freely rewrite `(a + b) + c` as `a + (b + c)` (which might be more efficient if `b + c` is a constant) because the denotation is the same.
-
-Similarly:
-
-<DisplayMath formula="E\llbracket x * 2 \rrbracket = E\llbracket x + x \rrbracket = E\llbracket x \ll 1 \rrbracket" />
-
-Multiplying by 2, adding to itself, and left-shifting by 1 all have the same denotation. Compilers routinely replace multiplication by a power of 2 with a left shift — this optimization is justified by denotational equivalence.
-
-> This is why denotational semantics is the preferred framework for compiler writers. Optimizations are **semantic preserving transformations** — they change the code but not the meaning. Compositionality guarantees that local changes (within a single expression) don't affect the meaning of the surrounding program. This is safety at the mathematical level.
-
 ---
 
-## From Equations to Code: The Transpiler
-
-Here is today's payoff, paralleling LN 11's interpreter reveal. Every semantic equation maps to a clause in a `compile()` function that produces JavaScript source code:
-
-<DefinitionBox term="Transpiler">
-
-A **transpiler** (or **source-to-source compiler**) translates programs from one language to another at the same level of abstraction. Our Petal transpiler maps each AST node to the corresponding JavaScript construct, producing runnable JavaScript code. The transpiler IS the semantic equations turned into code.
-
-</DefinitionBox>
-
-```javascript
-function compile(node) {
-  switch (node.type) {
-    case "Number":
-      return `${node.value}`;
-
-    case "Identifier":
-      return node.name;
-
-    case "BinaryOp":
-      return `(${compile(node.left)} ${node.op} ${compile(node.right)})`;
-
-    case "Assignment":
-      return `let ${node.name} = ${compile(node.value)};`;
-
-    case "Print":
-      return `console.log(${compile(node.expression)});`;
-
-    case "IfElse": {
-      const thenBlock = node.then.map(compile).join("\n");
-      const elseBlock = node.else.map(compile).join("\n");
-      return `if (${compile(node.condition)}) {\n${thenBlock}\n} else {\n${elseBlock}\n}`;
-    }
-
-    case "While":
-      return `while (${compile(node.condition)}) {\n${node.body.map(compile).join("\n")}\n}`;
-
-    case "Program":
-      return node.body.map(compile).join("\n");
-  }
-}
-```
-
-Compare each `case` to the corresponding semantic equation:
-
-| Equation | Code |
-|----------|------|
-| $E\llbracket n \rrbracket\, \sigma = n$ | `case "Number"` — return the numeric value as a string |
-| $E\llbracket x \rrbracket\, \sigma = \sigma(x)$ | `case "Identifier"` — return the variable name |
-| $E\llbracket e_1 + e_2 \rrbracket = E\llbracket e_1 \rrbracket + E\llbracket e_2 \rrbracket$ | `case "BinaryOp"` — compile children, wrap with operator |
-| $S\llbracket x = e \rrbracket$ | `case "Assignment"` — emit `let name = compile(value)` |
-
-The correspondence is compositional, just like the equations. To compile a parent node, we compile its children and combine the results. The transpiler IS the semantic equations turned into code.
-
-### The Same Pattern in Other Languages
-
-```python
-def compile(node):
-    match node["type"]:
-        case "Number":
-            return str(node["value"])
-        case "Identifier":
-            return node["name"]
-        case "BinaryOp":
-            left = compile(node["left"])
-            right = compile(node["right"])
-            return f"({left} {node['op']} {right})"
-        case "Assignment":
-            return f"let {node['name']} = {compile(node['value'])};"
-        case "Print":
-            return f"console.log({compile(node['expression'])});"
-```
-
-```haskell
-compile :: AST -> String
-compile (Num n)          = show n
-compile (Var x)          = x
-compile (BinOp op l r)   = "(" ++ compile l ++ " " ++ [op] ++ " " ++ compile r ++ ")"
-compile (Assign x e)     = "let " ++ x ++ " = " ++ compile e ++ ";"
-compile (Print e)        = "console.log(" ++ compile e ++ ");"
-```
-
-> Notice how the transpiler is *structurally identical* to the interpreter from LN 11, but instead of computing values, it produces code strings. The interpreter `evaluate("Number", env) → 5` returns a number. The transpiler `compile("Number") → "5"` returns a string. Both follow the same recursive pattern because both are defined by structural induction on the same AST.
-
-### Seeing It Work
-
-The `TranspilerOutput` below shows the Petal source on the left and the generated JavaScript on the right. Step through to see how each line compiles:
-
-<TranspilerOutput
-  title="Transpiling Petal to JavaScript"
-  petalSource={"x = 3 + 5;\ny = x * 2;\nprint y;"}
-  steps={[
-    { petalHighlight: "", jsCode: "// Petal → JavaScript\n// Each line compiles independently\n// (compositionality in action)", jsHighlight: "", equation: "", description: "We compile the Petal program line by line. Each statement maps to a JavaScript statement through the semantic equations." },
-    { petalHighlight: "x = 3 + 5;", jsCode: "let x = (3 + 5);", jsHighlight: "let x = (3 + 5);", equation: "S⟦x = e⟧ → let x = E⟦e⟧;", description: "Assignment: the name becomes a let-binding, the RHS expression compiles recursively. E⟦3 + 5⟧ = E⟦3⟧ + E⟦5⟧ = (3 + 5)." },
-    { petalHighlight: "y = x * 2;", jsCode: "let x = (3 + 5);\nlet y = (x * 2);", jsHighlight: "let y = (x * 2);", equation: "S⟦y = e⟧ → let y = E⟦e⟧;", description: "Second assignment compiles the same way. The identifier x in the RHS compiles to just 'x' — JavaScript will resolve it at runtime." },
-    { petalHighlight: "print y;", jsCode: "let x = (3 + 5);\nlet y = (x * 2);\nconsole.log(y);", jsHighlight: "console.log(y);", equation: "S⟦print e⟧ → console.log(E⟦e⟧);", description: "Print becomes console.log. The expression y compiles to 'y'. The full program is now valid JavaScript that produces the same output as the Petal original." },
-    { petalHighlight: "", jsCode: "let x = (3 + 5);\nlet y = (x * 2);\nconsole.log(y);", jsHighlight: "", equation: "P⟦program⟧ = S⟦s₁⟧ ; S⟦s₂⟧ ; ... ; S⟦sₙ⟧", description: "The complete transpiled program. Run it in Node.js and it prints 16 — the same result as the interpreter from LN 11. Same program, same meaning, different mechanism." },
-  ]}
-/>
-
-### A Second Example: Control Flow
-
-<TranspilerOutput
-  title="Transpiling: if-else and while"
-  petalSource={"x = 10;\nwhile x > 0 {\n  print x;\n  x = x - 1;\n}"}
-  steps={[
-    { petalHighlight: "", jsCode: "", jsHighlight: "", equation: "", description: "Let's compile a program with a while loop — the construct that creates the most interesting challenge for denotational semantics." },
-    { petalHighlight: "x = 10;", jsCode: "let x = 10;", jsHighlight: "let x = 10;", equation: "S⟦x = 10⟧ → let x = 10;", description: "Assignment compiles directly. The number 10 denotes itself." },
-    { petalHighlight: "while x > 0 {", jsCode: "let x = 10;\nwhile ((x) > (0)) {", jsHighlight: "while ((x) > (0)) {", equation: "S⟦while e { s }⟧ → while (E⟦e⟧) { S⟦s⟧ }", description: "The while loop compiles compositionally: compile the condition, compile the body, wrap in JavaScript's while syntax." },
-    { petalHighlight: "  print x;\n  x = x - 1;", jsCode: "let x = 10;\nwhile ((x) > (0)) {\nconsole.log(x);\nlet x = (x - 1);\n}", jsHighlight: "console.log(x);\nlet x = (x - 1);", equation: "S⟦s₁; s₂⟧ = S⟦s₁⟧ ∘ S⟦s₂⟧", description: "The body statements compile independently and are sequenced. Print becomes console.log, assignment becomes let." },
-    { petalHighlight: "", jsCode: "let x = 10;\nwhile ((x) > (0)) {\nconsole.log(x);\nlet x = (x - 1);\n}", jsHighlight: "", equation: "", description: "Complete transpiled output. Running this prints 10, 9, 8, ..., 1 — the same result the interpreter would produce." },
-  ]}
-/>
-
-The interpreter from LN 11 **runs** Petal by walking the AST. The transpiler **translates** Petal to JavaScript and lets JavaScript's engine do the running. Both produce the same result — because both faithfully implement the semantic specification. The equivalence is not a coincidence; it's a theorem.
-
-### Transpilers in the Real World
-
-The Petal → JavaScript transpiler is a miniature version of what happens in production every day:
-
-| Source Language | Target Language | Tool |
-|----------------|----------------|------|
-| TypeScript | JavaScript | `tsc` |
-| Kotlin | JVM bytecode or JavaScript | `kotlinc` |
-| Elm | JavaScript | `elm make` |
-| Sass/SCSS | CSS | `sass` |
-| CoffeeScript | JavaScript | `coffee` |
-| C | Assembly | `gcc`, `clang` |
-
-> Every one of these transpilers follows the same compositional pattern: walk the source AST, map each node to the target language's equivalent, and output the result. The mathematical structure is identical whether you're compiling TypeScript to JavaScript or C to x86 assembly. The semantic equations just describe *which* function each node maps to — the recursive traversal is always the same.
-
-Real transpilers also perform **optimizations** — transformations that change the code's structure without changing its meaning. Constant folding replaces `3 + 5` with `8`. Dead code elimination removes code that can never execute. Inlining replaces function calls with the function body. All of these are justified by denotational equivalence: $E\llbracket 3 + 5 \rrbracket = E\llbracket 8 \rrbracket$, so replacing one with the other preserves meaning.
-
----
-
-## Fixed Points and Recursion
+## The Challenge: Loops and Fixed Points
 
 Everything above works beautifully for straight-line code. But what about `while` loops? This is where denotational semantics faces its deepest challenge.
 
 Consider the semantic equation for `while`:
 
-<DisplayMath formula="S\llbracket \text{while } e \; \{s\} \rrbracket\, (\sigma, o) = \begin{cases} (\sigma, o) & \text{if } E\llbracket e \rrbracket\, \sigma = 0 \\ S\llbracket \text{while } e \; \{s\} \rrbracket\, (S\llbracket s \rrbracket\, (\sigma, o)) & \text{otherwise} \end{cases}" />
+<DisplayMath formula="S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket\, (\sigma, o) = \begin{cases} (\sigma, o) & \text{if } E\llbracket e \rrbracket\, \sigma = 0 \\ S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket\, (S\llbracket s \rrbracket\, (\sigma, o)) & \text{otherwise} \end{cases}" />
 
-This equation defines <InlineMath formula="$S\llbracket \text{while } e \; \{s\} \rrbracket$" /> **in terms of itself**. It's circular! In operational semantics (LN 11), self-reference in inference rules was fine — we were defining a relation, and the recursion unfolded naturally. But denotational semantics requires **compositionality**: the meaning of the whole must be defined from the meanings of the parts. A circular definition violates this.
+This equation defines <InlineMath formula="S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket" /> **in terms of itself**. It's circular! In operational semantics (LN 11), self-reference in inference rules was fine — we were defining a relation, and the recursion unfolded naturally. But denotational semantics requires **compositionality**: the meaning of the whole must be defined from the meanings of the parts. A circular definition violates this.
 
 <DefinitionBox term="Fixed Point">
 
@@ -380,7 +321,7 @@ A **fixed point** of a function $F$ is a value $x$ such that $F(x) = x$ — appl
 
 The solution: **fixed points**. We rewrite the equation as:
 
-<DisplayMath formula="S\llbracket \text{while } e \; \{s\} \rrbracket = \text{fix}(F)" />
+<DisplayMath formula="S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket = \text{fix}(F)" />
 
 where $F$ is the functional:
 
@@ -427,9 +368,7 @@ Let's see the approximation sequence for a different loop to reinforce the patte
 
 > The approximation sequence reveals a beautiful connection: each $w_k$ is like a **partial function** that "knows" how to handle inputs up to a certain complexity. As $k$ grows, the function handles more and more inputs. The fixed point is the function that handles *everything* — it's the "completed" version of the infinite process of approximation.
 
----
-
-## Domain Theory (Intuition)
+### Domain Theory (Intuition)
 
 Why does the fixed-point construction work? Because domains aren't just sets — they have a **partial order** and they are **complete**.
 
@@ -492,6 +431,194 @@ This is the same Y combinator from LN 4, applied to a different problem. The mat
 
 ---
 
+## From Equations to Code: The Transpiler
+
+Here is today's payoff, paralleling LN 11's interpreter reveal. Every semantic equation maps to a clause in a `compile()` function that produces JavaScript source code:
+
+<DefinitionBox term="Transpiler">
+
+A **transpiler** (or **source-to-source compiler**) translates programs from one language to another at the same level of abstraction. Our Petal transpiler maps each AST node to the corresponding JavaScript construct, producing runnable JavaScript code. The transpiler IS the semantic equations turned into code.
+
+</DefinitionBox>
+
+```javascript
+function compile(node) {
+  switch (node.type) {
+    case "Number":
+      return `${node.value}`;
+
+    case "Identifier":
+      return node.name;
+
+    case "BinaryOp":
+      return `(${compile(node.left)} ${node.op} ${compile(node.right)})`;
+
+    case "Assignment":
+      return `let ${node.name} = ${compile(node.value)};`;
+
+    case "Print":
+      return `console.log(${compile(node.expression)});`;
+
+    case "IfElse": {
+      const thenBlock = node.then.map(compile).join("\n");
+      const elseBlock = node.else.map(compile).join("\n");
+      return `if (${compile(node.condition)}) {\n${thenBlock}\n} else {\n${elseBlock}\n}`;
+    }
+
+    case "While":
+      return `while (${compile(node.condition)}) {\n${node.body.map(compile).join("\n")}\n}`;
+
+    case "Program":
+      return node.body.map(compile).join("\n");
+  }
+}
+```
+
+Compare each `case` to the corresponding semantic equation:
+
+| Equation | Code |
+|----------|------|
+| $E\llbracket n \rrbracket\, \sigma = n$ | `case "Number"` — return the numeric value as a string |
+| $E\llbracket i \rrbracket\, \sigma = \sigma(i)$ | `case "Identifier"` — return the variable name |
+| $E\llbracket e_1 + e_2 \rrbracket = E\llbracket e_1 \rrbracket + E\llbracket e_2 \rrbracket$ | `case "BinaryOp"` — compile children, wrap with operator |
+| $S\llbracket i = e \rrbracket$ | `case "Assignment"` — emit `let name = compile(value)` |
+
+The correspondence is compositional, just like the equations. To compile a parent node, we compile its children and combine the results. The transpiler IS the semantic equations turned into code.
+
+### The Same Pattern in Other Languages
+
+```python
+def compile(node):
+    match node["type"]:
+        case "Number":
+            return str(node["value"])
+        case "Identifier":
+            return node["name"]
+        case "BinaryOp":
+            left = compile(node["left"])
+            right = compile(node["right"])
+            return f"({left} {node['op']} {right})"
+        case "Assignment":
+            return f"let {node['name']} = {compile(node['value'])};"
+        case "Print":
+            return f"console.log({compile(node['expression'])});"
+```
+
+```haskell
+compile :: AST -> String
+compile (Num n)          = show n
+compile (Var x)          = x
+compile (BinOp op l r)   = "(" ++ compile l ++ " " ++ [op] ++ " " ++ compile r ++ ")"
+compile (Assign x e)     = "let " ++ x ++ " = " ++ compile e ++ ";"
+compile (Print e)        = "console.log(" ++ compile e ++ ");"
+```
+
+> Notice how the transpiler is *structurally identical* to the interpreter from LN 11, but instead of computing values, it produces code strings. The interpreter `evaluate("Number", env) → 5` returns a number. The transpiler `compile("Number") → "5"` returns a string. Both follow the same recursive pattern because both are defined by structural induction on the same AST.
+
+### Seeing It Work
+
+The `TranspilerOutput` below shows the Petal source on the left and the generated JavaScript on the right. Step through to see how each line compiles:
+
+<TranspilerOutput
+  title="Transpiling Petal to JavaScript"
+  petalSource={"x = 3 + 5;\ny = x * 2;\nprint y;"}
+  steps={[
+    { petalHighlight: "", jsCode: "// Petal → JavaScript\n// Each line compiles independently\n// (compositionality in action)", jsHighlight: "", equation: "", description: "We compile the Petal program line by line. Each statement maps to a JavaScript statement through the semantic equations." },
+    { petalHighlight: "x = 3 + 5;", jsCode: "let x = (3 + 5);", jsHighlight: "let x = (3 + 5);", equation: "S⟦x = e⟧ → let x = E⟦e⟧;", description: "Assignment: the name becomes a let-binding, the RHS expression compiles recursively. E⟦3 + 5⟧ = E⟦3⟧ + E⟦5⟧ = (3 + 5)." },
+    { petalHighlight: "y = x * 2;", jsCode: "let x = (3 + 5);\nlet y = (x * 2);", jsHighlight: "let y = (x * 2);", equation: "S⟦y = e⟧ → let y = E⟦e⟧;", description: "Second assignment compiles the same way. The identifier x in the RHS compiles to just 'x' — JavaScript will resolve it at runtime." },
+    { petalHighlight: "print y;", jsCode: "let x = (3 + 5);\nlet y = (x * 2);\nconsole.log(y);", jsHighlight: "console.log(y);", equation: "S⟦print e⟧ → console.log(E⟦e⟧);", description: "Print becomes console.log. The expression y compiles to 'y'. The full program is now valid JavaScript that produces the same output as the Petal original." },
+    { petalHighlight: "", jsCode: "let x = (3 + 5);\nlet y = (x * 2);\nconsole.log(y);", jsHighlight: "", equation: "P⟦program⟧ = S⟦s₁⟧ ; S⟦s₂⟧ ; ... ; S⟦sₙ⟧", description: "The complete transpiled program. Run it in Node.js and it prints 16 — the same result as the interpreter from LN 11. Same program, same meaning, different mechanism." },
+  ]}
+/>
+
+### A Second Example: Control Flow
+
+<TranspilerOutput
+  title="Transpiling: if-else and while"
+  petalSource={"x = 10;\nwhile x > 0 {\n  print x;\n  x = x - 1;\n}"}
+  steps={[
+    { petalHighlight: "", jsCode: "", jsHighlight: "", equation: "", description: "Let's compile a program with a while loop — the construct that creates the most interesting challenge for denotational semantics." },
+    { petalHighlight: "x = 10;", jsCode: "let x = 10;", jsHighlight: "let x = 10;", equation: "S⟦x = 10⟧ → let x = 10;", description: "Assignment compiles directly. The number 10 denotes itself." },
+    { petalHighlight: "while x > 0 {", jsCode: "let x = 10;\nwhile ((x) > (0)) {", jsHighlight: "while ((x) > (0)) {", equation: "S⟦while e do s⟧ → while (E⟦e⟧) { S⟦s⟧ }", description: "The while loop compiles compositionally: compile the condition, compile the body, wrap in JavaScript's while syntax." },
+    { petalHighlight: "  print x;\n  x = x - 1;", jsCode: "let x = 10;\nwhile ((x) > (0)) {\nconsole.log(x);\nlet x = (x - 1);\n}", jsHighlight: "console.log(x);\nlet x = (x - 1);", equation: "S⟦s₁; s₂⟧ = S⟦s₁⟧ ∘ S⟦s₂⟧", description: "The body statements compile independently and are sequenced. Print becomes console.log, assignment becomes let." },
+    { petalHighlight: "", jsCode: "let x = 10;\nwhile ((x) > (0)) {\nconsole.log(x);\nlet x = (x - 1);\n}", jsHighlight: "", equation: "", description: "Complete transpiled output. Running this prints 10, 9, 8, ..., 1 — the same result the interpreter would produce." },
+  ]}
+/>
+
+The interpreter from LN 11 **runs** Petal by walking the AST. The transpiler **translates** Petal to JavaScript and lets JavaScript's engine do the running. Both produce the same result — because both faithfully implement the semantic specification. The equivalence is not a coincidence; it's a theorem.
+
+### Transpilers in the Real World
+
+The Petal → JavaScript transpiler is a miniature version of what happens in production every day:
+
+| Source Language | Target Language | Tool |
+|----------------|----------------|------|
+| TypeScript | JavaScript | `tsc` |
+| Kotlin | JVM bytecode or JavaScript | `kotlinc` |
+| Elm | JavaScript | `elm make` |
+| Sass/SCSS | CSS | `sass` |
+| CoffeeScript | JavaScript | `coffee` |
+| C | Assembly | `gcc`, `clang` |
+
+> Every one of these transpilers follows the same compositional pattern: walk the source AST, map each node to the target language's equivalent, and output the result. The mathematical structure is identical whether you're compiling TypeScript to JavaScript or C to x86 assembly. The semantic equations just describe *which* function each node maps to — the recursive traversal is always the same.
+
+### Denotational Equivalence and Optimization
+
+Two programs are **denotationally equivalent** if they have the same meaning function. This gives us a powerful tool for reasoning about programs:
+
+<DisplayMath formula="E\llbracket (a + b) + c \rrbracket = E\llbracket a + (b + c) \rrbracket" />
+
+because integer addition is associative. A compiler can freely rewrite `(a + b) + c` as `a + (b + c)` (which might be more efficient if `b + c` is a constant) because the denotation is the same.
+
+Similarly:
+
+<DisplayMath formula="E\llbracket x * 2 \rrbracket = E\llbracket x + x \rrbracket = E\llbracket x \ll 1 \rrbracket" />
+
+Multiplying by 2, adding to itself, and left-shifting by 1 all have the same denotation. Compilers routinely replace multiplication by a power of 2 with a left shift — this optimization is justified by denotational equivalence.
+
+#### A Formal Optimization Proof
+
+Let's prove that **constant folding** — one of the most common compiler optimizations — is semantics-preserving. Consider replacing the expression `3 + 5` with `8` anywhere in a program.
+
+**Claim:** $E\llbracket 3 + 5 \rrbracket\, \sigma = E\llbracket 8 \rrbracket\, \sigma$ for all states $\sigma$.
+
+**Proof:**
+
+<DisplayMath formula="E\llbracket 3 + 5 \rrbracket\, \sigma = E\llbracket 3 \rrbracket\, \sigma + E\llbracket 5 \rrbracket\, \sigma = 3 + 5 = 8 = E\llbracket 8 \rrbracket\, \sigma \quad \blacksquare" />
+
+By compositionality, any program containing `3 + 5` as a subexpression can safely replace it with `8` without changing the program's denotation. This is constant folding — and we've just proven it correct using three lines of denotational reasoning.
+
+More generally, any transformation that preserves the denotation is a valid optimization:
+
+| Optimization | Denotational Justification |
+|---|---|
+| **Constant folding** | $E\llbracket 3 + 5 \rrbracket = E\llbracket 8 \rrbracket$ — compile-time evaluation |
+| **Strength reduction** | $E\llbracket x * 2 \rrbracket = E\llbracket x \ll 1 \rrbracket$ — cheaper instruction, same function |
+| **Dead code elimination** | If a branch is unreachable, removing it doesn't change the denotation |
+| **Common subexpression elimination** | If $E\llbracket e \rrbracket$ appears twice and $e$ is pure, compute once and reuse |
+
+> This is why denotational semantics is the preferred framework for compiler writers. Optimizations are **semantic preserving transformations** — they change the code but not the meaning. Compositionality guarantees that local changes (within a single expression) don't affect the meaning of the surrounding program. This is safety at the mathematical level.
+
+### Extending Petal: Where the Math Lives
+
+In LN 11, we noted that adding a new feature to a language activates the entire pipeline: concrete syntax, grammar, tree grammar, semantic rules. We also noted that if the feature relies on mathematics not yet in our toolkit, we must extend our foundations first. Denotational semantics makes this connection *literal* — the semantic equation for a new feature IS the mathematics of that feature.
+
+Suppose we wanted to add a `integrate` keyword to Petal that computes definite integrals. The tree grammar gains a new expression production:
+
+<DisplayMath formula="e : \text{Exp} = \ldots \mid \textbf{integrate}(e,\; i,\; e,\; e)" />
+
+The four children are: the integrand expression, the variable of integration, the lower bound, and the upper bound. Now write the denotational equation:
+
+<DisplayMath formula="E\llbracket \textbf{integrate}(e,\; i,\; a,\; b) \rrbracket\, \sigma = \int_{E\llbracket a \rrbracket\, \sigma}^{E\llbracket b \rrbracket\, \sigma} E\llbracket e \rrbracket\, \sigma[i \mapsto t]\; dt" />
+
+The semantic equation *is literally an integral*. The Oxford brackets point directly to calculus. The meaning of `integrate(x*x, x, 0, 3)` is $\int_0^3 t^2\, dt = 9$ — a mathematical object, not an algorithm. If your language needs integration, your denotational semantics needs the mathematics of integration.
+
+Contrast this with how operational semantics would handle the same feature. You'd write inference rules describing *how to compute* the integral — perhaps using Simpson's rule, the trapezoidal method, or symbolic integration steps. The operational rules specify an algorithm; the denotational equation specifies the mathematical result directly. One is a recipe; the other is the mathematical object itself.
+
+The same pattern applies everywhere. A `sample` expression drawing from probability distributions would require the semantic domain to change from $\text{Num}$ to something like $\text{Distribution}(\text{Num})$ — the meaning of a stochastic program is a probability distribution, not a single number. A `derivative` keyword would map to $\frac{d}{dx}$. Every new mathematical capability in the language demands the same capability in the semantic domains. This is the deepest insight of denotational semantics: **the meaning of a program is exactly as rich as the mathematics it encodes**.
+
+---
+
 ## Comparing Operational and Denotational
 
 We now have two complete semantic frameworks for Petal, and two corresponding implementations:
@@ -516,6 +643,19 @@ Both produce `8`. The **equivalence theorem** says they always agree on terminat
 The **adequacy theorem** states that operational and denotational semantics agree: a program terminates with output $o$ under operational semantics if and only if its denotation maps the initial state to a result containing $o$. This theorem is the formal guarantee that interpreters and compilers produce the same results.
 
 </DefinitionBox>
+
+### The Implementation Duality
+
+Throughout this course, we've mapped the three semantic approaches to three implementation strategies: operational → interpreter, denotational → transpiler, axiomatic → verifier. This is a useful *pedagogical* framing — but it's a simplification.
+
+The adequacy theorem proves that operational and denotational semantics are mathematically equivalent. This means either formalism can derive *either* implementation:
+
+- **Denotational semantics as an interpreter**: Slonneger and Kurtz implement their denotational equations directly as a recursive interpreter in Prolog and Haskell. The semantic equations $E\llbracket e \rrbracket\, \sigma$ can be executed as a function `evaluate(e, sigma)` — instead of producing code strings, you compute values. The recursive structure is identical to our interpreter from LN 11.
+- **Operational semantics as a compiler**: An operational semantics can be "partially evaluated" to produce a compiler. The inference rules define rewrite steps; a compiler pre-computes those steps at compile time, emitting target code that performs the remaining computation at runtime.
+
+The interpreter/transpiler distinction is about *implementation strategy*, not about which formalism you started from. Both formalisms define the same mathematical object — the meaning of the program — and that meaning can be realized as either an interpreter or a compiler.
+
+> This is why production compilers use *both* approaches: GCC uses operational reasoning for its intermediate representations (tracking execution state through SSA) and denotational reasoning for its optimization passes (proving that transformations preserve meaning). The two perspectives aren't competing — they're complementary tools in the same toolbox.
 
 When does one approach shine over the other?
 
@@ -588,17 +728,17 @@ def inc():
 
 ## Summary
 
-Today we developed the second approach to semantics: **denotational semantics — meaning by translating**. We defined semantic functions $E$, $S$, and $P$ that map Petal ASTs to mathematical objects, introduced **semantic domains** with the bottom element $\bot$ (the denotational name for LN 4's $\Omega$ combinator), and showed that **compositionality** — the meaning of the whole from the meanings of the parts — is the defining principle.
+Today we developed the second approach to semantics: **denotational semantics — meaning by translating**. We began with the **blueprint**: recalling the tree grammar and identifying the syntactic domains (Exp, Stmt, Program), semantic domains (Num, State, Output with $\bot$), and function signatures ($E$, $S$, $P$) that bridge them. The tree grammar serves as an API contract — each production demands one semantic equation.
 
-We revealed the transpiler: each semantic equation maps to a clause in a `compile()` function that produces JavaScript. We saw the same pattern implemented in Python and Haskell, confirming that the translation is language-independent — it's a consequence of the mathematics, not the implementation language.
-
-The interpreter runs Petal; the transpiler translates it. Both are faithful implementations of the semantic specification, and the **adequacy theorem** guarantees they agree.
+We wrote the equations and demonstrated **compositionality** — the defining principle — through the `DenotationalStepper`, watching semantic functions unfold through ASTs from leaves to root. We saw that imperative sequencing is just function composition, and that Church encodings from LN 4 were denotational semantics all along.
 
 We confronted the fixed-point challenge: `while` loops can't be defined compositionally without the $\text{fix}$ operator — the same Y combinator from LN 4 that gave us recursion. The approximation sequence ($\bot$, $F(\bot)$, $F(F(\bot))$, ...) builds the loop's meaning one iteration at a time, justified by Kleene's fixed-point theorem and domain theory.
 
-We introduced **domain theory** — the mathematical foundation that makes all of this rigorous. CPOs, the information ordering, and continuity ensure that fixed points exist and are unique. Dana Scott's invention of domain theory in the 1960s was the breakthrough that made denotational semantics mathematically sound.
+We revealed the transpiler: each semantic equation maps to a clause in a `compile()` function that produces JavaScript. We proved that **denotational equivalence** justifies compiler optimizations like constant folding and strength reduction — safety at the mathematical level.
 
-The key insight for the course: **operational semantics (LN 11) and denotational semantics (LN 12) are two views of the same reality**. The interpreter runs the program directly; the transpiler translates it and lets another engine run it. The adequacy theorem guarantees they agree. Understanding both makes you a better language designer and compiler writer — operational semantics is for debugging and specification, denotational semantics is for optimization and equivalence proofs.
+We explored what happens when Petal gains new features: an `integrate` keyword's semantic equation IS a literal integral, a `sample` keyword demands expanding semantic domains to probability distributions. This is the deepest insight — **denotational equations don't describe mathematics, they ARE mathematics**.
+
+Finally, we compared the two frameworks and explored the **adequacy theorem**, noting that the operational/denotational distinction is about *mathematical perspective*, not implementation strategy. Both formalisms can derive interpreters or compilers — the interpreter/transpiler mapping is a pedagogical convenience, not a rigid dichotomy.
 
 Next lecture, we complete the trio: **axiomatic semantics — meaning by proving**. We'll see that Hoare Logic lets us guarantee properties of programs without ever running them, and that this third perspective doesn't need an interpreter or a transpiler. It needs only logic.
 
@@ -606,6 +746,7 @@ Next lecture, we complete the trio: **axiomatic semantics — meaning by proving
 
 **Key Definitions:**
 - **Denotational Semantics**: meaning by translating — programs denote mathematical functions
+- **Syntactic Domain**: a set of ASTs belonging to a grammatical category (Exp, Stmt, Program)
 - **Semantic Domain**: a mathematical set with a partial order and a bottom element $\bot$
 - **Bottom ($\bot$)**: represents divergence, error, or undefined — the denotational $\Omega$
 - **Semantic Function**: $E\llbracket e \rrbracket : \text{State} \to \text{Num}$ — maps syntax to meaning
@@ -616,8 +757,11 @@ Next lecture, we complete the trio: **axiomatic semantics — meaning by proving
 - **CPO**: a partially ordered set where every ascending chain has a least upper bound
 - **Kleene's Theorem**: the least fixed point exists and equals the limit of the approximation sequence
 - **Adequacy Theorem**: operational and denotational semantics agree on terminating programs
+- **Denotational Equivalence**: two programs with the same meaning function — foundation of optimization
+- **Referential Transparency**: an expression replaceable by its value without changing meaning
 
 **Key Connections:**
+- The tree grammar (LN 8) is the API contract: each production demands one semantic equation
 - Semantic functions are lambda abstractions (LN 4): $E\llbracket e \rrbracket = \lambda \sigma.\, \ldots$
 - Domains are sets (LN 3) with additional structure (partial order, completeness)
 - $\bot$ is the denotational name for $\Omega$ (LN 4) — divergent computation
@@ -625,6 +769,8 @@ Next lecture, we complete the trio: **axiomatic semantics — meaning by proving
 - Church encodings (LN 4) were denotational semantics for arithmetic
 - Function composition (LN 3) is sequencing: $S\llbracket s_1; s_2 \rrbracket = S\llbracket s_2 \rrbracket \circ S\llbracket s_1 \rrbracket$
 - The transpiler is structurally identical to the interpreter (LN 11), but produces code instead of values
+- New language features map directly to their underlying mathematics: `integrate` → $\int$, `sample` → distributions
+- Both formalisms can derive either implementation (interpreter or compiler) — the adequacy theorem bridges them
 
 </LectureNotes>
 

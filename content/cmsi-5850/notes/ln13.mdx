@@ -5,6 +5,8 @@ import {
 import { DefinitionBox } from "@/components/interactive-example"
 import { DisplayMath, InlineMath } from "@/components/math"
 import { HoareTripleStepper } from "@/components/hoare-triple-stepper"
+import { WPStepper } from "@/components/wp-stepper"
+import { LoopInvariantChecker } from "@/components/loop-invariant-checker"
 
 ## Recap
 
@@ -27,9 +29,11 @@ Today we ask a different question entirely: **can we know things about a program
 - **Hoare Logic** — Programs as logical propositions
 - **The Assignment Axiom** — Working backward from postconditions
 - **Sequencing, Conditional, and Loop Rules** — Building proofs compositionally
-- **Weakest Preconditions** — Mechanical proof construction
+- **Weakest Preconditions** — Mechanical proof construction via AST traversal
 - **Loop Invariants** — The creative challenge of axiomatic reasoning
+- **The Blueprint** — From tree grammar to verification conditions
 - **Partial vs. Total Correctness** — The limits of proof
+- **Extending Petal** — Total correctness by design
 - **Real-World Static Verification** — Type checkers, borrow checkers, and verified compilers
 - **The Broader Landscape** — Algebraic, action, and modern semantic approaches
 
@@ -144,7 +148,7 @@ This rule mirrors LN 12's sequencing equation $S\llbracket s_1; s_2 \rrbracket =
 
 <DefinitionBox term="Conditional Rule">
 
-<DisplayMath formula="\frac{\{P \wedge B\} \; C_1 \; \{Q\} \quad \{P \wedge \neg B\} \; C_2 \; \{Q\}}{\{P\} \; \text{if } B \; \{C_1\} \text{ else } \{C_2\} \; \{Q\}}" />
+<DisplayMath formula="\frac{\{P \wedge B\} \; C_1 \; \{Q\} \quad \{P \wedge \neg B\} \; C_2 \; \{Q\}}{\{P\} \; \textbf{if}\; B \;\textbf{then}\; C_1 \;\textbf{else}\; C_2 \; \{Q\}}" />
 
 Both branches must establish the same postcondition $Q$. The condition $B$ is added to the precondition for the then-branch and negated for the else-branch.
 
@@ -166,7 +170,7 @@ If we can strengthen the precondition (from $P$ to $P'$ where $P'$ implies $P$) 
 
 <DefinitionBox term="Loop Rule">
 
-<DisplayMath formula="\frac{\{I \wedge B\} \; C \; \{I\}}{\{I\} \; \text{while } B \; \{C\} \; \{I \wedge \neg B\}}" />
+<DisplayMath formula="\frac{\{I \wedge B\} \; C \; \{I\}}{\{I\} \; \textbf{while}\; B \;\textbf{do}\; C \; \{I \wedge \neg B\}}" />
 
 Here $I$ is the **loop invariant** — a property that holds before and after each iteration. When the loop terminates (because $B$ is false), both $I$ and $\neg B$ hold.
 
@@ -240,6 +244,37 @@ The `HoareTripleStepper` below shows weakest-precondition propagation on a Petal
 
 We just **proved** that `y = 6` after execution — without running a single line. The proof was constructed mechanically by applying rules backward. This is the power of axiomatic semantics.
 
+### The Same Proof on the AST
+
+The `HoareTripleStepper` shows the proof from the code perspective. But wp is really just another recursive AST traversal — just like the interpreter (LN 11) and transpiler (LN 12). The `WPStepper` below shows the *same* proof from the AST perspective — watch the highlighting move backward through the tree as the precondition propagates:
+
+<WPStepper
+  title="wp Traversal: x = 5; y = x + 1; {y = 6}"
+  astNodes={[
+    { id: "seq", label: ";", level: 0 },
+    { id: "assign1", label: "x = 5", level: 1 },
+    { id: "assign2", label: "y = ...", level: 1 },
+    { id: "five", label: "5", isTerminal: true, level: 2 },
+    { id: "plus", label: "+", level: 2 },
+    { id: "xref", label: "x", isTerminal: true, level: 3 },
+    { id: "one", label: "1", isTerminal: true, level: 3 },
+  ]}
+  astEdges={[
+    { from: "seq", to: "assign1" },
+    { from: "seq", to: "assign2" },
+    { from: "assign1", to: "five" },
+    { from: "assign2", to: "plus" },
+    { from: "plus", to: "xref" },
+    { from: "plus", to: "one" },
+  ]}
+  steps={[
+    { astHighlight: ["seq"], equation: "", currentPrecondition: "Q = \\{y = 6\\}", description: "We start with the postcondition Q = {y = 6} and the full AST. The VCG will traverse this tree backward." },
+    { astHighlight: ["assign2", "plus", "xref", "one"], equation: "\\text{wp}(y = x + 1,\\; y = 6) = (x + 1 = 6)", currentPrecondition: "x + 1 = 6", description: "The VCG visits the second assignment first (rightmost child of ;). Apply the assignment axiom: substitute x + 1 for y." },
+    { astHighlight: ["assign1", "five"], equation: "\\text{wp}(x = 5,\\; x + 1 = 6) = (5 + 1 = 6)", currentPrecondition: "5 + 1 = 6", description: "Now the VCG visits the first assignment. The previous result becomes the new postcondition. Substitute 5 for x." },
+    { astHighlight: ["seq"], equation: "5 + 1 = 6 \\equiv \\text{true}", currentPrecondition: "\\text{true} \\quad \\checkmark", description: "The precondition simplifies to true. The VCG has traversed the entire AST backward, producing a proof that requires no assumptions." },
+  ]}
+/>
+
 ### A Second Proof: Swapping Variables
 
 Let's prove something more interesting — a variable swap using a temporary:
@@ -286,6 +321,31 @@ Let's prove something more interesting — a variable swap using a temporary:
   ]}
 />
 
+Now the same swap proof on the AST:
+
+<WPStepper
+  title="wp Traversal: swap x and y"
+  astNodes={[
+    { id: "seq1", label: ";", level: 0 },
+    { id: "a1", label: "tmp = x", level: 1 },
+    { id: "seq2", label: ";", level: 1 },
+    { id: "a2", label: "x = y", level: 2 },
+    { id: "a3", label: "y = tmp", level: 2 },
+  ]}
+  astEdges={[
+    { from: "seq1", to: "a1" },
+    { from: "seq1", to: "seq2" },
+    { from: "seq2", to: "a2" },
+    { from: "seq2", to: "a3" },
+  ]}
+  steps={[
+    { astHighlight: ["seq1"], equation: "", currentPrecondition: "Q = \\{x = B \\wedge y = A\\}", description: "Goal: prove the swap is correct for all values A, B. The VCG traverses the sequencing tree backward." },
+    { astHighlight: ["a3"], equation: "\\text{wp}(y = \\text{tmp},\\; x = B \\wedge y = A) = (x = B \\wedge \\text{tmp} = A)", currentPrecondition: "x = B \\wedge \\text{tmp} = A", description: "Visit the rightmost leaf: y = tmp. Substitute tmp for y in the postcondition." },
+    { astHighlight: ["a2"], equation: "\\text{wp}(x = y,\\; x = B \\wedge \\text{tmp} = A) = (y = B \\wedge \\text{tmp} = A)", currentPrecondition: "y = B \\wedge \\text{tmp} = A", description: "Move backward: x = y. Substitute y for x." },
+    { astHighlight: ["a1"], equation: "\\text{wp}(\\text{tmp} = x,\\; y = B \\wedge \\text{tmp} = A) = (y = B \\wedge x = A)", currentPrecondition: "y = B \\wedge x = A", description: "Final assignment: tmp = x. Substitute x for tmp. Result: x = A ∧ y = B — exactly our assumption. ✓" },
+  ]}
+/>
+
 > The swap proof is elegant because it proves correctness for **all** possible values of A and B simultaneously. Testing could only check specific values (e.g., A = 3, B = 7). The proof covers infinitely many cases in four mechanical steps.
 
 ---
@@ -308,19 +368,54 @@ Consider this Petal program that computes the sum $1 + 2 + \ldots + n$:
 ```
 s = 0;
 i = 1;
-while i <= n {
+while i <= n do
   s = s + i;
   i = i + 1;
-}
 ```
 
 We want to prove: $\{n \geq 0\} \; \text{program} \; \{s = n(n+1)/2\}$.
 
-What invariant should we use? Let's try candidates:
+What invariant should we use? The `LoopInvariantChecker` below lets you explore two candidates — one too weak, one just right. Select each candidate and observe which of the three checks pass:
 
-**Candidate 1**: $I = (s \geq 0)$. This is true before and after each iteration, but it's too weak — it doesn't tell us anything about the relationship between `s`, `i`, and `n`. When the loop ends, we know $s \geq 0$ and $i > n$, but not what `s` actually equals.
-
-**Candidate 2**: $I = (s = i(i-1)/2 \wedge 1 \leq i \leq n + 1)$. This captures the essential relationship: at every point in the loop, `s` holds the sum of integers from 1 to $i - 1$. When the loop terminates ($i = n + 1$), we get $s = n(n+1)/2$.
+<LoopInvariantChecker
+  title="Summation Loop: Finding the Right Invariant"
+  loopCode={"s = 0;\ni = 1;\nwhile i <= n do\n  s = s + i;\n  i = i + 1;"}
+  postcondition="s = n(n+1)/2"
+  candidates={[
+    {
+      label: "Candidate 1 (too weak)",
+      latex: "s \\geq 0",
+      initialization: {
+        passes: true,
+        explanation: "Before the loop, $s = 0 \\geq 0$. The invariant holds. ✓"
+      },
+      preservation: {
+        passes: true,
+        explanation: "If $s \\geq 0$ and $i \\leq n$, then $s' = s + i \\geq 0$ (since $i \\geq 1$). The invariant is preserved. ✓"
+      },
+      termination: {
+        passes: false,
+        explanation: "When $i > n$, we know $s \\geq 0$ and $i > n$, but we <em>cannot</em> conclude $s = n(n+1)/2$. The invariant is too weak — it says nothing about the <em>relationship</em> between $s$, $i$, and $n$. ✗"
+      }
+    },
+    {
+      label: "Candidate 2 (correct)",
+      latex: "s = \\frac{i(i-1)}{2} \\wedge 1 \\leq i \\leq n + 1",
+      initialization: {
+        passes: true,
+        explanation: "Before the loop, $s = 0 = \\frac{1 \\cdot 0}{2}$ and $i = 1$, so $1 \\leq 1 \\leq n + 1$. ✓"
+      },
+      preservation: {
+        passes: true,
+        explanation: "If $s = \\frac{i(i-1)}{2}$ and $i \\leq n$, then $s' = s + i = \\frac{i(i-1)}{2} + i = \\frac{i(i+1)}{2} = \\frac{i'(i'-1)}{2}$ where $i' = i + 1$. Bounds: $1 \\leq i' \\leq n + 1$. ✓"
+      },
+      termination: {
+        passes: true,
+        explanation: "When $i > n$, combined with $i \\leq n + 1$, we get $i = n + 1$. Then $s = \\frac{(n+1)n}{2} = \\frac{n(n+1)}{2}$, which is exactly the postcondition. ✓"
+      }
+    },
+  ]}
+/>
 
 > Finding invariants requires understanding *what the loop is computing at each stage* — it's the property preserved by each iteration, exactly like the property preserved by each approximation in the fixed-point construction from LN 12. In fact, the loop invariant IS the property that holds at every level of the approximation sequence: $w_k$ handles inputs where the loop runs at most $k$ times, and the invariant holds at every $w_k$.
 
@@ -342,21 +437,109 @@ Consider computing integer exponentiation:
 ```
 result = 1;
 count = 0;
-while count < exp {
+while count < exp do
   result = result * base;
   count = count + 1;
+```
+
+We want to prove: <InlineMath formula="$\{base \geq 0 \wedge exp \geq 0\} \; \text{program} \; \{result = base^{exp}\}$" />.
+
+<LoopInvariantChecker
+  title="Exponentiation Loop: Verifying the Invariant"
+  loopCode={"result = 1;\ncount = 0;\nwhile count < exp do\n  result = result * base;\n  count = count + 1;"}
+  postcondition="result = base^{exp}"
+  candidates={[
+    {
+      label: "Invariant",
+      latex: "result = base^{count} \\wedge 0 \\leq count \\leq exp",
+      initialization: {
+        passes: true,
+        explanation: "Before the loop, $result = 1 = base^0$ and $count = 0$, so $0 \\leq 0 \\leq exp$. ✓"
+      },
+      preservation: {
+        passes: true,
+        explanation: "If $result = base^{count}$ and $count < exp$, then $result' = result \\times base = base^{count} \\times base = base^{count+1}$. After $count' = count + 1$: $result' = base^{count'}$ and $0 \\leq count' \\leq exp$. ✓"
+      },
+      termination: {
+        passes: true,
+        explanation: "When $count \\geq exp$, combined with $count \\leq exp$, we get $count = exp$. Then $result = base^{exp}$, which is exactly the postcondition. ✓"
+      }
+    },
+  ]}
+/>
+
+---
+
+## The Blueprint: From Tree Grammar to Verification
+
+Now that we've seen weakest preconditions in action — both on straight-line code and loops — we can step back and see the bigger pattern. In LN 11, we discovered that the tree grammar is an API contract: each production demands one inference rule. In LN 12, each production demanded one semantic equation. The pattern repeats here — each production demands one **weakest precondition definition**.
+
+### Recalling the Tree Grammar
+
+<DisplayMath formula="e : \text{Exp} = n \mid i \mid \text{-}e \mid e\text{+}e \mid e\text{-}e \mid e\text{*}e \mid e\text{/}e \mid e\text{\%}e \mid e\text{**}e" />
+
+<DisplayMath formula="s : \text{Stmt} = i\text{=}e \mid \textbf{print}\; e \mid \textbf{if}\; e\; \textbf{then}\; s^+\; \textbf{else}\; s^+ \mid \textbf{while}\; e\; \textbf{do}\; s^+" />
+
+<DisplayMath formula="p : \text{Program} = s^+" />
+
+Each production is a syntactic category — a type of AST node. For each node type, we defined what it means to propagate a postcondition *backward* through it. This is the wp function.
+
+### Three Lectures, One Pattern
+
+| Tree Grammar Node | LN 11: Inference Rule | LN 12: Semantic Equation | LN 13: wp Definition |
+|---|---|---|---|
+| $i = e$ | $\langle i = e, \sigma \rangle \to \sigma[i \mapsto v]$ | <InlineMath formula="$S\llbracket i = e \rrbracket\, (\sigma, o) = (\sigma[i \mapsto E\llbracket e \rrbracket\, \sigma], o)$" /> | <InlineMath formula="$\text{wp}(i = e, Q) = Q[i/e]$" /> |
+| $s_1;\, s_2$ | Sequencing rules | $S\llbracket s_2 \rrbracket \circ S\llbracket s_1 \rrbracket$ | $\text{wp}(s_1; s_2, Q) = \text{wp}(s_1, \text{wp}(s_2, Q))$ |
+| **if** | Conditional rules | Conditional equation | Conditional wp |
+| **while** | Loop rules | $\text{fix}(F)$ | Requires invariant $I$ |
+
+The tree grammar is the checklist. When you've written a wp definition for every production, you've completed the axiomatic semantics of the language.
+
+### The Verification Condition Generator
+
+In practice, the wp function is implemented as a **Verification Condition Generator (VCG)** — a recursive function that walks the AST backward, just as the interpreter (LN 11) walks it forward and the transpiler (LN 12) walks it compositionally:
+
+```javascript
+function wp(node, Q) {
+  switch (node.type) {
+    case "Assign":
+      return substitute(Q, node.variable, node.expression)
+    case "Seq":
+      return wp(node.first, wp(node.second, Q))
+    case "If":
+      const thenWP = wp(node.thenBranch, Q)
+      const elseWP = wp(node.elseBranch, Q)
+      return and(implies(node.condition, thenWP),
+                 implies(not(node.condition), elseWP))
+    case "While":
+      return node.invariant
+  }
 }
 ```
 
-We want to prove: $\{base \geq 0 \wedge exp \geq 0\} \; \text{program} \; \{result = base^{exp}\}$.
+> Compare this function to the `evaluate()` interpreter from LN 11 and the `compile()` transpiler from LN 12. All three are recursive AST traversals. The interpreter produces *values*, the transpiler produces *code*, and the VCG produces *logical formulas*. Same tree, three different outputs — three perspectives on the same language.
 
-The invariant is: $I = (result = base^{count} \wedge 0 \leq count \leq exp)$
+<DefinitionBox term="Verification Condition Generator">
 
-**Initialization**: Before the loop, $result = 1 = base^0$ and $count = 0$. ✓
+A **Verification Condition Generator (VCG)** is a program that traverses the AST backward, applying Hoare rules mechanically to compute the weakest precondition. If the final precondition is implied by the given precondition, the program is correct. The VCG is the axiomatic analog of the interpreter and transpiler.
 
-**Preservation**: If $I$ holds and $count < exp$, then after `result = result * base`, we have $result' = result \times base = base^{count} \times base = base^{count+1}$. After `count = count + 1`, we have $count' = count + 1$. So $I$ holds with the updated values. ✓
+</DefinitionBox>
 
-**Termination**: When $count = exp$ (the negation of $count < exp$), the invariant gives us $result = base^{exp}$, which is the desired postcondition. ✓
+### The Complete wp Table
+
+Here is the wp definition for every Petal statement type in one place:
+
+<DisplayMath formula="\text{wp}(i = e,\; Q) = Q[i / e]" />
+
+<DisplayMath formula="\text{wp}(s_1;\, s_2,\; Q) = \text{wp}(s_1,\; \text{wp}(s_2,\; Q))" />
+
+<DisplayMath formula="\text{wp}(\textbf{if}\; e\; \textbf{then}\; C_1\; \textbf{else}\; C_2,\; Q) = (e \Rightarrow \text{wp}(C_1, Q)) \;\wedge\; (\neg e \Rightarrow \text{wp}(C_2, Q))" />
+
+<DisplayMath formula="\text{wp}(\textbf{while}\; e\; \textbf{do}\; C,\; Q) = I \quad \text{where } I \text{ is a loop invariant satisfying the loop rule}" />
+
+<DisplayMath formula="\text{wp}(\textbf{print}\; e,\; Q) = Q" />
+
+Print does not modify the environment, so the precondition is the postcondition itself. The output stream changes, but Hoare Logic (in its standard form) tracks logical assertions about program *variables*, not I/O.
 
 ---
 
@@ -365,7 +548,7 @@ The invariant is: $I = (result = base^{count} \wedge 0 \leq count \leq exp)$
 There's a subtlety we've been glossing over. The Hoare triple $\{P\} \; C \; \{Q\}$ says: *if* $P$ holds and $C$ **terminates**, *then* $Q$ holds. But what if $C$ doesn't terminate?
 
 Consider:
-<DisplayMath formula="\{\text{true}\} \quad \text{while } 1 \; \{\; \} \quad \{x = 42\}" />
+<DisplayMath formula="\{\text{true}\} \quad \textbf{while}\; 1\; \textbf{do}\; \textbf{skip} \quad \{x = 42\}" />
 
 This triple is **valid** under partial correctness! The loop never terminates, so the postcondition is vacuously satisfied — it's an "if-then" with a false antecedent.
 
@@ -393,6 +576,44 @@ For our summation loop, the variant is $V = n + 1 - i$. It starts at $n$ and dec
 For the exponentiation loop, the variant is $V = exp - count$.
 
 > This connects to LN 5. Rice's Theorem tells us that many program properties are **undecidable** — no algorithm can determine them for all programs. Total correctness is one such property. We can prove termination for specific programs (using variants), but there is no general procedure that works for all programs. The Halting Problem is the most famous example: no algorithm can determine, for all programs and inputs, whether the program terminates.
+
+---
+
+## Extending Petal: Total Correctness by Design
+
+In LN 11 and LN 12, we saw that adding a feature to Petal activates the entire pipeline: concrete syntax, grammar, tree grammar, semantic rules, and (if needed) new foundational mathematics. The same pipeline applies here — adding a feature requires a new wp definition and, potentially, a new proof obligation.
+
+But axiomatic semantics reveals a deeper insight: **language design choices can give you free proofs.**
+
+### The Problem with `while`
+
+Petal's `while` loop is Turing-complete — it can express any computable function, including non-terminating ones. This means we *cannot* automatically prove total correctness for programs with `while`. Every loop requires a human-supplied invariant and variant. The VCG can verify the proof, but it cannot *find* it.
+
+### The `bounded_loop` Solution
+
+Suppose we add a new construct to Petal's tree grammar:
+
+<DisplayMath formula="s : \text{Stmt} = \ldots \mid \textbf{for}\; i\; \textbf{in}\; \textbf{range}(e)\; \textbf{do}\; s^+" />
+
+This `for` loop iterates exactly $E\llbracket e \rrbracket$ times. The loop variable $i$ counts from 0 to $e - 1$, and the body cannot modify $i$. The wp definition is:
+
+<DisplayMath formula="\text{wp}(\textbf{for}\; i\; \textbf{in}\; \textbf{range}(e)\; \textbf{do}\; C,\; Q) = \forall\, 0 \leq i < e.\; \text{wp}(C, Q)" />
+
+The variant is automatically $e - i$ — it decreases by 1 each iteration and is bounded below by 0. No human needs to supply it. **Total correctness is guaranteed by the syntax.**
+
+### Trading Expressiveness for Safety
+
+This is not a hypothetical idea. Many real languages make exactly this trade-off:
+
+| Language | Restriction | Guarantee |
+|----------|-------------|-----------|
+| SQL | No unbounded loops | All queries terminate |
+| Datalog | Stratified negation, no function symbols | All programs terminate |
+| GLSL (shaders) | Bounded loop counts only | No GPU hangs |
+| Coq / Agda | Structural recursion only | All functions terminate |
+| Idris | Totality checker | Warns on potentially non-terminating code |
+
+> The Halting Problem (LN 5) says we cannot decide termination for Turing-complete languages. But if we restrict the grammar — removing unbounded loops, requiring structural recursion, or enforcing bounded iteration — we move from Turing-complete (Type 0) toward more restricted Chomsky hierarchy levels (LN 7), gaining decidable properties in exchange. Axiomatic semantics makes this trade-off explicit: the simpler the syntax, the more powerful the proofs.
 
 ---
 
@@ -445,6 +666,21 @@ When the stakes are highest, full axiomatic verification is employed:
 - **Frama-C** (nuclear): used to verify C code in safety-critical nuclear systems. Annotations are written in ACSL (ANSI/ISO C Specification Language), a Hoare-style assertion language.
 - **CompCert** (compilers): a C compiler written and verified in the Coq proof assistant. The compiler itself is *proven correct* — the compiled output is guaranteed to have the same semantics as the source. This is the ultimate synthesis of LN 9 (parsing), LN 11 (operational semantics), and today's verification.
 - **seL4** (operating systems): a formally verified microkernel used in critical defense and infrastructure systems. Every line of code is proven correct against a formal specification.
+
+Dafny makes Hoare triples native syntax. Students seeing this for the first time often realize they've been writing informal contracts all along:
+
+```csharp
+// Dafny: Hoare triples as language keywords
+method Abs(x: int) returns (y: int)
+  requires true          // precondition: accepts any integer
+  ensures y >= 0         // postcondition: result is non-negative
+  ensures y == x || y == -x
+{
+  if x < 0 { y := -x; } else { y := x; }
+}
+```
+
+The `requires` keyword IS the precondition $P$; `ensures` IS the postcondition $Q$. The Dafny verifier is a VCG — it walks the method body backward, computing weakest preconditions, and checks that the `requires` clause implies the computed wp. The compiler rejects the program if the proof fails.
 
 > These tools don't eliminate all bugs, but they provide **mathematical guarantees** about specific properties. The Halting Problem (LN 5) means we can't prove everything, but within the decidable fragment, we can prove remarkable things. When a verified compiler produces code, you know the code is correct — not because you tested it, but because you proved it.
 
@@ -542,14 +778,45 @@ These equations define the meaning of stack operations without describing any im
 
 Peter Mosses developed Action Semantics in 1992 to address a practical problem: operational and denotational semantics don't scale well to full language specifications. The Standard ML specification is hundreds of pages of denotational semantics — readable only by experts.
 
-Action Semantics uses three "facets" — functional, imperative, and declarative — to decompose a language's semantics into independently understandable parts. It combines the rigor of formal semantics with the readability needed for practical language specification.
+Action Semantics uses three "facets" — functional, imperative, and declarative — to decompose a language's semantics into independently understandable parts. Its English-like combinators make it remarkably readable compared to denotational notation:
+
+```
+-- Action Semantics notation (Mosses, 1992)
+-- Meaning of "x = e":
+  evaluate e
+  then
+  bind x to the given value
+```
+
+Compare this to the denotational equation <InlineMath formula="$S\llbracket i = e \rrbracket\, (\sigma, o) = (\sigma[i \mapsto E\llbracket e \rrbracket\, \sigma], o)$" />. Both say the same thing, but Action Semantics reads like a recipe while denotational semantics reads like an equation. The trade-off: Action Semantics is more readable but less amenable to mathematical proof.
 
 ### Modern Directions
 
 - **Game semantics**: meaning as strategies in a game between the program and its environment. Captures interaction patterns that denotational semantics struggles with.
 - **Categorical semantics**: meaning in terms of category theory (functors, monads). Provides deep structural insights but requires significant mathematical background.
 - **Probabilistic semantics**: meaning for programs that use randomness. Essential for machine learning and cryptography.
-- **Algebraic effects**: a modern approach to tracking side effects in types. Gaining traction as a replacement for monads in languages like OCaml 5 and Koka.
+- **Algebraic effects**: a modern approach to tracking side effects in types. Gaining traction as a replacement for monads in languages like OCaml 5 and Koka:
+
+```
+// Koka: algebraic effects (2024)
+effect ask {
+  fun prompt(msg: string): string
+}
+
+fun greet(): ask string {
+  val name = prompt("What is your name?")
+  "Hello, " ++ name
+}
+
+fun main() {
+  with handler {
+    fun prompt(msg) { "World" }
+  }
+  println(greet())  // prints "Hello, World"
+}
+```
+
+In Koka, effects are declared in the type signature and *handled* at the call site. The `ask` effect is a type-level assertion — it declares what side effects the function *may* perform. The handler provides the implementation, separating the *what* (the effect) from the *how* (the handler). This is an axiomatic-style declaration: "this function requires an `ask` capability" is a precondition verified at compile time.
 
 ### The Three Approaches: A Unified View
 
@@ -588,11 +855,13 @@ The three lectures (LN 11-13) gave you three lenses on the same programs. The in
 
 Today we completed the trio of semantic approaches with **axiomatic semantics — meaning by proving**. Hoare Logic lets us annotate programs with preconditions and postconditions, then use inference rules to prove properties without execution.
 
-We learned the assignment axiom (the foundation, running backward), the sequencing rule (chaining proofs), the conditional rule (branching), the consequence rule (adapting proofs), and the loop rule (requiring an invariant). We watched weakest preconditions propagate backward through two programs — a simple calculation and a variable swap — mechanically constructing proofs.
+We saw the **blueprint** pattern continue: the tree grammar is the same API contract it was for operational and denotational semantics — each production demands one wp definition. We showed that the Verification Condition Generator is just another AST traversal, parallel to the interpreter and the transpiler, producing *logical formulas* instead of values or code. The `WPStepper` made this visible by showing backward propagation directly on the AST.
 
-We confronted **partial vs. total correctness** and connected the distinction to LN 5's computability limits — Rice's Theorem means total correctness is undecidable in general. But within decidable fragments, axiomatic reasoning powers real-world tools: TypeScript's type checker, Rust's borrow checker, SPARK Ada's prover, CompCert's verified compiler, and the seL4 verified microkernel.
+We learned the assignment axiom (the foundation, running backward), the sequencing rule (chaining proofs), the conditional rule (branching with brace-free `then`/`else`), the consequence rule (adapting proofs), and the loop rule (requiring an invariant with `do`). The `LoopInvariantChecker` let us explore why weak invariants fail and strong invariants succeed across the three required checks.
 
-We surveyed the broader landscape: algebraic semantics for modular data type specifications, action semantics for scalable language specifications, and modern directions like game semantics, categorical semantics, and algebraic effects.
+We confronted **partial vs. total correctness** and explored how language design can guarantee termination: bounded loops, structural recursion, and restricted grammars trade expressiveness for free proofs. We connected this to the Chomsky Hierarchy (LN 7) and the Halting Problem (LN 5).
+
+We saw axiomatic reasoning at work in industry: TypeScript's type checker, Rust's borrow checker, Dafny's built-in Hoare triples, SPARK Ada's prover, CompCert's verified compiler, and the seL4 verified microkernel. We surveyed the broader landscape — algebraic semantics, action semantics with its readable English-like notation, and algebraic effects in Koka.
 
 Next lecture, we bring everything together: the **full compilation pipeline**, mapping every stage to the lecture that taught it. Petal completes its journey from design to execution to verification.
 
@@ -603,6 +872,7 @@ Next lecture, we bring everything together: the **full compilation pipeline**, m
 - **Hoare Triple**: $\{P\} \; C \; \{Q\}$ — if $P$ holds before $C$, then $Q$ holds after (if $C$ terminates)
 - **Assignment Axiom**: $\{Q[x/e]\} \; x = e \; \{Q\}$ — substitute backward
 - **Weakest Precondition**: $\text{wp}(C, Q)$ — the least restrictive precondition guaranteeing $Q$
+- **Verification Condition Generator (VCG)**: a recursive AST traversal that computes wp — the axiomatic analog of the interpreter and transpiler
 - **Loop Invariant**: a property $I$ preserved by every iteration of a loop
 - **Variant (Ranking Function)**: a decreasing quantity that guarantees termination
 - **Partial Correctness**: IF the program terminates, THEN the postcondition holds
@@ -611,10 +881,13 @@ Next lecture, we bring everything together: the **full compilation pipeline**, m
 - **Algebraic Semantics**: meaning through equational axioms on operations
 
 **Key Connections:**
+- The tree grammar (LN 8) is the API contract: each production demands one wp definition
+- The VCG traversal parallels the interpreter (LN 11) and transpiler (LN 12) — same tree, three outputs
 - Hoare rules ARE inference rules (LN 2, LN 11) — same logical framework
 - Proper substitution in Hoare Logic IS the same $[x/e]$ operation from LN 4
 - Loop invariants ARE fixed-point approximation properties (LN 12)
 - Total correctness is undecidable (LN 5, Rice's Theorem, Halting Problem)
+- Restricting the grammar (LN 7, Chomsky Hierarchy) trades expressiveness for decidable proofs
 - Type checkers are restricted Hoare Logics (decidable fragment)
 - Axiomatic semantics completes the triad: run (LN 11) / translate (LN 12) / prove (LN 13)
 - Algebraic semantics IS the foundation for interfaces and traits in modern languages
@@ -633,5 +906,6 @@ Next lecture, we bring everything together: the **full compilation pipeline**, m
 - [Lean 4](https://lean-lang.org/) — A modern proof assistant and programming language
 - [CompCert](https://compcert.org/) — A formally verified C compiler, proven correct in Coq
 - [The SPARK Language](https://www.adacore.com/about-spark) — Industrial-strength formal verification for Ada
+- [Koka Language](https://koka-lang.github.io/) — Algebraic effects and handlers as first-class language features
 
 </LectureResources>
