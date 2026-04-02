@@ -14,11 +14,21 @@ Last lecture we proved identities by constructing functions — bijective proofs
 
 Those tools completed our combinatorics unit. Today we enter a new domain entirely — one that a single mathematician invented to solve a single puzzle, and that grew into one of the most important branches of modern mathematics and computer science.
 
+## Today's Agenda
+
+- **The Seven Bridges of Königsberg** — the puzzle that started it all
+- **Defining Graphs** — vertices, edges, directed vs undirected
+- **Degrees, Walks, and Paths** — vocabulary for structure and traversal
+- **Euler Trails** — solving Königsberg with degree analysis
+- **Formalizing Graphs as Tuples of Sets** — connecting graphs to our set-theoretic toolkit
+- **Graph Representations** — adjacency matrices, adjacency lists, and Python code
+- **Graph Isomorphisms** — when two graphs are "the same" up to relabeling
+
 ---
 
 ## The Seven Bridges of Königsberg
 
-In 1736, a 29-year-old mathematician named **Leonhard Euler** was living in Saint Petersburg, Russia. Born in Basel, Switzerland, he had studied under the legendary Johann Bernoulli and moved east at age 20 to join the Imperial Russian Academy of Sciences. He was already prolific — publishing papers on number theory, mechanics, and optics. By the end of his life he would publish over 800 papers, more than any mathematician in history, continuing even after going blind in both eyes.
+> **Historical Note:** In 1736, a 29-year-old mathematician named **Leonhard Euler** was living in Saint Petersburg, Russia. Born in Basel, Switzerland, he had studied under the legendary Johann Bernoulli and moved east at age 20 to join the Imperial Russian Academy of Sciences. He was already prolific — publishing papers on number theory, mechanics, and optics. By the end of his life he would publish over 800 papers, more than any mathematician in history, continuing even after going blind in both eyes.
 
 But a puzzle from a nearby city caught his attention.
 
@@ -28,11 +38,11 @@ Here is a map of the city's layout:
 
 <img src="/cmsi-2820/notes/LN20-Konigsberg.jpg" alt="Historical map of Königsberg showing the four landmasses and seven bridges across the Pregel River" className="my-6 rounded-lg border" />
 
-Try to trace a path that crosses every edge exactly once. No matter how you approach it, you'll find it impossible. But *why*? What makes this particular arrangement fundamentally different from one where it *would* work?
+> **Key Insight:** Try to trace a path that crosses every edge exactly once. No matter how you approach it, you'll find it impossible. But *why*? What makes this particular arrangement fundamentally different from one where it *would* work?
 
 To answer this, Euler didn't just solve the puzzle — he invented an entirely new branch of mathematics. He stripped away the geography, the river, the specific layout of the city, and focused on the only thing that mattered: *which landmasses are connected to which, and how many connections each one has*. He called this *geometria situs* — the geometry of position. Today we call it **graph theory**.
 
-Interestingly, the word "graph" wasn't coined until 1878, when **James Joseph Sylvester** used it in a paper about chemical molecules. The vocabulary we use today took over a century to stabilize after Euler's original insight.
+> **Historical Note:** The word "graph" wasn't coined until 1878, when **James Joseph Sylvester** used it in a paper about chemical molecules. The vocabulary we use today took over a century to stabilize after Euler's original insight.
 
 ---
 
@@ -93,7 +103,7 @@ And here is the same set of vertices, but with **directed edges** — now each c
   height="300px"
 />
 
-Notice that the Königsberg bridge graph is actually a **multigraph** — it has multiple edges between the same pair of vertices (two bridges between the Island and the South bank, two between the Island and the North bank). For most of this unit, we will work with **simple graphs** where at most one edge connects any pair of vertices. The Königsberg problem requires the multigraph generalization, but the core ideas we develop apply to both.
+> **Side Note:** The Königsberg bridge graph is actually a **multigraph** — it has multiple edges between the same pair of vertices (two bridges between the Island and the South bank, two between the Island and the North bank). For most of this unit, we will work with **simple graphs** where at most one edge connects any pair of vertices. The Königsberg problem requires the multigraph generalization, but the core ideas we develop apply to both.
 
 ---
 
@@ -152,6 +162,20 @@ And here is a directed graph with in-degree and out-degree labels:
   height="280px"
 />
 
+<PracticeBox
+  title="Degree Fundamentals"
+  question="In an undirected graph with 5 vertices, every vertex has degree 2. How many edges does the graph have?"
+  choices={[
+    "5",
+    "10",
+    "4",
+    "2"
+  ]}
+  correctIndex={0}
+  hint="The sum of all degrees equals 2 × |E|. What is the sum of all degrees here?"
+  explanation="Sum of degrees = 5 × 2 = 10. Since each edge contributes 2 to the total degree, |E| = 10/2 = 5. (This is the handshaking lemma, which we'll prove formally in LN21.)"
+/>
+
 Next, we need to formalize what it means to "travel through" a graph. There are three levels of rigor:
 
 <DefinitionBox term="Walk, Trail, and Path">
@@ -163,6 +187,14 @@ A **trail** is a walk with **no repeated edges**. Vertices may still repeat.
 A **path** is a walk with **no repeated vertices** (and therefore no repeated edges either).
 
 </DefinitionBox>
+
+Here is a summary of these three traversal types:
+
+| Type | Repeated Edges? | Repeated Vertices? | Strictness |
+| :--- | :---: | :---: | :--- |
+| Walk | Yes | Yes | No restrictions |
+| Trail | No | Yes | Edges are unique |
+| Path | No | No | Most restrictive |
 
 Let's see all three on the same graph. Here is a **walk** from A to E that revisits vertex A and reuses the A–B edge:
 
@@ -443,6 +475,20 @@ And here is a directed graph written formally:
 
 <DisplayMath formula="G = (V, E) \quad \text{where} \quad V = \{X, Y, Z\}, \quad E = \big\{(X,Y),\;(Y,Z),\;(Z,X)\big\}" />
 
+<PracticeBox
+  title="Formal Graph Definition"
+  question="Which of these is a valid edge set for an undirected graph on V = {1, 2, 3}?"
+  choices={[
+    "E = {(1,2), (2,3)}",
+    "E = {{1,2}, {2,3}, {1,3}}",
+    "E = {{1,1}, {2,3}}",
+    "E = [{1,2}, {2,3}]"
+  ]}
+  correctIndex={1}
+  hint="Undirected edges are 2-element subsets (sets, not tuples), and a vertex cannot connect to itself in a simple graph."
+  explanation="Choice B uses 2-element subsets (correct for undirected). Choice A uses ordered pairs (directed). Choice C includes {1,1} which is a self-loop (not allowed in simple graphs). Choice D uses a list, not a set."
+/>
+
 ---
 
 ## Graph Representations — From Math to Code
@@ -609,7 +655,7 @@ Now consider these two graphs — they have the same number of vertices (4) and 
 
 This gives us a quick necessary condition for isomorphism: **isomorphic graphs must have the same degree sequence**. But the same degree sequence is not *sufficient* — there exist non-isomorphic graphs with identical degree sequences (a topic for further exploration).
 
-One fascinating aside: determining whether two graphs are isomorphic is a famous open problem in computer science. The **graph isomorphism problem** is not known to be solvable in polynomial time, nor is it known to be NP-complete. It sits in a rare middle ground — one of very few natural problems with this ambiguous complexity status.
+> **Side Note:** Determining whether two graphs are isomorphic is a famous open problem in computer science. The **graph isomorphism problem** is not known to be solvable in polynomial time, nor is it known to be NP-complete. It sits in a rare middle ground — one of very few natural problems with this ambiguous complexity status.
 
 <PracticeBox
   title="Isomorphism Check"
@@ -641,35 +687,9 @@ One fascinating aside: determining whether two graphs are isomorphic is a famous
 
 ---
 
-## Practice Problems
+## Coming Up Next
 
-<PracticeBox
-  title="Degree Fundamentals"
-  question="In an undirected graph with 5 vertices, every vertex has degree 2. How many edges does the graph have?"
-  choices={[
-    "5",
-    "10",
-    "4",
-    "2"
-  ]}
-  correctIndex={0}
-  hint="The sum of all degrees equals 2 × |E|. What is the sum of all degrees here?"
-  explanation="Sum of degrees = 5 × 2 = 10. Since each edge contributes 2 to the total degree, |E| = 10/2 = 5. (This is the handshaking lemma, which we'll prove formally in LN21.)"
-/>
-
-<PracticeBox
-  title="Formal Graph Definition"
-  question="Which of these is a valid edge set for an undirected graph on V = {1, 2, 3}?"
-  choices={[
-    "E = {(1,2), (2,3)}",
-    "E = {{1,2}, {2,3}, {1,3}}",
-    "E = {{1,1}, {2,3}}",
-    "E = [{1,2}, {2,3}]"
-  ]}
-  correctIndex={1}
-  hint="Undirected edges are 2-element subsets (sets, not tuples), and a vertex cannot connect to itself in a simple graph."
-  explanation="Choice B uses 2-element subsets (correct for undirected). Choice A uses ordered pairs (directed). Choice C includes {1,1} which is a self-loop (not allowed in simple graphs). Choice D uses a list, not a set."
-/>
+Next lecture, we'll explore the *structural* properties of graphs — what happens when a graph breaks into disconnected pieces, and what vertices or edges hold it together. We'll formalize **connected components**, identify **cut vertices** and **bridges** that hold networks together, and discover that our set-theoretic toolkit (union, intersection, difference, complement) applies beautifully to graphs. Along the way, we'll prove the **handshaking lemma** — a fundamental identity that connects degrees to edge counts — and explore **edge contraction** and **vertex cleaving** as dual operations that reshape graphs.
 
 ---
 
@@ -680,7 +700,7 @@ One fascinating aside: determining whether two graphs are isomorphic is a famous
 **Graph Basics:**
 
 - A graph $G = (V, E)$ consists of vertices (nodes) and edges (connections)
-- **Undirected** edges are sets $\{u, v\}$; **directed** edges are tuples $(u, v)$
+- **Undirected** edges are sets <InlineMath formula="\{u, v\}" />; **directed** edges are tuples $(u, v)$
 - **Degree** $\deg(v)$ counts edges touching $v$; directed graphs split into in-degree and out-degree
 - **Order** $= |V|$, **Size** $= |E|$
 
@@ -713,7 +733,7 @@ One fascinating aside: determining whether two graphs are isomorphic is a famous
 
 | This Lecture | Previous Lecture |
 | :--- | :--- |
-| Edges as sets $\{u,v\}$ | LN9: sets are unordered collections |
+| Edges as sets <InlineMath formula="\{u,v\}" /> | LN9: sets are unordered collections |
 | Edges as tuples $(u,v)$ | LN8: tuples are ordered pairs |
 | Isomorphism is a bijection | LN15, LN19: bijections and bijective proofs |
 | Isomorphism is an equivalence relation | LN11: reflexive, symmetric, transitive |
@@ -735,6 +755,11 @@ One fascinating aside: determining whether two graphs are isomorphic is a famous
 - [Wikipedia: Seven Bridges of Königsberg](https://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg) — Historical context and Euler's original argument
 - [Wikipedia: Graph Theory](https://en.wikipedia.org/wiki/Graph_theory) — Overview of the field Euler founded
 - [Wikipedia: Graph Isomorphism Problem](https://en.wikipedia.org/wiki/Graph_isomorphism_problem) — One of the most tantalizing open problems in complexity theory
+
+### Historical Context
+
+- **Leonhard Euler (1707–1783)** — Founded graph theory with his 1736 solution to the Königsberg bridge problem; published over 800 papers across mathematics and physics
+- **James Joseph Sylvester (1814–1897)** — Coined the term "graph" in 1878 in a paper connecting algebra to molecular structure
 
 ### Connection to Programming
 

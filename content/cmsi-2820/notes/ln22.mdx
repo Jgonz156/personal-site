@@ -14,6 +14,16 @@ Last lecture we explored the *structural* properties of graphs — connectedness
 
 Today we catalog the most important **families** of graphs — graphs with special structural properties — and discover that some simple-sounding questions about them are extraordinarily hard.
 
+## Today's Agenda
+
+- **Cycles** — closed paths and the odd-cycle characterization
+- **Complete Graphs** — every pair connected, combinatorial edge counts
+- **Bipartite Graphs** — two-set structure, König's theorem, and real-world matching
+- **k-Partite Graphs** — generalizing bipartiteness to multiple independent sets
+- **Wheels and Hypercubes** — hub-and-spoke topologies and binary-string networks
+- **Hamiltonian Graphs** — visiting every vertex once and why it's NP-complete
+- **The Traveling Salesman Problem** — the most famous optimization problem in CS
+
 ---
 
 ## Cycles
@@ -155,6 +165,15 @@ Complete graphs model "every pair interacts" scenarios, which arise more often t
 
 **Round-robin tournaments:** A tournament where every team plays every other team is a complete graph with directed edges (the winner of each game gets an outgoing edge). With <InlineMath formula="n" /> teams, there are <InlineMath formula="\binom{n}{2}" /> games — and scheduling them efficiently is itself a combinatorics problem from LN17.
 
+<PracticeBox
+  title="Complete Graph Edges"
+  question="How many edges does K₈ have?"
+  choices={["28", "56", "36", "64"]}
+  correctIndex={0}
+  hint="Use the formula n(n-1)/2."
+  explanation="|E(K₈)| = 8(7)/2 = 28."
+/>
+
 ---
 
 ## Bipartite Graphs
@@ -265,6 +284,20 @@ edges = {("Alice", "Project1"), ("Bob", "Project1"), ("Carol", "Project2")}
 
 One of the most elegant results about bipartite graphs is **König's theorem** (1931): in a bipartite graph, the size of the **maximum matching** (largest set of edges with no shared endpoints) equals the size of the **minimum vertex cover** (smallest set of vertices touching every edge). This duality fails for general graphs but always holds for bipartite ones — a beautiful structural consequence of having no odd cycles.
 
+<PracticeBox
+  title="Bipartite Check"
+  question="Is the cycle C₅ (a pentagon) bipartite?"
+  choices={[
+    "Yes — it has an even number of edges",
+    "No — it contains an odd-length cycle",
+    "Yes — every cycle is bipartite",
+    "Not enough information"
+  ]}
+  correctIndex={1}
+  hint="A graph is bipartite iff it has no odd-length cycle. C₅ IS an odd-length cycle."
+  explanation="C₅ is itself an odd-length cycle (length 5). A graph is bipartite iff it has no odd-length cycle, so C₅ is not bipartite."
+/>
+
 ---
 
 ## k-Partite Graphs
@@ -303,6 +336,17 @@ Observe: <InlineMath formula="K_n = K_{1,1,\ldots,1}" /> (n parts of size 1). Ev
 Complete 3-partite <InlineMath formula="K_{2,2,2}" />: three groups of two, all cross-edges present.
 
 The idea of partitioning vertices into independent sets — groups with no internal edges — will reappear in LN23, where it connects to a powerful problem-solving framework.
+
+### Graph Families at a Glance
+
+| Family | Notation | Vertices | Edges | Regular? | Bipartite? |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Cycle | <InlineMath formula="C_n" /> | <InlineMath formula="n" /> | <InlineMath formula="n" /> | Yes (2-regular) | Iff <InlineMath formula="n" /> even |
+| Complete | <InlineMath formula="K_n" /> | <InlineMath formula="n" /> | <InlineMath formula="n(n{-}1)/2" /> | Yes | No (for <InlineMath formula="n \geq 3" />) |
+| Complete Bipartite | <InlineMath formula="K_{m,n}" /> | <InlineMath formula="m + n" /> | <InlineMath formula="m \cdot n" /> | Iff <InlineMath formula="m = n" /> | Yes |
+| Wheel | <InlineMath formula="W_n" /> | <InlineMath formula="n + 1" /> | <InlineMath formula="2n" /> | No | No |
+| Hypercube | <InlineMath formula="Q_n" /> | <InlineMath formula="2^n" /> | <InlineMath formula="n \cdot 2^{n-1}" /> | Yes (<InlineMath formula="n" />-regular) | Yes |
+| Petersen | — | 10 | 15 | Yes (3-regular) | No |
 
 ---
 
@@ -371,15 +415,24 @@ def adjacent_in_hypercube(a, b):
 
 Two vertices are adjacent iff their XOR has exactly one 1-bit — that's the **Hamming distance** being exactly 1.
 
+<PracticeBox
+  title="Hypercube Edges"
+  question="How many edges does Q₄ (the 4-dimensional hypercube) have?"
+  choices={["32", "16", "24", "48"]}
+  correctIndex={0}
+  hint="Q_n has 2ⁿ vertices, each with degree n. Use the handshaking lemma."
+  explanation="Q₄ has 2⁴ = 16 vertices, each with degree 4. By the handshaking lemma, |E| = 16 × 4 / 2 = 32."
+/>
+
 ### Hypercubes and Communication Hardware
 
-Hypercubes aren't just mathematical curiosities — they shaped the history of parallel computing. In 1986, **Danny Hillis** built the **Connection Machine (CM-1)** at MIT, connecting 65,536 processors in a hypercube topology. Each processor could reach any other in at most <InlineMath formula="\log_2 n" /> hops — for 65,536 processors, that's just 16 hops. Intel's **iPSC** (Intel Personal SuperComputer) also used hypercube interconnects. Modern data center topologies like fat-trees and Clos networks evolved from these hypercube ideas, trading perfect symmetry for practical wiring constraints.
+> **Historical Note:** In 1986, **Danny Hillis** built the **Connection Machine (CM-1)** at MIT, connecting 65,536 processors in a hypercube topology. Each processor could reach any other in at most <InlineMath formula="\log_2 n" /> hops — for 65,536 processors, that's just 16 hops. Intel's **iPSC** also used hypercube interconnects. Modern data center topologies like fat-trees and Clos networks evolved from these ideas, trading perfect symmetry for practical wiring constraints.
 
 The hypercube also connects to **Gray codes**: a Hamiltonian path through <InlineMath formula="Q_n" /> visits every <InlineMath formula="n" />-bit string such that consecutive strings differ by exactly one bit. Gray codes are used in analog-to-digital converters and error correction, where changing multiple bits simultaneously could cause transient wrong values.
 
 ### Graph Theory in Biology
 
-Graph theory reaches far beyond computer science. In **computational biology**, protein interaction networks map which proteins bind to one another in a cell — these networks exhibit "small-world" properties similar to hypercubes, where most proteins can reach any other through a short chain of interactions. Neural connectivity in the brain is modeled as a graph where neurons are vertices and synapses are edges. Even DNA assembly algorithms use graph traversal (Euler paths on de Bruijn graphs) to reconstruct genomes from short sequencing reads — a direct descendant of the bridge-walking we studied in LN20.
+> **Side Note:** Graph theory reaches far beyond computer science. In **computational biology**, protein interaction networks map which proteins bind to one another in a cell — these networks exhibit "small-world" properties similar to hypercubes. Neural connectivity in the brain is modeled as a graph where neurons are vertices and synapses are edges. Even DNA assembly algorithms use Euler paths on de Bruijn graphs to reconstruct genomes — a direct descendant of the bridge-walking we studied in LN20.
 
 ---
 
@@ -399,7 +452,7 @@ Problems like these are called **constraint satisfaction problems (CSPs)**. In y
 
 We now encounter a beautiful parallel to Euler's problem from LN20 — but with a twist that transforms the question from easy to extraordinarily hard.
 
-**William Rowan Hamilton (1805–1865)** was an Irish mathematician and child prodigy who mastered multiple languages by age 13. He's famous for carving the quaternion equations into Brougham Bridge in Dublin in 1843. In 1857, he invented the **Icosian Game** — a commercial puzzle where players tried to find a path visiting every vertex of a dodecahedron exactly once. The irony: Hamilton's puzzle was a commercial failure, but the mathematical concept it inspired became one of the most studied problems in computer science.
+> **Historical Note:** **William Rowan Hamilton (1805–1865)** was an Irish mathematician and child prodigy who mastered multiple languages by age 13. He's famous for carving the quaternion equations into Brougham Bridge in Dublin in 1843. In 1857, he invented the **Icosian Game** — a commercial puzzle where players tried to find a path visiting every vertex of a dodecahedron exactly once. The irony: Hamilton's puzzle was a commercial failure, but the mathematical concept it inspired became one of the most studied problems in computer science.
 
 <DefinitionBox term="Hamiltonian Path and Cycle">
 
@@ -436,7 +489,9 @@ Here is a Hamiltonian graph with a Hamiltonian cycle highlighted:
   height="300px"
 />
 
-And here is the **Petersen graph** — a famous counterexample. **Julius Petersen (1839–1910)**, a Danish mathematician, published it in 1898. It is 3-regular (every vertex has degree 3), connected, and highly symmetric — yet it has **no Hamiltonian cycle**. It appears as a counterexample in over a dozen different graph theory theorems.
+> **Historical Note:** The **Petersen graph** was published by **Julius Petersen (1839–1910)**, a Danish mathematician, in 1898. It is 3-regular, connected, and highly symmetric — yet it has **no Hamiltonian cycle**. It appears as a counterexample in over a dozen different graph theory theorems, making it the "universal counterexample" of graph theory.
+
+And here is the Petersen graph:
 
 <GraphVisualization
   nodes={[
@@ -461,7 +516,15 @@ And here is the **Petersen graph** — a famous counterexample. **Julius Peterse
   height="350px"
 />
 
-For Euler's question (LN20), we had an elegant degree-based test: count odd-degree vertices. For Hamilton's question, **no such efficient test exists**. Determining whether a graph is Hamiltonian is **NP-complete** — no known polynomial-time algorithm solves it. A small change in problem formulation ("every edge" vs "every vertex") transforms the problem from easy to intractable.
+> **Key Insight:** For Euler's question (LN20), we had an elegant degree-based test: count odd-degree vertices. For Hamilton's question, **no such efficient test exists**. Determining whether a graph is Hamiltonian is **NP-complete** — no known polynomial-time algorithm solves it. A small change in problem formulation ("every edge" vs "every vertex") transforms the problem from easy to intractable.
+
+| Property | Euler Trail | Hamiltonian Path |
+| :--- | :--- | :--- |
+| Visits every... | Edge exactly once | Vertex exactly once |
+| Test method | Count odd-degree vertices | No efficient test known |
+| Complexity | Polynomial (easy) | NP-complete (hard) |
+| Sufficient condition | 0 or 2 odd-degree vertices | None known in general |
+| Example failure | 4+ odd-degree vertices | Petersen graph |
 
 ---
 
@@ -515,38 +578,11 @@ all_routes = list(permutations(cities))
 
 For 20 cities, brute force would outlast the sun. TSP is **NP-hard** — one of the most famous problems in all of computer science and mathematics.
 
-The problem was formalized by **Karl Menger** in the 1930s in Vienna, but became famous when mathematicians at the **RAND Corporation** (Dantzig, Fulkerson, Johnson) solved a 49-city instance in 1954 — by hand, using clever cutting-plane methods. Today, the largest optimally solved instance has 85,900 cities (2006). The gap between "solved optimally" and "too large to solve" is one of the deepest open questions in all of mathematics — the **P vs NP** problem.
+> **Historical Note:** The problem was formalized by **Karl Menger** in the 1930s in Vienna, but became famous when mathematicians at the **RAND Corporation** (Dantzig, Fulkerson, Johnson) solved a 49-city instance in 1954 — by hand, using clever cutting-plane methods. Today, the largest optimally solved instance has 85,900 cities (2006). The gap between "solved optimally" and "too large to solve" is one of the deepest open questions in all of mathematics — the **P vs NP** problem.
 
 ---
 
-## Practice Problems
-
-<PracticeBox
-  title="Complete Graph Edges"
-  question="How many edges does K₈ have?"
-  choices={["28", "56", "36", "64"]}
-  correctIndex={0}
-  hint="Use the formula n(n-1)/2."
-  explanation="|E(K₈)| = 8(7)/2 = 28."
-/>
-
-<PracticeBox
-  title="Bipartite Check"
-  question="Is the cycle C₅ (a pentagon) bipartite?"
-  choices={[
-    "Yes — it has an even number of edges",
-    "No — it contains an odd-length cycle",
-    "Yes — every cycle is bipartite",
-    "Not enough information"
-  ]}
-  correctIndex={1}
-  hint="A graph is bipartite iff it has no odd-length cycle. C₅ IS an odd-length cycle."
-  explanation="C₅ is itself an odd-length cycle (length 5). A graph is bipartite iff it has no odd-length cycle, so C₅ is not bipartite."
-/>
-
----
-
-## Looking Ahead to LN23
+## Coming Up Next
 
 We've now cataloged the key families of graphs and encountered one of the deepest divides in all of mathematics: problems that are easy to solve (Euler trails) versus problems that are impossibly hard (Hamiltonian cycles, TSP). But there's a family of graphs we haven't yet met — one so simple and so fundamental that it deserves its own lecture.
 
@@ -565,7 +601,7 @@ Finally, we'll peek beyond this course at three directions graph theory explores
 **Special Graph Families:**
 
 - Cycle $C_n$: closed path of length $n$; bipartite iff $n$ is even
-- Complete graph $K_n$: every pair connected, $\binom{n}{2}$ edges, <InlineMath formula="(n{-}1)" />-regular, complement is empty graph
+- Complete graph $K_n$: every pair connected, <InlineMath formula="\binom{n}{2}" /> edges, <InlineMath formula="(n{-}1)" />-regular, complement is empty graph
 - Bipartite: vertices split into two sets, edges only between sets; iff no odd-length cycle
 - Complete bipartite <InlineMath formula="K_{m,n}" />: <InlineMath formula="m \cdot n" /> edges
 - k-partite: $k$ independent sets, generalizes bipartite
@@ -596,7 +632,7 @@ Finally, we'll peek beyond this course at three directions graph theory explores
 
 | This Lecture | Previous Lecture |
 | :--- | :--- |
-| $\binom{n}{2}$ edges in $K_n$ | LN17: combinations |
+| <InlineMath formula="\binom{n}{2}" /> edges in $K_n$ | LN17: combinations |
 | `itertools.combinations` for $K_n$ edges | LN17: Python combinatorics |
 | `itertools.permutations` for TSP brute force | LN17: factorials and permutations |
 | Bitwise XOR for hypercube adjacency | Binary encoding |
@@ -623,6 +659,13 @@ Finally, we'll peek beyond this course at three directions graph theory explores
 - [Wikipedia: Hamiltonian Path Problem](https://en.wikipedia.org/wiki/Hamiltonian_path_problem) — NP-completeness and known results
 - [Wikipedia: König's Theorem](https://en.wikipedia.org/wiki/K%C3%B6nig%27s_theorem_(graph_theory)) — The matching-cover duality in bipartite graphs
 - [Wikipedia: Hypercube Graph](https://en.wikipedia.org/wiki/Hypercube_graph) — Properties, Hamiltonian paths, and Gray codes
+
+### Historical Context
+
+- **William Rowan Hamilton (1805–1865)** — Irish mathematician who invented the Icosian Game (1857), inspiring the Hamiltonian path problem
+- **Julius Petersen (1839–1910)** — Danish mathematician who published the Petersen graph (1898), the "universal counterexample" of graph theory
+- **Karl Menger (1902–1985)** — Austrian mathematician who formalized the Traveling Salesman Problem in the 1930s
+- **Danny Hillis (1956–)** — Built the Connection Machine (CM-1) at MIT in 1986, using a hypercube topology to connect 65,536 processors
 
 ### Connection to Programming
 

@@ -17,6 +17,16 @@ Last lecture we followed Euler to Königsberg and invented graph theory. We defi
 
 Today we ask: what *structural properties* can a graph have, and what *operations* can we perform on graphs? The formalization we built in LN20 is about to pay off — the same set-theoretic toolkit from LN10 works on this new structure.
 
+## Today's Agenda
+
+- **Connectedness** — when every vertex can reach every other vertex
+- **Graph Unions and Components** — decomposing graphs into maximal connected pieces
+- **Cut Vertices and Bridges** — single points of failure in networks
+- **Subgraphs** — extracting pieces of a graph and what properties survive
+- **Set Operations on Graphs** — union, intersection, difference, complement
+- **The Handshaking Lemma** — the fundamental relationship between degrees and edges
+- **Edge Contraction and Vertex Cleaving** — reshaping graphs with dual operations
+
 ---
 
 ## Connectedness
@@ -68,6 +78,20 @@ def is_connected(graph):
 ```
 
 If we can reach every vertex from any starting vertex, the graph is connected.
+
+<PracticeBox
+  title="Connectivity"
+  question="A graph G has 6 vertices and 4 edges. What is the minimum number of connected components G can have?"
+  choices={[
+    "1",
+    "2",
+    "3",
+    "6"
+  ]}
+  correctIndex={1}
+  hint="Each edge can reduce the component count by at most 1. Start with 6 isolated vertices."
+  explanation="Starting with 6 isolated vertices (6 components), each edge can merge two components into one, reducing the count by at most 1. With 4 edges, the minimum is 6 - 4 = 2 components."
+/>
 
 ---
 
@@ -309,7 +333,9 @@ For contrast, removing vertex B from the original graph does *not* disconnect it
   height="250px"
 />
 
-Still connected! B is not a cut vertex. In the real world, cut vertices and bridges represent **single points of failure** in networks. The 2021 Facebook outage was caused by a BGP configuration change that effectively removed a "bridge" in their network graph, disconnecting their DNS servers from the rest of the internet.
+Still connected! B is not a cut vertex. In the real world, cut vertices and bridges represent **single points of failure** in networks.
+
+> **Side Note:** The 2021 Facebook outage was caused by a BGP configuration change that effectively removed a "bridge" in their network graph, disconnecting their DNS servers from the rest of the internet. A single edge removal brought down services for billions of users.
 
 ### Multiple Cut Vertices and Bridges
 
@@ -349,6 +375,20 @@ The bridges are **R–S** and **T–W** (highlighted in red). Every other edge s
 
 Notice the pattern: cut vertices and bridges tend to appear along "narrow corridors" in the graph, while vertices and edges inside tightly-connected clusters (like the triangles <InlineMath formula="\{P, Q, R\}" /> and <InlineMath formula="\{S, T, U\}" />) are never cut vertices or bridges. The more alternate paths exist between two parts of a graph, the more resilient it is.
 
+<PracticeBox
+  title="Cut Vertex"
+  question="In a path graph A-B-C-D-E (5 vertices in a line), which vertices are cut vertices?"
+  choices={[
+    "Only C (the middle vertex)",
+    "B, C, and D (all interior vertices)",
+    "A and E (the endpoints)",
+    "All vertices"
+  ]}
+  correctIndex={1}
+  hint="Removing a vertex from a path splits it into two paths (or removes an endpoint)."
+  explanation="Removing any interior vertex (B, C, or D) disconnects the path. Removing an endpoint (A or E) leaves a shorter but still connected path. So B, C, and D are all cut vertices."
+/>
+
 ### Measuring Connectivity: Bisection Width
 
 Cut vertices and bridges ask: "Can we break this graph by removing *one* thing?" A stronger question is: how many edges must we remove to split the graph roughly in half?
@@ -386,7 +426,7 @@ Here is a graph where the minimum bisection cuts exactly 2 edges — the two cro
 
 The bisection <InlineMath formula="\{J, K, L\} \mid \{M, N, O\}" /> requires cutting exactly 2 edges, so this graph has bisection width 2. No bridge exists (removing just one red edge still leaves the graph connected via the other), but the graph can still be cleanly halved.
 
-Bisection width matters for **network design**. In supercomputer interconnects, a high bisection width means data can flow between any two halves of the machine with high bandwidth — there are many independent paths. A hub-and-spoke network (like a star graph, where one central node connects to all others) has bisection width 1 — a single edge removal halves the network. Data center architects actively optimize for high bisection width to avoid bottlenecks.
+> **Side Note:** Bisection width matters for **network design**. In supercomputer interconnects, a high bisection width means data can flow between any two halves of the machine with high bandwidth — there are many independent paths. A hub-and-spoke network (like a star graph) has bisection width 1 — a single edge removal halves the network. Data center architects actively optimize for high bisection width to avoid bottlenecks.
 
 ---
 
@@ -500,6 +540,14 @@ When you take a subgraph, some properties of the parent graph carry over and oth
 ## Set Operations on Graphs
 
 Since graphs are tuples of sets, most set operations from LN10 carry over directly. We already defined union. Here are the others:
+
+| Operation | Vertex Set | Edge Set | Python Operator |
+| :--- | :--- | :--- | :---: |
+| Union | <InlineMath formula="V_1 \cup V_2" /> | <InlineMath formula="E_1 \cup E_2" /> | `\|` |
+| Intersection | <InlineMath formula="V_1 \cap V_2" /> | <InlineMath formula="E_1 \cap E_2" /> | `&` |
+| Difference | <InlineMath formula="V_1" /> (unchanged) | <InlineMath formula="E_1 \setminus E_2" /> | `-` |
+| Symmetric Difference | <InlineMath formula="V_1 \cup V_2" /> | <InlineMath formula="E_1 \;\triangle\; E_2" /> | `^` |
+| Complement | <InlineMath formula="V" /> (unchanged) | All possible edges minus <InlineMath formula="E" /> | (manual) |
 
 **Intersection**: <InlineMath formula="G_1 \cap G_2 = (V_1 \cap V_2,\; E_1 \cap E_2)" />
 
@@ -670,7 +718,7 @@ edges_difference = edges_G1 - edges_G2    # G₁ \ G₂
 edges_sym_diff = edges_G1 ^ edges_G2      # G₁ △ G₂
 ```
 
-The formalization pays off — the same algebra from LN10 works on this new structure.
+> **Key Insight:** The formalization pays off — the same algebra from LN10 works on this new structure. Python's set operators (`|`, `&`, `-`, `^`) map directly to graph operations.
 
 ### The Graph Complement
 
@@ -749,6 +797,20 @@ In LN10 we noted that Python has no built-in complement operation because there'
 all_possible = {frozenset({u, v}) for u in V for v in V if u != v}
 complement_edges = all_possible - edges_G
 ```
+
+<PracticeBox
+  title="Graph Complement"
+  question="If G has 5 vertices and 3 edges, how many edges does its complement G̅ have?"
+  choices={[
+    "7",
+    "2",
+    "10",
+    "5"
+  ]}
+  correctIndex={0}
+  hint="G and G̅ together make K₅. How many edges does K₅ have?"
+  explanation="|E(K₅)| = 5(4)/2 = 10. Since G ∪ G̅ = K₅ and the edge sets are disjoint, |E(G̅)| = 10 - 3 = 7."
+/>
 
 ---
 
@@ -1029,55 +1091,15 @@ After cleaving C into <InlineMath formula="C_1" /> and <InlineMath formula="C_2"
   height="300px"
 />
 
-Edge contraction and vertex cleaving are duals — one merges, the other splits. Both are edge-preserving and can produce **multigraphs** (graphs with parallel edges between the same pair of vertices).
+> **Key Insight:** Edge contraction and vertex cleaving are duals — one merges, the other splits. Both are edge-preserving and can produce **multigraphs** (graphs with parallel edges between the same pair of vertices).
 
-**Dénes König (1884–1944)** wrote the first textbook on graph theory in 1936, formalizing many of the concepts we've covered today — components, connectivity, and operations like these. His work laid the foundation for the structural graph theory that would flourish in the following decades.
+> **Historical Note:** **Dénes König (1884–1944)** wrote the first textbook on graph theory in 1936, formalizing many of the concepts we've covered today — components, connectivity, and operations like these. His work laid the foundation for the structural graph theory that would flourish in the following decades.
 
 ---
 
-## Practice Problems
+## Coming Up Next
 
-<PracticeBox
-  title="Connectivity"
-  question="A graph G has 6 vertices and 4 edges. What is the maximum number of connected components G can have?"
-  choices={[
-    "2",
-    "3",
-    "4",
-    "6"
-  ]}
-  correctIndex={0}
-  hint="Each edge connects two vertices. 4 edges connect at most 8 vertex-endpoints, but can merge at most 4 pairs into connected groups."
-  explanation="Each edge reduces the number of components by at most 1. Starting with 6 isolated vertices (6 components), 4 edges reduce it to at minimum 6 - 4 = 2 components. Maximum components = 2 (e.g., connect 4 vertices into a path and leave 2 isolated... wait, that's 3 components). Actually, to maximize components: make each edge connect two previously-connected vertices (self-edges aren't allowed). Put 4 edges inside a group of 5 vertices, leaving 1 isolated: 2 components. Or: 2 edges on one pair+triangle, 2 edges elsewhere. The answer is 2."
-/>
-
-<PracticeBox
-  title="Cut Vertex"
-  question="In a path graph A-B-C-D-E (5 vertices in a line), which vertices are cut vertices?"
-  choices={[
-    "Only C (the middle vertex)",
-    "B, C, and D (all interior vertices)",
-    "A and E (the endpoints)",
-    "All vertices"
-  ]}
-  correctIndex={1}
-  hint="Removing a vertex from a path splits it into two paths (or removes an endpoint)."
-  explanation="Removing any interior vertex (B, C, or D) disconnects the path. Removing an endpoint (A or E) leaves a shorter but still connected path. So B, C, and D are all cut vertices."
-/>
-
-<PracticeBox
-  title="Graph Complement"
-  question="If G has 5 vertices and 3 edges, how many edges does its complement G̅ have?"
-  choices={[
-    "7",
-    "2",
-    "10",
-    "5"
-  ]}
-  correctIndex={0}
-  hint="G and G̅ together make K₅. How many edges does K₅ have?"
-  explanation="|E(K₅)| = 5(4)/2 = 10. Since G ∪ G̅ = K₅ and the edge sets are disjoint, |E(G̅)| = 10 - 3 = 7."
-/>
+Next lecture, we'll explore the rich zoo of **graph families** — complete graphs, bipartite graphs, wheels, and hypercubes. We'll see how these families encode constraints that arise naturally in scheduling, networking, and parallel computing. We'll also encounter **Hamiltonian paths** — a concept that looks like Euler trails but turns out to be dramatically harder — and the famous **Traveling Salesman Problem**, one of the most important unsolved problems in computer science.
 
 ---
 
@@ -1107,14 +1129,14 @@ Edge contraction and vertex cleaving are duals — one merges, the other splits.
 **Set Operations and Complement:**
 
 - Set operations (union, intersection, difference, symmetric difference, complement) carry over from LN10
-- Graph complement $\overline{G}$: same vertices, exactly the missing edges
-- $G \cup \overline{G}$ produces a graph with every possible edge — formally defined next lecture
+- Graph complement <InlineMath formula="\overline{G}" />: same vertices, exactly the missing edges
+- <InlineMath formula="G \cup \overline{G}" /> produces a graph with every possible edge — formally defined next lecture
 
 **Handshaking Lemma:**
 
 - $\sum \deg(v) = 2|E|$ — every edge contributes 2 to total degree
 - Number of odd-degree vertices is always even
-- A graph with every possible edge has $\binom{n}{2} = n(n-1)/2$ edges (decaying options pattern from LN17)
+- A graph with every possible edge has <InlineMath formula="\binom{n}{2} = n(n-1)/2" /> edges (decaying options pattern from LN17)
 
 **Edge Contraction and Vertex Cleaving:**
 
@@ -1138,7 +1160,7 @@ Edge contraction and vertex cleaving are duals — one merges, the other splits.
 | Set operators `\|`, `&`, `-`, `^` on edges | LN9, LN10: Python set operations |
 | BFS with `set` for visited | LN9: sets for membership testing |
 | Property-testing lambdas | LN12-14, LN19: lambda calculus as a tool |
-| $\binom{n}{2}$ edges in a maximally-connected graph | LN17: combinations and the "choosing" pattern |
+| <InlineMath formula="\binom{n}{2}" /> edges in a maximally-connected graph | LN17: combinations and the "choosing" pattern |
 | `defaultdict(set)` for adjacency | LN9: sets, LN7: dict internals |
 
 </LectureNotes>
@@ -1155,6 +1177,10 @@ Edge contraction and vertex cleaving are duals — one merges, the other splits.
 - [Wikipedia: Connectivity (Graph Theory)](https://en.wikipedia.org/wiki/Connectivity_(graph_theory)) — Cut vertices, bridges, and k-connectivity
 - [Wikipedia: Bisection Width](https://en.wikipedia.org/wiki/Bisection_bandwidth) — Bisection width in network design and parallel computing
 - [Wikipedia: Graph Operations](https://en.wikipedia.org/wiki/Graph_operations) — Union, complement, contraction, and more
+
+### Historical Context
+
+- **Dénes König (1884–1944)** — Wrote the first textbook on graph theory (*Theorie der endlichen und unendlichen Graphen*, 1936), formalizing components, connectivity, and many structural operations
 
 ### Connection to Programming
 

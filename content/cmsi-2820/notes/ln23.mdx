@@ -14,6 +14,17 @@ Last lecture we cataloged the most important families of graphs — complete gra
 
 Today we study the **simplest connected graphs** — trees — and discover that finding the *cheapest* way to connect everything is a problem with beautiful, efficient solutions. We then look ahead to where graph theory goes from here.
 
+## Today's Agenda
+
+- **Trees** — the simplest connected graphs and their characterization
+- **Forests** — acyclic graphs as collections of trees
+- **Two Intuitions for Building Trees** — cutting down vs building up
+- **Spanning Trees** — connecting every vertex with minimum edges
+- **Weighted Graphs** — adding costs to connections
+- **Minimum Spanning Trees** — the cheapest way to connect everything
+- **Shortest Paths** — the cheapest route between two vertices
+- **Where Graph Theory Goes from Here** — planarity, coloring, and network flows
+
 ---
 
 ## Trees
@@ -62,7 +73,7 @@ Here are two trees with very different shapes — a "star" and a "path":
 
 Both are trees: connected, acyclic, and both have <InlineMath formula="n - 1 = 4" /> edges.
 
-Trees are **fragile**: removing any edge disconnects the graph (since there's exactly one path between any two vertices). And adding any edge creates a cycle (since a path already existed):
+> **Key Insight:** Trees are **fragile** — removing any edge disconnects the graph (since there's exactly one path between any two vertices), and adding any edge creates a cycle (since a path already existed). They sit at the exact boundary between "connected" and "too sparse to be connected."
 
 Remove an edge from a tree — it disconnects:
 
@@ -107,6 +118,15 @@ Trees are arguably the most important structure in all of computer science, and 
 - **Class hierarchies**: Python's MRO (Method Resolution Order) linearizes the inheritance tree. `ClassName.__mro__` shows the path
 - **JSON/nested dicts**: `json.loads()` produces nested dicts — a tree structure where every key path is unique
 
+<PracticeBox
+  title="Tree Properties"
+  question="A tree has 10 vertices. How many edges does it have?"
+  choices={["9", "10", "11", "It depends on the tree's shape"]}
+  correctIndex={0}
+  hint="All trees on n vertices have exactly n-1 edges."
+  explanation="By definition, a tree with n vertices has exactly n-1 edges. For n = 10, that's 9 edges regardless of shape."
+/>
+
 ---
 
 ## Forests
@@ -140,6 +160,15 @@ A forest with <InlineMath formula="n" /> vertices and <InlineMath formula="k" />
 />
 
 This forest has <InlineMath formula="n = 8" /> vertices, <InlineMath formula="k = 3" /> components, and <InlineMath formula="n - k = 5" /> edges. Each component is a tree.
+
+<PracticeBox
+  title="Forest Components"
+  question="A forest has 12 vertices and 8 edges. How many components does it have?"
+  choices={["2", "3", "4", "8"]}
+  correctIndex={2}
+  hint="A forest with n vertices and k components has n-k edges."
+  explanation="n - k = edges, so 12 - k = 8, giving k = 4 components."
+/>
 
 ---
 
@@ -278,7 +307,7 @@ These two directions **sandwich** toward the same <InlineMath formula="n - 1" />
 
 This dual perspective directly sets up the next topic: the "building up" approach mirrors **Kruskal's** algorithm (add cheapest edges without creating cycles), while a variant of "building out from a single vertex" mirrors **Prim's** algorithm. You'll explore this connection concretely in your homework!
 
-**Arthur Cayley (1821–1895)**, a British mathematician, proved a remarkable counting result about trees in 1889: the number of distinct labeled trees on <InlineMath formula="n" /> vertices is <InlineMath formula="n^{n-2}" />. For 4 vertices, that's <InlineMath formula="4^2 = 16" /> different trees — a surprising number! Cayley was motivated by chemistry: counting structural isomers of hydrocarbon chains.
+> **Historical Note:** **Arthur Cayley (1821–1895)**, a British mathematician, proved a remarkable counting result about trees in 1889: the number of distinct labeled trees on <InlineMath formula="n" /> vertices is <InlineMath formula="n^{n-2}" />. For 4 vertices, that's <InlineMath formula="4^2 = 16" /> different trees — a surprising number! Cayley was motivated by chemistry: counting structural isomers of hydrocarbon chains.
 
 ---
 
@@ -453,15 +482,17 @@ MSTs arise naturally across many fields:
 
 Three classical algorithms find MSTs efficiently:
 
-- **Borůvka's** (1926): every component picks its cheapest outgoing edge, all simultaneously
-- **Kruskal's** (1956): sort all edges by weight, add cheapest that doesn't create a cycle (building up)
-- **Prim's** (1957): grow the tree outward from a single vertex, always adding the cheapest edge to a new vertex
+| Algorithm | Year | Strategy | Intuition |
+| :--- | :---: | :--- | :--- |
+| Borůvka's | 1926 | Every component picks its cheapest outgoing edge simultaneously | Parallel "building up" |
+| Kruskal's | 1956 | Sort all edges by weight, add cheapest that doesn't create a cycle | Sequential "building up" |
+| Prim's | 1957 | Grow outward from one vertex, always adding the cheapest edge to a new vertex | "Growing outward" |
 
 Notice the connection to our two tree-building intuitions: Kruskal's mirrors "building up" (adding edges without cycles), while Prim's mirrors "growing outward."
 
 You will implement all three algorithms in Python in the HW6 programming assignment (`prim.py`, `kruskal.py`, `boruvka.py`), which provides a guided, hands-on treatment.
 
-**Otakar Borůvka (1899–1995)** developed the first MST algorithm not as an abstract exercise, but to solve a real engineering problem: **electrifying Moravia**. The regional power company needed to connect cities with minimum total wire. His solution — let every city independently pick its cheapest outgoing connection, merge the resulting components, and repeat — predates Kruskal's and Prim's by three decades. He lived to 96 and saw his algorithm rediscovered for parallel computing in the 1990s.
+> **Historical Note:** **Otakar Borůvka (1899–1995)** developed the first MST algorithm not as an abstract exercise, but to solve a real engineering problem: **electrifying Moravia**. The regional power company needed to connect cities with minimum total wire. His solution — let every city independently pick its cheapest outgoing connection, merge the resulting components, and repeat — predates Kruskal's and Prim's by three decades. He lived to 96 and saw his algorithm rediscovered for parallel computing in the 1990s.
 
 ---
 
@@ -475,7 +506,9 @@ The **shortest path** from vertex <InlineMath formula="s" /> to vertex <InlineMa
 
 </DefinitionBox>
 
-MST and shortest path answer *different* questions: MST connects everyone as cheaply as possible; shortest path finds the cheapest route between two specific nodes. To see the difference:
+> **Key Insight:** MST and shortest path answer *different* questions: MST connects everyone as cheaply as possible; shortest path finds the cheapest route between two specific nodes. The MST does **not** guarantee shortest paths between specific pairs — it minimizes *total* cost, not *pairwise* cost.
+
+To see the difference:
 
 <GraphVisualization
   nodes={[
@@ -498,9 +531,7 @@ MST and shortest path answer *different* questions: MST connects everyone as che
 
 The **shortest path** from A to E goes A → C → D → E with total weight 2 + 3 + 7 = **12** (blue edges). But the MST path from A to E is the same in this case. In general, the MST does **not** guarantee shortest paths between specific pairs — it minimizes *total* cost, not *pairwise* cost.
 
-**Edsger Dijkstra (1930–2002)** designed his shortest path algorithm in about 20 minutes while sitting at a café in Amsterdam in 1956. His original motivation: "What is the shortest way to travel from Rotterdam to Groningen?" The algorithm greedily expands a frontier from the source, always picking the closest unvisited vertex — similar to Prim's (both are greedy, both grow outward from a single node). When you implement Prim's in the homework you'll recognize the pattern.
-
-Dijkstra went on to win the Turing Award in 1972 and became one of the most influential voices in software engineering — coining the term "structured programming" and arguing passionately against `goto` statements.
+> **Historical Note:** **Edsger Dijkstra (1930–2002)** designed his shortest path algorithm in about 20 minutes while sitting at a café in Amsterdam in 1956. His original motivation: "What is the shortest way to travel from Rotterdam to Groningen?" The algorithm greedily expands a frontier from the source, always picking the closest unvisited vertex — similar to Prim's (both are greedy, both grow outward from a single node). Dijkstra went on to win the Turing Award in 1972, coining "structured programming" and arguing passionately against `goto` statements.
 
 In Python, both Prim's and Dijkstra's rely on efficiently finding the minimum — Python's `heapq` module implements a binary heap, which is itself a tree data structure:
 
@@ -511,6 +542,20 @@ heapq.heappop(frontier)          # (2, "C") — always returns minimum
 ```
 
 Applications of shortest paths: GPS navigation, network routing (OSPF — the protocol that routes packets across the internet), and game pathfinding.
+
+<PracticeBox
+  title="MST vs Shortest Path"
+  question="True or false: The path between two vertices in an MST is always the shortest path between them in the original weighted graph."
+  choices={[
+    "True — the MST minimizes total weight so it must also minimize individual paths",
+    "False — the MST minimizes total weight, not individual pairwise distances",
+    "True — but only for undirected graphs",
+    "False — but only for graphs with negative weights"
+  ]}
+  correctIndex={1}
+  hint="MST optimizes total cost; shortest path optimizes pairwise cost. Are these the same objective?"
+  explanation="The MST minimizes the sum of all edge weights in the tree, not the weight of any particular path. A direct edge with weight 100 might not be in the MST, but it's still the shortest path between its endpoints."
+/>
 
 ---
 
@@ -582,7 +627,7 @@ Here's a surprising result about coloring. Take <InlineMath formula="K_6" /> and
 
 #### The Four-Color Theorem
 
-The **four-color theorem** — one of the most famous results in mathematics — states that every planar graph can be colored with at most 4 colors. It was the first major theorem proved with the aid of a computer (1976), when Kenneth Appel and Wolfgang Haken reduced it to checking 1,936 configurations by machine.
+> **Historical Note:** The **four-color theorem** — one of the most famous results in mathematics — states that every planar graph can be colored with at most 4 colors. It was the first major theorem proved with the aid of a computer (1976), when **Kenneth Appel** and **Wolfgang Haken** reduced it to checking 1,936 configurations by machine.
 
 Applications: exam scheduling (no student has two exams at the same time), register allocation in compilers, and the classic problem of map coloring.
 
@@ -619,42 +664,6 @@ These three directions — planarity, coloring, and flows — connect to circuit
 
 ---
 
-## Practice Problems
-
-<PracticeBox
-  title="Tree Properties"
-  question="A tree has 10 vertices. How many edges does it have?"
-  choices={["9", "10", "11", "It depends on the tree's shape"]}
-  correctIndex={0}
-  hint="All trees on n vertices have exactly n-1 edges."
-  explanation="By definition, a tree with n vertices has exactly n-1 edges. For n = 10, that's 9 edges regardless of shape."
-/>
-
-<PracticeBox
-  title="Forest Components"
-  question="A forest has 12 vertices and 8 edges. How many components does it have?"
-  choices={["2", "3", "4", "8"]}
-  correctIndex={2}
-  hint="A forest with n vertices and k components has n-k edges."
-  explanation="n - k = edges, so 12 - k = 8, giving k = 4 components."
-/>
-
-<PracticeBox
-  title="MST vs Shortest Path"
-  question="True or false: The path between two vertices in an MST is always the shortest path between them in the original weighted graph."
-  choices={[
-    "True — the MST minimizes total weight so it must also minimize individual paths",
-    "False — the MST minimizes total weight, not individual pairwise distances",
-    "True — but only for undirected graphs",
-    "False — but only for graphs with negative weights"
-  ]}
-  correctIndex={1}
-  hint="MST optimizes total cost; shortest path optimizes pairwise cost. Are these the same objective?"
-  explanation="The MST minimizes the sum of all edge weights in the tree, not the weight of any particular path. A direct edge with weight 100 might not be in the MST, but it's still the shortest path between its endpoints."
-/>
-
----
-
 ## Key Takeaways
 
 <LectureNotes>
@@ -681,7 +690,7 @@ These three directions — planarity, coloring, and flows — connect to circuit
 
 **Weighted Graphs and Shortest Paths:**
 
-- Weighted graph: $(V, E, w)$ with $w: E \to \mathbb{R}$
+- Weighted graph: <InlineMath formula="(V, E, w)" /> with <InlineMath formula="w: E \to \mathbb{R}" />
 - MST ≠ shortest paths — different optimization objectives
 - Dijkstra's algorithm: greedy expansion from source, similar to Prim's
 - `heapq` in Python implements the priority queue both algorithms need
@@ -689,7 +698,7 @@ These three directions — planarity, coloring, and flows — connect to circuit
 **Where Graph Theory Goes Next:**
 
 - Planarity: <InlineMath formula="K_5" /> and <InlineMath formula="K_{3,3}" /> are not planar; Euler's formula <InlineMath formula="V - E + F = 2" />
-- Coloring: chromatic number $\chi(G)$; $\chi(K_n) = n$, $\chi(\text{bipartite}) = 2$, $\chi(\text{tree}) = 2$; four-color theorem for planar graphs
+- Coloring: chromatic number <InlineMath formula="\chi(G)" />; <InlineMath formula="\chi(K_n) = n" />, <InlineMath formula="\chi(\text{bipartite}) = 2" />, <InlineMath formula="\chi(\text{tree}) = 2" />; four-color theorem for planar graphs
 - k-colorable iff subgraph of complete k-partite — LN22 vocabulary meets coloring
 - Ramsey theory: monochromatic triangles inevitable in 2-edge-colored $K_6$
 - Network flows: max-flow/min-cut theorem
@@ -699,12 +708,12 @@ These three directions — planarity, coloring, and flows — connect to circuit
 | This Lecture | Previous Lecture |
 | :--- | :--- |
 | Trees as CS data structures | LN12-14: lambda expressions parsed into trees |
-| $n^{n-2}$ labeled trees (Cayley) | LN17: combinatorial counting |
+| <InlineMath formula="n^{n-2}" /> labeled trees (Cayley) | LN17: combinatorial counting |
 | Weighted graph `dict[str, dict[str, float]]` | LN20: `dict[str, set[str]]` for unweighted |
 | `heapq` (binary heap = tree) | Trees in CS |
 | `graphlib.TopologicalSorter` | Directed graphs, DAGs |
 | MST algorithms and tree building | LN21: connectivity, LN22: $K_n$ |
-| $\chi(K_n) = n$, $\chi(\text{bipartite}) = 2$ | LN22: complete graphs, bipartite graphs |
+| <InlineMath formula="\chi(K_n) = n" />, <InlineMath formula="\chi(\text{bipartite}) = 2" /> | LN22: complete graphs, bipartite graphs |
 | k-partite ↔ k-colorable | LN22: k-partite graphs |
 | Constraint puzzles ↔ graph coloring | LN22: eight circles puzzle |
 
@@ -722,6 +731,13 @@ These three directions — planarity, coloring, and flows — connect to circuit
 - [Wikipedia: Tree (Graph Theory)](https://en.wikipedia.org/wiki/Tree_(graph_theory)) — Properties, counting, and applications
 - [Wikipedia: Minimum Spanning Tree](https://en.wikipedia.org/wiki/Minimum_spanning_tree) — Algorithms and history
 - [Wikipedia: Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) — The café in Amsterdam story
+
+### Historical Context
+
+- **Arthur Cayley (1821–1895)** — Proved that the number of labeled trees on <InlineMath formula="n" /> vertices is <InlineMath formula="n^{n-2}" /> (1889), motivated by counting hydrocarbon isomers
+- **Otakar Borůvka (1899–1995)** — Developed the first MST algorithm (1926) to electrify Moravia; lived to see it rediscovered for parallel computing
+- **Edsger Dijkstra (1930–2002)** — Designed the shortest path algorithm at a café in Amsterdam (1956); Turing Award winner (1972) and pioneer of structured programming
+- **Kenneth Appel (1932–2013)** and **Wolfgang Haken (1928–2022)** — Proved the four-color theorem with computer assistance (1976), the first major computer-aided proof
 
 ### Connection to Programming
 
