@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { waitForMathJax, MathShimmer } from "@/components/math"
 
 interface AnnotatedLine {
   code: string
@@ -19,19 +20,6 @@ interface HoareStep {
 interface HoareTripleStepperProps {
   title?: string
   steps: HoareStep[]
-}
-
-function waitForMathJax(): Promise<void> {
-  return new Promise((resolve) => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.MathJax?.typesetPromise) {
-        resolve()
-      } else {
-        setTimeout(check, 100)
-      }
-    }
-    check()
-  })
 }
 
 function RulePanel({ rule }: { rule: string }) {
@@ -54,12 +42,17 @@ function RulePanel({ rule }: { rule: string }) {
   }, [rule])
 
   return (
-    <div
-      ref={ref}
-      className="overflow-x-auto text-center w-full transition-opacity duration-200"
-      style={{ opacity: rendered ? 1 : 0.3 }}
-    >
-      {`$$${rule}$$`}
+    <div className="relative overflow-x-auto text-center w-full">
+      {!rendered && <MathShimmer block />}
+      <div
+        ref={ref}
+        style={{
+          visibility: rendered ? "visible" : "hidden",
+          position: rendered ? "static" : "absolute",
+        }}
+      >
+        {`$$${rule}$$`}
+      </div>
     </div>
   )
 }

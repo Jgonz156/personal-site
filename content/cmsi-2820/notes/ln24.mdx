@@ -1,0 +1,321 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { CourseSymbolExplorer } from "@/components/course-symbol-explorer"
+import { VonNeumannStepper } from "@/components/von-neumann-stepper"
+import { KuratowskiStepper } from "@/components/kuratowski-stepper"
+import { SetDecompositionStepper } from "@/components/set-decomposition-stepper"
+import { ZFCAxiomExplorer } from "@/components/zfc-axiom-explorer"
+
+## Recap
+
+Over the past 23 lectures, we have traversed the full landscape of discrete mathematics — from logic and propositions, through numbers and Boolean algebra, into collections and relations, out through the lambda calculus and function properties, across combinatorics and proof techniques, and finally into graph theory with trees, shortest paths, and minimum spanning trees.
+
+Today we tie it all together. We begin with a comprehensive recap of everything we have covered, presented in pure symbology — proving to you that you can read it all without help. We then look at an alternative foundation for mathematics: **set theory**. And we close with a philosophical question about what mathematics actually rests on.
+
+## Today's Agenda
+
+- **The Grand Symbol Recap** — every concept from the entire course, in symbols
+- **The Pattern** — the meta-structure that unifies every topic
+- **The Big Takeaway** — a new way to learn anything
+- **Set Theory as Foundation** — rebuilding numbers, tuples, and functions from pure sets
+- **What Are Axioms?** — the rules of the game that cannot be proven
+- **The Faith Conclusion** — mathematics rests on choices
+
+---
+
+## The Grand Symbol Recap
+
+Below is an interactive explorer containing everything we covered this semester. Each block follows the same core structure: **Type → Instances → Operators** — and some blocks extend further with **Properties**, **Behaviors**, or **Families**. Step through each block and watch the pattern emerge.
+
+The point of this exercise is not to review every detail — it is to prove to yourself that you can read all of this notation without assistance. You have internalized a formal language. Let's see how much.
+
+<CourseSymbolExplorer />
+
+Click through all seven blocks. Then open the **"The Pattern"** tab to see the punchline.
+
+---
+
+## The Pattern
+
+After seeing all seven blocks, something should feel familiar. Every single block followed the exact same core structure:
+
+1. A **type** — a kind of thing
+2. **Instances** — inhabitants of that type
+3. **Operators** — interactions between instances
+4. Sometimes further layers — **Properties** (Functions), **Behaviors** (Combinatorics), or **Families** (Graphs) — that deepen the structure
+
+Written compactly, every idea we encountered looks like:
+
+<DisplayMath formula="A \;\text{ with }\; a : A \;\text{ and operators }\; {\sim} : (A, \ldots) \to \ldots" />
+
+Logic had propositions with truth values and connectives. Numbers had integers with zero and arithmetic. Collections had sets with elements and operations. Functions had lambdas with reductions and properties like injectivity. Combinatorics had counting problems with formulas and proof behaviors. Graphs had vertices-and-edges with operations and named families.
+
+The same skeleton, every time.
+
+| Block | Type | Instances | Operators | Extended |
+| :--- | :--- | :--- | :--- | :--- |
+| Logic | Propositions | ⊤, ⊥, T, F | ∧, ∨, →, ¬, ≡, ∀, ∃ | |
+| Booleans | <InlineMath formula="\mathbb{B}" /> | 0, 1 | +, ×, negation, ≡ | Isomorphism to Logic |
+| Numbers | <InlineMath formula="\mathbb{N}, \mathbb{Z}, \mathbb{Q}, \mathbb{R}" /> | 0, 1, -1, ... | +, -, ×, ÷, %, \|, ⌊⌋, ⌈⌉, <InlineMath formula="\equiv_m" /> | |
+| Collections | (...) and <InlineMath formula="\{\ldots\}" /> | (1,2,3), <InlineMath formula="\{1,2,3\}" />, ∅ | ∪, ∩, ∈, ⊆, ⊂, =, <InlineMath formula="\overline{A}" />, ∖, △, ×, <InlineMath formula="\mathcal{P}(A)" />, \|A\| | |
+| Functions | λ . | λx.x, λx.x+1 | α, β, η, FV, BV, [.../...] | Properties (dom, cod, inj, ...) |
+| Combinatorics | Enum, Exist, Construct, Optim | Sets of sets, sets of tuples | n!, P(n,k), C(n,k) | Behaviors (Σ-Rule, Pigeonhole, ...) |
+| Graphs | G = (V, E) | G, <InlineMath formula="\vec{G}" />, walks | ∪, ∩, ∖, <InlineMath formula="\overline{G}" />, ≅, v-cleave, e-contract | Families (<InlineMath formula="K_n" />, Trees, MST) |
+
+> **Key Insight:** At no point during the course did I tell you we were following this pattern. You discovered it implicitly by encountering it seven times. Each new topic introduced types, populated them with instances, defined how those instances interact, and sometimes added deeper layers of structure. This was the hidden curriculum all along.
+
+---
+
+## The Big Takeaway
+
+This is a new way to learn.
+
+Entering any unfamiliar field — a new programming language, a new branch of mathematics, a new scientific discipline? Here is your mechanical procedure:
+
+1. **Find the primitives** — what are the *types* of things in this field?
+2. **Find the inhabitants** — what are the specific *instances* of those types?
+3. **Find the interactions** — what *operations* or *relationships* exist between instances?
+
+Once you decompose any new topic into this structure, you have a mental framework for organizing everything you learn. You already did this seven times this semester without being told to. Now you know you are doing it.
+
+> This is the real skill of this course. The logic, the sets, the graphs — those are tools. The ability to break any new domain into types, instances, and operators — that is the meta-tool.
+
+---
+
+**The course is officially over.** Everything you need for exams, homeworks, and grades has been covered. From this point forward, we explore interesting topics that will not be graded — consider it a preview of your future in computer science.
+
+---
+
+## Set Theory as an Alternative Foundation
+
+Throughout this course, we used **type theory** as our foundation. Types gave us a clean way to classify objects, and the type signature <InlineMath formula="f : A \to B" /> gave us a precise way to talk about functions. But type theory is not the only option.
+
+What if we could build *everything* from a single construction? What if numbers, tuples, functions — all of it — were secretly just **sets**?
+
+> As your professor, I need to prove to you that this is possible. All I need to show is that numbers, collections, and functions can be constructed from just sets alone — then everything we have seen in this course falls out naturally via the same patterns between those constructions.
+
+### Numbers from Sets — Von Neumann Ordinals
+
+We need to build the natural numbers 0, 1, 2, 3, ... using nothing but sets. The construction, due to **John von Neumann**, is beautifully recursive:
+
+<DefinitionBox term="Von Neumann Ordinals">
+
+Define the natural numbers as:
+
+- <InlineMath formula="0 = \emptyset = \{\}" />
+- <InlineMath formula="1 = \{0\} = \{\emptyset\}" />
+- <InlineMath formula="2 = \{0, 1\} = \{\emptyset, \{\emptyset\}\}" />
+- <InlineMath formula="3 = \{0, 1, 2\} = \{\emptyset, \{\emptyset\}, \{\emptyset, \{\emptyset\}\}\}" />
+
+In general: <InlineMath formula="n = \{0, 1, 2, \ldots, n-1\}" />
+
+</DefinitionBox>
+
+Each number *is* the set of all numbers before it. The number 3 literally contains 0, 1, and 2 as elements. Notice that <InlineMath formula="|n| = n" /> — the cardinality of the number equals the number itself. The **successor function** <InlineMath formula="S(n) = n \cup \{n\}" /> generates each number from the previous one. Step through the construction below:
+
+<VonNeumannStepper />
+
+Addition, multiplication, and all arithmetic can be built on top of the successor function through recursion.
+
+### Tuples from Sets — Kuratowski Pairs
+
+Tuples require ordered pairs — but sets are unordered. How do we recover ordering from sets?
+
+<DefinitionBox term="Kuratowski Pair">
+
+The **ordered pair** <InlineMath formula="(a, b)" /> is defined as:
+
+<DisplayMath formula="(a, b) = \{\{a\}, \{a, b\}\}" />
+
+</DefinitionBox>
+
+Step through the construction below to see why this works — and why it recovers ordering from an unordered construction:
+
+<KuratowskiStepper />
+
+### Functions from Sets
+
+With ordered pairs in hand, we can define functions as sets of pairs:
+
+<DefinitionBox term="Function (Set-Theoretic)">
+
+A **function** <InlineMath formula="f : A \to B" /> is a set of ordered pairs <InlineMath formula="f \subseteq A \times B" /> such that for every <InlineMath formula="a \in A" />, there exists exactly one <InlineMath formula="b \in B" /> with <InlineMath formula="(a, b) \in f" />.
+
+</DefinitionBox>
+
+But how far does this go? Let's take a familiar function — <InlineMath formula="\lambda x.\, x + 1" /> on <InlineMath formula="\{0, 1, 2\}" /> — and decompose it step by step into nothing but sets. First the function becomes pairs, then the pairs become Kuratowski sets, then the numbers become Von Neumann ordinals, until everything is just curly braces:
+
+<SetDecompositionStepper />
+
+> **Key Insight:** Everything is sets. Numbers are sets of sets. Tuples are sets of sets of sets. Functions are sets of tuples, which are sets of sets of sets of sets. It is sets all the way down.
+
+---
+
+## Why Set Theory?
+
+Why would mathematicians choose to rebuild everything from sets when type theory works just fine?
+
+| Criterion | Type Theory | Set Theory |
+| :--- | :--- | :--- |
+| **Primitives** | Multiple types, each with own rules | One construction: sets |
+| **Consistency** | Checked per type | Checked once for the whole system |
+| **Portability** | Tied to specific type definitions | Swap axioms, get different math |
+| **CS Analogy** | Statically typed language (Haskell, Rust) | Dynamically typed language (Python) |
+
+Three key advantages of set theory:
+
+1. **Economy** — everything is a single construction. You only need to understand sets and set membership.
+2. **Consistency** — because everything is sets, you only need to verify one system for contradictions, not many separate type systems.
+3. **Portability** — the behavior of sets is determined by the axioms you choose. Change the axioms and you get a different mathematics. This makes set theory a *meta-framework* for building mathematical systems.
+
+In Python terms: type theory is like a language with many built-in types (`int`, `str`, `list`, `dict`), each with its own operations. Set theory is like a language with only one type (`set`) — and everything else is built by nesting sets within sets. Both work. The question is which foundation you prefer.
+
+---
+
+## What Are Axioms?
+
+We said that set theory defines all its behavior through axioms. But what is an axiom?
+
+<DefinitionBox term="Axiom">
+
+An **axiom** is a statement accepted as true without proof. Axioms serve as the starting rules of a mathematical system — the assumptions from which all theorems are derived.
+
+</DefinitionBox>
+
+You cannot prove axioms. That is the point. They are the foundation that everything else rests on. If you tried to prove an axiom, you would need to derive it from something more fundamental — but then *that* would be the axiom.
+
+> **Side Note:** This might feel unsettling. Mathematics is supposed to be the most rigorous discipline — the one where everything is proven. And yet its very foundation consists of statements we simply *choose* to accept. We will return to this tension shortly.
+
+### The ZFC Axioms
+
+The most widely used axiom system for set theory is **ZFC** — Zermelo–Fraenkel set theory with the Axiom of Choice. Here are its nine axioms. Click any axiom to reveal its formal first-order logic definition:
+
+<ZFCAxiomExplorer />
+
+These nine statements — none of which are proven — generate all of mathematics. Every theorem in algebra, analysis, geometry, combinatorics, and graph theory can be derived from these axioms plus the rules of logic.
+
+> **Historical Note:** **Ernst Zermelo (1871–1953)** published the first axiomatization of set theory in 1908 to address paradoxes like Russell's Paradox (the set of all sets that do not contain themselves — does it contain itself?). **Abraham Fraenkel (1891–1965)** refined the system in the 1920s. The Axiom of Choice, added by Zermelo, remains the most debated axiom — it asserts the existence of a selection function without constructing one, making it non-constructive.
+
+---
+
+## The "Faith" Conclusion
+
+Here is the philosophical punchline of this lecture — and perhaps of the entire course.
+
+Mathematics is built on axioms we *choose* to accept. We cannot prove the axioms themselves. All of mathematics ultimately rests on a decision to trust certain starting points.
+
+This is not a weakness. It is what makes mathematics *flexible*.
+
+<DisplayMath formula="\text{Axioms} \xrightarrow{\text{logical deduction}} \text{Theorems}" />
+
+Different axiom choices produce different mathematical systems:
+
+| Choice | Consequence |
+| :--- | :--- |
+| Accept the Axiom of Choice | Banach–Tarski paradox (decompose a sphere into pieces, reassemble into two spheres) |
+| Reject the Axiom of Choice | Certain existence theorems fail; some constructions become impossible |
+| Accept the Law of Excluded Middle | Classical logic; every statement is true or false |
+| Reject the Law of Excluded Middle | Intuitionistic logic (LN1); constructive proofs required |
+
+> **Key Insight:** In LN1, we started with intuitionism — a logic that *rejects* the law of excluded middle. Classical logic *accepts* it. Both are valid mathematical systems. The difference is a choice of axiom. You have been living in the space between these two foundations since day one of this course.
+
+So all of mathematics is, at its deepest level, based on **faith** — a deliberate choice to accept certain starting points as given. This is not so different from how we build software: every program rests on assumptions about the operating system, the hardware, and the language runtime. We trust those foundations and build upward.
+
+The axioms are our `import` statements for all of mathematics.
+
+```python
+from axioms import extensionality, empty_set, pairing, union
+from axioms import power_set, infinity, replacement, foundation, choice
+```
+
+Everything else is derived.
+
+---
+
+## Coming Up Next
+
+Next lecture we complete our proof technique toolkit by introducing two powerful methods: **proof by contradiction** (assume the opposite, derive an impossibility) and **mathematical induction** (the domino principle for proving statements about all natural numbers). These two techniques, combined with the bijective proofs and double counting we learned in LN18-19, cover the vast majority of mathematical arguments you will encounter in your CS career.
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**The Grand Recap — The Meta-Pattern:**
+
+- Every topic in discrete mathematics follows: **Type → Instances → Operators** (and sometimes Properties, Behaviors, or Families)
+- Compactly: $A$ with $a : A$ and operators $\sim : (A, \ldots) \to \ldots$
+- This pattern was the hidden curriculum: logic, numbers, collections, functions, combinatorics, and graphs all followed it
+- Some blocks extend with deeper layers: function properties, combinatorial behaviors, graph families
+- The meta-skill: decompose any unfamiliar field into this structure to organize your learning
+
+**Set Theory as Foundation:**
+
+- Von Neumann ordinals: $0 = \emptyset$, $n = \{0, 1, \ldots, n-1\}$, successor $S(n) = n \cup \{n\}$
+- Kuratowski pairs: $(a, b) = \{\{a\}, \{a, b\}\}$ — recovers ordering from unordered sets
+- Functions as sets: $f \subseteq A \times B$ with uniqueness — everything reduces to set membership
+- Economy: one construction (sets) replaces many (types, tuples, functions)
+
+**Axioms and ZFC:**
+
+- Axioms are statements accepted without proof — the starting rules of the game
+- ZFC: 9 axioms (Extensionality, Empty Set, Pairing, Union, Power Set, Infinity, Replacement, Foundation, Choice)
+- All of mathematics derives from these unproven starting points
+- Different axiom choices produce different mathematical systems
+
+**The Faith Conclusion:**
+
+- Mathematics rests on choices — axioms we accept without proof
+- Rejecting the Axiom of Choice or the Law of Excluded Middle produces valid but different mathematics
+- This flexibility is a feature: it allows mathematics to model any system
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| Logic recap (∧, ∨, →, ¬, ≡, ∀, ∃) | LN1–3: propositions and connectives |
+| Boolean algebra isomorphism | LN5: 0/1 ≡ F/T |
+| Set operations recap (∪, ∩, ⊆) | LN9–10: set theory |
+| Lambda calculus recap (α, β, η) | LN12–14: lambda calculus |
+| Functions as sets of ordered pairs | LN15: domain, codomain, injectivity |
+| Counting = cardinality recap | LN16–19: combinatorics |
+| Graph theory recap (V, E, MST) | LN20–23: graph theory |
+| Intuitionistic vs classical logic | LN1: intuitionism as foundation |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Numberphile: "Infinity is bigger than you think"](https://www.youtube.com/watch?v=elvOZm0d4H0) — Cantor's diagonal argument and the sizes of infinity
+- [3Blue1Brown: "What does it feel like to invent math?"](https://www.youtube.com/watch?v=XFDM1ip5HdU) — The creative process behind formal mathematics
+
+### Further Reading
+
+- [Wikipedia: Zermelo–Fraenkel set theory](https://en.wikipedia.org/wiki/Zermelo%E2%80%93Fraenkel_set_theory) — The full ZFC axiom system
+- [Wikipedia: Von Neumann ordinal](https://en.wikipedia.org/wiki/Von_Neumann_ordinal) — Constructing numbers from sets
+- [Wikipedia: Kuratowski pair](https://en.wikipedia.org/wiki/Ordered_pair#Kuratowski's_definition) — The ordered pair construction
+- [Wikipedia: Axiom of Choice](https://en.wikipedia.org/wiki/Axiom_of_choice) — The most debated axiom in mathematics
+
+### Historical Context
+
+- **Georg Cantor (1845–1918)** — Founded set theory to study the sizes of infinity; his work was initially controversial but became foundational
+- **Ernst Zermelo (1871–1953)** — Published the first axiomatization of set theory (1908) to resolve paradoxes like Russell's Paradox
+- **Abraham Fraenkel (1891–1965)** — Refined Zermelo's axioms into the modern ZFC system
+- **John von Neumann (1903–1957)** — Invented the ordinal construction for natural numbers; also contributed to quantum mechanics, game theory, and computer architecture
+- **Kazimierz Kuratowski (1896–1980)** — Defined the ordered pair construction that bears his name
+
+### Connection to Programming
+
+- Python's `set` type implements many ZFC-like operations: `|` (union), `&` (intersection), `-` (difference), `<=` (subset)
+- The Axiom of Extensionality is Python's `set.__eq__`: two sets are equal iff they have the same elements
+- Type systems in languages like Haskell and Rust formalize the type theory approach; Python's dynamic typing is closer to set theory's "everything is one type"
+- The `frozenset` type in Python corresponds to the set-theoretic requirement that set elements must be "well-founded" (no set contains itself)
+
+</LectureResources>

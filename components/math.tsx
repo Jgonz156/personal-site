@@ -26,7 +26,7 @@ declare global {
 /**
  * Wait for MathJax to be fully loaded and ready
  */
-function waitForMathJax(): Promise<void> {
+export function waitForMathJax(): Promise<void> {
   return new Promise((resolve) => {
     const check = () => {
       if (typeof window !== "undefined" && window.MathJax?.typesetPromise) {
@@ -40,9 +40,25 @@ function waitForMathJax(): Promise<void> {
 }
 
 /**
+ * Shimmer placeholder shown while MathJax renders client-side.
+ */
+export function MathShimmer({ block = false }: { block?: boolean }) {
+  if (block) {
+    return (
+      <div className="my-4 flex justify-center">
+        <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+      </div>
+    )
+  }
+  return (
+    <span className="inline-block h-4 w-16 rounded bg-muted animate-pulse align-middle" />
+  )
+}
+
+/**
  * DisplayMath component for block-level math equations.
  * Usage: <DisplayMath formula="\frac{A}{B}" />
- * 
+ *
  * The formula prop is a string, so MDX won't try to parse curly braces as JSX.
  * This component uses MathJax to render the formula client-side.
  */
@@ -52,10 +68,9 @@ export function DisplayMath({ formula }: DisplayMathProps) {
 
   useEffect(() => {
     let mounted = true
-    
+
     waitForMathJax().then(() => {
       if (mounted && ref.current && window.MathJax?.typesetPromise) {
-        // Clear any previous MathJax output
         window.MathJax.typesetPromise([ref.current]).then(() => {
           if (mounted) setRendered(true)
         })
@@ -66,12 +81,17 @@ export function DisplayMath({ formula }: DisplayMathProps) {
   }, [formula])
 
   return (
-    <div 
-      ref={ref} 
-      className="my-4 overflow-x-auto text-center"
-      style={{ opacity: rendered ? 1 : 0.5 }}
-    >
-      {`$$${formula}$$`}
+    <div className="relative my-4 overflow-x-auto text-center">
+      {!rendered && <MathShimmer block />}
+      <div
+        ref={ref}
+        style={{
+          visibility: rendered ? "visible" : "hidden",
+          position: rendered ? "static" : "absolute",
+        }}
+      >
+        {`$$${formula}$$`}
+      </div>
     </div>
   )
 }
@@ -86,7 +106,7 @@ export function InlineMath({ formula }: InlineMathProps) {
 
   useEffect(() => {
     let mounted = true
-    
+
     waitForMathJax().then(() => {
       if (mounted && ref.current && window.MathJax?.typesetPromise) {
         window.MathJax.typesetPromise([ref.current]).then(() => {
@@ -99,11 +119,17 @@ export function InlineMath({ formula }: InlineMathProps) {
   }, [formula])
 
   return (
-    <span 
-      ref={ref}
-      style={{ opacity: rendered ? 1 : 0.5 }}
-    >
-      {`$${formula}$`}
+    <span className="relative">
+      {!rendered && <MathShimmer />}
+      <span
+        ref={ref}
+        style={{
+          visibility: rendered ? "visible" : "hidden",
+          position: rendered ? "static" : "absolute",
+        }}
+      >
+        {`$${formula}$`}
+      </span>
     </span>
   )
 }

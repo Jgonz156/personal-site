@@ -1,0 +1,363 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { FiniteAutomatonRunner } from "@/components/finite-automaton-runner"
+import { SQLSetVisualizer } from "@/components/sql-set-visualizer"
+import { TraversalExplorer } from "@/components/traversal-explorer"
+import { GateExplorer } from "@/components/gate-explorer"
+import { RSAStepper } from "@/components/rsa-stepper"
+
+## Recap
+
+Last lecture we completed our proof technique toolkit by adding **proof by contradiction** (assume the opposite, derive impossibility), **mathematical induction** (base case plus domino step), and **reducibility** (translate a problem into another domain). Combined with direct proofs, exhaustion, double counting, bijective proofs, and the pigeonhole principle, we now have eight proof techniques that cover virtually every mathematical argument in CS.
+
+Today begins a two-lecture tour of where all this material shows up in your future. We connect discrete mathematics directly to the courses in the [LMU CS curriculum](https://sites.google.com/view/lmucs/curriculum) — showing you that the toolkit you just built IS the foundation of nearly every course you will take next.
+
+## Today's Agenda
+
+- **Algorithms and Data Structures** — CMSI 2130 and graph algorithms from LN20–23
+- **Languages and Automata** — CMSI 3801/3802 and the lambda calculus from LN12–14
+- **Databases** — CMSI 3520 and set operations from LN9–10
+- **Digital Systems** — EECE 2242 and Boolean algebra from LN5
+- **Cryptography** — modular arithmetic from LN7 in the wild
+
+---
+
+## Algorithms and Data Structures — CMSI 2130
+
+**CMSI 2130 (Algorithms and Analysis)** is part of Computing Foundations — every CS major takes it. You will likely take it concurrently with or right after this course.
+
+The connection is direct: the graph algorithms from LN20–23 are literally the content of an algorithms course. Breadth-first search, depth-first search, Dijkstra's shortest path, Kruskal's and Prim's MST algorithms — you have already seen them.
+
+### BFS vs DFS
+
+The two most fundamental graph traversal algorithms differ only in their data structure:
+
+| Property | BFS | DFS |
+| :--- | :--- | :--- |
+| Data structure | Queue (FIFO) | Stack (LIFO) |
+| Exploration pattern | Layer by layer | Deep before wide |
+| Shortest path? | Yes (unweighted) | No |
+| Memory | Proportional to width | Proportional to depth |
+
+Step through both algorithms on the same graph. Switch tabs to see how one line of code — `queue.popleft()` vs `stack.pop()` — changes the entire traversal order:
+
+<TraversalExplorer />
+
+In Python, the implementations are nearly identical:
+
+```python
+from collections import deque
+
+def bfs(graph, start):
+    visited = set()
+    queue = deque([start])
+    order = []
+    while queue:
+        node = queue.popleft()   # FIFO — take from front
+        if node not in visited:
+            visited.add(node)
+            order.append(node)
+            for neighbor in graph[node]:
+                if neighbor not in visited:
+                    queue.append(neighbor)
+    return order
+
+def dfs(graph, start):
+    visited = set()
+    stack = [start]
+    order = []
+    while stack:
+        node = stack.pop()       # LIFO — take from top
+        if node not in visited:
+            visited.add(node)
+            order.append(node)
+            for neighbor in graph[node]:
+                if neighbor not in visited:
+                    stack.append(neighbor)
+    return order
+```
+
+> **Key Insight:** In CMSI 2130, you will analyze the *complexity* of these algorithms. BFS and DFS both run in <InlineMath formula="O(|V| + |E|)" /> time — the combinatorics from LN16–17 (counting operations) and the induction from LN25 (proving correctness) are the tools you will use.
+
+### Sorting and Combinatorics
+
+Sorting algorithm analysis uses the same "decaying options" pattern from LN17. Merge sort divides $n$ elements into halves, recursing <InlineMath formula="\log_2 n" /> times — its <InlineMath formula="O(n \log n)" /> complexity is proved by induction. The lower bound (no comparison sort can do better) is proved by contradiction — exactly the technique from LN25.
+
+---
+
+## Languages and Automata — CMSI 3801 / 3802
+
+**CMSI 3801 and 3802 (Languages and Automata 1 & 2)** are required for all CS majors. They extend the lambda calculus from LN12–14 into a full theory of what computers can and cannot do.
+
+### Finite Automata Are Directed Graphs
+
+A finite automaton is a directed graph where nodes are **states**, edges are **transitions** labeled with input characters, and certain states are marked as **accepting**. The machine reads an input string character by character, following transitions. If it ends in an accept state, the string is accepted.
+
+<FiniteAutomatonRunner
+  title="DFA: Accepts strings ending in '01'"
+  states={[
+    { id: "q0", label: "q₀", isStart: true, x: 80, y: 100 },
+    { id: "q1", label: "q₁", x: 250, y: 100 },
+    { id: "q2", label: "q₂", isAccept: true, x: 420, y: 100 }
+  ]}
+  transitions={[
+    { from: "q0", to: "q0", label: "1" },
+    { from: "q0", to: "q1", label: "0" },
+    { from: "q1", to: "q1", label: "0" },
+    { from: "q1", to: "q2", label: "1" },
+    { from: "q2", to: "q1", label: "0" },
+    { from: "q2", to: "q0", label: "1" }
+  ]}
+/>
+
+Try typing strings like `01`, `101`, `001`, `11`, or `100`. The machine accepts exactly those strings that end with the substring `01`.
+
+This is literally a directed graph from LN20 with labeled edges. States are vertices. Transitions are directed edges. The "accepting" property is a vertex label. Everything you learned about graph structure applies directly.
+
+<FiniteAutomatonRunner
+  title="DFA: Accepts strings with an even number of 1s"
+  states={[
+    { id: "even", label: "even", isStart: true, isAccept: true, x: 150, y: 100 },
+    { id: "odd", label: "odd", x: 350, y: 100 }
+  ]}
+  transitions={[
+    { from: "even", to: "even", label: "0" },
+    { from: "even", to: "odd", label: "1" },
+    { from: "odd", to: "odd", label: "0" },
+    { from: "odd", to: "even", label: "1" }
+  ]}
+/>
+
+Try `0`, `1`, `11`, `101`, `110`, `1001`. This two-state machine tracks the parity of 1s — it is essentially modular arithmetic (LN7) built into a graph.
+
+### Lambda Calculus → Computability
+
+In LN12–14, we learned the lambda calculus. In CMSI 3801/3802, you will learn that Alonzo Church proved that lambda calculus can compute *everything* that is computable. Alan Turing independently proved the same thing for his Turing machines. The **Church–Turing thesis** states these are equivalent — what lambdas can compute, machines can compute, and vice versa.
+
+The halting problem (LN25's contradiction proof) is proved in this course: no program can decide whether arbitrary programs terminate. This impossibility result is the cornerstone of theoretical CS.
+
+> **Side Note:** For graduate students, **CMSI 583 (Computability and Complexity)** goes deeper — studying which problems are efficiently solvable and which are inherently hard. **CMSI 585 (Programming Language Foundations)** continues the type theory and lambda calculus thread from LN4–5 and LN12–14, formalizing type systems and proving programming languages correct.
+
+---
+
+## Databases — CMSI 3520
+
+**CMSI 3520 (Database Systems)** is one of the Systems and Architecture elective options. If you enjoyed LN9–11 (sets, operations, relations), databases are the direct application.
+
+### Relational Algebra IS Set Operations
+
+A relational database stores data in **tables** (also called **relations** — the same term from LN11). SQL queries are syntactic sugar for set operations:
+
+| SQL | Set Operation | LN Reference |
+| :--- | :--- | :--- |
+| `SELECT ... WHERE` | Set comprehension / filter | LN10: set-builder notation |
+| `UNION` | <InlineMath formula="A \cup B" /> | LN10: set union |
+| `INTERSECT` | <InlineMath formula="A \cap B" /> | LN10: set intersection |
+| `EXCEPT` | <InlineMath formula="A \setminus B" /> | LN10: set difference |
+| `JOIN` | <InlineMath formula="A \times B" /> followed by filter | LN10: Cartesian product |
+
+<SQLSetVisualizer
+  tableA={{
+    name: "Students",
+    columns: ["id", "name", "major"],
+    rows: [
+      ["1", "Alice", "CS"],
+      ["2", "Bob", "Math"],
+      ["3", "Carol", "CS"],
+      ["4", "Dave", "Physics"]
+    ]
+  }}
+  tableB={{
+    name: "Enrolled",
+    columns: ["student_id", "course"],
+    rows: [
+      ["1", "CMSI 2820"],
+      ["1", "CMSI 2130"],
+      ["3", "CMSI 2820"],
+      ["5", "MATH 132"]
+    ]
+  }}
+  queries={[
+    {
+      label: "WHERE (Filter)",
+      sql: "SELECT * FROM Students\nWHERE major = 'CS'",
+      setNotation: "{ s ∈ Students | s.major = 'CS' }",
+      description: "Filter is set comprehension — select elements satisfying a predicate. This is the set-builder notation from LN10.",
+      resultRows: [["1", "Alice", "CS"], ["3", "Carol", "CS"]],
+      highlightA: [0, 2]
+    },
+    {
+      label: "JOIN",
+      sql: "SELECT s.name, e.course\nFROM Students s\nJOIN Enrolled e\n  ON s.id = e.student_id",
+      setNotation: "{ (s.name, e.course) |\n  (s,e) ∈ Students × Enrolled,\n  s.id = e.student_id }",
+      description: "JOIN is Cartesian product (LN10) followed by filtering on a condition. Every pair is checked, and matching pairs are kept.",
+      resultRows: [["Alice", "CMSI 2820"], ["Alice", "CMSI 2130"], ["Carol", "CMSI 2820"]],
+      highlightA: [0, 2],
+      highlightB: [0, 1, 2]
+    },
+    {
+      label: "INTERSECT",
+      sql: "SELECT student_id FROM Enrolled\n  WHERE course = 'CMSI 2820'\nINTERSECT\nSELECT id FROM Students\n  WHERE major = 'CS'",
+      setNotation: "{ e.student_id | e.course = '2820' }\n  ∩\n{ s.id | s.major = 'CS' }",
+      description: "INTERSECT is set intersection (LN10) — elements in both result sets.",
+      resultRows: [["1"], ["3"]],
+      highlightA: [0, 2],
+      highlightB: [0, 2]
+    }
+  ]}
+/>
+
+> **Key Insight:** When you write SQL, you are writing set operations. The database engine optimizes them — deciding whether to compute the Cartesian product first or filter first, which join algorithm to use, which indexes to leverage. But the *semantics* — what the query *means* — is pure set theory from LN9–10.
+
+```python
+students = {
+    (1, "Alice", "CS"), (2, "Bob", "Math"),
+    (3, "Carol", "CS"), (4, "Dave", "Physics")
+}
+
+cs_students = {s for s in students if s[2] == "CS"}
+```
+
+Python's set comprehension IS the WHERE clause. The curly braces, the `for ... in`, the `if` condition — this is set-builder notation in Python syntax.
+
+---
+
+## Digital Systems — EECE 2242
+
+**EECE 2242 (Logic and Computer Design)** is required for all CS majors. It takes the Boolean algebra from LN5 and builds physical computers from it.
+
+### Boolean Algebra IS Digital Logic
+
+In LN5, we investigated the Booleans algebraically: <InlineMath formula="\mathbb{B} = \{0, 1\}" /> with addition (+), multiplication (×), and negation. In LN24's grand recap, we highlighted the isomorphism between Boolean algebra and classical logic.
+
+In EECE 2242, that isomorphism becomes *physical*:
+
+| Boolean Algebra (LN5) | Logic Gate | Physical Implementation |
+| :--- | :--- | :--- |
+| <InlineMath formula="a \times b" /> (multiplication) | AND gate | Transistors in series |
+| <InlineMath formula="a + b" /> (addition) | OR gate | Transistors in parallel |
+| <InlineMath formula="\overline{a}" /> (negation) | NOT gate | Inverter circuit |
+| <InlineMath formula="a \times b + \overline{a} \times c" /> | Combinational circuit | Wired gates |
+
+Truth tables from LN2 become **circuit truth tables**. The same truth table you filled in for <InlineMath formula="P \land Q" /> is the specification for an AND gate. Boolean algebra simplification (DeMorgan's laws, distribution, absorption) is used to minimize the number of gates — fewer gates means cheaper, faster hardware.
+
+Explore each gate and its truth table below. The DeMorgan tab demonstrates that <InlineMath formula="\overline{a \times b} = \overline{a} + \overline{b}" /> — hover over rows to trace each input combination through the circuit:
+
+<GateExplorer />
+
+> **Historical Note:** **George Boole (1815–1864)** invented Boolean algebra in 1854 as a way to formalize logic. It was purely theoretical for nearly a century. In 1937, **Claude Shannon** showed in his master's thesis that Boolean algebra could describe electrical switching circuits — connecting abstract math to physical engineering. Every computer ever built runs on Shannon's insight.
+
+---
+
+## Cryptography — A Preview
+
+While LMU does not have a dedicated cryptography course, these ideas appear in **CMSI 3550 (Networks and Internets)** and in graduate electives.
+
+### RSA and Modular Arithmetic
+
+The RSA encryption algorithm — the foundation of secure internet communication — is built entirely on modular arithmetic from LN7.
+
+Step through the algorithm with small numbers to see every piece of modular arithmetic in action. Then try encrypting your own message:
+
+<RSAStepper />
+
+The security relies on the computational difficulty of **factoring** $n$ back into $p$ and $q$. For small numbers, factoring is easy. For 2048-bit numbers (the current standard), factoring is computationally intractable — a combinatorial explosion argument from LN17.
+
+> Every time you visit a website with `https://`, RSA (or its successor, elliptic curve cryptography) is protecting your data using the modular arithmetic you learned in LN7.
+
+---
+
+## Coming Up Next
+
+Next lecture we complete our tour by connecting discrete mathematics to the exciting **application domains** of computer science — artificial intelligence, game development, and systems architecture. We will explore how graph search powers AI, how pathfinding uses Dijkstra, and how the three elective groups in the LMU curriculum all rest on the discrete math foundation you have built.
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Algorithms — CMSI 2130:**
+
+- BFS and DFS are graph traversals from LN20, differing only in queue vs stack
+- Both run in <InlineMath formula="O(|V| + |E|)" /> — analyzed with combinatorics and induction
+- Dijkstra's correctness is proved by induction on settled vertices
+- Sorting lower bounds are proved by contradiction
+
+**Languages and Automata — CMSI 3801/3802:**
+
+- Finite automata are directed graphs with labeled edges (LN20)
+- Lambda calculus (LN12–14) is the foundation of computability theory
+- Church–Turing thesis: lambdas and machines compute the same things
+- The halting problem (LN25) is proved by contradiction
+
+**Databases — CMSI 3520:**
+
+- Relational algebra IS set operations from LN9–10
+- SELECT/WHERE = set comprehension, UNION = ∪, INTERSECT = ∩, EXCEPT = ∖
+- JOIN = Cartesian product + filter
+- Python set comprehensions mirror SQL semantics exactly
+
+**Digital Systems — EECE 2242:**
+
+- Boolean algebra (LN5) is physically implemented as logic gates
+- AND = multiplication, OR = addition, NOT = negation
+- Truth tables from LN2 become circuit specifications
+- Shannon (1937) bridged abstract algebra and electrical engineering
+
+**Cryptography:**
+
+- RSA encryption uses modular arithmetic from LN7
+- Security relies on computational difficulty of factoring (combinatorial explosion, LN17)
+- Every HTTPS connection uses these ideas
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| BFS/DFS graph traversal | LN20: walks, paths, adjacency |
+| Dijkstra's algorithm | LN23: shortest paths |
+| Finite automata as directed graphs | LN20: directed graphs |
+| Lambda calculus → computability | LN12–14: lambda calculus |
+| Halting problem (contradiction) | LN25: proof by contradiction |
+| SQL = set operations | LN9–10: set operations |
+| JOIN = Cartesian product + filter | LN10: Cartesian product |
+| Logic gates = Boolean algebra | LN5: Boolean algebra |
+| RSA = modular arithmetic | LN7: mod, congruence |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Computerphile: "Turing Machines Explained"](https://www.youtube.com/watch?v=dNRDvLACg5Q) — The connection between automata and computation
+- [Computerphile: "SQL Injection"](https://www.youtube.com/watch?v=ciNHn38EyRc) — When set operations go wrong in databases
+
+### Further Reading
+
+- [LMU CS Curriculum Guide](https://sites.google.com/view/lmucs/curriculum) — The full B.S. degree requirements
+- [Wikipedia: Finite Automaton](https://en.wikipedia.org/wiki/Deterministic_finite_automaton) — Formal definition and examples
+- [Wikipedia: Relational Algebra](https://en.wikipedia.org/wiki/Relational_algebra) — The mathematical foundation of SQL
+- [Wikipedia: RSA Cryptosystem](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) — Full mathematical details
+
+### Historical Context
+
+- **Alonzo Church (1903–1995)** — Proved lambda calculus captures all computable functions (1936), independently of Turing
+- **Alan Turing (1912–1954)** — Invented Turing machines and proved the halting problem undecidable (1936)
+- **Claude Shannon (1916–2001)** — Connected Boolean algebra to circuit design in his 1937 master's thesis, founding digital electronics
+- **Edgar Codd (1923–2003)** — Invented the relational model for databases (1970), directly applying set theory to data management
+- **George Boole (1815–1864)** — Invented Boolean algebra (1854) to formalize logic; it became the foundation of digital computing a century later
+
+### Connection to Programming
+
+- Python's `collections.deque` implements the queue for BFS; the call stack implements DFS naturally via recursion
+- Python's `set` type with comprehensions mirrors SQL semantics: `{s for s in students if s.major == "CS"}` IS a WHERE clause
+- Python's `re` module implements regular expressions, which are equivalent to finite automata (CMSI 3801 formalizes this equivalence)
+- `hashlib` in Python implements cryptographic hash functions built on the same modular arithmetic principles as RSA
+
+</LectureResources>

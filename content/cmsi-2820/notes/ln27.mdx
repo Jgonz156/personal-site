@@ -1,0 +1,305 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { GameTreeExplorer } from "@/components/game-tree-explorer"
+import { PathfindingGrid } from "@/components/pathfinding-grid"
+import { GraphVisualization } from "@/components/graph-visualization"
+import { DijkstraStepper } from "@/components/dijkstra-stepper"
+import { DeadlockExplorer } from "@/components/deadlock-explorer"
+import { DungeonGenerator } from "@/components/dungeon-generator"
+import { CourseJourneyMap } from "@/components/course-journey-map"
+
+## Recap
+
+Last lecture we toured the **foundational** CS courses that directly use discrete mathematics — algorithms, automata, databases, digital logic, and cryptography. We saw BFS and DFS as graph traversals, finite automata as directed graphs, SQL as set operations, logic gates as Boolean algebra, and RSA as modular arithmetic.
+
+Today we complete the tour by exploring the **application domains** — the exciting courses where discrete math powers real-world systems. These are organized around the three elective groups that every CS major at LMU must choose from: Artificial Intelligence, Games and Interaction, and Systems and Architecture.
+
+## Today's Agenda
+
+- **Artificial Intelligence** — search trees, game playing, and knowledge representation
+- **Game Development** — pathfinding, state machines, and procedural generation
+- **Systems and Networks** — routing, scheduling, and network topology
+- **The Road Ahead** — graduate paths, research frontiers, and closing thoughts
+
+---
+
+## Artificial Intelligence — CMSI 3300, 4320, 5350
+
+The AI elective group offers **CMSI 3300 (Artificial Intelligence)**, **CMSI 4320 (Cognitive Systems Design)**, **CMSI 5350 (Machine Learning)**, and **CMSI 5370 (Natural Language Processing)**. Every CS major must take at least one.
+
+### Game Trees and Minimax
+
+When an AI plays a game like chess or tic-tac-toe, it models the game as a **tree**. Each node is a game state (a board position). Each edge is a possible move. The AI explores this tree to find the best move.
+
+This is literally the graph theory from LN20–23: the game tree is a rooted tree where each node has children corresponding to legal moves. The AI performs a depth-limited search (like DFS from LN20) and evaluates positions using a scoring function.
+
+The **minimax algorithm** assigns scores to game states. One player (X) tries to **maximize** the score; the other (O) tries to **minimize** it. The algorithm propagates scores from leaf nodes upward:
+
+- At a maximizing node: take the **max** of children's scores
+- At a minimizing node: take the **min** of children's scores
+
+<GameTreeExplorer
+  initialBoard={["X", "O", "", "", "X", "", "", "", "O"]}
+  maxDepth={3}
+/>
+
+Click on child boards to explore different move sequences. Watch how the minimax scores propagate upward — X (the maximizer) picks the child with the highest score; O (the minimizer) picks the child with the lowest.
+
+> **Key Insight:** The game tree is a graph (LN20). Minimax is a tree traversal (like DFS). The evaluation function maps game states to numbers — it is a function from boards to integers (LN14–15). AI game-playing is graph theory + functions + search, all concepts from this course.
+
+<GameTreeExplorer
+  initialBoard={["X", "O", "X", "", "O", "", "", "", ""]}
+  maxDepth={4}
+/>
+
+Try this position with deeper search. With more depth, the AI can "see further ahead" and make better decisions. The tree grows exponentially — this is the combinatorial explosion from LN17.
+
+### Knowledge Representation and Logic
+
+In CMSI 3300, you will learn that AI systems represent knowledge using **logic** (LN1–3) and **graphs**. A knowledge base is a set of logical statements; inference is logical deduction. Constraint satisfaction problems — like the eight circles puzzle from LN22 — are the foundation of AI planning.
+
+Neural networks are **weighted directed graphs** (LN23). Nodes are neurons, edges carry weights, and the network learns by adjusting weights. Bayesian networks are directed acyclic graphs (DAGs) that encode probabilistic relationships — the graph structure determines which variables influence which.
+
+---
+
+## Game Development — CMSI 3710, 3751, 3752
+
+The Games and Interaction group offers **CMSI 3700 (Interaction Architecture)**, **CMSI 3710 (Computer Graphics)**, **CMSI 3751 (Game Design)**, and **CMSI 3752 (Game Development)**. Two of these — CMSI 3700 and 3710 — can also satisfy university core requirements, freeing up elective space.
+
+### Pathfinding with A*
+
+Every game with enemies, NPCs, or navigation uses **pathfinding** — finding the shortest route from point A to point B on a map while avoiding obstacles.
+
+The map is a **graph**: each walkable cell is a vertex, adjacent cells share edges, and walls remove edges. Finding the shortest path is exactly Dijkstra's algorithm from LN23, enhanced with a heuristic to search more efficiently.
+
+**A\*** (A-star) is Dijkstra + a heuristic. Instead of exploring all vertices in order of distance from the start (like Dijkstra), A* prioritizes vertices that are *closer to the goal*. The heuristic estimates the remaining distance, guiding the search.
+
+<PathfindingGrid rows={10} cols={14} />
+
+Draw walls to create a maze, then click **Find Path**. Watch the algorithm explore (blue cells) and find the shortest path (gold cells). Try different wall configurations:
+
+- A wall with a narrow gap — the algorithm finds the detour
+- A complete wall blocking all paths — the algorithm reports "no path found"
+- An open grid — the algorithm goes nearly straight to the goal
+
+> **Key Insight:** Each grid cell is a vertex. Adjacent cells share edges. Walls remove edges. Pathfinding is **shortest path on a weighted graph** — directly from LN23. The A* heuristic (Manhattan distance) is the optimization that makes it practical for real-time games.
+
+<PathfindingGrid rows={8} cols={12} />
+
+Try this smaller grid for a clearer view of the exploration pattern.
+
+### Finite State Machines in Games
+
+Game character behavior is controlled by **finite state machines** — the same directed graphs from LN26's automata section. A character might have states like "idle," "patrol," "chase," and "attack," with transitions triggered by events:
+
+<GraphVisualization
+  nodes={[
+    { id: "idle", label: "Idle", color: "#86efac" },
+    { id: "patrol", label: "Patrol", color: "#93c5fd" },
+    { id: "chase", label: "Chase", color: "#fde68a" },
+    { id: "attack", label: "Attack", color: "#fca5a5" },
+  ]}
+  edges={[
+    { from: "idle", to: "patrol", label: "timer" },
+    { from: "patrol", to: "chase", label: "see player" },
+    { from: "chase", to: "attack", label: "in range" },
+    { from: "attack", to: "chase", label: "out of range" },
+    { from: "chase", to: "patrol", label: "lost player" },
+    { from: "patrol", to: "idle", label: "timer" },
+  ]}
+  directed={true}
+  interactive={true}
+  height="280px"
+/>
+
+This is exactly the finite automaton from LN26 — but instead of processing a string, it processes *game events*. The graph structure determines the character's behavior. Game designers literally draw these diagrams when designing AI behavior.
+
+### Procedural Generation and Combinatorics
+
+Procedural content generation — creating random but structured game worlds — relies on combinatorics (LN16–17). How many distinct dungeons can be assembled from $n$ room types with $k$ connections? That is a counting problem. How do you ensure connectivity? Graph theory (LN21). How do you generate balanced encounters? Constraint satisfaction (LN22).
+
+Click **Generate** to create a random dungeon — each click answers a different combinatorial configuration:
+
+<DungeonGenerator />
+
+Notice how the generator must solve two problems simultaneously: room placement is a **counting** problem (how many valid configurations exist?), while corridor connectivity is a **graph theory** problem (we connect rooms using a spanning tree to guarantee reachability with minimal corridors).
+
+---
+
+## Systems and Networks — CMSI 3510, 3550
+
+The Systems and Architecture group includes **CMSI 3510 (Operating Systems)**, **CMSI 3520 (Database Systems — covered in LN26)**, **CMSI 3550 (Networks and Internets)**, and **EECE 3140 (Microprocessor Systems)**. Every CS major must take at least one.
+
+### Network Routing IS Shortest Path
+
+When you send a packet across the internet, it hops from router to router until it reaches its destination. How does each router decide where to send the packet next?
+
+**OSPF (Open Shortest Path First)**, one of the most widely used internet routing protocols, runs Dijkstra's algorithm. Each router maintains a weighted graph of the network, where vertices are routers, edges are links, and weights are link costs. The shortest path from this router to the destination determines the next hop.
+
+<DijkstraStepper />
+
+Step through Dijkstra's algorithm on the router graph above. Watch how the distance table updates as each vertex is visited and edges are relaxed. The final step highlights the shortest path: A → B → C → D → E with cost 7 — exactly the algorithm from LN23, running on real internet infrastructure.
+
+### Operating Systems and Graph Coloring
+
+In **CMSI 3510 (Operating Systems)**, you encounter problems like CPU scheduling, memory management, and deadlock detection — all of which have graph-theoretic formulations:
+
+| OS Problem | Graph Formulation | LN Reference |
+| :--- | :--- | :--- |
+| Process scheduling | Graph coloring (time slots = colors) | LN23: chromatic number |
+| Deadlock detection | Cycle detection in directed resource graph | LN20: walks and cycles |
+| File system hierarchy | Tree traversal | LN23: trees |
+| Page tables | Multi-level tree structure | LN23: trees |
+| Network topology | Specific graph families (hypercubes, meshes) | LN22: graph families |
+| Load balancing | Pigeonhole principle (distribute evenly) | LN19: pigeonhole |
+
+Explore how deadlock manifests as a cycle in a resource allocation graph — processes (circles) hold resources (squares) and wait for others, and when those dependencies form a cycle, no process can proceed:
+
+<DeadlockExplorer />
+
+> **Side Note:** Cisco's **Spanning Tree Protocol (STP)** — which prevents loops in Ethernet networks — literally computes a spanning tree (LN23) of the network graph. The protocol name IS the graph theory concept.
+
+---
+
+## The Road Ahead
+
+### Graduate Paths at LMU
+
+For students interested in going deeper, LMU offers a 4+1 program — earn both B.S. and M.S. in five years. The graduate curriculum includes:
+
+- **CMSI 583 (Computability and Complexity)** — formalizes what computers can and cannot do, extending the automata from LN26 and the contradiction proofs from LN25
+- **CMSI 585 (Programming Language Foundations)** — continues the type theory from LN4–5 and lambda calculus from LN12–14, proving that programming languages are mathematically sound
+
+### Research Frontiers
+
+Discrete mathematics powers cutting-edge research across many fields:
+
+- **Quantum computing** uses linear algebra over Boolean fields — the same 0/1 algebra from LN5, extended to superposition and entanglement
+- **Computational biology** uses Euler paths (LN20) for genome assembly — reconstructing DNA sequences by finding Euler paths through de Bruijn graphs
+- **Formal verification** uses logic (LN1–3) and induction (LN25) to mathematically prove software is correct — eliminating entire classes of bugs
+- **Cryptographic protocols** use combinatorics and number theory (LN7, LN17) to secure everything from banking to voting
+
+### The Elective Focus Areas
+
+The [LMU CS Curriculum Guide](https://sites.google.com/view/lmucs/curriculum) suggests five elective focus strategies. Discrete math connects to all of them:
+
+| Focus Area | Discrete Math Connection |
+| :--- | :--- |
+| Business and Information Management | Database theory (sets, relations), optimization |
+| Scientific Computing | Numerical analysis, graph algorithms, combinatorics |
+| Games and Animation | Pathfinding, state machines, procedural generation |
+| Mathematics | All of this course, continued in abstract algebra and analysis |
+| Cognitive Science | Logic, graph-based knowledge representation, Bayesian networks |
+
+### Your Course Journey
+
+Every lecture in this course was a node in a larger graph. Logic fed into type theory, which built numbers and booleans, which structured collections, which defined functions, which powered combinatorics, which measured graphs — and all of it converged into set theory, proof techniques, and the applications you explored in these final two lectures. Drag, zoom, and explore the connections:
+
+<CourseJourneyMap />
+
+The cross-standard edges are the most important ones — they show that discrete mathematics is not a sequence of isolated topics but a single interconnected world. This is the "same world" principle that has driven the entire course.
+
+---
+
+## The Final Pattern
+
+In LN24, we revealed the hidden curriculum of this course: every topic follows **Type → Instances → Operators**. Now, at the end of our tour, notice that the same pattern applies to every field we visited:
+
+| Field | Type | Instances | Operators |
+| :--- | :--- | :--- | :--- |
+| AI | Game states | Board positions | Minimax, search |
+| Games | Grid cells, FSM states | Positions, behaviors | A*, transitions |
+| Networks | Routers | IP addresses | Routing (shortest path) |
+| OS | Processes, resources | Running programs | Scheduling, allocation |
+| Databases | Relations | Rows | SQL (set operations) |
+
+The meta-pattern holds. It will continue to hold in every course you take, every language you learn, and every problem you solve.
+
+> You didn't just learn discrete math. You learned how to learn.
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Artificial Intelligence — CMSI 3300, 4320, 5350:**
+
+- Game trees are rooted trees where nodes are states and edges are moves
+- Minimax propagates scores: maximizer picks max, minimizer picks min
+- Knowledge representation uses logic (LN1–3) and graphs
+- Neural networks are weighted directed graphs; Bayesian networks are DAGs
+- Combinatorial explosion limits search depth — the counting from LN17
+
+**Game Development — CMSI 3710, 3751, 3752:**
+
+- Pathfinding (A*) is shortest path on a grid graph (Dijkstra + heuristic)
+- Each grid cell is a vertex; adjacent cells share edges; walls remove edges
+- Character AI uses finite state machines — directed graphs from LN20/26
+- Procedural generation uses combinatorics for content variety and graph theory for connectivity
+
+**Systems and Networks — CMSI 3510, 3550:**
+
+- OSPF routing = Dijkstra's algorithm on a network graph
+- Deadlock detection = cycle detection in a directed resource graph
+- CPU scheduling = graph coloring (time slots as colors)
+- Spanning Tree Protocol literally computes a spanning tree
+- Load balancing applies the pigeonhole principle
+
+**The Road Ahead:**
+
+- 4+1 program: B.S. + M.S. in five years at LMU
+- CMSI 583: computability and complexity (extends automata + contradiction)
+- CMSI 585: programming language foundations (extends type theory + lambda calculus)
+- Research frontiers: quantum computing, computational biology, formal verification, cryptography
+- The Type → Instances → Operators pattern applies to every field
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| Game trees (minimax) | LN20–23: trees, graph traversal |
+| A* pathfinding | LN23: Dijkstra's shortest path |
+| FSM for game characters | LN26: finite automata |
+| Network routing (OSPF) | LN23: weighted graphs, Dijkstra |
+| Deadlock = cycles | LN20: walks, cycles |
+| Scheduling = coloring | LN23: chromatic number |
+| Neural networks = weighted DAGs | LN23: weighted directed graphs |
+| Procedural generation | LN16–17: combinatorics |
+| Type → Instances → Operators | LN24: the meta-pattern |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Sebastian Lague: "A* Pathfinding"](https://www.youtube.com/watch?v=-L-WgKMFuhE) — Beautiful visualization of A* on grids
+- [Computerphile: "Minimax Algorithm"](https://www.youtube.com/watch?v=l-hh51ncgDI) — Clear explanation of game tree search
+
+### Further Reading
+
+- [LMU CS Curriculum Guide](https://sites.google.com/view/lmucs/curriculum) — Full B.S. and M.S. degree requirements
+- [Wikipedia: A* Search Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) — Full description with proofs
+- [Wikipedia: Minimax](https://en.wikipedia.org/wiki/Minimax) — Game theory and AI applications
+- [Wikipedia: OSPF](https://en.wikipedia.org/wiki/Open_Shortest_Path_First) — Internet routing with Dijkstra
+
+### Historical Context
+
+- **John von Neumann (1903–1957)** — Co-founded game theory with the minimax theorem (1928); the same von Neumann who gave us the ordinal construction in LN24
+- **Peter Hart, Nils Nilsson, Bertram Raphael** — Invented A* at Stanford Research Institute (1968); it remains the gold standard for pathfinding 50+ years later
+- **Claude Shannon (1916–2001)** — Proposed the first chess-playing algorithm (1950), building on his Boolean algebra work from LN26
+- **Radia Perlman (b. 1951)** — Invented the Spanning Tree Protocol (STP) for Ethernet networks, directly implementing the graph theory spanning tree concept
+
+### Connection to Programming
+
+- Python's `heapq` powers A* and Dijkstra — the same priority queue from LN23
+- `networkx` is a Python library for graph algorithms — BFS, DFS, shortest paths, MSTs, all from LN20–23
+- Game engines (Unity, Unreal) implement pathfinding using navigation meshes — graph representations of walkable space
+- Python's `graphlib.TopologicalSorter` (introduced in 3.9) implements topological sort on DAGs — directly from graph theory
+
+</LectureResources>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { waitForMathJax, MathShimmer } from "@/components/math"
 
 interface InvariantCheck {
   passes: boolean
@@ -20,19 +21,6 @@ interface LoopInvariantCheckerProps {
   loopCode: string
   postcondition: string
   candidates: InvariantCandidate[]
-}
-
-function waitForMathJax(): Promise<void> {
-  return new Promise((resolve) => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.MathJax?.typesetPromise) {
-        resolve()
-      } else {
-        setTimeout(check, 100)
-      }
-    }
-    check()
-  })
 }
 
 function MathBlock({ latex }: { latex: string }) {
@@ -57,12 +45,17 @@ function MathBlock({ latex }: { latex: string }) {
   }, [latex])
 
   return (
-    <span
-      ref={ref}
-      className="transition-opacity duration-200"
-      style={{ opacity: rendered ? 1 : 0.3 }}
-    >
-      {`$${latex}$`}
+    <span className="relative">
+      {!rendered && <MathShimmer />}
+      <span
+        ref={ref}
+        style={{
+          visibility: rendered ? "visible" : "hidden",
+          position: rendered ? "static" : "absolute",
+        }}
+      >
+        {`$${latex}$`}
+      </span>
     </span>
   )
 }
@@ -89,12 +82,17 @@ function ExplanationBlock({ text }: { text: string }) {
   }, [text])
 
   return (
-    <div
-      ref={ref}
-      className="text-sm text-muted-foreground transition-opacity duration-200"
-      style={{ opacity: rendered ? 1 : 0.3 }}
-      dangerouslySetInnerHTML={{ __html: text }}
-    />
+    <div className="relative text-sm text-muted-foreground">
+      {!rendered && <MathShimmer block />}
+      <div
+        ref={ref}
+        style={{
+          visibility: rendered ? "visible" : "hidden",
+          position: rendered ? "static" : "absolute",
+        }}
+        dangerouslySetInnerHTML={{ __html: text }}
+      />
+    </div>
   )
 }
 
@@ -189,12 +187,17 @@ export function LoopInvariantChecker({
             </pre>
             <div className="mt-2 text-xs text-muted-foreground">
               Postcondition:{" "}
-              <span
-                ref={postcondRef}
-                className="transition-opacity duration-200"
-                style={{ opacity: postcondRendered ? 1 : 0.3 }}
-              >
-                {`$${postcondition}$`}
+              <span className="relative">
+                {!postcondRendered && <MathShimmer />}
+                <span
+                  ref={postcondRef}
+                  style={{
+                    visibility: postcondRendered ? "visible" : "hidden",
+                    position: postcondRendered ? "static" : "absolute",
+                  }}
+                >
+                  {`$${postcondition}$`}
+                </span>
               </span>
             </div>
           </div>

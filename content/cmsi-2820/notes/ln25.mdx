@@ -1,0 +1,576 @@
+import { DisplayMath, InlineMath } from "@/components/math"
+import {
+  LectureNotes,
+  LectureResources,
+} from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { ReductionStepper } from "@/components/reduction-stepper"
+import { InductionStepper } from "@/components/induction-stepper"
+import { ReducibilityWorkshop } from "@/components/reducibility-workshop"
+
+## Recap
+
+Last lecture we completed a comprehensive recap of the entire course, revealing the hidden **Type → Instances → Operators** pattern that unified every topic. We then explored set theory as an alternative foundation — building numbers from Von Neumann ordinals, tuples from Kuratowski pairs, and functions from sets of ordered pairs. We concluded with axioms and the philosophical insight that all of mathematics rests on unproven starting points.
+
+Today we complete our **proof technique toolkit**. We have encountered several proof methods throughout the course — direct proofs, exhaustion, double counting, bijective proofs, and the pigeonhole principle. Today we add three more: **proof by contradiction**, **mathematical induction**, and **reducibility**. Together, these eight techniques cover the vast majority of mathematical arguments in computer science.
+
+## Today's Agenda
+
+- **The Proof Toolkit So Far** — cataloging every technique we have used
+- **Proof by Contradiction** — assuming the opposite and deriving an impossibility
+- **Worked Example: √2 is Irrational** — the classic proof
+- **Worked Example: √3 is Irrational** — same skeleton, different factor
+- **Worked Example: Infinitely Many Primes** — Euclid's elegant argument
+- **Mathematical Induction** — the domino principle for "for all n" proofs
+- **Worked Example: Sum Formula** — proving <InlineMath formula="1 + 2 + \cdots + n = n(n+1)/2" /> two ways
+- **Worked Example: Tree Edges** — proving every tree with $n$ vertices has $n - 1$ edges
+- **Reducibility** — different worlds, same problem
+- **Where These Complete the Picture** — synthesis of all proof techniques
+
+---
+
+## The Proof Toolkit So Far
+
+Before we add new techniques, let us catalog everything we have used so far:
+
+| Technique | When We Saw It | Core Idea |
+| :--- | :--- | :--- |
+| Direct / Constructive | LN3, LN6 | Exhibit the object or derive the conclusion step by step |
+| Exhaustion | LN5 (truth tables) | Check every possible case |
+| Double Counting | LN18 | Two methods count the same set — therefore they are equal |
+| Bijective Proof | LN19 | Build an explicit one-to-one pairing between two sets |
+| Pigeonhole | LN19 | More items than slots forces at least one collision |
+
+These five techniques handled a wide range of problems. But notice two gaps:
+
+1. **How do you prove something is *impossible*?** Direct proofs construct something that works — they cannot show that something *cannot* exist.
+2. **How do you prove something holds *for all* natural numbers?** Exhaustion works for finite sets, but the naturals are infinite.
+
+Today's two techniques fill these gaps perfectly.
+
+---
+
+## Proof by Contradiction
+
+<DefinitionBox term="Proof by Contradiction">
+
+To prove a statement $P$:
+
+1. **Assume** <InlineMath formula="\neg P" /> (the opposite of what you want to prove)
+2. **Derive** a logical contradiction — a statement of the form <InlineMath formula="Q \land \neg Q" />
+3. **Conclude** that <InlineMath formula="\neg P" /> must be false, so $P$ is true
+
+Formally: <InlineMath formula="\neg P \implies \bot" /> means $P$ must hold.
+
+</DefinitionBox>
+
+The logic is simple: if assuming the opposite leads to an impossibility, then the opposite cannot be true. Therefore the original statement must be true.
+
+> **Side Note:** Proof by contradiction relies on the **Law of Excluded Middle** — the classical logic axiom that every statement is either true or false. In LN1, we started with intuitionistic logic, which does not accept this law. Classical logic does. Contradiction proofs live firmly in the classical world.
+
+### The Debugging Analogy
+
+You already use proof by contradiction every time you debug code:
+
+1. **Assume** the code is correct
+2. **Observe** a failing test — the code produces output X, but the test expects output Y
+3. **Contradiction** — the code cannot be both correct and produce the wrong output
+4. **Conclude** the code has a bug
+
+The only difference is formality. In mathematics, we derive the contradiction from axioms and definitions rather than from running tests.
+
+```python
+def is_even(n):
+    return n % 2 == 0
+
+assert is_even(7) == False
+```
+
+The `assert` statement IS a contradiction check: "I assume this expression is true. If it is not, halt the program." Python's `assert` is literally an automated proof by contradiction.
+
+---
+
+## Worked Example: √2 Is Irrational
+
+**Claim:** <InlineMath formula="\sqrt{2}" /> is irrational (it cannot be expressed as a fraction of integers).
+
+This is one of the most famous proofs in all of mathematics.
+
+<ReductionStepper
+  title="Proof: √2 is irrational"
+  steps={[
+    { formula: "\\text{Assume } \\sqrt{2} = \\frac{p}{q} \\text{ where } \\gcd(p, q) = 1", description: "Assume for contradiction that √2 is rational, expressed in lowest terms." },
+    { formula: "2 = \\frac{p^2}{q^2} \\;\\implies\\; p^2 = 2q^2", description: "Square both sides and rearrange. So p² is even." },
+    { formula: "p^2 \\text{ even} \\;\\implies\\; p \\text{ even} \\;\\implies\\; p = 2k", description: "If p² is even, then p must be even (odd² is always odd). Write p = 2k." },
+    { formula: "(2k)^2 = 2q^2 \\;\\implies\\; 4k^2 = 2q^2 \\;\\implies\\; q^2 = 2k^2", description: "Substitute p = 2k. So q² is also even, meaning q is even." },
+    { formula: "p \\text{ even AND } q \\text{ even} \\;\\implies\\; \\gcd(p,q) \\geq 2", description: "Both p and q are even — they share factor 2. Contradicts gcd(p,q) = 1." },
+    { formula: "\\therefore\\; \\sqrt{2} \\notin \\mathbb{Q} \\qquad \\square", description: "The assumption led to contradiction. √2 must be irrational." }
+  ]}
+/>
+
+The key move: we assumed <InlineMath formula="\sqrt{2}" /> was rational and derived that both the numerator and denominator must be even — contradicting the assumption that the fraction was in lowest terms. The assumption destroyed itself.
+
+---
+
+## Worked Example: √3 Is Irrational
+
+**Claim:** <InlineMath formula="\sqrt{3}" /> is irrational.
+
+The proof follows the exact same skeleton as the <InlineMath formula="\sqrt{2}" /> proof — assume rational in lowest terms, derive a shared factor, reach contradiction — but with 3 in place of 2. Seeing the pattern repeat reinforces that this is a *technique*, not a one-off trick.
+
+<ReductionStepper
+  title="Proof: √3 is irrational"
+  steps={[
+    { formula: "\\text{Assume } \\sqrt{3} = \\frac{p}{q} \\text{ where } \\gcd(p, q) = 1", description: "Assume for contradiction that √3 is rational, expressed in lowest terms." },
+    { formula: "3 = \\frac{p^2}{q^2} \\;\\implies\\; p^2 = 3q^2", description: "Square both sides and rearrange. So 3 divides p²." },
+    { formula: "3 \\mid p^2 \\;\\implies\\; 3 \\mid p \\;\\implies\\; p = 3k", description: "Since 3 is prime and divides p², it must divide p. Write p = 3k." },
+    { formula: "(3k)^2 = 3q^2 \\;\\implies\\; 9k^2 = 3q^2 \\;\\implies\\; q^2 = 3k^2", description: "Substitute p = 3k. So 3 divides q² as well, meaning 3 divides q." },
+    { formula: "3 \\mid p \\text{ AND } 3 \\mid q \\;\\implies\\; \\gcd(p,q) \\geq 3", description: "Both p and q are divisible by 3. Contradicts gcd(p,q) = 1." },
+    { formula: "\\therefore\\; \\sqrt{3} \\notin \\mathbb{Q} \\qquad \\square", description: "The assumption led to contradiction. √3 must be irrational." }
+  ]}
+/>
+
+Notice the identical structure: assume rational, square, extract the prime factor from the numerator, substitute, extract it from the denominator, contradict lowest terms. This works for <InlineMath formula="\sqrt{p}" /> whenever $p$ is prime — the key property is that if a prime divides a square, it must divide the root.
+
+---
+
+## Worked Example: Infinitely Many Primes
+
+**Claim:** There are infinitely many prime numbers.
+
+This proof is due to **Euclid** (~300 BCE) and is over 2,300 years old.
+
+<ReductionStepper
+  title="Proof: Infinitely many primes (Euclid)"
+  steps={[
+    { formula: "\\text{Assume there are finitely many primes: } p_1, p_2, \\ldots, p_n", description: "Assume for contradiction that we can list ALL primes." },
+    { formula: "N = p_1 \\cdot p_2 \\cdot \\ldots \\cdot p_n + 1", description: "Construct N: the product of all primes, plus 1." },
+    { formula: "N \\bmod p_i = 1 \\;\\text{ for every } i", description: "N divided by any prime pᵢ leaves remainder 1. So N is not divisible by any prime on our list." },
+    { formula: "\\text{But every integer } > 1 \\text{ has a prime factor!}", description: "By the fundamental theorem of arithmetic, N must have at least one prime factor." },
+    { formula: "N \\text{'s prime factor} \\notin \\{p_1, \\ldots, p_n\\}", description: "This factor is prime but was not on our 'complete' list. Contradiction!" },
+    { formula: "\\therefore\\; \\text{There are infinitely many primes} \\qquad \\square", description: "No finite list can contain all primes." }
+  ]}
+/>
+
+> **Historical Note:** **Euclid of Alexandria (~300 BCE)** included this proof in his *Elements*, Book IX, Proposition 20. It remains one of the most elegant proofs ever written. Despite being over two millennia old, no shorter or more intuitive proof has been found. The argument needs only two tools: multiplication and the fact that every number greater than 1 has a prime factor.
+
+### Contradiction in Computer Science
+
+Proof by contradiction appears throughout theoretical CS:
+
+- **The Halting Problem** (Alan Turing, 1936): Assume a program exists that can decide whether any program halts. Derive a contradiction by feeding it to itself. Conclude: no such program can exist. This is the most important impossibility result in all of computer science.
+- **Security proofs**: Assume an attacker can break an encryption scheme. Derive that the attacker can then solve a problem known to be intractable. Contradiction — the scheme is secure (under the hardness assumption).
+- **`assert` in Python**: every assertion is a micro-contradiction test — "if this is false, something is wrong."
+
+---
+
+## Mathematical Induction
+
+Now for the second technique. How do you prove something is true for *every* natural number?
+
+You cannot check infinitely many cases. But you can set up a chain reaction.
+
+### The Domino Metaphor
+
+Imagine an infinite row of dominoes:
+
+1. **Push the first domino** — it falls (the base case)
+2. **Each domino is positioned to knock over the next** — if domino $k$ falls, domino $k+1$ falls too (the inductive step)
+3. **Conclusion**: ALL dominoes fall
+
+If both conditions are met, there is no domino that can resist. The first falls, which pushes the second, which pushes the third, and so on to infinity.
+
+<DefinitionBox term="Mathematical Induction">
+
+To prove that a property $P(n)$ holds for all <InlineMath formula="n \geq n_0" />:
+
+1. **Base case**: prove <InlineMath formula="P(n_0)" />
+2. **Inductive hypothesis**: assume <InlineMath formula="P(k)" /> for some arbitrary <InlineMath formula="k \geq n_0" />
+3. **Inductive step**: prove <InlineMath formula="P(k) \implies P(k+1)" />
+4. **Conclusion**: <InlineMath formula="P(n)" /> holds for all <InlineMath formula="n \geq n_0" />
+
+</DefinitionBox>
+
+The inductive hypothesis is the crucial move: you *assume* the statement is true for some $k$, then use that assumption to prove it for $k + 1$. This is not circular reasoning — it is a chain of implications. The base case anchors the chain, and the inductive step propagates it.
+
+---
+
+## Worked Example: Sum of First n Natural Numbers
+
+**Claim:** For all <InlineMath formula="n \geq 1" />:
+
+<DisplayMath formula="1 + 2 + 3 + \cdots + n = \frac{n(n+1)}{2}" />
+
+<InductionStepper
+  examples={[
+    {
+      name: "Algebraic Induction",
+      statement: "1 + 2 + ⋯ + n = n(n+1)/2 for all n ≥ 1",
+      steps: [
+        {
+          phase: "base",
+          label: "n = 1",
+          math: "\\text{LHS} = 1 \\qquad \\text{RHS} = \\frac{1 \\cdot 2}{2} = 1 \\qquad \\checkmark",
+          explanation: "When n = 1, both sides equal 1. The base case holds."
+        },
+        {
+          phase: "hypothesis",
+          label: "Assume for k",
+          math: "1 + 2 + \\cdots + k = \\frac{k(k+1)}{2}",
+          explanation: "Assume the formula holds for some arbitrary k ≥ 1. This is our domino that has already fallen."
+        },
+        {
+          phase: "step",
+          label: "Show for k+1",
+          math: "1 + 2 + \\cdots + k + (k+1) = \\frac{k(k+1)}{2} + (k+1)",
+          explanation: "Add (k+1) to both sides of the hypothesis. The left side is now the sum up to k+1."
+        },
+        {
+          phase: "step",
+          label: "Simplify",
+          math: "= \\frac{k(k+1) + 2(k+1)}{2} = \\frac{(k+1)(k+2)}{2}",
+          explanation: "Factor out (k+1). This matches n(n+1)/2 with n = k+1. The next domino falls!"
+        },
+        {
+          phase: "conclusion",
+          label: "Done",
+          math: "\\forall\\, n \\geq 1:\\quad \\sum_{i=1}^{n} i = \\frac{n(n+1)}{2} \\qquad \\square",
+          explanation: "Base case ✓ and inductive step ✓. By induction, the formula holds for all n ≥ 1."
+        }
+      ]
+    },
+    {
+      name: "Handshake Lemma",
+      statement: "1 + 2 + ⋯ + n = n(n+1)/2 via graph theory",
+      steps: [
+        {
+          phase: "base",
+          label: "Construct K_{n+1}",
+          math: "\\text{Consider } K_{n+1} \\text{: the complete graph on } n+1 \\text{ vertices}",
+          explanation: "Take the complete graph on n+1 vertices — every pair is connected by an edge."
+        },
+        {
+          phase: "step",
+          label: "Count by degrees",
+          math: "\\deg(v) = n \\;\\text{ for all } v \\;\\implies\\; \\sum_{v} \\deg(v) = (n+1) \\cdot n",
+          explanation: "Every vertex connects to all n others, so every vertex has degree n. Total degree sum: n(n+1)."
+        },
+        {
+          phase: "step",
+          label: "Handshake lemma",
+          math: "\\sum_{v} \\deg(v) = 2|E| \\;\\implies\\; |E| = \\frac{n(n+1)}{2}",
+          explanation: "The handshake lemma (LN21): every edge contributes 2 to the total degree. So |E| = n(n+1)/2."
+        },
+        {
+          phase: "step",
+          label: "Count by construction",
+          math: "v_1: 0,\\; v_2: 1,\\; v_3: 2,\\; \\ldots,\\; v_{n+1}: n \\;\\implies\\; |E| = 0 + 1 + 2 + \\cdots + n",
+          explanation: "Build K_{n+1} vertex by vertex. Each new vertex k connects to all k-1 existing vertices."
+        },
+        {
+          phase: "conclusion",
+          label: "Equate",
+          math: "1 + 2 + \\cdots + n = |E| = \\frac{n(n+1)}{2} \\qquad \\square",
+          explanation: "Both methods count the same edges. The sum formula follows without any algebra or induction!"
+        }
+      ]
+    }
+  ]}
+/>
+
+> **Key Insight:** The inductive step did not prove the formula from scratch. It *assumed* the formula for $k$ and then showed it extends to $k + 1$. The heavy lifting was just algebra — factoring <InlineMath formula="(k+1)" /> out of the numerator. The base case ensured the chain has a starting point.
+
+---
+
+## Worked Example: Tree Edges
+
+**Claim:** Every tree with $n$ vertices has exactly $n - 1$ edges.
+
+We stated this as a fact in LN23. Now we can prove it.
+
+<InductionStepper
+  examples={[
+    {
+      name: "Tree Edges",
+      statement: "Every tree with n vertices has exactly n-1 edges",
+      steps: [
+        {
+          phase: "base",
+          label: "n = 1",
+          math: "|V| = 1,\\quad |E| = 0 = 1 - 1 \\qquad \\checkmark",
+          explanation: "A single vertex with no edges is a tree. 0 = 1 - 1. Base case holds."
+        },
+        {
+          phase: "hypothesis",
+          label: "Assume for k",
+          math: "\\text{Every tree with } k \\text{ vertices has } k - 1 \\text{ edges}",
+          explanation: "Assume the claim holds for all trees with k vertices."
+        },
+        {
+          phase: "step",
+          label: "Tree with k+1 vertices",
+          math: "T \\text{ has } k+1 \\text{ vertices} \\;\\implies\\; T \\text{ has a leaf } v \\text{ (deg 1)}",
+          explanation: "Every tree with ≥ 2 vertices has at least one leaf — a vertex of degree 1."
+        },
+        {
+          phase: "step",
+          label: "Remove the leaf",
+          math: "T' = T - v \\text{ is a tree with } k \\text{ vertices} \\;\\implies\\; |E(T')| = k - 1",
+          explanation: "Removing a leaf and its edge gives a tree with k vertices. By hypothesis, it has k-1 edges."
+        },
+        {
+          phase: "step",
+          label: "Count edges",
+          math: "|E(T)| = |E(T')| + 1 = (k-1) + 1 = k = (k+1) - 1",
+          explanation: "Adding the leaf back adds exactly 1 edge. Total: k = (k+1) - 1. The formula holds for k+1."
+        },
+        {
+          phase: "conclusion",
+          label: "Done",
+          math: "\\forall\\, n \\geq 1:\\quad \\text{tree with } n \\text{ vertices has } n-1 \\text{ edges} \\qquad \\square",
+          explanation: "Base case ✓ and inductive step ✓. By induction, all trees satisfy |E| = |V| - 1."
+        }
+      ]
+    }
+  ]}
+/>
+
+The key insight in the tree proof: we used **strong induction** implicitly. When we removed a leaf from a tree with $k + 1$ vertices, we obtained a tree with $k$ vertices and applied the hypothesis. The structural property of trees (every tree has a leaf) provided the bridge between $k + 1$ and $k$.
+
+### Induction and Recursion
+
+Induction and recursion are the same structure, viewed from different sides:
+
+| Induction (Math) | Recursion (Code) |
+| :--- | :--- |
+| Base case: $P(1)$ | Base case: `if n == 1: return 1` |
+| Inductive step: $P(k) \implies P(k+1)$ | Recursive call: `return n + sum(n-1)` |
+| Proves for all $n$ | Computes for any $n$ |
+
+```python
+def sum_to_n(n):
+    if n == 1:
+        return 1             # base case
+    return n + sum_to_n(n-1) # inductive step (as code)
+```
+
+The Python function mirrors the induction proof exactly. The base case handles $n = 1$. The recursive call assumes `sum_to_n(n-1)` gives the correct answer — that is the inductive hypothesis. The function then uses it to compute the answer for $n$.
+
+> **Side Note:** Every time you prove a recursive function correct, you are doing an induction proof. Every time you do an induction proof, you are writing a recursive argument. They are two sides of the same coin — proof by induction *is* the mathematical justification for why recursion works.
+
+---
+
+## Loop Invariants
+
+Mathematical induction also underpins how we reason about **loops** in code. A **loop invariant** is a property that holds before and after every iteration — proved by induction on the iteration count.
+
+```python
+def compute_sum(n):
+    total = 0
+    for i in range(1, n + 1):
+        total += i
+    return total
+```
+
+**Loop invariant**: after $k$ iterations, `total` $= 1 + 2 + \cdots + k = k(k+1)/2$.
+
+- **Base case** ($k = 0$): before the loop starts, `total = 0 = 0(1)/2`. Check.
+- **Inductive step**: if the invariant holds after $k$ iterations, then after iteration $k + 1$, `total` $= k(k+1)/2 + (k+1) = (k+1)(k+2)/2$. Check.
+- **Conclusion**: after $n$ iterations, `total` $= n(n+1)/2$.
+
+This is exactly the same induction proof we did above — but applied to a loop instead of a mathematical formula. Every time you reason about "this loop always maintains property X," you are doing induction.
+
+---
+
+## Reducibility — Different Worlds, Same Problem
+
+Throughout this course we explored seemingly different mathematical domains — logic, numbers, sets, functions, combinatorics, graphs. Each had its own language, its own operators, its own intuitions. But the Course Symbol Explorer (LN24) revealed a hidden pattern: they all share the same structural skeleton of **types, instances, operators, and behaviors**.
+
+Reducibility takes this further. Not only do these domains share structure, but a hard problem in one domain can sometimes be solved by **translating it into another domain entirely**. Let's see this in action.
+
+Below is a workshop that will walk you through the experience. Start with a graph coloring challenge — your job is to assign each vertex one of two colors so that no edge connects same-colored vertices. Try the warm-up, then the harder graphs. When brute force starts to fail, move on to the equation view, then see how the two connect.
+
+<ReducibilityWorkshop />
+
+### What Just Happened
+
+If you worked through the workshop, you experienced something remarkable. Two completely different-looking problems — coloring a graph and solving equations modulo 2 — turned out to be **the same problem in different clothing**. Coloring node <InlineMath formula="v_i" /> with color 0 or 1 is exactly assigning variable <InlineMath formula="x_i" /> the value 0 or 1. Requiring adjacent nodes to have *different* colors is exactly requiring <InlineMath formula="x_i + x_j \equiv 1 \pmod{2}" />. A solution in one world is a solution in the other — and an impossibility in one is an impossibility in the other.
+
+This is the capstone proof technique: instead of solving a problem head-on, **transform it** into a problem whose tools are more powerful.
+
+<DefinitionBox term="Reduction">
+
+A **reduction** from problem $A$ to problem $B$ is a translation that:
+
+1. Transforms every instance of $A$ into an instance of $B$
+2. Preserves solutions: $A$ has a solution **if and only if** the translated $B$ has a solution
+3. Allows solutions to $B$ to be translated back into solutions of $A$
+
+If we can reduce $A$ to $B$, then solving $B$ solves $A$.
+
+</DefinitionBox>
+
+### Representation, Not Just Complexity
+
+An important subtlety: 2-coloring is computationally in P — a BFS can test bipartiteness in linear time. The lesson of the workshop is not "graph coloring is hard for computers." The lesson is: **the same problem can be easy or painful depending on what representation you work in**. Clicking nodes and trying colors by hand is painful. Translating to equations and propagating constraints is systematic.
+
+This distinction matters far beyond proof techniques. Every time you choose a data structure, design an API, or normalize a database schema, you are making a representation choice. The right representation makes the problem solve itself. The wrong one makes you fight the structure.
+
+### The Bijective Connection
+
+Notice that the reduction from graph 2-coloring to <InlineMath formula="\mathbb{Z}_2" /> equations is itself a structure-preserving map between solution spaces — which is essentially a **bijective proof** from LN19. The mapping node ↔ variable, edge ↔ equation, color ↔ value establishes a bijection between "proper 2-colorings of $G$" and "solutions to the equation system." Reducibility subsumes bijective proof as a sub-technique: when you build a reduction, you are building a bijection between solution spaces.
+
+### Reducibility at Scale
+
+In 1972, **Richard Karp** published a landmark paper showing that 21 completely different-looking problems — graph coloring, traveling salesman, satisfiability, integer programming, and more — are all secretly the same problem, connected by chains of reductions. You just experienced the two-problem version: graph coloring ↔ mod-2 equations. Karp showed this works at the scale of *thousands* of problems, forming a vast web of equivalences. This is the foundation of computational complexity theory.
+
+### Reducibility in Computer Science
+
+- **The Cook-Levin Theorem** (1971): Stephen Cook and Leonid Levin independently proved that Boolean satisfiability (SAT) is **NP-complete** — every problem in NP can be reduced to SAT. If you can solve SAT efficiently, you can solve *every* NP problem efficiently.
+- **NP-completeness proofs**: To show a new problem is NP-hard, you reduce a *known* hard problem to it. Graph coloring, traveling salesman, and thousands of other problems have been connected this way — forming the Karp web.
+- **Compiler design**: Compilers reduce high-level programs to machine code — a translation that preserves meaning across fundamentally different representations.
+- **The Halting Problem**: Turing proved undecidability by reduction — if you could decide halting, you could decide *any* problem about programs. Since some are provably undecidable, halting must be too.
+
+Every time a computer scientist says "this problem is at least as hard as that one," they are using a reduction.
+
+> At the start of this course, we made a very human observation: no matter how different two people seem, they share the same world. Reducibility is the mathematical version of that insight. Graph theory and modular arithmetic look nothing alike — different objects, different operations, different intuitions. But a graph coloring problem IS a mod-2 equation system. A mod-2 equation system IS a graph coloring problem. They are the same question asked in different languages. And that means a tool from one world works in the other.
+
+---
+
+## Where These Complete the Picture
+
+Let us update our proof technique table with today's additions:
+
+| Technique | Core Idea | Best For |
+| :--- | :--- | :--- |
+| Direct / Constructive | Build the object or derive the result | Existence, computation |
+| Exhaustion | Check every case | Finite, small domains |
+| Double Counting | Two methods count the same set | Combinatorial identities |
+| Bijective Proof | Build a one-to-one pairing | Equal cardinality |
+| Pigeonhole | More items than slots forces collision | Impossibility (finite) |
+| **Contradiction** | Assume the opposite, derive impossibility | Impossibility, irrationality, infinitude |
+| **Induction** | Base case + domino step | "For all n" statements |
+| **Reduction** | Translate to a different domain | Cross-domain proofs, hardness |
+
+Together, these eight techniques handle nearly every mathematical argument you will encounter in your CS career:
+
+- **Contradiction** handles *impossibility* results: <InlineMath formula="\sqrt{2}" /> and <InlineMath formula="\sqrt{3}" /> are irrational, there are infinitely many primes, the halting problem is undecidable
+- **Induction** handles *for all n* results: every algorithm analysis, every recursive correctness proof, every loop invariant
+- **Reduction** handles *cross-domain* results: graph coloring reduces to mod-2 equations, NP-completeness proofs connect thousands of problems, compilers translate high-level code to machine instructions
+- Combined with bijective proofs and double counting, these cover the vast majority of discrete math proofs
+
+---
+
+## Coming Up Next
+
+Next lecture we begin a two-lecture tour of **where discrete mathematics appears in your future CS courses**. We will connect every topic from this semester — logic, sets, functions, combinatorics, and graphs — to specific courses in the LMU CS curriculum. First up: algorithms, automata, databases, digital logic, and cryptography.
+
+---
+
+## Key Takeaways
+
+<LectureNotes>
+
+**Proof by Contradiction:**
+
+- Assume the negation of your claim, derive an impossibility (<InlineMath formula="Q \land \neg Q" />)
+- Relies on the Law of Excluded Middle (classical logic)
+- Best for impossibility results: irrationality, infinitude, undecidability
+- CS analog: debugging (assume code is correct, test fails → bug exists)
+- Python analog: `assert` statements are automated contradiction checks
+
+**Mathematical Induction:**
+
+- Base case + inductive step → conclusion for all $n$
+- Base case: prove $P(n_0)$ directly
+- Inductive hypothesis: assume $P(k)$ for arbitrary $k$
+- Inductive step: prove $P(k) \implies P(k+1)$
+- The domino metaphor: first falls, each knocks over next, all fall
+- Strong induction: assume $P(j)$ for all $j \leq k$
+
+**Induction ↔ Recursion:**
+
+- Induction IS the mathematical justification for recursion
+- Base case = base case, inductive step = recursive call
+- Loop invariants are induction proofs on iteration count
+- Structural induction: proving properties of trees, lists, ASTs
+
+**Reducibility:**
+
+- Translate a problem from domain A into domain B
+- If the translation preserves solutions (iff), solving B solves A
+- Graph 2-coloring reduces to equations in <InlineMath formula="\mathbb{Z}_2" /> — same problem, different language
+- The reduction IS a bijection between solution spaces (bijective proof from LN19)
+- The lesson is about *representation*: the right domain makes the problem solve itself
+- Foundation of NP-completeness: Cook-Levin theorem, Karp's 21-problem web of reductions
+- The course's philosophical thesis in mathematical form: different worlds, same structure
+
+**The Complete Proof Toolkit:**
+
+| Technique | Best For |
+| :--- | :--- |
+| Direct | Existence, computation |
+| Exhaustion | Finite domains |
+| Double Counting | Identities |
+| Bijective | Equal cardinality |
+| Pigeonhole | Finite impossibility |
+| Contradiction | General impossibility |
+| Induction | "For all n" |
+| Reduction | Cross-domain proofs |
+
+**Callbacks Across the Course:**
+
+| This Lecture | Previous Lecture |
+| :--- | :--- |
+| Contradiction uses Law of Excluded Middle | LN1: intuitionistic vs classical logic |
+| Contradiction in debugging / `assert` | LN3: logical reasoning |
+| <InlineMath formula="\sqrt{2}" /> and <InlineMath formula="\sqrt{3}" /> irrational via mod arithmetic | LN7: modular arithmetic, divisibility |
+| Euclid's proof uses prime factorization | LN7: primes |
+| Handshake lemma proof of sum formula | LN21: handshake lemma, degree sum |
+| Tree edges induction proof | LN23: trees have $n-1$ edges |
+| Recursion = induction | LN12: lambda calculus, recursion |
+| Loop invariants via induction | LN16: counting patterns |
+| Reduction: 2-coloring ↔ <InlineMath formula="\mathbb{Z}_2" /> equations | LN7: mod arithmetic, LN22: bipartite graphs |
+| Reduction IS a bijective proof between solution spaces | LN19: bijective proofs |
+| Karp's 21-problem web of reductions | LN22: graph coloring, NP-completeness |
+| "Different worlds, same problem" | LN24: structural skeleton across all topics |
+| Eight proof techniques | LN18–19: double counting, bijective, pigeonhole |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Viewing
+
+- [Numberphile: "Root 2"](https://www.youtube.com/watch?v=LmpAntNjPj0) — The classic irrationality proof visualized
+- [3Blue1Brown: "Mathematical Induction"](https://www.youtube.com/watch?v=wqNwqpUMqDA) — Intuitive animation of the domino principle
+
+### Further Reading
+
+- [Wikipedia: Proof by contradiction](https://en.wikipedia.org/wiki/Proof_by_contradiction) — Formal framework and history
+- [Wikipedia: Mathematical induction](https://en.wikipedia.org/wiki/Mathematical_induction) — Variants including strong and structural induction
+- [Wikipedia: Halting problem](https://en.wikipedia.org/wiki/Halting_problem) — Turing's impossibility proof via contradiction
+- [Wikipedia: Euclid's theorem](https://en.wikipedia.org/wiki/Euclid%27s_theorem) — Infinitude of primes
+- [Wikipedia: Reduction (complexity)](https://en.wikipedia.org/wiki/Reduction_(complexity)) — Polynomial reductions and NP-completeness
+- [Wikipedia: Cook-Levin theorem](https://en.wikipedia.org/wiki/Cook%E2%80%93Levin_theorem) — The theorem that launched computational complexity theory
+
+### Historical Context
+
+- **Euclid (~300 BCE)** — Proved infinitely many primes in *Elements* Book IX; proof has endured for over 2,300 years
+- **Hippasus (~500 BCE)** — Traditionally credited with discovering the irrationality of <InlineMath formula="\sqrt{2}" />; legend says the Pythagoreans drowned him for it
+- **Francesco Maurolico (1494–1575)** — First known use of mathematical induction in a proof (1575)
+- **Blaise Pascal (1623–1662)** — Used induction systematically in his *Traité du triangle arithmétique*
+- **Alan Turing (1912–1954)** — Proved the halting problem undecidable (1936) using contradiction; foundational result of theoretical computer science
+- **Stephen Cook (1971)** — Proved SAT is NP-complete, establishing the theory of NP-completeness via polynomial reductions
+- **Richard Karp (1972)** — Showed 21 problems are NP-complete by chains of reductions from SAT, demonstrating that reducibility connects vast families of problems
+
+### Connection to Programming
+
+- Recursion in Python is mathematical induction in executable form — base case and recursive step map directly
+- `assert` statements implement automated contradiction: "if this fails, my assumption about the code is wrong"
+- Loop invariants (proved by induction) are used in formal verification tools like Dafny and Frama-C
+- The halting problem (proved by contradiction) means no general-purpose debugger can decide if arbitrary code terminates
+- Structural induction proves properties of recursive data structures: every operation on a BST, linked list, or AST relies on it
+- Reductions are the backbone of complexity theory: SAT solvers, constraint propagation, and compiler transformations all translate problems between representations
+
+</LectureResources>

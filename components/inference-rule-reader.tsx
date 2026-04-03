@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
+import { waitForMathJax, MathShimmer } from "@/components/math"
 
 interface RulePart {
   label: string
@@ -22,19 +23,6 @@ interface InferenceRuleReaderProps {
   premises?: RulePart[]
   ruleName?: string
   rules?: Rule[]
-}
-
-function waitForMathJax(): Promise<void> {
-  return new Promise((resolve) => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.MathJax?.typesetPromise) {
-        resolve()
-      } else {
-        setTimeout(check, 100)
-      }
-    }
-    check()
-  })
 }
 
 function MathBlock({ latex, className }: { latex: string; className?: string }) {
@@ -59,12 +47,17 @@ function MathBlock({ latex, className }: { latex: string; className?: string }) 
   }, [latex])
 
   return (
-    <span
-      ref={ref}
-      className={className}
-      style={{ opacity: rendered ? 1 : 0.3 }}
-    >
-      {`$${latex}$`}
+    <span className={`relative ${className ?? ""}`}>
+      {!rendered && <MathShimmer />}
+      <span
+        ref={ref}
+        style={{
+          visibility: rendered ? "visible" : "hidden",
+          position: rendered ? "static" : "absolute",
+        }}
+      >
+        {`$${latex}$`}
+      </span>
     </span>
   )
 }

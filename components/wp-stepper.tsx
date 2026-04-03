@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
+import { waitForMathJax, MathShimmer } from "@/components/math"
 
 interface ASTNode {
   id: string
@@ -28,19 +29,6 @@ interface WPStepperProps {
   astEdges: ASTEdge[]
   steps: WPStep[]
   height?: string
-}
-
-function waitForMathJax(): Promise<void> {
-  return new Promise((resolve) => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.MathJax?.typesetPromise) {
-        resolve()
-      } else {
-        setTimeout(check, 100)
-      }
-    }
-    check()
-  })
 }
 
 function MathPanel({ latex, label }: { latex: string; label: string }) {
@@ -71,12 +59,17 @@ function MathPanel({ latex, label }: { latex: string; label: string }) {
       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         {label}
       </span>
-      <div
-        ref={ref}
-        className="mt-2 overflow-x-auto text-center w-full transition-opacity duration-200"
-        style={{ opacity: rendered ? 1 : 0.3 }}
-      >
-        {`$$${latex}$$`}
+      <div className="relative mt-2 overflow-x-auto text-center w-full">
+        {!rendered && <MathShimmer block />}
+        <div
+          ref={ref}
+          style={{
+            visibility: rendered ? "visible" : "hidden",
+            position: rendered ? "static" : "absolute",
+          }}
+        >
+          {`$$${latex}$$`}
+        </div>
       </div>
     </div>
   )

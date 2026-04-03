@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { waitForMathJax, MathShimmer } from "@/components/math"
 
 interface ReductionStep {
   formula: string
@@ -13,43 +14,6 @@ interface ReductionStepperProps {
   steps: ReductionStep[]
 }
 
-/**
- * Wait for MathJax to be fully loaded and ready.
- * Same utility used in components/math.tsx.
- */
-function waitForMathJax(): Promise<void> {
-  return new Promise((resolve) => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.MathJax?.typesetPromise) {
-        resolve()
-      } else {
-        setTimeout(check, 100)
-      }
-    }
-    check()
-  })
-}
-
-/**
- * ReductionStepper — An interactive step-through component for lambda calculus reductions.
- *
- * Usage in MDX:
- * <ReductionStepper
- *   title="Beta-Reduction: succ 2 = 3"
- *   steps={[
- *     { formula: "\\colorbox{yellow}{...} \\; \\colorbox{cyan}{...}", description: "Identify the redex" },
- *     { formula: "...", description: "Substitute and simplify" },
- *   ]}
- * />
- *
- * Use LaTeX \color{} and \colorbox{} commands inside the formula strings
- * to highlight redexes and results.
- */
-/**
- * Inner component that renders a single MathJax formula.
- * Keyed by step index so React fully remounts on step change,
- * giving MathJax a fresh DOM node with clean $$...$$ text.
- */
 function StepFormula({ formula }: { formula: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [rendered, setRendered] = useState(false)
@@ -70,12 +34,17 @@ function StepFormula({ formula }: { formula: string }) {
   }, [formula])
 
   return (
-    <div
-      ref={ref}
-      className="overflow-x-auto text-center w-full transition-opacity duration-200"
-      style={{ opacity: rendered ? 1 : 0.3 }}
-    >
-      {`$$${formula}$$`}
+    <div className="relative overflow-x-auto text-center w-full">
+      {!rendered && <MathShimmer block />}
+      <div
+        ref={ref}
+        style={{
+          visibility: rendered ? "visible" : "hidden",
+          position: rendered ? "static" : "absolute",
+        }}
+      >
+        {`$$${formula}$$`}
+      </div>
     </div>
   )
 }

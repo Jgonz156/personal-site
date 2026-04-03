@@ -36,14 +36,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script
-          id="MathJax-script"
-          async
-          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
-        ></script>
-        <script
           dangerouslySetInnerHTML={{
             __html: `
               window.MathJax = {
+                startup: { typeset: false },
                 tex: {
                   inlineMath: [['$', '$']],
                   displayMath: [['$$', '$$']],
@@ -65,6 +61,11 @@ export default function RootLayout({
             `,
           }}
         />
+        <script
+          id="MathJax-script"
+          async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+        ></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
