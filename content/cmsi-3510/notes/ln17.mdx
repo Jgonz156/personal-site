@@ -1,0 +1,488 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+import { IOTag, IOTagLegend } from "@/components/io-tag"
+import { HistoricalTimeline, ioStandardsTimeline } from "@/components/historical-timeline"
+import { DataTransferPatterns } from "@/components/data-transfer-patterns"
+import { SystemInterconnectDiagram } from "@/components/system-interconnect-diagram"
+import { PollingVsInterruptTimeline } from "@/components/polling-vs-interrupt-timeline"
+import { BusTopologyDiagram } from "@/components/bus-topology-diagram"
+import { IOAddressSpaceComparison } from "@/components/io-address-space-comparison"
+import { DMAFlowStepper } from "@/components/dma-flow-stepper"
+import { CoherenceDiagram } from "@/components/coherence-diagram"
+import { ModernDMADiagram } from "@/components/modern-dma-diagram"
+
+## Recap — The Memory Unit
+
+Over the past four lectures we built a complete picture of how modern systems manage memory:
+
+- **LN13 — Memory Hardware** — Registers, caches, RAM, and storage form a hierarchy trading speed for capacity
+- **LN14 — Memory Allocation** — Fixed and dynamic partitioning divide physical memory among processes, each with fragmentation tradeoffs
+- **LN15 — Paging** — Non-contiguous allocation via fixed-size pages and frames, managed transparently by the MMU through page tables
+- **LN16 — Scaling Up** — Multi-level page tables, page replacement algorithms, segmentation, and the x86-64 hardware decision to kill segmentation
+
+We now understand how data is **stored** and **retrieved** within the system. But consider a deeper question: how does data get **into** the system in the first place? When you press a key, where does that signal go? When a file loads from your SSD, what path does it take to reach your program? When your GPU renders a frame, how does the image reach your monitor?
+
+The answer to all of these is **I/O** — Input/Output. With our memory foundation in place, we are ready to open the next chapter: how the operating system manages the flow of data between the CPU, memory, and everything else.
+
+---
+
+## Today's Agenda
+
+1. **Everything is I/O** — Surveying the surprising breadth of I/O devices on a modern system
+2. **A Brief History of I/O Standards** — From ISA (1981) to USB4 (2019): the evolution of data transfer interfaces
+3. **Communication Patterns** — Block devices, character devices, and network devices as a unifying framework
+4. **The System Interconnect** — An interactive view of how peripherals connect to the motherboard
+5. **The Anatomy of an I/O Device** — The controller/functional-hardware split
+6. **Interrupts vs. Polling** — How the CPU learns that an I/O operation is complete
+7. **The Data Highway: Bus Architecture** — Northbridge/Southbridge vs. the modern Platform Controller Hub
+8. **Port-Mapped vs. Memory-Mapped I/O** — Two ways software addresses hardware, and why one dominates
+9. **Direct Memory Access** — Offloading bulk data movement to dedicated hardware
+10. **The I/O Coherence Problem** — Keeping CPU caches and device views of memory consistent
+11. **Summary** — Tying it all together for the I/O and Networking unit
+
+---
+
+## Everything is I/O
+
+Take a moment to consider every component in or attached to your computer. You likely think of the obvious peripherals: keyboards, mice, printers, monitors, webcams, microphones, speakers. But I/O extends far deeper than that. Your hard drive is an I/O device. Your SSD is an I/O device. Your GPU is an I/O device. Your USB controllers, your Ethernet adapter, your WiFi card, your Bluetooth radio — all I/O devices.
+
+At the physical level, even RAM communicates with the CPU through a bus and a memory controller — the same kind of controller-mediated communication we will see in every I/O device this lecture. But the OS treats the memory subsystem very differently from I/O devices (as we saw in LN13–LN16), so we will keep that distinction intact. The key point is broader: nearly everything beyond the CPU's own arithmetic and logic circuitry requires a managed communication channel, and the OS must schedule and coordinate access to all of it.
+
+<DefinitionBox term="I/O Device">
+
+An **I/O device** (Input/Output device) is any hardware component that transfers data to or from the CPU and main memory. This includes obvious peripherals (keyboards, displays) and internal components (storage drives, GPUs, network adapters, USB controllers). The operating system must manage all of them through a common set of abstractions.
+
+</DefinitionBox>
+
+The challenge for OS designers is enormous: these devices vary wildly in speed (a keyboard sends a few bytes per second; an NVMe SSD moves gigabytes per second), in data format (a mouse sends coordinates; a camera sends compressed video frames), and in communication pattern (some devices produce data continuously; others only respond when asked). Yet the OS must present a reasonably uniform interface to application programmers for all of them.
+
+This is the world of I/O. Let us start by understanding how we got here.
+
+---
+
+## A Brief History of I/O Standards
+
+The interfaces connecting devices to computers have evolved dramatically over four decades. Each new standard addressed the bottlenecks and limitations of its predecessor.
+
+<HistoricalTimeline events={ioStandardsTimeline} title="Major I/O Standards Timeline" />
+
+> **📚 Historical Note:** The **ISA bus** (Industry Standard Architecture, 1981) shipped with the original IBM PC. It connected the main board to daughter boards (expansion cards) at a maximum of about 8 MB/s. Every PC clone adopted it, making ISA the first truly universal PC expansion standard — and giving "industry standard" its literal meaning.
+
+| Standard | Year | Type | Peak Bandwidth | Modern Status |
+|---|---|---|---|---|
+| **ISA** | 1981 | Parallel bus | ~8 MB/s | Obsolete |
+| **VGA** | 1987 | Analog video | N/A (analog) | Legacy, replaced by HDMI/DP |
+| **PCI** | 1992 | Parallel bus | 133 MB/s | Replaced by PCIe |
+| **USB 1.0** | 1996 | Serial | 1.5 MB/s | Superseded |
+| **USB 2.0** | 2000 | Serial | 60 MB/s | Still widespread |
+| **SATA III** | 2009 | Serial | 600 MB/s | Active (HDDs, budget SSDs) |
+| **HDMI 2.1** | 2017 | Serial A/V | 48 Gbps | Active (displays, consoles) |
+| **PCIe 4.0 x16** | 2017 | Serial lanes | ~32 GB/s | Active (GPUs, NVMe) |
+| **USB4** | 2019 | Serial | 40 Gbps | Active (modern laptops) |
+| **Thunderbolt 4** | 2020 | Serial | 40 Gbps | Active (docks, displays) |
+| **PCIe 5.0 x16** | 2019 | Serial lanes | ~64 GB/s | Active (latest GPUs, SSDs) |
+
+> **📚 Historical Note:** **USB** stands for Universal Serial Bus. When Intel, Microsoft, and five other companies launched USB 1.0 in 1996, the name was aspirational — they wanted *one* port to replace the chaotic mix of serial, parallel, PS/2, and proprietary connectors. Three decades later, with USB-C as the form factor and USB4 as the protocol, that aspiration has largely been realized — though the naming scheme (USB 3.2 Gen 2x2, anyone?) remains a source of confusion.
+
+Notice the trend: the industry moved from **parallel** buses (many wires, complex timing) to **serial** connections (fewer wires, higher clock speeds, simpler routing). This shift made cables thinner, connectors smaller, and bandwidth higher. It also simplified the electronic design of controllers — a theme that will recur throughout this lecture.
+
+---
+
+## Communication Patterns: Block, Character, and Network
+
+With dozens of I/O standards and hundreds of device types, how do we write generalized code that can handle future devices we have not even imagined yet? The answer is to classify devices not by *what they are* but by *how they communicate*. This gives us three major data transfer patterns.
+
+<IOTagLegend />
+
+### Block Devices
+
+<DefinitionBox term="Block Device">
+
+A <IOTag type="block">block device</IOTag> transfers data in fixed-size chunks called **blocks**. The device fills its internal buffer with an entire block before sending it over the wire as one unit. Block devices support **random access** — you can read or write any block independently without reading all preceding blocks.
+
+</DefinitionBox>
+
+> **🍽️ The Pallet Analogy:** Think of block devices like pallets being loaded onto trucks between warehouses. Each pallet (block) is a fixed-size unit that gets loaded completely before shipping. Multiple pallets for different orders (requests) can be interleaved on the same truck. You can pick any pallet off the shelf without going through the others.
+
+Block transfer is very efficient for storage and retrieval. The fixed-size structure allows concurrent interleaving of multiple different requests — while one block is being read from platter position A, the controller can queue the next read for a completely different position B. However, block management overhead means this technique is typically slower for very small, rapid data exchanges.
+
+Examples: HDDs, SSDs, flash drives, CD/DVD drives.
+
+<DataTransferPatterns type="block" />
+
+### Character Devices
+
+<DefinitionBox term="Character Device">
+
+A <IOTag type="character">character device</IOTag> transfers data as a continuous stream of individual characters (bytes). Data is processed in the order it arrives, with no inherent block structure. Character devices are fast and flexible but provide **no random access** — you cannot "seek" to a specific position in the stream.
+
+</DefinitionBox>
+
+> **🍽️ The Faucet Analogy:** Character devices are like kitchen faucets. Water (data) flows continuously from the source. You process it as it arrives — you cannot reach into the pipe and grab water from a specific point upstream. The flow is steady, sequential, and structureless.
+
+Character stream transfer offers high throughput and low overhead since there is no block management. The flexibility of having no inherent structure means any kind of data can flow through. However, the lack of random access means you cannot "rewind" or jump to a specific offset — the data is ephemeral.
+
+Examples: keyboards, mice, printers, serial ports, sensors.
+
+<DataTransferPatterns type="character" />
+
+### Network Devices
+
+<DefinitionBox term="Network Device">
+
+A <IOTag type="network">network device</IOTag> is a hybrid that sends a stream of discrete chunks called **packets** (or **frames**, depending on the layer). Each packet contains both payload data and metadata — which may include sender/destination addresses, sequence information, error-detection codes, or other protocol-specific fields. The exact metadata varies by protocol, but the principle is the same: every packet is self-describing enough to survive unreliable physical links.
+
+</DefinitionBox>
+
+Network devices combine traits of both block and character devices. Like block devices, they use discrete units (packets). Like character devices, they stream those units over time. The critical addition is the per-packet **metadata** — each packet can carry information about who sent it, where it should go, what order it belongs in, and how to verify it was not corrupted in transit. The specific fields depend on the protocol (Ethernet frames look different from WiFi frames, which look different from Bluetooth packets), but the pattern is consistent. This makes network communication robust over unreliable physical links (radio waves, long cables), at the cost of protocol complexity that requires specialized hardware.
+
+Transfer protocols (TCP/IP, UDP) govern how packets are assembled, routed, acknowledged, and retransmitted. This is an entire field of study — and the subject of our upcoming networking lectures.
+
+Examples: Network Interface Cards (NICs), WiFi adapters, Ethernet controllers, Bluetooth radios.
+
+<DataTransferPatterns type="network" />
+
+### Head-to-Head Comparison
+
+| Property | <IOTag type="block">Block</IOTag> | <IOTag type="character">Character</IOTag> | <IOTag type="network">Network</IOTag> |
+|---|---|---|---|
+| Transfer unit | Fixed-size block | Single byte/character | Packet (discrete chunk + metadata) |
+| Random access | Yes | No | No |
+| Ordering | Interleaved / reorderable | Strictly sequential | Sequenced via packet numbers |
+| Buffering | Block-level buffers | Minimal / stream | Per-packet buffers |
+| Overhead | Block management | Very low | Protocol processing |
+| Typical speed | High throughput (storage) | Low latency (input) | Variable (network) |
+| Error handling | Checksums per block | None inherent | CRC, ACKs, retransmission |
+
+---
+
+## The System Interconnect
+
+Now that we understand *what* flows between devices (blocks, characters, packets), let us see *how* these devices physically connect to each other. The diagram below shows a representative modern system. Hover over any device to trace its data path back to the CPU.
+
+<SystemInterconnectDiagram interactive={true} />
+
+Notice the two-part structure at every device: a **controller block** (the rectangle at the wire junction) and the **functional hardware** behind it. The wire always connects controller to controller — never directly from one device's internals to another. This is not a coincidence. It is the fundamental architecture of every I/O device, and it deserves its own section.
+
+> **🤔 A Note on This Diagram:** The "system bus" shown here is a pedagogical simplification. Real modern systems do not have a single shared bus — they use point-to-point links (PCIe lanes, DMI), with different devices connecting at different points in the topology. We will see a more realistic layout in the bus architecture section below.
+
+---
+
+## The Anatomy of an I/O Device
+
+Every I/O device, regardless of its purpose or communication standard, has a two-part internal architecture. This distinction is purely hardware — unless you are writing firmware, you will never interact with it directly as an OS developer — but understanding it explains why devices behave the way they do.
+
+### The Controller (Adapter) — The Host-Facing Interface
+
+<DefinitionBox term="Device Controller">
+
+The **device controller** (also called the **adapter**) is the host-facing interface of an I/O device. It is responsible for presenting and driving the communication API between the host system and the device's internal hardware. It matches a standard communication protocol (SATA, USB, PCIe, NVMe, HDMI, etc.) and handles transportation concerns: error-correcting codes, checksums, acknowledgments, and bus arbitration. A single controller can manage multiple devices.
+
+</DefinitionBox>
+
+The controller is the "translator" — it speaks the standard protocol on one side and the device's proprietary internal language on the other. When you plug an HDD into a SATA port, the SATA controller on the drive is what makes it SATA-compatible. The platter, the arm, and the motor know nothing about SATA.
+
+### The Functional Hardware — The Device Itself
+
+> **📚 Historical Note:** Older textbooks call this the "mechanical component" because early I/O devices were literally mechanical — HDDs have spinning platters, printers have moving heads, and keyboards have physical switch matrices. The label stuck even as devices became entirely electronic. A GPU's compute cores, an SSD's flash chips, and a NIC's packet-processing engine have no moving parts, but they occupy the same architectural role: the device-specific hardware that actually does the work.
+
+The functional hardware is the device's actual working internals — the part that produces or consumes data. For an HDD, this is the spinning platter and the read/write head. For a GPU, this is the compute cores and VRAM. For a keyboard, this is the key matrix and switch mechanism. Whether mechanical or fully electronic, this component defines what the device *does*, while the controller defines how it *communicates*.
+
+### Examples
+
+| Device | Controller (Host Interface) | Functional Hardware (Device-Specific) |
+|---|---|---|
+| **GPU** | PCIe Gen 5 interface | Compute cores, encoders, VRAM |
+| **HDD** | SATA controller | Spinning platters, read/write arm |
+| **SSD** | NVMe / SATA controller | Flash memory chips, wear-leveling logic |
+| **Keyboard** | USB controller | Key matrix, switch mechanisms |
+| **NIC** | PCIe interface | Packet engine, MAC, PHY transceiver |
+| **Microphone** | USB / 3.5mm / XLR interface | Diaphragm, capsule |
+| **Monitor** | HDMI / DisplayPort receiver | LCD/OLED panel, backlight |
+
+### Same Device, Different Controllers
+
+A crucial insight: the controller and the functional hardware are **independent**. An SSD can connect via SATA, NVMe (over M.2), or even raw PCIe in custom server systems. The flash memory chips are identical — only the controller changes. Audio follows the same pattern: a microphone's capsule is the same whether it connects over 3.5mm analog, USB digital, or XLR balanced.
+
+> **💡 Key Insight:** This independence works the other way around too. A keyboard, a mouse, and a thumb drive all use USB to communicate (same controller standard), but they are profoundly different devices with different purposes, different data patterns, and different error modes. The USB standard does not care *what* is on the other end — it only defines *how* the controllers talk to each other.
+
+As a programmer, the functional hardware of the device you are programming for will define the unique error modes, behaviors, and runtime considerations — even though the controller standard (USB, SATA, etc.) is shared across very different devices.
+
+---
+
+## Interrupts vs. Polling
+
+We have established that I/O devices have controllers, use communication standards, and transfer data in blocks, characters, or packets. But there is a fundamental question we have not yet answered: **how does the CPU know when an I/O operation is complete?**
+
+There are two approaches, and neither is universally better.
+
+<DefinitionBox term="Polling">
+
+**Polling** (also called **busy-waiting**) is a technique where the CPU repeatedly checks a device's status register in a tight loop until the device signals that it is ready. The CPU dedicates its execution to the polling loop and cannot perform other work during the wait.
+
+</DefinitionBox>
+
+Polling is simple and predictable. The CPU asks "are you ready?" over and over until the answer is yes. There is no complex setup, no asynchronous handlers, no priority management. But the cost is brutal: every cycle spent checking a status register is a cycle not spent on useful computation.
+
+<DefinitionBox term="Interrupt-Driven I/O">
+
+**Interrupt-driven I/O** is a technique where the device signals the CPU asynchronously via a hardware interrupt line when the operation is complete. The CPU is free to execute other instructions while waiting. When the interrupt fires, the CPU suspends its current work, runs an interrupt handler to process the data, and then resumes.
+
+</DefinitionBox>
+
+> **💡 Connection to LN8:** Remember the **interrupt block** in our CPU diagram? That dedicated silicon is what makes interrupt-driven I/O possible. Interrupt lines are physical wires from devices to the CPU's interrupt controller. When a device asserts its line, the CPU's hardware forces a jump to the appropriate handler — no polling required.
+
+Interrupts are efficient: the CPU works productively while the device operates, and the interrupt handling itself is very fast. But they introduce complexity — interrupt handlers must be carefully written, priorities must be managed (what happens when two devices interrupt simultaneously?), and high-frequency interrupts can overwhelm the CPU (an **interrupt storm**).
+
+<PollingVsInterruptTimeline />
+
+Drag the latency slider above. When the device responds quickly (low latency), polling is tolerable — the wasted polling window is small. But as latency increases (think of a disk seek: 5-10 milliseconds is an eternity at GHz clock speeds), the red wasted block becomes enormous while the interrupt timeline barely changes.
+
+> **🤔 The Tradeoff:** Neither technique is universally better. Polling wins for ultra-low-latency devices that respond almost immediately (some high-performance NVMe controllers actually use polling). Interrupts win for anything with meaningful latency (disk I/O, network packets, human input). Most modern systems use interrupts for I/O, and we will see shortly how DMA takes this further by reducing interrupt frequency from per-word to per-block.
+
+| Property | Polling | Interrupt-Driven |
+|---|---|---|
+| CPU utilization during wait | Wasted (busy-loop) | Free (other work) |
+| Latency to detect completion | Immediate (next check) | One interrupt cycle |
+| Complexity | Very simple | Handlers, priority, masking |
+| Best for | Fast devices, predictable timing | Slow devices, multitasking |
+| Risk | Wasted CPU cycles | Interrupt storms |
+
+---
+
+## The Data Highway: Bus Architecture
+
+We have been talking about wires and connections between devices. But how is the physical "highway" actually structured? The architecture of the chipset — the set of chips that connect the CPU to everything else — has changed dramatically, and this evolution has direct consequences for how the OS addresses devices and manages data transfers.
+
+<BusTopologyDiagram />
+
+> **📚 Historical Note:** The **Northbridge/Southbridge** design was the standard PC chipset architecture from the late 1990s through roughly 2010. The **Intel 440BX** (1998) is the canonical example — it powered everything from gaming rigs to the original Google servers. The Northbridge sat physically close to the CPU, handling the high-speed Front Side Bus, memory bus, and AGP slot. The Southbridge handled slower devices through a narrower internal link.
+
+### The Centralized Model (Northbridge/Southbridge)
+
+In the old model, the chipset had a **centralized** topology. The Northbridge was the high-speed gateway: it connected the CPU to RAM and the graphics card (via AGP). The Southbridge handled everything else — USB, SATA, audio, PCI expansion — through a narrower link to the Northbridge. If a USB device wanted to reach memory, the data flowed through Southbridge → Northbridge → Memory Bus. The Northbridge brokered all high-speed traffic, and the CPU connected to the Northbridge via the Front Side Bus.
+
+> **🤔 An Important Nuance:** Even in this older model, the CPU core did not personally handle every byte of every transfer. DMA existed as far back as 1981 (we will see this shortly). The key difference is that the **chipset layout was centralized** — all paths converged through the Northbridge, which sat next to the CPU on a shared Front Side Bus. This made the system's data flow relatively predictable and easier to reason about.
+
+### The Integrated Model (Platform Controller Hub)
+
+Modern systems collapsed both bridges into a single **Platform Controller Hub (PCH)**, connected to the CPU via a high-speed DMI (Direct Media Interface) link. More importantly, the CPU now integrates the **memory controller directly on-die** — RAM connects straight to the CPU package with no external middleman. High-bandwidth devices like GPUs connect via dedicated PCIe lanes routed directly to the CPU's on-die PCIe root ports.
+
+The result is faster and more parallel. Devices attached to the PCH can initiate transfers to memory through the DMI link without the CPU core executing instructions for each byte. Meanwhile, high-bandwidth devices on CPU-direct PCIe lanes get lower latency and higher throughput.
+
+> **💡 Key Insight:** Moving from a centralized chipset to an integrated design with direct-attached devices improved performance, but it also made the system's data flow more complex. When every path went through one central chip next to the CPU, reasoning about data movement was simpler. On a modern system, some devices connect to the CPU's own PCIe lanes, others go through the PCH, and the memory controller is on the CPU die itself. The OS and hardware must now coordinate more carefully to keep everyone's view of memory consistent.
+
+Click on different devices in the diagram above and watch the path structure — in the centralized model, every path converges through the Northbridge. In the integrated model, different devices take different routes depending on where they are attached.
+
+Why does this matter? It matters because the next sections introduce techniques that map I/O device registers directly into the CPU's address space and allow devices to move data to memory without the CPU core copying every byte. On a modern integrated system, where devices have their own paths to memory, keeping everyone's view of memory consistent becomes a real engineering challenge — one we will build up to step by step.
+
+---
+
+## Talking to I/O: Port-Mapped vs. Memory-Mapped
+
+We now understand the hardware landscape: devices have controllers, data flows through buses, and the CPU can be notified via interrupts. The remaining question is: **how does software actually address and control an I/O device?**
+
+Recall from LN8 that modern systems are **register-access machines**. Programs place data in registers and execute instructions that manipulate register contents via hardware units (ALU, etc.). When you plug in an I/O device, its controller exposes its own set of **internal registers** — status registers, data registers, control registers — that the host system can read from and write to.
+
+The question is: where do those registers live in the system's address model?
+
+### Port-Mapped I/O
+
+<DefinitionBox term="Port-Mapped I/O">
+
+**Port-Mapped I/O (PMIO)** places I/O device registers in a separate, smaller address space called the **port address space**, distinct from the main logical address space. The CPU uses special I/O-specific assembly instructions (`IN`, `OUT` on x86) to access this space. Normal memory instructions (`MOV`, `LOAD`, `STORE`) cannot reach the port space.
+
+</DefinitionBox>
+
+> **💡 Connection to LN15/LN16:** Remember our logical address space from paging? Port-Mapped I/O creates a *second*, smaller logical address space just for I/O devices, completely separate from the one managed by the page tables. The CPU has to use different instructions to reach each one.
+
+This works, but it has consequences. Since the port address space uses special instructions, some high-level languages have no syntax to access it. You would need to either hand-write assembly or rely on the compiler to emit the correct `IN`/`OUT` instructions for you.
+
+### Memory-Mapped I/O
+
+<DefinitionBox term="Memory-Mapped I/O">
+
+**Memory-Mapped I/O (MMIO)** integrates I/O device registers into unused addresses within the host system's normal logical address space. The page table maps certain virtual addresses to device registers instead of RAM. Software can then read from and write to devices using the same `MOV`/`LOAD`/`STORE` instructions it uses for regular memory.
+
+</DefinitionBox>
+
+The intuition mirrors virtual memory itself. Virtual memory disconnected the programmer's view from the hardware's internal view to allow automated management. MMIO does the same thing for I/O devices — it extends the page table to include device registers, so the programmer never needs to know the difference between a memory address and a device register address.
+
+<IOAddressSpaceComparison />
+
+### Why MMIO Dominates
+
+MMIO offers significant advantages over PMIO:
+
+| Advantage | Explanation |
+|---|---|
+| No new assembly | We do not need to design new `IN`/`OUT` instructions or modify existing ISAs |
+| Reuses the load/store model | Compilers, debuggers, and kernel code all work with existing memory instructions — no special compiler support needed |
+| Paging integration | MMIO slots directly into the existing page table infrastructure |
+| Page-level protection | The same page-table permission bits that protect memory also control which processes can access which device registers |
+
+On modern 64-bit systems with quintillions of addressable locations, reserving a range for I/O device registers is perfectly safe. Since MMIO maps device registers into the normal address space, the existing page-table infrastructure — permissions, privilege levels, address translation — applies automatically.
+
+> **⚠️ Gotcha:** MMIO regions are *not* accessed the same way as regular heap or stack memory. Device registers typically require **volatile** reads/writes (the compiler must not optimize them away or reorder them), strict **memory ordering** (the CPU must not reorder device accesses), and special **cache attributes** (often marked uncacheable). The page table entries for MMIO regions carry metadata that tells the CPU to treat these addresses differently from normal RAM.
+
+### The Caching Problem
+
+Consider what happens if a device register is mapped into a cacheable region. The CPU reads the mouse's position register once, caches the value, and then never asks the device again — every subsequent read returns the stale cached value. A mouse would never respond to new inputs. A parking brake sensor would always report the same distance.
+
+Device registers that change independently of the CPU — status registers, sensor readings, incoming data buffers — are fundamentally incompatible with normal caching. This is why MMIO page table entries are typically marked with special cache attributes (**uncacheable** or **write-combining**) that force the CPU to bypass its caches and read directly from the device on every access.
+
+> **💡 Key Insight:** This is not a flaw in MMIO — it is a design constraint. The page table already carries metadata about each mapping (permissions, present bit, etc.). Cache attributes are one more piece of that metadata. The OS marks MMIO pages as uncacheable, and the CPU hardware respects that marking. The infrastructure from LN15/LN16 handles this naturally.
+
+---
+
+## Direct Memory Access
+
+Without DMA, the CPU must personally copy every byte between a device and memory. This approach — called **programmed I/O** — works, but it forces the CPU to execute load/store instructions for every word of every transfer. For a multi-megabyte disk read, that means millions of CPU instructions spent on data copying instead of useful computation.
+
+> **🍽️ The Restaurant Analogy:** Imagine a restaurant manager who also had to personally carry every delivery from the loading dock to the kitchen, one plate at a time. The restaurant would grind to a halt. The solution? Hire a **delivery coordinator** who handles all incoming and outgoing shipments so the manager can focus on running the restaurant. The manager just tells the coordinator what to expect and checks in when the coordinator says "it's done."
+
+This is exactly the idea behind DMA. Instead of the CPU copying data word by word, dedicated transfer hardware moves data between the device and memory independently. The CPU programs the transfer (source, destination, size), then goes about its business. When the transfer is complete, an interrupt notifies the CPU.
+
+<DefinitionBox term="Direct Memory Access">
+
+**Direct Memory Access (DMA)** is a hardware technique where dedicated transfer hardware moves data between I/O devices and main memory without the CPU executing per-word copy instructions. The CPU programs the transfer parameters (source, destination, size), then resumes other work. The transfer hardware handles the actual data movement and fires an interrupt when done.
+
+</DefinitionBox>
+
+> **📚 Historical Note:** The **Intel 8237** DMA controller shipped in 1981 — the same year as the IBM PC. Even in 1981, designers recognized that having the CPU manage every byte of every I/O transfer was unsustainable. The 8237 could manage four independent DMA channels, each handling a separate device-to-memory transfer concurrently.
+
+### Without DMA (Programmed I/O)
+
+Step through the flow below in "Without DMA" mode. Notice that the CPU is **busy for every step**. Each block transfer requires the CPU to stop what it is doing, read data from the device's registers, store it in memory, and resume — then repeat for the next block. With many blocks, the CPU is spending most of its time copying data.
+
+### With DMA
+
+Now switch to "With DMA" mode. The CPU does two things: programs the DMA controller at the start, and reads the result from memory at the end. Everything in between — requesting data from the device, receiving it, writing it to memory — happens without the CPU core executing copy instructions. Instead of an interrupt per block, there is typically a **single interrupt** for the entire transfer.
+
+<DMAFlowStepper />
+
+> **💡 Key Insight:** DMA solves the **CPU utilization problem**: instead of the CPU core spending millions of cycles copying data, dedicated hardware does it while the CPU runs other code. DMA also reduces **interrupt frequency** — connecting directly back to our interrupts discussion. The CPU goes from being interrupted per-word or per-block to receiving one notification when the entire transfer is done.
+
+### Modern DMA: Beyond the Simple Model
+
+The stepper above shows the classic, simplified DMA model: one controller, one transfer, one interrupt. Modern systems are more complex:
+
+- **Bus-mastering devices** — Many modern devices (GPUs, NVMe SSDs, NICs) have their own built-in DMA engines. They do not need a separate DMA controller chip on the motherboard; the device itself initiates memory transfers directly over PCIe.
+- **Descriptor rings** — Instead of programming one transfer at a time, the CPU fills a ring buffer of **transfer descriptors** (source, destination, size for each). The device processes descriptors from the ring autonomously, and the CPU only intervenes when the ring needs refilling or results need processing.
+- **Scatter/gather** — A single logical transfer can span multiple non-contiguous memory regions. The DMA engine follows a list of (address, length) pairs, assembling or distributing data across scattered buffers.
+- **MSI/MSI-X interrupts** — Modern devices use **Message Signaled Interrupts**, which write a small message to a special memory address instead of asserting a physical interrupt wire. This scales better (thousands of interrupt vectors vs. a handful of physical lines) and integrates naturally with the MMIO model.
+
+The diagram below shows how a modern bus-mastering device manages its own DMA transfers through a descriptor ring, scatter/gather buffers, and MSI signaling.
+
+<ModernDMADiagram />
+
+---
+
+## The I/O Coherence Problem
+
+We now understand that DMA allows devices to read from and write to main memory independently — without the CPU core executing load/store instructions for every byte. But this independence introduces a subtle and important problem.
+
+When a device's DMA engine writes new data directly into RAM, the CPU's caches may still hold a stale copy of that same memory region. The CPU will read its cached value and never see the fresh data the device just wrote. Conversely, if the CPU has written data that is still sitting in its cache and has not yet been flushed to RAM, a device reading that memory address via DMA will see old data.
+
+This is the **I/O coherence problem**: the CPU and devices can have inconsistent views of the same memory locations.
+
+> **💡 Connection to the Bus Architecture:** The integrated chipset model we studied earlier is what makes this problem acute. When devices have their own paths to memory — through the PCH or through CPU-direct PCIe lanes — data can arrive in RAM without the CPU core's involvement. The CPU's cache hierarchy does not automatically know about these writes.
+
+Toggle between scenarios below to see how stale data arises and how modern hardware addresses it.
+
+<CoherenceDiagram />
+
+> **🤔 Why Not Just Avoid Caching?** We already saw that MMIO device registers are marked uncacheable — could we do the same for DMA buffers? We could, but DMA buffers are regions of *regular RAM* that the CPU also needs to use at full speed. Marking them permanently uncacheable would destroy performance for the CPU. The challenge is that we need these regions cached for CPU performance but coherent with device-initiated transfers — and that requires active coordination.
+
+Modern systems address I/O coherence through a combination of approaches:
+
+1. **Cache-coherent interconnects** — On many modern platforms, the PCIe fabric participates in the CPU's cache coherence protocol. Device writes snoop the CPU's caches automatically, keeping views consistent at a hardware cost.
+2. **Explicit cache management** — The OS or driver manually flushes or invalidates CPU cache lines before and after device transfers. This is the common approach on platforms without hardware coherence for I/O.
+3. **IOMMU (I/O Memory Management Unit)** — A dedicated MMU for devices that translates device-visible addresses to physical addresses, enforces access permissions, and can coordinate with cache management. Think of it as the page table equivalent for DMA: just as the MMU protects processes from accessing each other's memory, the IOMMU protects the system from rogue or buggy devices accessing memory they should not touch.
+
+<DefinitionBox term="IOMMU">
+
+An **IOMMU** (I/O Memory Management Unit) provides address translation and access control for device-initiated memory transfers. It maps device-visible addresses to physical memory, restricts which regions a device can access, and works alongside cache management to maintain coherent views of memory between the CPU and I/O devices.
+
+</DefinitionBox>
+
+> **📚 Historical Note:** Intel calls their IOMMU implementation **VT-d** (Virtualization Technology for Directed I/O), and AMD calls theirs **AMD-Vi**. Both were introduced in the mid-2000s, originally motivated by virtualization — allowing virtual machines to safely use physical devices — but they are now essential for system security and DMA safety on all modern platforms.
+
+---
+
+## Summary
+
+- **Everything is I/O** — nearly every component beyond the CPU's own ALU requires a managed communication channel that the OS must coordinate
+- I/O standards evolved from parallel buses (ISA, PCI) to serial connections (USB, SATA, PCIe), increasing bandwidth and simplifying hardware
+- Three **communication patterns** classify devices by how they transfer data: <IOTag type="block">Block</IOTag> (fixed chunks, random access), <IOTag type="character">Character</IOTag> (continuous stream, sequential), <IOTag type="network">Network</IOTag> (discrete packets with metadata)
+- Every I/O device has a **two-part architecture**: a controller (speaks the communication standard) and functional hardware (does the device-specific work) — whether mechanical or fully electronic
+- The controller and functional hardware are independent — the same device can use different controllers, and the same controller standard can serve very different devices
+- **Polling** wastes CPU cycles by busy-waiting; **interrupt-driven I/O** frees the CPU but introduces handler complexity and interrupt storm risks
+- Bus architecture evolved from **centralized** (Northbridge/Southbridge) to **integrated** (PCH with on-die memory controller and CPU-direct PCIe), improving performance but complicating coherence
+- **Port-Mapped I/O** uses a separate address space with special instructions; **Memory-Mapped I/O** integrates device registers into the normal address space via page tables, with special cache attributes for device regions
+- **DMA** offloads bulk data movement from the CPU to dedicated transfer hardware, reducing both CPU utilization and interrupt frequency
+- Modern devices use bus-mastering DMA, descriptor rings, and MSI/MSI-X interrupts — far beyond the simple one-controller model
+- **I/O coherence** — keeping CPU caches consistent with device-initiated memory transfers — is managed through cache-coherent interconnects, explicit cache management, and the **IOMMU**
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **I/O Device** | Any hardware component that transfers data to or from the CPU and main memory |
+| **Block Device** | Transfers data in fixed-size blocks; supports random access (HDDs, SSDs) |
+| **Character Device** | Transfers data as a continuous byte stream; sequential only (keyboards, mice) |
+| **Network Device** | Hybrid: streams discrete packets with metadata (NICs, WiFi adapters) |
+| **Device Controller** | The host-facing interface that presents the communication API and handles protocol concerns |
+| **Functional Hardware** | The device-specific internals that do the actual work (mechanical or electronic) |
+| **Polling** | CPU busy-waits in a loop checking a device's status register |
+| **Interrupt-Driven I/O** | Device signals the CPU asynchronously via a hardware interrupt line when ready |
+| **Port-Mapped I/O** | I/O registers live in a separate port address space, accessed via special instructions |
+| **Memory-Mapped I/O** | I/O registers are mapped into the normal address space via page tables, with special cache attributes |
+| **DMA** | Dedicated transfer hardware moves data between devices and memory without per-word CPU involvement |
+| **IOMMU** | I/O Memory Management Unit — provides address translation and access control for device-initiated memory transfers |
+
+**Polling vs. Interrupts:**
+
+| Property | Polling | Interrupt-Driven |
+| :--- | :--- | :--- |
+| CPU during wait | Wasted (busy-loop) | Free (other work) |
+| Detection speed | Next loop iteration | Hardware interrupt cycle |
+| Complexity | Minimal | Handlers, priority, masking |
+| Best for | Ultra-fast devices | Anything with latency |
+
+**Port-Mapped vs. Memory-Mapped I/O:**
+
+| Property | Port-Mapped | Memory-Mapped |
+| :--- | :--- | :--- |
+| Address space | Separate port space | Unified with main address space |
+| Instructions | Special (IN/OUT) | Normal (MOV/LOAD/STORE) |
+| Compiler/toolchain support | Requires intrinsics or inline assembly | Standard load/store — no special support needed |
+| Protection | Separate I/O privilege level | Page-level permissions |
+| Cache behavior | Not cached by default | Requires explicit uncacheable marking for device registers |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 36: I/O Devices](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Free textbook covering device interfaces, polling, interrupts, and DMA
+- [OSTEP Chapter 37: Hard Disk Drives](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Deep dive into HDD geometry, scheduling, and I/O performance
+- [Modern Operating Systems (Tanenbaum) Ch. 5: Input/Output](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — Comprehensive I/O hardware and software coverage
+
+### I/O Architecture References
+
+- [Intel Platform Controller Hub Overview](https://www.intel.com/content/www/us/en/products/details/chipsets.html) — Intel's PCH documentation and chipset specifications
+- [PCI Express Base Specification](https://pcisig.com/specifications) — Official PCIe specification from PCI-SIG
+- [USB Specification](https://www.usb.org/documents) — USB-IF specifications for USB 2.0 through USB4
+- [SATA-IO Specifications](https://sata-io.org/developers/specs) — Serial ATA specification documents
+
+### Historical Context
+
+- [The IBM PC — 1981](https://www.ibm.com/history/personal-computer) — The machine that established ISA and the 8237 DMA controller as industry standards
+- [USB: A Brief History](https://www.usb.org/about) — From 1.5 Mbps in 1996 to 80 Gbps with USB4 Version 2.0
+- [Northbridge/Southbridge Architecture](https://en.wikipedia.org/wiki/Northbridge_(computing)) — Historical overview of the two-chip PC chipset design
+
+</LectureResources>

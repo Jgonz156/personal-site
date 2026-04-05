@@ -17,6 +17,19 @@ Today we face the critical question: **how do we actually allocate processes ont
 
 ---
 
+## Today's Agenda
+
+1. **The Goal** — Placing processes into finite RAM
+2. **Contiguous Allocation** — Requiring each process to occupy a single continuous block
+3. **Fixed Partitioning** — Pre-divided memory regions ("bar seating")
+4. **Dynamic Partitioning** — Variable-size regions on demand ("booth seating")
+5. **Allocation Strategies** — First-Fit, Best-Fit, Worst-Fit, and how they compare
+6. **The Problem with Contiguous Allocation** — Why fragmentation forces a rethink
+7. **Logical vs. Physical Addresses** — Separating the programmer's view from hardware reality
+8. **The Memory Management Unit** — Hardware that bridges the two address worlds
+
+---
+
 ## The Goal
 
 Our goal is to take the memory model from last time and **allocate all data** — whether being used by active processes or set aside for storage — across our strips. We need to be cognizant of what data needs to be close to the CPU and just how much to move there, since the space gets smaller and smaller the faster we need it.
@@ -63,6 +76,8 @@ By making the partition size smaller, we can match process sizes more closely, r
 
 So increasing partition size lets us sacrifice less overhead to management, but the larger we go, the worse the internal fragmentation gets. This is a fundamental tradeoff with no perfect answer in fixed partitioning.
 
+> **💡 Connection to LN13:** This tradeoff echoes the memory hierarchy itself — more capacity means less speed, more speed means less capacity. Fixed partitioning makes you choose where on that spectrum to sit, and there is no universally right answer.
+
 But wait — if we can measure the internal fragmentation, it is because we already know the size of each process. Why do we not just allocate partitions that *match* the process size, rather than choosing a fixed size ahead of time?
 
 ---
@@ -75,7 +90,7 @@ The idea is to **separate memory into regions sized to each arriving process**. 
 
 ...or is it?
 
-> Watch for this specific mismatch: **total free memory** can be large enough while the **largest contiguous gap** is still too small.
+> **⚠️ Watch For This:** The specific mismatch to track is that **total free memory** can be large enough while the **largest contiguous gap** is still too small.
 
 <DynamicPartitionStepper />
 
@@ -118,7 +133,7 @@ Let us categorize what we have been doing: **First-Fit** — allocate at the fir
 
 Try each strategy on the same sequence of events:
 
-> As you step through the demo, do not just ask whether the allocation succeeds. Ask **which gap** each strategy chooses, and **why**.
+> **🤔 Think About This:** As you step through the demo, do not just ask whether the allocation succeeds. Ask **which gap** each strategy chooses, and **why**.
 
 <AllocationStrategyDemo />
 
@@ -137,6 +152,8 @@ So why does not Best-Fit help? Because it actually **creates more small gaps**. 
 Worst-Fit does better because placing small processes in the *largest* gap leaves large remaining gaps — which are more likely to be useful for future large processes.
 
 Next-Fit is not great because it distributes gaps evenly across memory without any management strategy, leading to fragmentation everywhere.
+
+> **📚 Historical Note:** Donald Knuth analyzed these allocation strategies in *The Art of Computer Programming* (1973) and established the "Fifty-Percent Rule" — under First-Fit, roughly half of all allocated blocks are adjacent to a free block. This empirical finding has held up across decades of real workloads.
 
 And First-Fit? It works best for the same reason Multi-Level Feedback Queues were revolutionary for scheduling: **it naturally sorts by behavior**! Small processes appear quickly and leave quickly. They form small gaps *at the front* of memory (since FF always starts scanning from the beginning). This pushes larger, slower processes toward the back. Over time, memory self-organizes into a **hot zone** at the front (many tiny fast-turnover processes) and a **cold zone** at the back (stable large processes). The small processes naturally fit in the small front gaps, leaving large gaps at the back for large processes.
 
@@ -213,7 +230,7 @@ Both types of addresses are just numbers. We have a guarantee from programmers t
 
 If mapping logical addresses directly to physical addresses results in collisions, why do we not simply **offset** each process's logical addresses until they land on an unused region of physical memory? The process slides into the available space while keeping all its internal address relationships intact.
 
-> Track one number carefully: every process begins at the same **logical start**, but ends up with a different **physical start** after translation.
+> **📌 Key Point:** Track one number carefully: every process begins at the same **logical start**, but ends up with a different **physical start** after translation.
 
 Before stepping through this demo, track one invariant: the program's logical address stays the same even though the physical destination changes.
 
@@ -234,6 +251,8 @@ This works because the translation is systematic: one logical region maps to a s
 ## Preview: The Memory Management Unit
 
 This hardware offset is computed by the **MMU (Memory Management Unit)** — a dedicated piece of hardware that sits between the CPU and memory. Every address the CPU produces is a logical address. The MMU intercepts it, adds the base offset for the current process, and sends the translated physical address to the memory bus.
+
+> **💡 Connection to LN8:** The MMU is hardware we already placed on our CPU diagram — it was sitting between the CPU and memory the whole time. Now we finally see its full job description: not just protecting memory boundaries, but actively translating every single address the CPU produces.
 
 This is the same MMU we mentioned back in LN9 when discussing CPU security — it was already there, enforcing memory boundaries. Now we see its other critical role: **address translation**.
 

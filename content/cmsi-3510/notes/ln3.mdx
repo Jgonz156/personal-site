@@ -286,7 +286,7 @@ fn main() {
 
 ---
 
-## Summary So Far
+## Recap So Far
 
 Before we add any more complexity, let's recap what we've seen:
 
@@ -483,6 +483,17 @@ These three simple rules, enforced at compile time, give Rust its memory safety 
 
 ---
 
+## Summary
+
+- **Ownership** ensures every value has exactly one owner at a time — when the owner goes out of scope, the value is dropped and its memory freed
+- **Borrowing** allows temporary access without taking ownership: `&` for immutable borrows, `&mut` for mutable borrows
+- **Moves** transfer ownership from one variable to another; the original variable becomes invalid after the move
+- **Copy types** (primitives like `i32`, `bool`, `char`) are duplicated on assignment instead of moved
+- **Functions** participate fully in the ownership system — parameters can take ownership, borrow immutably, or borrow mutably
+- The **Three Rules of Ownership** — single owner, scope equals lifetime, transfer or borrow — give Rust its memory safety guarantees without a garbage collector
+
+---
+
 <LectureNotes>
 
 **Key Takeaways:**
@@ -509,9 +520,15 @@ These three simple rules, enforced at compile time, give Rust its memory safety 
 
 <LectureResources>
 
-- [The Rust Book: Ownership](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) — Official guide to ownership
-- [The Rust Book: References and Borrowing](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html) — Deep dive into borrowing
-- [Rust by Example: Ownership](https://doc.rust-lang.org/rust-by-example/scope/move.html) — Interactive ownership examples
-- [Visualizing Memory Layout](https://cheats.rs/#memory-layout) — Rust memory cheat sheet
+### Recommended Reading
+
+- [The Rust Book: Ownership](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) — Official guide to ownership semantics and the drop mechanism
+- [The Rust Book: References and Borrowing](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html) — Deep dive into immutable and mutable borrows
+- [OSTEP Chapter 13: Address Spaces](https://pages.cs.wisc.edu/~remzi/OSTEP/) — How the OS views memory — context for why ownership matters at the systems level
+
+### Rust Systems Programming
+
+- [Rust by Example: Ownership and Moves](https://doc.rust-lang.org/rust-by-example/scope/move.html) — Interactive examples of ownership transfer
+- [Visualizing Memory Layout](https://cheats.rs/#memory-layout) — Rust memory cheat sheet for stack, heap, and static storage
 
 </LectureResources>

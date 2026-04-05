@@ -463,7 +463,14 @@ fn main() {
 
 ---
 
-## Coming Up Next
+## Summary
+
+- Rust **variables** carry more semantic information than their Python counterparts — mutability, type, and lifetime are all encoded in the declaration syntax
+- **Declaration syntax** (`let`, `let mut`, `const`, `static`) tells the compiler exactly how much space to allocate and where to put it, enabling compile-time memory optimizations
+- **Mutability** is a property of the variable binding, not the value itself — immutability by default forces intentional decisions about what can change
+- **Scope** determines where a variable is accessible; **lifetime** determines when its memory is freed — these are related but distinct concepts
+- Values live on the **stack** (fixed-size, fast), the **heap** (dynamic, flexible), or in **static/program-lifetime** storage depending on their type and usage
+- Rust's **type system** is precise: scalar types, compound types, and reference types each serve specific purposes with distinct memory implications
 
 Next time we'll explore **Functions** and **The Ownership System**!
 
@@ -492,8 +499,15 @@ Next time we'll explore **Functions** and **The Ownership System**!
 
 <LectureResources>
 
-- [The Rust Book: Variables and Mutability](https://doc.rust-lang.org/book/ch03-01-variables-and-mutability.html) — Official guide to Rust variables
-- [The Rust Book: Data Types](https://doc.rust-lang.org/book/ch03-02-data-types.html) — Comprehensive type reference
-- [Rust by Example: Primitives](https://doc.rust-lang.org/rust-by-example/primitives.html) — Interactive examples of Rust types
+### Recommended Reading
+
+- [The Rust Book: Variables and Mutability](https://doc.rust-lang.org/book/ch03-01-variables-and-mutability.html) — Official guide to Rust variables, `let`, `mut`, `const`, and `static`
+- [The Rust Book: Data Types](https://doc.rust-lang.org/book/ch03-02-data-types.html) — Comprehensive reference for scalar and compound types
+
+### Rust Systems Programming
+
+- [Rust by Example: Primitives](https://doc.rust-lang.org/rust-by-example/primitives.html) — Interactive examples of Rust's primitive types
+- [Rust by Example: Variable Bindings](https://doc.rust-lang.org/rust-by-example/variable_bindings.html) — Mutability, scope, and shadowing by example
+- [Visualizing Memory Layout](https://cheats.rs/#memory-layout) — Rust memory cheat sheet for stack, heap, and static storage
 
 </LectureResources>

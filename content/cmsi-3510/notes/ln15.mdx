@@ -24,6 +24,19 @@ Step through all four phases above. Phases 1 and 2 are the **logical side** — 
 
 ---
 
+## Today's Agenda
+
+1. **The Universal Memory Dream** — Revisiting LN13's ideal and why we need virtual memory
+2. **What Virtual Memory Is (and Is Not)** — Clearing up the biggest misconception
+3. **Non-Contiguous Allocation** — Breaking free from contiguous placement
+4. **Paging** — Dividing memory into fixed-size pages and frames
+5. **Page Faults and Swapping** — What happens when a page is not in RAM
+6. **The MMU in Action** — Hardware-driven address translation
+7. **Page Tables** — The data structure that maps pages to frames
+8. **An 8-Bit System** — Walking through a complete paging example end-to-end
+
+---
+
 ## The Universal Memory Dream
 
 Recall our discussion of the **universal memory** concept from LN13 — the theoretical ideal of a single, enormous, fast, cheap memory strip for all computation. We cannot build such hardware (yet), so we are stuck with the multi-strip, multi-speed, multi-cost reality of registers, caches, RAM, SSDs, and HDDs.
@@ -50,7 +63,7 @@ Virtual memory exists first to provide **translation, protection, and isolation*
 
 Before we go further, let us be very clear about what virtual memory is **not**:
 
-> Virtual memory is **not** inventing new space for storing things. It is **not** "downloading more RAM." You can only get more memory or storage by purchasing more or better hardware.
+> **⚠️ Common Misconception:** Virtual memory is **not** inventing new space for storing things. It is **not** "downloading more RAM." You can only get more memory or storage by purchasing more or better hardware.
 
 The distinction being made is that managing **memory** (RAM) is hard because it is limited, so we offload the things we do not pick up as often onto **storage** (SSD/HDD). When virtual memory says it is "placing chunks elsewhere," those chunks are placed on hardware so slow we no longer consider it readily available.
 
@@ -70,6 +83,8 @@ To implement this, we need non-contiguous allocation techniques. We covered two 
 - **Dynamic partitioning** — eliminated internal fragmentation but created external fragmentation
 
 What if we could leverage the fundamental principles of these two techniques to build something new? Our first non-contiguous technique is best described as "virtual fixed partitioning." Its name is **paging**.
+
+> **💡 Key Insight:** Paging takes the simplicity of fixed partitioning and removes its fatal flaw — the requirement for contiguity. Pages are fixed-size (like fixed partitions) but can be placed **anywhere** in physical memory (unlike fixed partitions).
 
 ---
 
@@ -126,6 +141,8 @@ A <MemoryTag type="cost">page fault</MemoryTag> occurs when the CPU references a
 
 </DefinitionBox>
 
+> **💡 Connection to LN10-LN11:** Notice that page faults create a scheduling problem that is structurally identical to CPU scheduling — multiple contenders competing for a limited resource, with the OS deciding who stays and who gets swapped out. The algorithms even share names: LRU, FIFO, and Working Set all appear in both domains.
+
 As a side note, notice that this situation directly models the same management problem the CPU faces with **scheduling**. With CPU scheduling, multiple processes compete for a limited number of cores. With page management, multiple pages compete for a limited number of frames. There is an entirely adjacent scheduling problem dedicated to deciding which pages to evict — a direct parallel to CPU scheduling! Do not worry though; we have seen enough scheduling for one OS course.
 
 This system only works because the hardware and OS cooperate to maintain the fiction of one coherent virtual address space. Let us take a deep dive into the exact steps involved.
@@ -139,6 +156,8 @@ Before stepping through the MMU translation, compare the fast path and the fault
 <MMUTranslationStepper />
 
 Step through both scenarios above. In the **normal path**, the MMU receives a logical address, translates it to a physical address using its page table, fetches the data from RAM, and returns it to the CPU. The CPU never knows the translation happened.
+
+> **💡 Connection to LN8:** The MMU we placed on our CPU diagram is doing all the heavy lifting here. In the fast path, the entire translation is invisible to software — pure hardware. Only in the fault path does the OS kernel get involved, making this a perfect division of labor between hardware (speed) and software (flexibility).
 
 In the **page fault path**, the requested page is not resident. Extra steps are required: the kernel handles the fault, may need to evict some other page, reads the needed page into memory, updates the mapping, and then retries the access. The important operational detail is that the fault involves the OS and scheduler aswell as the hardware.
 
@@ -199,6 +218,8 @@ Each <MemoryTag type="physical">frame</MemoryTag> must be exactly 32 bytes — t
 With only 2 frames available for 8 pages, the page table has 8 rows but only 2 of them map to a frame. The other 6 are page faults — those pages live in storage until they are needed. When a translation succeeds, the 3 page bits are stripped off and replaced with however many frame bits we need (just 1 bit for 2 frames). The 5 offset bits pass through completely unchanged.
 
 <EightBitTranslationChain />
+
+> **📚 Historical Note:** The concept of paging was first implemented in the Atlas computer at the University of Manchester in 1961. Atlas had a one-level store that automatically moved data between a small magnetic core memory and a large drum — the first hardware-managed virtual memory system. Every modern laptop is a descendant of that idea.
 
 This is the entire mechanism. The logical address space (256 addresses, 8 bits) is **four times larger** than the physical address space (64 addresses, 6 bits). The page table bridges that gap, and the offset bits that index within a page are the same bits that index within a frame — because pages and frames are the same size. That is why the offset is preserved: it does not need to be translated at all.
 

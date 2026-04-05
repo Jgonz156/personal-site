@@ -123,3 +123,14 @@ export const threadEvolutionTimeline: TimelineEvent[] = [
   { year: "2000s", label: "Green Threads" },
   { year: "2010s+", label: "M:N Models" },
 ]
+
+export const ioStandardsTimeline: TimelineEvent[] = [
+  { year: "1981", label: "ISA" },
+  { year: "1987", label: "VGA" },
+  { year: "1992", label: "PCI" },
+  { year: "1996", label: "USB" },
+  { year: "2003", label: "SATA / HDMI" },
+  { year: "2004", label: "PCIe" },
+  { year: "2011", label: "Thunderbolt" },
+  { year: "2019", label: "USB4" },
+]

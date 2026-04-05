@@ -20,6 +20,21 @@ Before we scale up, let us make sure we are precise about the units we will be t
 
 ---
 
+## Today's Agenda
+
+1. **Units — Bits, Bytes, and Prefixes** — Getting precise about binary vs. SI measurements
+2. **Scaling Up: How Big Is 64 Bits?** — Comprehending 2<sup>64</sup> addresses
+3. **The Cost of a 1:1 Mapping** — Why a flat page table is physically impossible at 64 bits
+4. **Intel's Page Sizes** — The three page sizes baked into x86-64 silicon
+5. **Multi-Level Page Tables** — Splitting the translation across chained tables
+6. **Multi-Level Translation in Action** — Tracing a single address through all four levels
+7. **Page Replacement Algorithms** — Choosing which page to evict when frames are full
+8. **Segmentation** — Variable-size, data-structure-aligned memory regions
+9. **Paging vs. Segmentation** — A head-to-head comparison
+10. **The Twist: x86-64 Killed Segmentation** — How hardware settled the debate
+
+---
+
 ## A Quick Note on Units — Bits, Bytes, and Prefixes
 
 A **bit** is a single binary digit (0 or 1). A **byte** is 8 bits — the smallest unit of data that modern hardware reads and writes at the memory bus level. When we say a system is "64-bit," we mean its addresses are 64 bits wide. But each of those addresses points to one **byte**, not one bit. This is called **byte-addressable** memory, and every modern architecture (x86, x86-64, ARM) works this way.
@@ -45,6 +60,8 @@ You will see two styles of size prefixes throughout this course. **Binary prefix
 | 1 EiB | 2<sup>60</sup> B | 1 EB | 10<sup>18</sup> B |
 
 This lecture uses binary prefixes (GiB, TiB, EiB) when working with address spaces and memory sizes, since powers of 2 are the native language of hardware. When we reference retail pricing or real-world comparisons, we may use SI prefixes where they match common usage.
+
+> **📚 Historical Note:** The binary vs. SI prefix confusion has been a source of lawsuits. In 2007, Western Digital settled a class-action suit for advertising hard drives using SI gigabytes while consumers expected binary gigabytes. The IEC introduced the KiB/MiB/GiB notation in 1998 specifically to resolve this, but the industry has been slow to adopt it.
 
 A common source of confusion: **RAM sticks are labeled in "GB" but actually hold binary gigabytes.** A stick labeled "32 GB" contains exactly 32 × 2<sup>30</sup> = 2<sup>35</sup> bytes — which is technically 32 GiB. This happens because RAM chips are physically structured as powers of 2 (each chip has 2<sup>n</sup> addressable cells), so the capacity is always an exact power of 2. RAM is one of the rare cases where the industry label and the binary value match. Hard drives and SSDs are the opposite — a "1 TB" drive contains 10<sup>12</sup> bytes, which is only ~931 GiB. That is why a "1 TB" drive shows up as roughly 931 GB in your OS.
 
@@ -155,6 +172,8 @@ That is the key insight. The total memory footprint when fully populated is actu
 
 Single-level demands the entire 8 KiB always in memory. Multi-level can serve a translation with just **72 bytes** resident, offloading the rest to disk.
 
+> **💡 Key Insight:** Multi-level page tables do not reduce the total amount of data needed to describe all translations. They reduce the amount that must be **resident in memory at any given moment**. The savings come from sparsity — most of the logical address space is unused, so most intermediate tables never need to exist.
+
 ---
 
 ## Multi-Level Translation in Action
@@ -238,6 +257,8 @@ Let us put these two techniques side by side. Look carefully at which column "wi
 | Is the sharing of procedures between users facilitated? | No | Yes |
 | Why was this technique invented? | To get a large linear address space without having to buy more physical memory | To allow programs and data to be broken up into logically independent address spaces and to aid sharing and protection |
 
+> **🤔 The Puzzle:** Look at the table above. Segmentation wins on **5 of 7** criteria. If you were designing a new architecture from scratch, you would be forgiven for choosing segmentation. So why did the industry go the other way?
+
 Segmentation wins on **5 of 7** criteria. It offers finer-grained protection, better sharing, and a more natural fit for how programmers actually structure their code. You would be forgiven for thinking segmentation should be the dominant technique in modern systems.
 
 So... is it?
@@ -278,6 +299,10 @@ On modern x86-64 systems, the crash you know as a "segfault" is actually trigger
 5. The OS kernel examines the fault, determines it is illegitimate, and delivers **SIGSEGV** to the process
 
 The signal is called SIGSEGV — **Sig**nal: **Seg**mentation **V**iolation — because the name was established in the 1970s and 1980s when segmentation hardware genuinely caught these errors. On your modern laptop, that crash is a page fault wearing a dead system's name. Even the error message is a ghost of segmentation.
+
+> **📚 Historical Note:** Multics (1965) was the system that most fully realized segmented virtual memory. Its designers at MIT, Bell Labs, and GE envisioned a world where every data structure lived in its own named segment, shared and protected at the hardware level. When Ken Thompson and Dennis Ritchie left to create Unix, they deliberately chose a simpler flat address space — and that decision echoed forward through Linux, Windows, and ultimately into the x86-64 hardware itself.
+
+> **💡 Key Insight:** The criterion where paging wins — "Do programmers need to be aware?" → No — turned out to be worth more than all five criteria where segmentation wins combined. Transparency trumped power.
 
 Paging won not because it was better on every criterion — the comparison table clearly shows segmentation's advantages. It won because the one criterion where paging excels — **"Do programmers need to be aware?"** → No — turned out to be the decisive factor. Transparency trumped power. The hardware chose for us, and it chose the technique that required nothing from the programmer.
 
