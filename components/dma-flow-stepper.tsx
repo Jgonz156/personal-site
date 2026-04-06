@@ -298,7 +298,7 @@ export function DMAFlowStepper({ className }: { className?: string }) {
                   )}
                   fontSize={comp.label.length > 12 ? 9 : 11}
                 >
-                  {isGhostedDma ? "(no DMA)" : comp.label}
+                  {isGhostedDma ? "(no DMA)" : id === "dma_buffer" && isDmaGhosted ? "Memory Buffer" : comp.label}
                 </text>
                 {comp.subtitle && !isGhostedDma && (
                   <text
