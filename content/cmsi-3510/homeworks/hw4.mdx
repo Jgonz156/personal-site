@@ -1,0 +1,90 @@
+import {
+  ReadingSection,
+  ProgrammingSection,
+} from "@/components/homework-sections"
+import { QuestionBox } from "@/components/question-box"
+
+This homework assignment is about managing memory in constrained systems! You are going to be programming the memory management layer of an operating system: contiguous allocation strategies and paging with address translation!
+
+<ReadingSection points={0}>
+
+Over-dough-se Pizza is expanding to three new franchise locations, each running on a different vintage machine. Your memory management code must work across all of them — from 256 bytes on an 8-bit "Relic" to 4 GB on a 32-bit system. The sections below give you direct and indirect help with organizing your thoughts about generics, collections, traits, and the data structures you will need to implement allocation and page tables in Rust.
+
+<QuestionBox qid="R1">
+
+In "The Rust Language Book" read:
+- Ch 8: Common Collections
+- Ch 10: Generic Types, Traits, and Lifetimes
+
+Optionally for help with the homework:
+- Ch 15: Smart Pointers
+- Ch 19: Advanced Features
+
+(The optional chapters cover trait objects and advanced generics that may help you understand how the page table trait and machine configurations work under the hood)
+
+[The Rust Language Book](https://doc.rust-lang.org/book/)
+
+</QuestionBox>
+
+<QuestionBox qid="R2">
+
+While it's not one of your required materials, the Rust by Example docs are associated with the Rust Language Book and are a great resource for understanding the concepts in the book in a more direct programmatic way. You should go through all of it but for now, Read section 14: Generics and Section 19: Std Library Types (particularly HashMap and Vec, which back the two page table implementations).
+
+[Rust By Example](https://doc.rust-lang.org/rust-by-example/)
+
+</QuestionBox>
+
+<QuestionBox qid="R3">
+
+Read Chapter 4: Memory Management (Page 93-148) from our course textbook. It provides a thorough overview of contiguous allocation, fragmentation, paging, and address translation — all of which are directly implemented in this assignment.
+
+[Operating Systems and Middleware: Supporting Controlled Interaction](https://ia902302.us.archive.org/27/items/osm-rev1.2/osm-rev1.2.pdf)
+
+</QuestionBox>
+
+</ReadingSection>
+
+<ProgrammingSection
+  points={30}
+  description="This programming assignment is about implementing memory management strategies (contiguous allocation and paging) in Rust!"
+  githubClassroomUrl="https://classroom.github.com/a/lfyidNHp"
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?ou=295604&db=382928"
+>
+
+### Repository Structure
+
+Your repository will contain the following files:
+
+```
+CMSI-3510-HW4/
+├── .gitignore
+├── hot_and_not_ready_yet/
+│   ├── Cargo.toml
+│   ├── Cargo.lock
+│   └── src/
+│       ├── allocator.rs
+│       ├── array_page_table.rs
+│       ├── best_fit.rs
+│       ├── component.rs
+│       ├── counter.rs
+│       ├── first_fit.rs
+│       ├── lib.rs
+│       ├── machine.rs
+│       ├── main.rs
+│       ├── mmu.rs
+│       ├── naive_page_table.rs
+│       ├── page_table.rs
+│       ├── profiler.rs
+│       └── visualization.rs
+└── README.md
+```
+
+### Helper Resources
+
+Need a refresher on how to interact with the HW for this course? Watch the helper video posted to Zoom via the link below!
+
+[Helper Video](https://lmula.zoom.us/rec/share/qZJRL5B3_zx8vvp2ei9qfijhG6Yjqr0g_pap6h6THg_ffJ7_cuuvjdKq-xMF5g0P.rbEK6SGsg5zYXxMi)
+
+You can find the GitHub Classroom assignment link and the Brightspace turn in link using the buttons at the top of this section.
+
+</ProgrammingSection>
