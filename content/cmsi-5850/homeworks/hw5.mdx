@@ -1,4 +1,4 @@
-import { WrittenSection } from "@/components/homework-sections"
+import { WrittenSection, OptionalSection } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
 import { DisplayMath, InlineMath } from "@/components/math"
 
@@ -554,3 +554,202 @@ Find a specific **semantic edge case** in that language — a situation where th
 | **Part 4: Proof Trees** | Q7: Proof Trees | 15 |
 | **Part 5: Semantics in Practice** | Q8: Connecting Semantics to Real Languages | 15 |
 | **Total** | | **100** |
+
+<OptionalSection
+  points={20}
+  brightspaceUrl=""
+>
+
+## Executing the Spec — A Wasm Interpreter
+
+This is **Stage 5** of the WebAssembly project. In HW5, you traced evaluations by hand, read inference rules for operational semantics, and built proof trees. In this optional, you will implement those rules — for a real language. Every reduction rule in the Wasm spec looks exactly like the small-step rules from Lecture 11, and your interpreter will be a direct translation of those rules into code.
+
+If you completed earlier stages, you may reuse your own type checker (Stage 1) and validator (Stage 3). Otherwise, all necessary scaffolding is provided below.
+
+### Spec Sections to Read
+
+1. [**Execution → Instructions**](https://webassembly.github.io/spec/core/exec/instructions.html) — The core reading. Every instruction has reduction rules that look exactly like the small-step rules from Lecture 11. Start with:
+   - **Numeric instructions:** `i32.const` pushes a value; `i32.add` pops two, pushes their sum
+   - **Variable instructions:** `local.get` reads from the frame; `local.set` writes to the frame
+   - **Control:** `block` unfolds into a `label`; `br` breaks to a label; `if` branches
+
+2. [**Execution → Runtime Structure**](https://webassembly.github.io/spec/core/exec/runtime.html) — Re-read the **Configurations** section. A Wasm configuration is $\mathit{config} ::= \mathit{store}; \mathit{frame};\ \mathit{instr}^*$. Compare directly to Lecture 11's configuration $\langle \mathit{stmt}, \sigma, o \rangle$.
+
+3. [**Execution → Conventions**](https://webassembly.github.io/spec/core/exec/conventions.html) — Understand the reduction notation $\hookrightarrow$ (small-step). The spec uses this exact notation for all rules.
+
+### Your Task
+
+Implement a small-step interpreter: a function `step(config)` that takes a configuration (store + frame + instruction sequence) and returns either the next configuration or a signal that execution is complete.
+
+Implement reduction rules for **all instructions in the target subset**. For each instruction, cite the spec rule you are implementing (e.g., "See spec: exec/instructions.html § i32.add"). The spec's reduction rules map directly to cases in your `step` function.
+
+Then implement an `execute(module, function_name, args)` driver that:
+1. Instantiates the module (creates the store, allocates functions)
+2. Creates a frame with the function's locals initialized to the arguments
+3. Calls `step` repeatedly until the instruction sequence is exhausted
+4. Returns the value(s) remaining on the stack
+
+You may use **any programming language**.
+
+### Scaffolding
+
+**Configuration** — the state your interpreter operates on:
+
+```
+Config = {
+  store: Store,
+  frame: Frame,
+  instructions: Instruction[],    -- remaining instructions to execute
+  stack: Value[]                   -- operand stack
+}
+
+Store = {
+  funcs: FuncInstance[]
+}
+
+FuncInstance = {
+  type: functype,
+  locals: valtype[],
+  body: Instruction[]
+}
+
+Frame = {
+  locals: Value[],                 -- mutable local variable slots
+  module: ModuleInstance
+}
+
+ModuleInstance = {
+  funcAddrs: int[]                 -- maps function indices to store addresses
+}
+
+Value = { type: "i32", value: int }
+```
+
+**Label** — for structured control flow, you will need to track labels on the stack:
+
+```
+Label = {
+  arity: int,                      -- number of result values
+  continuation: Instruction[]      -- instructions to execute after the label
+}
+```
+
+When entering a `block`, you push a `Label` and execute the body. When `br n` is executed, you pop labels until you reach the target and jump to its continuation.
+
+### Test Programs
+
+Each test is given in WAT syntax for readability, along with the expected result.
+
+**Test 1 — Factorial:**
+```
+(module
+  (func $factorial (param i32) (result i32)
+    (local i32)                    ;; local 1 = accumulator
+    (local.get 0)
+    (i32.eqz)
+    (if (result i32)
+      (then (i32.const 1))
+      (else
+        (i32.const 1)
+        (local.set 1)
+        (block (loop
+          (local.get 1)
+          (local.get 0)
+          (i32.mul)
+          (local.set 1)
+          (local.get 0)
+          (i32.const 1)
+          (i32.sub)
+          (local.set 0)
+          (local.get 0)
+          (i32.const 0)
+          (i32.gt_s)
+          (br_if 0)
+        ))
+        (local.get 1)
+      )
+    )
+  )
+)
+```
+Call: `$factorial(5)` → Expected: `120`
+
+**Test 2 — Fibonacci:**
+```
+(module
+  (func $fib (param i32) (result i32)
+    (local i32 i32 i32)           ;; locals 1=a, 2=b, 3=temp
+    (i32.const 0) (local.set 1)
+    (i32.const 1) (local.set 2)
+    (block (loop
+      (local.get 0)
+      (i32.const 0)
+      (i32.eq)
+      (br_if 1)
+      (local.get 2)
+      (local.set 3)
+      (local.get 1)
+      (local.get 2)
+      (i32.add)
+      (local.set 2)
+      (local.get 3)
+      (local.set 1)
+      (local.get 0)
+      (i32.const 1)
+      (i32.sub)
+      (local.set 0)
+      (br 0)
+    ))
+    (local.get 1)
+  )
+)
+```
+Call: `$fib(10)` → Expected: `55`
+
+**Test 3 — Sum 1 to N:**
+```
+(module
+  (func $sum (param i32) (result i32)
+    (local i32)                    ;; local 1 = accumulator
+    (i32.const 0) (local.set 1)
+    (block (loop
+      (local.get 0)
+      (i32.eqz)
+      (br_if 1)
+      (local.get 1)
+      (local.get 0)
+      (i32.add)
+      (local.set 1)
+      (local.get 0)
+      (i32.const 1)
+      (i32.sub)
+      (local.set 0)
+      (br 0)
+    ))
+    (local.get 1)
+  )
+)
+```
+Call: `$sum(100)` → Expected: `5050`
+
+**Test 4 — Is Even:**
+```
+(module
+  (func $is_even (param i32) (result i32)
+    (local.get 0)
+    (i32.const 2)
+    (i32.div_s)
+    (i32.const 2)
+    (i32.mul)
+    (local.get 0)
+    (i32.eq)
+  )
+)
+```
+Call: `$is_even(7)` → Expected: `0` (false)
+
+### Deliverable
+
+Submit your interpreter source code and verify it passes all 4 tests. In a `REFLECTION.md`, compare one Wasm reduction rule side-by-side with one inference rule from HW5. What is structurally identical? What is different about Wasm's stack-based model vs. the environment-based model you studied?
+
+</OptionalSection>

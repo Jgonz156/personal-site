@@ -1,5 +1,6 @@
 import {
   ProgrammingSection,
+  OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
 import { DisplayMath, InlineMath } from "@/components/math"
@@ -1046,3 +1047,93 @@ This template will be provided. Please fill it out.
 | | Q6a: Missions 1 and 2 | 5 |
 | | Q6b: Mission 3 (The Fuel Proof) | 10 |
 | **Total** | | **100** |
+
+<OptionalSection
+  points={20}
+  brightspaceUrl=""
+>
+
+## Safety Without Execution — The Wasm Soundness Proof
+
+This is **Stage 6** — the final stage of the WebAssembly project. In HW6, you built a transpiler, an optimizer, and a verification engine for FlightScript, proving program properties *without ever running the code*. In this optional, you will analyze how the WebAssembly specification does exactly the same thing — at industrial scale, for code running in your browser right now.
+
+Wasm's type system comes with a formal **soundness proof**: a mathematical guarantee that well-typed programs cannot violate memory safety, access undefined memory, or produce undefined behavior. This proof uses the same tools you studied in Lectures 12 and 13 — invariants, pre/postconditions, and inductive reasoning.
+
+### Spec Sections to Read
+
+1. [**Appendix → Properties of the Type System**](https://webassembly.github.io/spec/core/appendix/properties.html) — The core reading. This appendix states and sketches the proof of Wasm's type soundness theorem. Pay attention to what soundness guarantees:
+   > *"All types declared and derived during validation are respected at run time... No memory location will be read or written except those explicitly defined by the program... There is no undefined behavior."*
+
+2. [**Introduction → Overview**](https://webassembly.github.io/spec/core/intro/overview.html) — Re-read the "Validation" section with axiomatic eyes: validation establishes a *precondition* that execution relies on.
+
+### Questions
+
+<QuestionBox qid="Q1" title="Stating the Safety Properties" points={3}>
+
+In your own words, list 3 specific safety guarantees that Wasm's type system provides. For each, connect it to a concept from Lecture 13: is it a precondition, a postcondition, or an invariant? Where possible, use the language of Hoare triples $\lbrace P \rbrace\ S\ \lbrace Q \rbrace$ to express the guarantee.
+
+</QuestionBox>
+
+<QuestionBox qid="Q2" title="Progress and Preservation" points={5}>
+
+The type soundness proof is built from two lemmas:
+
+- **Progress:** If a configuration is well-typed, then either it is a final result OR it can take a step. (No stuck states.)
+- **Preservation:** If a configuration is well-typed and takes a step, the resulting configuration is also well-typed. (Types are maintained.)
+
+<SubQuestion qid="Q2a" points={3}>
+
+Explain how these two properties *together* guarantee safety. Why is neither sufficient on its own? (Hint: Progress without Preservation would mean you can always step, but the types might be wrong. Preservation without Progress would mean types are maintained, but you might get stuck.)
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={2}>
+
+Compare Progress and Preservation to the while-loop invariant pattern from HW6: the loop invariant must hold before the loop body (like Preservation — the property is maintained across each iteration) and the invariant combined with the loop's exit condition must imply the postcondition (like Progress at termination — you eventually reach a final state that satisfies the desired property). Where does the analogy hold? Where does it break down?
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q3" title="Tracing the Invariant" points={4}>
+
+Choose one of the Stage 5 test programs (or use the factorial example). Starting from the initial well-typed configuration, trace **5 reduction steps** and verify that the typing is preserved at each step. For each step, show:
+
+1. The current instruction
+2. The operand stack types before the instruction
+3. The operand stack types after the instruction
+4. A brief justification for why typing is preserved (cite the relevant typing rule from the spec)
+
+This is the analog of tracing the fuel invariant through the patrol loop in HW6 Q6b — you are verifying that the invariant (well-typedness) holds at every step of execution.
+
+</QuestionBox>
+
+<QuestionBox qid="Q4" title="Why Validation Matters" points={3}>
+
+Wasm modules are validated *before* execution. In axiomatic semantics terms, validation computes a *precondition* for execution. Without validation, an ill-formed module could violate memory safety.
+
+Explain why this pre-execution check is essential for Wasm's use case as a **sandboxed runtime in browsers**. Consider: untrusted code from any website runs in your browser, and Wasm's type soundness is what prevents that code from accessing your filesystem, reading other tabs' data, or crashing the browser process. How does this connect to the role of preconditions in HW6's verification engine?
+
+</QuestionBox>
+
+<QuestionBox qid="Q5" title="Connecting to Industry" points={3}>
+
+Research **one** of the following and write a 1-page analysis:
+
+- How [**Cloudflare Workers**](https://developers.cloudflare.com/workers/) or [**Fastly Compute**](https://www.fastly.com/products/compute) use Wasm's safety guarantees to run untrusted customer code on shared infrastructure
+- How [**WASI**](https://wasi.dev/) (WebAssembly System Interface) uses capability-based security to extend Wasm's safety guarantees to system calls
+- How [**Wasmtime**](https://wasmtime.dev/), [**Wasmer**](https://wasmer.io/), or [**WasmEdge**](https://wasmedge.org/) implement the validation algorithm from Stage 3 and rely on type soundness for JIT compilation correctness
+
+Your analysis should explain what formal property the system relies on and how it would break if that property were violated.
+
+</QuestionBox>
+
+<QuestionBox qid="Q6" title="The Final Reflection" points={2}>
+
+You have now traversed the same pipeline as the Wasm spec itself — from typing rules (Stage 1 / Validation) through formal models (Stage 2 / Runtime Structure) to decidable checking (Stage 3 / Algorithm) through grammar design (Stage 4 / Text + Binary Format) to execution semantics (Stage 5 / Execution) to safety proofs (Stage 6 / Soundness).
+
+Map each stage back to the lecture that taught you the formalism it uses. Then answer: this course's content — logic → sets → computability → grammars → operational semantics → verification — is the same pipeline that produced the runtime executing code in your browser right now. What does that tell you about the practical value of formal methods?
+
+</QuestionBox>
+
+</OptionalSection>

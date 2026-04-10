@@ -1,5 +1,6 @@
 import {
   ProgrammingSection,
+  OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
 
@@ -403,3 +404,79 @@ This template will be provided. Please fill it out.
 | | Q3c: Small File Test | 10 |
 | | Q3d: Massive File Test | 15 |
 | **Total** | | **100** |
+
+<OptionalSection
+  points={20}
+  brightspaceUrl=""
+>
+
+## Two Syntaxes, One Semantics — The Wasm Grammar
+
+This is **Stage 4** of the WebAssembly project. In HW4, you implemented a recursive descent parser (Type 2) and a DFA (Type 3), experiencing the Chomsky trade-off first-hand: the parser was powerful but slower on large inputs, while the DFA was fast but limited. In this optional, you will analyze how Wasm navigates this exact same trade-off — by providing **two completely different concrete syntaxes** for the same abstract language.
+
+WebAssembly has a [text format](https://webassembly.github.io/spec/core/text/index.html) (WAT) for humans and a [binary format](https://webassembly.github.io/spec/core/binary/index.html) for machines. Both decode into the same abstract syntax. This is the CST → AST pipeline from Lecture 8, doubled.
+
+### Spec Sections to Read
+
+1. [**Text Format**](https://webassembly.github.io/spec/core/text/index.html) — Wasm's human-readable syntax (WAT). Focus on:
+   - [Lexical Format](https://webassembly.github.io/spec/core/text/lexical.html) — whitespace, comments, tokens
+   - [Instructions](https://webassembly.github.io/spec/core/text/instructions.html) — how instructions are written in WAT
+   - [Modules](https://webassembly.github.io/spec/core/text/modules.html) — the top-level structure
+
+2. [**Binary Format**](https://webassembly.github.io/spec/core/binary/index.html) — Wasm's machine-readable encoding. Focus on:
+   - [Instructions](https://webassembly.github.io/spec/core/binary/instructions.html) — opcodes as bytes
+   - [Modules](https://webassembly.github.io/spec/core/binary/modules.html) — sections and their layout
+
+3. [**Structure → Instructions**](https://webassembly.github.io/spec/core/syntax/instructions.html) — The abstract syntax that both formats decode into. This is the shared AST.
+
+### Questions
+
+<QuestionBox qid="Q1" title="A Formal Grammar for WAT" points={6}>
+
+Write a formal grammar (BNF or EBNF) for the WAT text format covering the target subset of instructions defined in Stage 1 (HW1 optional). Your grammar should include at least 8 productions and cover: module structure, function definitions, parameter/result declarations, and instruction sequences.
+
+Then provide:
+- 3 derivations of valid WAT snippets using your grammar
+- 2 examples of syntactically invalid WAT, with an explanation of which production they violate
+
+</QuestionBox>
+
+<QuestionBox qid="Q2" title="Classifying Both Formats in the Chomsky Hierarchy" points={5}>
+
+<SubQuestion qid="Q2a" points={3}>
+
+The text format uses S-expression syntax with balanced parentheses — for example, `(module (func (param i32) (result i32) ...))`. At what level of the Chomsky hierarchy does this sit? Is it regular (Type 3) or context-free (Type 2)? Justify your answer with a specific structural argument. (Hint: think about what kind of automaton you would need to parse balanced parentheses.)
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={2}>
+
+The binary format is a flat sequence of bytes with length-prefixed sections — for example, a function section starts with a byte count, then that many bytes of function data. At what level of the Chomsky hierarchy does this sit? Justify your answer. Is length-prefixed framing easier or harder to parse than balanced delimiters?
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q3" title="Two Syntaxes, One AST" points={5}>
+
+The spec separates *abstract syntax* (the "Structure" chapter) from *concrete syntax* (the "Text Format" and "Binary Format" chapters). Both concrete formats decode into the same AST.
+
+Draw the analogy to Lecture 8's CST → AST pipeline: the text format is like one CST, the binary format is like a different CST, and the abstract syntax is the shared AST. Then answer:
+
+1. Why did the Wasm designers provide *two* concrete syntaxes? What role does each serve?
+2. What information is present in each CST but absent from the AST? (Consider: comments, whitespace, identifier names in the text format; section boundaries and byte offsets in the binary format.)
+3. Could you add a *third* concrete syntax (e.g., a JSON format) that also decodes into the same AST? What would you gain or lose?
+
+</QuestionBox>
+
+<QuestionBox qid="Q4" title="The Chomsky Trade-Off in Wasm" points={4}>
+
+In HW4, the recursive descent parser (Type 2) was powerful but slow on large inputs, while the DFA (Type 3) was fast but limited. Wasm's binary format was explicitly designed for **single-pass, linear-time** parsing with no backtracking.
+
+1. What grammar features did the binary format give up to achieve this? Compare to the text format, which requires a recursive descent parser.
+2. Connect this to the expressiveness-guarantees trade-off from Lectures 5-6: the binary format trades expressiveness for a parsing-speed guarantee. Where else in computing do you see this same trade-off?
+3. Consider your experience in HW4: your recursive descent parser and DFA processed the *same* language but with different performance characteristics. How does this parallel Wasm's two-format design?
+
+</QuestionBox>
+
+</OptionalSection>

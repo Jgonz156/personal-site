@@ -1,4 +1,4 @@
-import { WrittenSection } from "@/components/homework-sections"
+import { WrittenSection, OptionalSection } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
 
 This homework covers material from **Lecture 1: The Study of Programming Languages** and **Lecture 2: Classical Logic and Proofs**. You will demonstrate comprehension of programming language foundations, formal reasoning, and logical systems.
@@ -396,3 +396,118 @@ Choose **one** of these correspondences and explain it in detail:
 | | Q6: Reading Natural Deduction Proofs | 15 |
 | | Q7: Metalogic and Curry-Howard | 15 |
 | **Total** | | **100** |
+
+<OptionalSection
+  points={20}
+  brightspaceUrl=""
+>
+
+## Reading Inference Rules — A Wasm Type Checker
+
+This optional assignment is **Stage 1** of a semester-long project: building pieces of a real [WebAssembly](https://webassembly.github.io/spec/core/) (Wasm) implementation. WebAssembly is a formally specified, industry-standard compilation target that runs in every major browser and an increasing number of server-side environments. Its specification is written using the exact formalisms you are studying in this course — and you are going to read it.
+
+In HW1, you read and reasoned about inference rules and natural deduction proofs on paper. In this optional, you will translate those same structures into **code** — for a real industrial specification.
+
+### The Wasm Subset
+
+All stages of this project work on a restricted subset of WebAssembly, keeping the scope manageable while remaining Turing-complete:
+
+- **Value type:** `i32` only
+- **Numeric:** `i32.const`, `i32.add`, `i32.sub`, `i32.mul`, `i32.div_s`, `i32.eq`, `i32.lt_s`, `i32.gt_s`, `i32.eqz`
+- **Variables:** `local.get`, `local.set`
+- **Control:** `block`, `loop`, `if`/`else`/`end`, `br`, `br_if`, `return`, `nop`
+- **Functions:** `call`
+- **Parametric:** `drop`
+
+This subset supports factorial, fibonacci, and simple loops — everything you need to see the full formal pipeline at work.
+
+### Spec Sections to Read
+
+Before you begin coding, read the following sections of the [WebAssembly Core Specification](https://webassembly.github.io/spec/core/):
+
+1. [**Introduction → Overview**](https://webassembly.github.io/spec/core/intro/overview.html) — Read the "Semantic Phases" section. Note that Wasm's pipeline is: Decoding → **Validation** → Execution. This stage implements Validation.
+
+2. [**Structure → Types**](https://webassembly.github.io/spec/core/syntax/types.html) — Focus on `numtype` (specifically `i32`), `valtype`, and `functype`. These are the types your checker will work with.
+
+3. [**Validation → Instructions**](https://webassembly.github.io/spec/core/valid/instructions.html) — This is the core reading. Each instruction has a typing rule written as an inference rule. Start with the simple ones:
+   - `nop` — an axiom with no premises
+   - `drop` — consumes one value of any type
+   - `local.get` — reads from the context
+   - `i32.add` — consumes two `i32` values, produces one (identical in structure to a BinaryOp rule)
+
+4. [**Validation → Conventions**](https://webassembly.github.io/spec/core/valid/conventions.html) — Understand the typing context $C$. It contains `types`, `funcs`, `locals`, `labels`, and `return`. This is the analog of the environments you will study later in the course.
+
+### Your Task
+
+Implement a function `typecheck(instruction, context)` that takes an instruction AST node and a typing context, and returns the instruction's type signature (input types → output types) or raises a type error.
+
+Your type checker should handle all instructions in the target subset above. For each instruction, your code should correspond directly to one inference rule from the spec. Add a comment above each case citing the spec rule you are implementing (e.g., "See spec: valid/instructions.html § i32.add").
+
+You may use **any programming language**.
+
+### Scaffolding
+
+Below is a reference data model you can use or adapt. You do not need to follow this structure exactly — it is here to get you started.
+
+**AST types** — representing the instructions in the target subset:
+
+```
+Instruction =
+  | I32Const(value: int)
+  | I32Add | I32Sub | I32Mul | I32DivS
+  | I32Eq | I32LtS | I32GtS | I32Eqz
+  | LocalGet(index: int)
+  | LocalSet(index: int)
+  | Block(resultType: valtype?, body: Instruction[])
+  | Loop(resultType: valtype?, body: Instruction[])
+  | If(resultType: valtype?, thenBody: Instruction[], elseBody: Instruction[])
+  | Br(labelIndex: int)
+  | BrIf(labelIndex: int)
+  | Return
+  | Nop
+  | Drop
+  | Call(funcIndex: int)
+```
+
+**Typing context** — the information available during validation:
+
+```
+Context = {
+  locals: valtype[]        -- types of local variables
+  labels: resulttype[]     -- stack of label types (for br/br_if targets)
+  return: resulttype?      -- return type of the enclosing function
+  funcs: functype[]        -- signatures of all functions in the module
+}
+
+valtype = "i32"
+functype = { params: valtype[], results: valtype[] }
+resulttype = valtype[]
+```
+
+**Type signature** — what your function returns for each instruction:
+
+```
+instrtype = { inputs: valtype[], outputs: valtype[] }
+```
+
+For example, `i32.add` has the signature `{ inputs: ["i32", "i32"], outputs: ["i32"] }`.
+
+### Test Programs
+
+Use these to verify your implementation. Each is a sequence of instructions with a declared context.
+
+**Test 1 — Simple arithmetic:** Context: `locals = ["i32", "i32"]`. Instructions: `[local.get 0, local.get 1, i32.add]`. Expected signature: `[] → ["i32"]`.
+
+**Test 2 — Type error:** Context: `locals = []`. Instructions: `[local.get 0]`. Expected: type error (index out of bounds).
+
+**Test 3 — Conditional:** Context: `locals = ["i32"]`, `labels = []`. Instructions: `[local.get 0, if (result i32) [i32.const 1] else [i32.const 0] end]`. Expected signature: `[] → ["i32"]`.
+
+**Test 4 — Function call:** Context: `locals = ["i32"]`, `funcs = [{ params: ["i32"], results: ["i32"] }]`. Instructions: `[local.get 0, call 0]`. Expected signature: `[] → ["i32"]`.
+
+**Test 5 — Drop and nop:** Context: `locals = ["i32"]`. Instructions: `[local.get 0, drop, nop]`. Expected signature: `[] → []`.
+
+### Deliverable
+
+Submit your type checker source code and verify it passes all 5 tests. Additionally, write a short reflection (1 paragraph): compare the structure of one Wasm typing rule from the spec to one natural deduction rule from HW1 Q6. What is structurally the same? What differs?
+
+</OptionalSection>

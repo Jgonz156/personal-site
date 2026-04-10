@@ -1,4 +1,4 @@
-import { WrittenSection } from "@/components/homework-sections"
+import { WrittenSection, OptionalSection } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
 import { GraphVisualization } from "@/components/graph-visualization"
 import { DisplayMath } from "@/components/math"
@@ -577,3 +577,128 @@ Compare:
 | **Part 5: Language Pragmatics** | Q7: Paradigmatic Friction (Research) | 12 |
 | | Q8: Pragmatic Principles in the Wild | 8 |
 | **Total** | | **100** |
+
+<OptionalSection
+  points={20}
+  brightspaceUrl=""
+>
+
+## Building the Validator — Decidability by Design
+
+This is **Stage 3** of the WebAssembly project. In HW3, you reasoned about what machines can and cannot decide — the halting problem, the Chomsky hierarchy, and the trade-off between expressiveness and guarantees. In this optional, you will implement a decidable validation algorithm for WebAssembly and understand *why* it is decidable.
+
+Wasm was deliberately designed so that validation (type-checking an entire module) runs in **linear time**. This is not an accident — it is a consequence of design decisions that restrict Wasm's control flow in ways that map directly to the Chomsky hierarchy you studied. You will implement the validator and then reason about what makes it work.
+
+If you completed the HW1 optional (the type checker), you may use your own implementation here. Otherwise, the scaffolding below includes a reference type checker you can build on.
+
+### Spec Sections to Read
+
+1. [**Validation → Modules**](https://webassembly.github.io/spec/core/valid/modules.html) — How entire modules are validated: checking function types, verifying imports/exports, validating function bodies.
+
+2. [**Appendix → Validation Algorithm**](https://webassembly.github.io/spec/core/appendix/algorithm.html) — This is the key reading. The spec provides a **complete validation algorithm** and proves it is equivalent to the declarative typing rules from Stage 1. The algorithm runs in linear time on the instruction sequence. Read this and understand why linear-time validation is possible.
+
+3. [**Introduction → Overview → Semantic Phases**](https://webassembly.github.io/spec/core/intro/overview.html) — Re-read the "Validation" paragraph: *"Validation checks a number of well-formedness conditions to guarantee that the module is meaningful and safe."*
+
+### Your Task
+
+Implement a function `validate(module)` that takes a Wasm module (as a structured object) and returns either `valid` or a list of validation errors. Your validator should check:
+
+1. **Type consistency:** Every function body must type-check against its declared signature (using your Stage 1 type checker or the reference implementation below).
+2. **Index validity:** Every `local.get x` references an index that exists in the function's local declarations; every `call x` references a valid function index.
+3. **Stack balance:** Every `block` and `if` must have a matching `end`; the operand stack must be balanced at every join point.
+
+You may use **any programming language**.
+
+### Scaffolding
+
+**Module structure** — the input to your validator:
+
+```
+Module = {
+  types: functype[]                    -- type declarations
+  funcs: Function[]                    -- function definitions
+}
+
+Function = {
+  typeIndex: int                       -- index into Module.types
+  locals: valtype[]                    -- declared local variables (params + locals)
+  body: Instruction[]                  -- instruction sequence
+}
+```
+
+**Reference type checker** (if you did not complete Stage 1):
+
+```
+typecheck(instructions, context) -> instrtype | error
+```
+
+You may assume this function exists and works correctly. Implement it yourself, or use the pseudocode from the HW1 optional scaffolding.
+
+**Test modules:**
+
+**Test 1 — Valid module with two functions:**
+```
+Module {
+  types: [{ params: ["i32", "i32"], results: ["i32"] },
+          { params: ["i32"], results: ["i32"] }],
+  funcs: [
+    { typeIndex: 0, locals: ["i32", "i32"],
+      body: [local.get 0, local.get 1, i32.add] },
+    { typeIndex: 1, locals: ["i32"],
+      body: [local.get 0, local.get 0, i32.mul] }
+  ]
+}
+```
+Expected: `valid`.
+
+**Test 2 — Invalid: function body returns wrong type:**
+```
+Module {
+  types: [{ params: ["i32"], results: ["i32"] }],
+  funcs: [
+    { typeIndex: 0, locals: ["i32"],
+      body: [local.get 0, drop] }
+  ]
+}
+```
+Expected: error — function body produces `[]` but signature expects `["i32"]`.
+
+**Test 3 — Invalid: out-of-bounds local index:**
+```
+Module {
+  types: [{ params: [], results: ["i32"] }],
+  funcs: [
+    { typeIndex: 0, locals: [],
+      body: [local.get 5] }
+  ]
+}
+```
+Expected: error — local index 5 does not exist.
+
+**Test 4 — Valid module with control flow:**
+```
+Module {
+  types: [{ params: ["i32"], results: ["i32"] }],
+  funcs: [
+    { typeIndex: 0, locals: ["i32"],
+      body: [local.get 0, if (result i32) [i32.const 1] else [i32.const 0] end] }
+  ]
+}
+```
+Expected: `valid`.
+
+### Reflection
+
+After implementing the validator, answer these questions (include them as comments in your code or in a separate `REFLECTION.md`):
+
+1. Wasm's control flow is **structured** — no arbitrary `goto`, only `block`/`loop`/`if` with `br` targeting labels. How does this restriction relate to the Chomsky hierarchy from HW3? At what level of the hierarchy does Wasm's control flow sit? What would change if Wasm allowed arbitrary jumps?
+
+2. The validation algorithm runs in $O(n)$ time. Why? What property of Wasm's design makes this possible? (Hint: the structured control flow means the validator never needs to backtrack.)
+
+3. SQL, regex, and CSS were discussed in HW3 as intentionally sub-Turing-complete. Is Wasm Turing-complete? What does Wasm sacrifice (compared to native x86 code) and what does it gain?
+
+### Deliverable
+
+Submit your validator source code, verify it handles all 4 test modules correctly, and include your reflection answers.
+
+</OptionalSection>

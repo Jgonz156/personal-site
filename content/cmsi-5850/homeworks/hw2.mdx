@@ -1,7 +1,9 @@
 import {
   ProgrammingSection,
+  OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox, SubQuestion } from "@/components/question-box"
+import { InlineMath } from "@/components/math"
 
 This homework covers material from **Lecture 3: Set Theory** and **Lecture 4: Lambda Calculus**. Unlike HW 1, this assignment is **entirely programmatic** — you will write code that operationalizes the mathematical definitions and formal systems from these two lectures.
 
@@ -864,3 +866,95 @@ true
 | | Q6: Evaluation (CBN + CBV) | 20 |
 | | Q7: Test Suite Output | 10 |
 | **Total** | | **100** |
+
+<OptionalSection
+  points={20}
+  brightspaceUrl=""
+>
+
+## The Wasm Abstract Machine — A Set-Theoretic Model
+
+This is **Stage 2** of the WebAssembly project. In HW2, you built a relation analyzer and a lambda calculus interpreter — operationalizing set-theoretic definitions and function application. In this optional, you will use those same mathematical tools to formalize how WebAssembly's runtime actually works.
+
+Wasm's specification defines its runtime structures — values, the store, frames, the stack — using the same mathematical notation you studied in Lectures 3 and 4. Your job is to read the spec and express what you find using the formal language of sets, relations, functions, and tuples.
+
+### Spec Sections to Read
+
+1. [**Execution → Runtime Structure**](https://webassembly.github.io/spec/core/exec/runtime.html) — This is the core reading. It defines *values*, the *store*, *addresses*, *module instances*, *function instances*, the *stack*, *labels*, *frames*, and *configurations* — all using mathematical notation.
+
+2. [**Structure → Instructions**](https://webassembly.github.io/spec/core/syntax/instructions.html) — The abstract syntax of instructions (the AST from Stage 1).
+
+3. [**Introduction → Overview → Concepts**](https://webassembly.github.io/spec/core/intro/overview.html) — Re-read the "Functions," "Linear Memory," and "Tables" sections with set-theoretic eyes.
+
+### Questions
+
+<QuestionBox qid="Q1" title="The Wasm Value Domain" points={3}>
+
+The spec defines values as $\mathit{val} ::= \mathit{num} \mid \mathit{vec} \mid \mathit{ref}$. For our `i32`-only subset, the value domain is restricted to <InlineMath formula="\mathit{val} = \lbrace \mathsf{i32.const}\ n \mid n \in \mathbb{Z}_{2^{32}} \rbrace" />.
+
+Express this as a set using the notation from Lecture 3. What is its cardinality? Is it finite, countably infinite, or uncountable? Justify your answer.
+
+</QuestionBox>
+
+<QuestionBox qid="Q2" title="The Store as a Tuple of Functions" points={5}>
+
+The spec defines the store as a record of sequences: $\mathit{store} = (\mathit{funcs}, \mathit{globals}, \mathit{mems}, \mathit{tables})$ where each component maps addresses (natural numbers) to instances.
+
+Using the tuple and function notation from Lecture 3:
+
+<SubQuestion qid="Q2a" points={2}>
+
+Define each component of the store as a function. For example, express $\mathit{funcs}$ as $\mathit{funcs} : \mathbb{N} \to \mathit{funcinst}$. Do the same for $\mathit{globals}$, $\mathit{mems}$, and $\mathit{tables}$.
+
+</SubQuestion>
+
+<SubQuestion qid="Q2b" points={3}>
+
+For each of these functions, determine: is it total or partial? Injective? Surjective? Justify each classification. Consider: can two different addresses point to the same instance? Must every possible natural number be a valid address?
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q3" title="Frames and Environments" points={5}>
+
+The spec defines $\mathit{frame} = \lbrace \mathsf{locals}\ \mathit{val}^*, \mathsf{module}\ \mathit{moduleinst} \rbrace$.
+
+<SubQuestion qid="Q3a" points={2}>
+
+Express the `locals` component as a function $\mathit{locals} : \mathbb{N} \to \mathit{val}$, where the domain is the set of valid local indices. How does this compare structurally to the environment $\sigma : \text{Identifier} \to \text{Value}$ that you will encounter later in the course (Lecture 10)? What plays the role of "identifier" in Wasm?
+
+</SubQuestion>
+
+<SubQuestion qid="Q3b" points={3}>
+
+In the lambda calculus (HW2 Part 2), environments bind variable names to values during substitution. In Wasm, locals bind integer indices to values during execution. Compare these two binding mechanisms: what is structurally the same? What is fundamentally different about using names vs. indices?
+
+</SubQuestion>
+
+</QuestionBox>
+
+<QuestionBox qid="Q4" title="Tracing a Function Call" points={4}>
+
+Consider a Wasm function that adds two locals:
+
+```
+(func $add (param i32 i32) (result i32)
+  local.get 0
+  local.get 1
+  i32.add)
+```
+
+Trace the full state evolution when calling `$add(3, 5)`: frame creation → local binding → instruction execution → result. Then compare each step to beta-reduction in the lambda calculus: $(\lambda x.\lambda y.\ x + y)\ 3\ 5 \to_\beta (\lambda y.\ 3 + y)\ 5 \to_\beta 3 + 5 \to 8$. Where does argument binding happen in each model? Where does evaluation happen? What structure mediates each?
+
+</QuestionBox>
+
+<QuestionBox qid="Q5" title="The Store vs. the Environment" points={3}>
+
+The Wasm store is *global and mutable* — all modules share it and can modify it. The lambda calculus has no mutable state; every application produces a fresh substitution.
+
+Using the function and relation definitions from Lecture 3, explain why this difference matters. What property does the lambda calculus have that Wasm does not? (Hint: can you always replace equals with equals in Wasm? Consider what happens when two function calls read from and write to the same global variable.)
+
+</QuestionBox>
+
+</OptionalSection>

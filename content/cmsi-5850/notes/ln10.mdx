@@ -383,6 +383,22 @@ Any identifier lookup in the empty environment produces an error. This is the st
 
 </DefinitionBox>
 
+Petal starts with nothing — a blank slate. But most real languages don't. When you open a Python REPL and type `print(len("hello"))`, that works immediately because `print` and `len` are already bound in the initial environment. The initial environment of a real language is pre-populated with a **standard library** — a (sometimes enormous) set of built-in bindings.
+
+For example, if Petal shipped with a built-in constant for <InlineMath formula="\pi" />, its initial environment would not be the empty function, but rather:
+
+<DisplayMath formula="\sigma_0 = \lambda x.\; \begin{cases} 3.14159 & \text{if } x = \texttt{pi} \\ \text{undefined} & \text{otherwise} \end{cases}" />
+
+And standard libraries aren't just constants — they contain **functions**. Remember from LN 4 that functions are values: a lambda abstraction is a perfectly valid thing to store in an environment. If Petal's standard library included `e`, `sin` (a single-argument function), and `hypot` (a two-argument function), the initial environment would grow to:
+
+<DisplayMath formula="\sigma_0 = \lambda x.\; \begin{cases} 3.14159 & \text{if } x = \texttt{pi} \\ 2.71828 & \text{if } x = \texttt{e} \\ \lambda n.\; \sin(n) & \text{if } x = \texttt{sin} \\ \lambda a.\; \lambda b.\; \sqrt{a^2 + b^2} & \text{if } x = \texttt{hypot} \\ \text{undefined} & \text{otherwise} \end{cases}" />
+
+Notice what just happened. The environment maps names to *values*, and in a language with first-class functions, lambdas are values. The constant `pi` maps to a number; the function `sin` maps to a lambda that takes one argument; and `hypot` maps to a **curried lambda** (LN 4) — a function that takes `a` and returns *another function* that takes `b`. This is exactly the currying technique from LN 4: a multi-argument function is modeled as a chain of single-argument lambdas.
+
+Python's actual initial environment has **hundreds** of built-in names (`print`, `len`, `range`, `int`, `str`, `True`, `False`, `None`, ...). JavaScript's global scope includes `console`, `Math`, `parseInt`, `undefined`, `NaN`, `Infinity`, and many more. The initial environment is one of the things that gives a language its "personality" — what you can do before you've written a single line of code.
+
+We'll keep Petal's initial environment empty for simplicity — it lets us focus on the mechanics of evaluation without worrying about a standard library. But it's worth recognizing that <InlineMath formula="\sigma_0 = \lambda x.\; \text{undefined}" /> is a deliberate design choice, not a necessity.
+
 ### The Output Stream
 
 <DefinitionBox term="Output Stream">
