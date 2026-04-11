@@ -1,0 +1,725 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap — From Packet Paths to Programmable Conversations
+
+Last lecture explained how data physically moves across a network:
+
+- **Packets carry their own context** — Once communication leaves the machine, each transfer unit must name where it came from, where it is going, and how it should be interpreted
+- **Frames are local, packets are durable** — The link-layer envelope changes at every hop, but the packet survives the full trip
+- **Layering divides labor** — Link moves frames one hop, network routes packets many hops, and transport is the layer closest to application communication
+- **The packet path is real I/O** — NICs use DMA, interrupts, buffers, and drivers just like every other device
+- **Local IPC collapses the stack** — A shared kernel can replace wires, routers, and headers with direct buffer management
+
+That left us with one important question: if packets are just the network's movement unit, how do programs actually *use* the network?
+
+Programs usually do not want to think in terms of individual packets. They want to think in terms of **conversations**: clients and servers, requests and replies, streams and messages, waiting and waking. Today we study the abstraction layer that makes that possible.
+
+---
+
+## Today's Agenda
+
+1. **From Packets to Conversations** — Picking up the layer model and filling in the transport row
+2. **Sockets and Endpoints** — The kernel-managed abstraction applications actually program against
+3. **Ports and Multiplexing** — How one machine supports many simultaneous network conversations
+4. **What Would the Minimum Look Like?** — Deriving the barest transport requirements from first principles
+5. **UDP: The Minimum, Realized** — The protocol that does exactly what we derived and nothing more
+6. **TCP: Stateful Transport** — Reliability, ordering, and flow control as a stronger contract
+7. **Blocking, Nonblocking, and Readiness** — How programs wait for network I/O, and why it echoes scheduling
+8. **Why the Abstraction Matters** — What the kernel hides and what still leaks upward
+9. **Looking Forward** — With sockets in hand, we are ready to recognize them inside Linux
+
+---
+
+## From Packets to Conversations
+
+Last lecture we introduced the standard layering model that divides network communication into cooperating layers. We covered the bottom of the stack — link-layer framing, network-layer addressing and routing, and the physical I/O path through the NIC. Today we move one row up.
+
+{/* LAYER MODEL STATIC VISUAL: The TCP/IP layer stack from LN21, displayed vertically.
+    Rows from bottom to top: Physical (folded into Link), Link, Network, Transport, Application.
+    The Link and Network rows should appear filled-in / solid — these were covered in LN21.
+    The Transport row should be highlighted, glowing, or outlined in an accent color
+    with a label: "Today's lecture."
+    The Application row should be dimmed or shown as a dashed outline —
+    it sits above transport but is not the focus of this lecture.
+    This visual should be compact (not a full-page diagram) and serve as a
+    quick orientation: "you are here in the stack." */}
+
+| Layer | Status |
+| :--- | :--- |
+| Application | _above today's focus_ |
+| **Transport** | **this lecture** |
+| Network | covered in LN21 |
+| Link | covered in LN21 |
+
+Packets solve the infrastructure problem of remote communication. They let data survive outside the machine, carry explicit metadata, and travel across many independent links and routers. But applications usually do not think that way.
+
+A client program does not want to say "please create a sequence of packets, number them, route them, recover from loss, and deliver the result back to me." It wants to say something much simpler: "send this request to that server, and give me the reply when it arrives."
+
+That gap — between what the network actually does and what a programmer actually wants to think about — is the entire motivation for the transport layer. On one side is **packet-level reality**: headers, hops, timing uncertainty, loss, and reordering. On the other is **application-level intent**: peers, messages, streams, requests, replies, and waiting behavior. The transport layer's job is to bridge the two so that programs can think in terms of conversations rather than individual packets. It is the layer that connects the infrastructure we built in LN21 to the application world above it.
+
+<DefinitionBox term="Transport Layer">
+
+The **transport layer** is the part of the network stack that turns raw packet movement into an application-facing communication service. It adds endpoint naming, delivery semantics, and waiting behavior that let programs think in terms of conversations rather than individual packets.
+
+</DefinitionBox>
+
+### One Recurring Example
+
+To keep today's lecture concrete, we will follow one tiny client/server conversation all the way through: a **temperature service** listens on the network for requests, and a **client** connects and asks for the current temperature. The server replies with a short answer like `"42 C"`.
+
+This example is intentionally small. The point is not to design an application-layer protocol. The point is to watch the OS answer a series of abstraction questions as the example evolves: how does the client name the server? How does the host know which program should receive incoming data? What guarantees does the program want from the transport? And what should the program do while it waits for a reply?
+
+{/* PACKET VIEW VS CONVERSATION VIEW: Two synchronized panels.
+    Left panel: raw packet motion across a network with multiple packet boxes,
+    headers, possible reordering, and timing gaps.
+    Right panel: one simple client/server exchange labeled request -> reply.
+    The left side should feel mechanically busy. The right side should feel
+    like what a programmer actually wants to think about.
+    Animation: as several packets move on the left, the right side keeps the
+    single higher-level intent visible: "client asks", "server answers." */}
+
+### Why This Is an OS Lecture
+
+Transport is not just "more networking." It is an **abstraction-design** problem. The questions it asks are fundamentally OS questions: what should the kernel hide from applications? What guarantees should it provide? What state should it maintain on the program's behalf, and what costs are worth paying for a simpler programming model? These are the same questions the OS asked when it built file descriptors to hide block I/O, and when it built pipes to hide inter-process buffering. Transport is the networking incarnation of the same design instinct.
+
+> **🤔 Key Framing:** LN21 explained how data moves. LN22 explains how the OS turns that movement into something a programmer can actually hold.
+
+---
+
+## Sockets and Endpoints
+
+Applications do not talk directly to NIC descriptor rings, packet buffers, or routing tables. They talk to **sockets**.
+
+<DefinitionBox term="Socket">
+
+A **socket** is a kernel-managed communication endpoint that applications use to send and receive network data. It is accessed through a file-descriptor-like handle and hides most of the underlying coordination required for remote communication.
+
+</DefinitionBox>
+
+<DefinitionBox term="Endpoint">
+
+An **endpoint** is one side of a communication channel. In networking, an endpoint is typically identified by an IP address plus a port number, and represented in the kernel by a socket.
+
+</DefinitionBox>
+
+### Sockets as the Networking Version of Handles
+
+This should feel familiar. Throughout the course, the OS has repeatedly hidden subsystem complexity behind a small handle. File descriptors hid VFS lookup, block I/O, caching, and permissions. Device nodes hid driver dispatch, buffering, interrupts, and hardware state. Pipe and queue handles hid kernel buffers, blocking, and wakeups. Sockets do the same thing for networking — they hide packetization, routing, retransmission, demultiplexing, and waiting behavior behind one compact object.
+
+| Subsystem | Handle the Program Uses | Complexity Hidden Behind It |
+| :--- | :--- | :--- |
+| Filesystem | File descriptor | VFS lookup, block I/O, caching, permissions |
+| Device I/O | File descriptor / device node | Driver dispatch, buffering, interrupts, hardware state |
+| Local IPC | Pipe / queue / socket handle | Kernel buffers, blocking, wakeups, permissions |
+| Networking | **Socket** | Packetization, routing, retransmission, demultiplexing, waiting behavior |
+
+> **💡 Connection to LN20:** Unix domain sockets already hinted at this. The same socket API can describe local IPC or remote networking. The programmer talks to an endpoint handle; the kernel decides how much machinery the path underneath requires.
+
+### The Basic Socket Shape
+
+In C, creating a socket looks like this:
+
+```c
+int sock = socket(AF_INET, SOCK_STREAM, 0);
+```
+
+In Rust, the standard library wraps the same idea in higher-level types:
+
+```rust
+use std::net::TcpStream;
+
+let stream = TcpStream::connect("127.0.0.1:4000")?;
+```
+
+The syntax is different, but the abstraction is the same. In both cases the kernel creates an endpoint object, the process receives a handle to that object, and later calls like `bind()`, `connect()`, `send()`, `recv()`, `read()`, and `write()` operate through that handle. The socket becomes the program's entire interface to the network.
+
+### Common Socket Operations
+
+Once a socket exists, the program interacts with it through a small vocabulary. It calls `socket()` to create the endpoint, `bind()` to attach it to a local address and port, `listen()` and `accept()` to receive incoming TCP connections, or `connect()` to initiate a conversation with a remote peer. From there, `send()` and `write()` push data into the kernel's transmit path, while `recv()` and `read()` pull data from the kernel's receive path. When the conversation is over, `close()` releases the endpoint and its kernel state.
+
+| Operation | What It Means |
+| :--- | :--- |
+| `socket()` | Create a new endpoint object in the kernel |
+| `bind()` | Attach the socket to a local address/port |
+| `listen()` | Mark a TCP socket as accepting new connections |
+| `accept()` | Create a new connected socket for one incoming TCP client |
+| `connect()` | Initiate communication with a remote endpoint |
+| `send()` / `write()` | Push data into the kernel's transmit path |
+| `recv()` / `read()` | Pull data from the kernel's receive path |
+| `close()` | Release the endpoint and its kernel state |
+
+{/* SOCKET ABSTRACTION VISUAL: Vertical layered diagram.
+    Application at the top calls send/recv on a socket handle.
+    Below that: socket object in the kernel.
+    Below that: transport logic.
+    Below that: packet path from LN21.
+    The visual should emphasize compression: a tiny API at the top resting on
+    a much wider and more complicated stack below.
+    Label the socket as the "narrow waist" that the program actually sees. */}
+
+### The Big Idea
+
+A socket is not the network itself. It is the kernel's **programmer-facing view** of the network. That view is intentionally small — a handle, an endpoint identity, a few operations, and a waiting model. Below that small surface lies a large amount of hidden work: the entire packet path from LN21, the transport machinery we are about to study, and the readiness and scheduling infrastructure the OS uses to manage waiting.
+
+---
+
+## Ports and Multiplexing
+
+Suppose a packet arrives at a machine with destination IP address `203.0.113.10`. That tells the network stack which **machine** should receive it. But it does not yet tell the OS which **program** on that machine should get the data.
+
+Consider what is running on a typical server. A web server is listening for HTTP connections. A database server is handling queries. An SSH daemon is waiting for remote logins. A DNS resolver is fielding lookups. Several client programs are making their own outgoing requests. All of them share one network interface and one IP address. The kernel needs a second naming layer beyond the machine address to sort out who gets what.
+
+<DefinitionBox term="Port">
+
+A **port** is a transport-layer identifier used to distinguish communication endpoints on the same host. It lets the OS deliver incoming data to the correct socket among many sockets sharing one machine and one IP address.
+
+</DefinitionBox>
+
+### Why Ports Are Necessary
+
+The IP address answers the question "which machine?" The port answers "which socket on that machine?" Without ports, every program on a host would be fighting over the same incoming data stream with no way for the kernel to tell them apart.
+
+| Delivery Question | Identifier That Answers It |
+| :--- | :--- |
+| Which machine should receive this data? | IP address |
+| Which socket on that machine should receive this data? | Port number |
+
+### Multiplexing and Demultiplexing
+
+This creates two related jobs for the transport layer. On the way out, many application conversations share one host and one network interface — that is **multiplexing**. On the way in, the kernel must match incoming data back to the correct socket — that is **demultiplexing**. The kernel distinguishes conversations using a **4-tuple**: source IP, source port, destination IP, and destination port. That combination uniquely identifies one transport conversation between two endpoints.
+
+| Field | Example |
+| :--- | :--- |
+| Source IP | `192.168.1.10` |
+| Source port | `53014` |
+| Destination IP | `203.0.113.10` |
+| Destination port | `4000` |
+
+> **📌 Key Point:** Ports are not arbitrary bureaucracy. They are how the OS solves the "many conversations, one machine" problem.
+
+### Client and Server Roles
+
+In the temperature-service example, the server binds to a known port such as `4000` — that is the address clients will use to find it. The client, on the other hand, usually does not pick its own port. The kernel assigns a temporary one automatically. When the server's reply arrives, the kernel uses the 4-tuple to route the data back to the right client socket.
+
+This is why a server can serve many clients at once without confusion. Each conversation has a distinct endpoint identity. The server does not need to guess which client sent which request — the transport layer has already labeled everything.
+
+{/* HOST MULTIPLEXING VISUAL: One machine with one NIC and one IP address.
+    Inside the host are many sockets, each with a labeled local port.
+    Incoming arrows arrive at the machine, then fan inward to different sockets.
+    Outgoing arrows originate from many sockets and merge onto one interface.
+    The visual should make the host feel like a switchboard operator:
+    one external face, many internal conversations. */}
+
+### Well-Known Ports and the Discovery Problem
+
+Certain port numbers are reserved by convention: port `80` for HTTP, port `443` for HTTPS, port `22` for SSH, port `53` for DNS, and so on. At first glance, this seems to contradict the entire point of multiplexing. If every HTTP client connects to port `80` on the server, how does the server handle more than one client at a time? If the well-known port is the channel, doesn't it become a bottleneck?
+
+The answer is that the well-known port is not a channel — it is a **front door**. The server calls `bind()` on port `80` and then `listen()`, which marks the socket as one that accepts incoming connections. When the first client connects, the server calls `accept()`. That call creates a **brand new socket** dedicated to this specific conversation. The new socket is identified by its full 4-tuple:
+
+| 4-Tuple Field | Value |
+| :--- | :--- |
+| Client IP | `192.168.1.10` |
+| Client port (ephemeral) | `53014` |
+| Server IP | `203.0.113.10` |
+| Server port | `80` |
+
+The original listening socket on port `80` is still there, still waiting for the next `accept()`. When a second client arrives — perhaps from a different machine with ephemeral port `49221` — `accept()` creates another new socket with a different 4-tuple. Both conversations share the server's port `80` in their destination, but the kernel can distinguish them because the full 4-tuples are different.
+
+The well-known port is the address on the building. The 4-tuple is the specific meeting room inside. The front door (`listen` + `accept`) keeps creating new rooms as clients arrive, so the building never runs out of space for conversations.
+
+{/* WELL-KNOWN PORT ANIMATION:
+    Layout: Two machines — a Client (left) and a Server (right).
+    The server shows a vertical column of port slots. Port 80 is highlighted
+    and labeled "listening" with a door icon or open-gate metaphor.
+    The client shows its own column of port slots, mostly empty.
+
+    Phase 1 — Discovery:
+      Client wants to reach the HTTP server. It knows the well-known port: 80.
+      An arrow reaches from the client toward port 80 on the server.
+      The client's OS assigns an ephemeral port (e.g., 53014) automatically.
+      Label appears: 4-tuple (192.168.1.10:53014 ↔ 203.0.113.10:80).
+
+    Phase 2 — accept() creates a new socket:
+      The server's port 80 "listening" socket remains in place (still glowing).
+      A NEW socket appears on the server, labeled with the full 4-tuple.
+      The arrow from the client now connects to this new socket, NOT directly
+      to port 80's listener. Port 80 is free to accept again.
+
+    Phase 3 — Second client arrives:
+      A second client (different IP or different ephemeral port) sends a
+      connection request to port 80.
+      accept() fires again. Another new socket appears on the server with
+      a DIFFERENT 4-tuple.
+      Now the server has two active conversations plus the still-listening
+      port 80 socket.
+
+    Phase 4 — Many clients:
+      Several more clients connect. The server accumulates many active sockets,
+      each with a unique 4-tuple. Port 80's listener is always available.
+      The visual should make it clear: the well-known port is the rendezvous
+      point for discovery. The 4-tuple is the identity of the actual conversation.
+
+    Key visual cues:
+      - The listening socket stays visually distinct (a door, a gate, a beacon).
+      - Each accepted socket is a separate object with its own 4-tuple label.
+      - Ephemeral ports on the client side should look temporary / auto-assigned.
+      - The server's port 80 never "fills up" — it just keeps spawning new sockets. */}
+
+> **📌 Key Point:** Well-known ports solve the **discovery** problem — how does the client know where to knock? The 4-tuple solves the **multiplexing** problem — how does the server handle many clients at once? They are complementary, not contradictory. The well-known port gets you to the front door; `accept()` gives you your own room.
+
+### A Note on Port Numbers
+
+The important conceptual point here is not memorizing well-known port ranges. It is understanding what ports accomplish: they create many logical endpoints on one machine, they let the kernel demultiplex incoming data to the right socket, and they let one program hold many simultaneous conversations at once. A file descriptor identifies a handle inside one process. A port identifies an endpoint on one host. Both are naming devices the OS uses to keep many simultaneous resources straight.
+
+> **💡 Connection to File Descriptors:** The parallel is direct. Just as a process uses file descriptor numbers to distinguish its many open files, the transport layer uses port numbers to distinguish a host's many open conversations.
+
+---
+
+## What Would the Minimum Look Like?
+
+Before we look at real transport protocols, let's think through what the absolute minimum would be. We have a working packet path from LN21 — data can leave a machine, travel across routers, and arrive at a destination. What is the shortest list of things a transport layer must add to make that path usable by applications?
+
+Start with what the network layer already provides. IP handles addressing and routing — it gets the packet to the right machine. But it does not know which **program** on that machine should receive the data. So the first thing we need is some kind of **endpoint identifier** that the OS can use to deliver incoming data to the right socket. That gives us requirement number one: port numbers.
+
+Next, the receiver needs to know how much data is in this particular transfer unit. IP packets have their own length field, but the transport payload inside may be smaller than the full packet. We need a **length field** so the receiver knows exactly how many bytes belong to this message.
+
+Finally, the data has traveled across a physical medium, through multiple routers, and possibly through different link types. Even though each link layer checks for corruption with its own CRC, errors can be introduced between layers — in router memory, in kernel buffers, in DMA transfers. A transport-level **checksum** gives the receiver one last chance to catch corruption before handing data to the application.
+
+That is three things: a way to name the endpoint, a way to know how long the message is, and a way to verify it was not corrupted. Everything else — reliability, ordering, connection state, flow control — is optional. It adds value, but it is not strictly necessary for the simplest possible bridge between packets and applications.
+
+> **🤔 Key Observation:** We just derived a transport protocol from first principles. The barest minimum to connect packets to applications is: endpoint naming, message length, and error detection. Everything beyond that is a design choice about how much work the kernel should do on the application's behalf.
+
+---
+
+## UDP: The Minimum, Realized
+
+That minimum we just described is not hypothetical. It is an actual protocol, and it has been running on the Internet since 1980.
+
+<DefinitionBox term="UDP (User Datagram Protocol)">
+
+**UDP** is a connectionless transport protocol that provides endpoint naming and datagram delivery, while preserving message boundaries and adding very few guarantees beyond basic error checking.
+
+</DefinitionBox>
+
+### UDP Is the Answer We Just Derived
+
+The UDP header is eight bytes. It contains exactly four fields: source port, destination port, length, and checksum. That is it. No sequence numbers, no acknowledgment fields, no connection state, no window sizes. Compare that to what we reasoned through a moment ago — endpoint naming (ports), message length, and error detection (checksum). UDP is the industry's answer to the question "what is the absolute minimum a transport protocol needs to provide?"
+
+UDP also preserves message boundaries. If the application sends two separate datagrams, the receiver sees two separate datagrams. UDP does not merge them into one byte stream and does not split one send into multiple receives. Each `sendto()` produces exactly one datagram, and each `recvfrom()` delivers exactly one datagram.
+
+What UDP does **not** do is promise reliability, ordering, duplicate suppression, retransmission, or connection state between the endpoints. If a datagram is lost, UDP does not know and does not retry. If two datagrams arrive out of order, UDP delivers them in whatever order they showed up. There is no setup ceremony, no teardown handshake, and very little kernel state.
+
+| UDP Contract | Meaning for the Program |
+| :--- | :--- |
+| Message boundaries preserved | One `send` corresponds to one datagram |
+| No connection setup | Communication can begin immediately |
+| No reliability guarantee | The application must tolerate loss or repair it itself |
+| No ordering guarantee | Messages may arrive out of order |
+| Low kernel state | Less ceremony, less overhead, fewer promises |
+
+> **📌 Key Point:** UDP is not "broken TCP." UDP is the answer to a different question: what if the application wants the kernel to do the minimum necessary?
+
+### A Tiny UDP Example
+
+Let's build the temperature service over UDP. The client sends a request datagram; the server sends back a reply.
+
+In C:
+
+```c
+int sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+struct sockaddr_in server = {0};
+server.sin_family = AF_INET;
+server.sin_port = htons(4000);
+server.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+sendto(sock, "GET_TEMP", 8, 0,
+       (struct sockaddr *)&server, sizeof(server));
+
+char buf[64];
+recvfrom(sock, buf, sizeof(buf), 0, NULL, NULL);
+```
+
+In Rust:
+
+```rust
+use std::net::UdpSocket;
+
+let sock = UdpSocket::bind("127.0.0.1:0")?;
+sock.send_to(b"GET_TEMP", "127.0.0.1:4000")?;
+
+let mut buf = [0u8; 64];
+let (n, from) = sock.recv_from(&mut buf)?;
+println!("reply from {from}: {}", String::from_utf8_lossy(&buf[..n]));
+```
+
+The kernel still does meaningful work here. It manages the socket object, attaches ports to the datagram, hands the outgoing data to the network stack, and delivers the reply to the correct receive buffer. What it does **not** do is create the stronger conversation semantics that some applications want.
+
+### When UDP Is the Right Choice
+
+UDP is attractive when the application wants low latency more than perfect reliability, when it already has its own recovery or timing strategy, when losing an old message is better than stalling for retransmission, or when preserved message boundaries are a more natural fit than a byte stream. DNS queries, voice and video traffic, multiplayer games, and custom control protocols all use UDP because the overhead of stronger guarantees would hurt more than it helps.
+
+{/* UDP CONTRACT VISUAL: Same temperature-service example shown with a lightweight path.
+    Small datagram blocks go from client to server and back.
+    Guarantees panel shows only a few boxes checked: ports, checksums, boundaries.
+    Unchecked boxes: reliability, ordering, retransmission, connection state.
+    The diagram should feel fast and low-ceremony. */}
+
+---
+
+## TCP: Stateful Transport
+
+Some applications want more help from the transport layer. A file transfer that silently drops chunks is not acceptable. A web request that arrives out of order is useless. A database query that receives a corrupted response is worse than receiving nothing. These applications do not want to rebuild reliability, ordering, retransmission, and flow control for themselves — they want the kernel to handle it.
+
+TCP is the OS and network stack saying: "we will maintain more state and do more coordination so that your program can use a friendlier abstraction."
+
+<DefinitionBox term="TCP (Transmission Control Protocol)">
+
+**TCP** is a connection-oriented transport protocol that provides a reliable, ordered byte stream between endpoints by maintaining connection state and performing retransmission, flow control, and related coordination on the application's behalf.
+
+</DefinitionBox>
+
+<DefinitionBox term="Handshake">
+
+A **handshake** is an exchange used to establish shared connection state before normal data transfer begins. In TCP, the handshake lets both sides agree that a connection exists and that each is ready to track sequence numbers and acknowledgments.
+
+</DefinitionBox>
+
+### What TCP Is Buying the Application
+
+Where UDP left the application to fend for itself, TCP steps in with a much stronger contract. It establishes connection state so that both endpoints share a conversation identity. It provides reliable delivery by retransmitting lost data. It guarantees ordered delivery so that bytes appear in sequence. It adds flow control to prevent the sender from overwhelming the receiver. And it presents the whole thing as a byte-stream abstraction — the program reads and writes a continuous stream rather than individual datagrams.
+
+| TCP Contract | Meaning for the Program |
+| :--- | :--- |
+| Connection setup | The kernel tracks a specific conversation between peers |
+| Reliable delivery | Missing data is retried rather than silently lost |
+| Ordered byte stream | The receiver sees bytes in sequence |
+| Flow control | The sender is throttled when the receiver cannot keep up |
+| More kernel state | More machinery, more memory, more coordination |
+
+### TCP as a Tradeoff
+
+TCP is often introduced as though it were simply "the good one." That is the wrong framing. TCP is better only if the application's goal is aligned with TCP's contract. TCP pays for its stronger semantics with more setup ceremony, more kernel and transport state, more buffering and bookkeeping, and more latency in some failure cases — retransmitting a lost segment takes time, and the stream stalls until the gap is filled. This makes TCP excellent for many applications, especially those that want a reliable stream. It does not make UDP obsolete.
+
+### A Tiny TCP Example
+
+Let's rebuild the temperature service with TCP. Notice how much shorter the code looks despite the stronger guarantees — that is the point. The kernel is doing more work underneath.
+
+In C:
+
+```c
+int sock = socket(AF_INET, SOCK_STREAM, 0);
+
+struct sockaddr_in server = {0};
+server.sin_family = AF_INET;
+server.sin_port = htons(4000);
+server.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+connect(sock, (struct sockaddr *)&server, sizeof(server));
+write(sock, "GET_TEMP\n", 9);
+
+char buf[64];
+read(sock, buf, sizeof(buf));
+```
+
+In Rust:
+
+```rust
+use std::io::{Read, Write};
+use std::net::TcpStream;
+
+let mut stream = TcpStream::connect("127.0.0.1:4000")?;
+stream.write_all(b"GET_TEMP\n")?;
+
+let mut buf = [0u8; 64];
+let n = stream.read(&mut buf)?;
+println!("{}", String::from_utf8_lossy(&buf[..n]));
+```
+
+These snippets are compact precisely because TCP is doing more hidden work than UDP. The socket abstraction stays small while the transport machinery underneath grows much larger. The `connect()` call alone triggers a three-way handshake before any data is sent.
+
+### TCP Is a Stream, Not a Message Queue
+
+This is one of the most important semantic differences between TCP and UDP. UDP preserves application message boundaries: if you send datagram A and then datagram B, the receiver sees datagram A and then datagram B as discrete units. TCP does not make that promise. The application sees a **stream of bytes**. One large `write()` may be split across multiple `read()` calls. Multiple small `write()` calls may be merged in one `read()` call. The kernel and the network decide how to segment the stream into packets, and the receiver reassembles them in order — but the original message boundaries are gone.
+
+That means any application that needs message boundaries on top of TCP must define its own framing: length prefixes, delimiters, or structured serialization.
+
+> **🤔 Connection to IPC:** UDP feels closer to message queues. TCP feels closer to pipes. This is not accidental. The transport layer is rebuilding familiar local-communication shapes on top of remote packet movement.
+
+### Handshake and Reliability as Shared State
+
+The most important conceptual point about TCP is not memorizing its flags or state diagram. It is seeing what the handshake accomplishes at a systems level: both endpoints agree that a conversation exists, both sides begin tracking sequence numbers, and acknowledgments and retransmissions become meaningful. Once the handshake completes, the kernel can maintain a durable transport relationship across many packets. That shared state is what makes reliability, ordering, and flow control possible — and it is also the source of TCP's higher cost.
+
+{/* UDP VS TCP CONTRACT COMPARISON: Same client/server example rendered twice.
+    Left side (UDP): one datagram out, one datagram back, sparse state.
+    Right side (TCP): handshake first, then stream data, acknowledgments,
+    retransmission possibility, and receiver window / flow-control cues.
+    The guarantee panel should compare the two as contracts, not as winners.
+    Use phrasing like "minimal contract" versus "stateful contract." */}
+
+### Protocol Design Is a General Systems Problem
+
+UDP and TCP are not the only protocols that face these tradeoffs. The design space — how much metadata to attach, what guarantees to offer, how to multiplex many conversations over a shared medium — recurs everywhere in systems engineering. USB has a layered protocol with device enumeration (analogous to a connection handshake), multiple endpoint types with different guarantee profiles (control, bulk, interrupt, and isochronous transfers — roughly paralleling the spectrum from TCP-like reliability to UDP-like low-latency delivery), and host-level multiplexing across many devices sharing one bus. PCIe has its own transaction layer, data link layer, and physical layer — a layered model strikingly similar to the network stack.
+
+> **💡 Connection to LN17/LN18:** The device protocols we studied in the I/O lectures face the same fundamental questions as network transport: what metadata does each transfer carry, what delivery guarantees does the protocol provide, and how does the system multiplex many conversations over shared hardware? Protocol design is not unique to networking — it is a universal systems problem, and once you understand UDP and TCP, you already have the vocabulary to reason about any protocol you encounter.
+
+---
+
+## Blocking, Nonblocking, and Readiness
+
+Transport abstractions do not eliminate one of the central OS problems: **waiting**.
+
+A `read()` on a TCP socket may wait for bytes to arrive. A `recv_from()` on a UDP socket may wait for the next datagram. A `write()` may block if buffers are full and the transport cannot currently accept more data. This is the same broader OS issue we have seen repeatedly: how should a process behave when the world is not ready yet?
+
+> **💡 Connection to LN18:** Network I/O has the same "synchronous appearance, asynchronous reality" shape as device I/O. The call looks sequential to the process. Underneath, arrival times, interrupts, scheduling, and buffer availability remain asynchronous.
+
+### Blocking I/O
+
+The simplest model is blocking I/O. The process asks for data. If the data is not ready, the kernel puts the process to sleep. When the data arrives, the kernel wakes the process and the call returns. This is easy to reason about and ideal when a program only manages one conversation at a time — the same sequential experience the process had in LN19 when it called `read()` on a device.
+
+### Nonblocking I/O
+
+Sometimes a process cannot afford to sleep on one socket. It might have many clients, many open sockets, or a UI that must remain responsive. In that case, the program can mark a socket as **nonblocking**. If an operation can complete immediately, it does. If it would block, the call returns right away with a status like "not ready" instead of putting the process to sleep.
+
+In C:
+
+```c
+int flags = fcntl(sock, F_GETFL, 0);
+fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
+ssize_t n = recv(sock, buf, sizeof(buf), 0);
+if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+    // Try again later.
+}
+```
+
+In Rust:
+
+```rust
+use std::io::ErrorKind;
+use std::net::TcpStream;
+
+stream.set_nonblocking(true)?;
+
+match stream.read(&mut buf) {
+    Ok(n) => println!("read {n} bytes"),
+    Err(e) if e.kind() == ErrorKind::WouldBlock => {
+        println!("not ready yet");
+    }
+    Err(e) => return Err(e.into()),
+}
+```
+
+Nonblocking I/O avoids sleeping inside a single call, but it pushes more coordination work back onto the program. The process is now responsible for deciding when to try again.
+
+### Readiness APIs
+
+Nonblocking solves the "sleeping on one socket" problem, but it introduces a new one. If a process has many sockets, repeatedly asking each one "are you ready now?" is wasteful. The OS therefore provides **readiness** interfaces such as `select`, `poll`, and `epoll` that let a process ask the kernel a much better question: "which of my many sockets can make progress right now?"
+
+The process hands the kernel a list of sockets it cares about and sleeps *once*. The kernel wakes it when *any* of them becomes ready, and the process services whichever ones are actionable.
+
+In C with `poll()`:
+
+```c
+struct pollfd fds[2];
+fds[0].fd = temp_sock;
+fds[0].events = POLLIN;
+fds[1].fd = control_sock;
+fds[1].events = POLLIN;
+
+int ready = poll(fds, 2, -1);
+if (ready > 0 && (fds[0].revents & POLLIN)) {
+    recv(temp_sock, buf, sizeof(buf), 0);
+}
+```
+
+In Rust, low-level readiness is commonly handled through crates such as `mio`:
+
+```rust
+use mio::{Events, Interest, Poll, Token};
+
+let mut poll = Poll::new()?;
+let mut events = Events::with_capacity(128);
+
+poll.registry().register(&mut stream, Token(0), Interest::READABLE)?;
+poll.poll(&mut events, None)?;
+```
+
+The specific API is less important than the design progression. Blocking is simple but handles only one conversation at a time. Nonblocking exposes "not ready yet" to the program so it can keep running. Readiness APIs let one process manage many conversations efficiently by consolidating the waiting into a single kernel call.
+
+{/* WAITING-MODEL TIMELINE: Three horizontal timelines for one process.
+    Row 1: Blocking socket — process sleeps on one call until data arrives.
+    Row 2: Nonblocking socket — process keeps running, repeatedly encountering
+    "would block" until data becomes available.
+    Row 3: Readiness model — process waits once on the kernel for any of many
+    sockets to become ready, then services the ready ones.
+    The visual should tie back to scheduling and wakeup rather than feeling like
+    a pure networking artifact. */}
+
+### Why This Matters
+
+This is where transport meets system design. Servers with many clients need readiness models because sleeping on one socket at a time would leave hundreds of clients unserved. Responsive programs cannot afford naive blocking because a stalled network call would freeze the entire UI. High-level runtimes and async frameworks — the ones you may already be using in other courses — are built directly on these low-level waiting primitives. The network stack is therefore not just about moving data. It is also about exposing waiting behavior that programs can build around.
+
+### The Scheduling Parallel
+
+This progression should feel familiar. In the scheduling lectures, we traced the same arc through a different domain:
+
+| Scheduling Concept | I/O Waiting Analogue | Shared Problem |
+| :--- | :--- | :--- |
+| **Cooperative scheduling** | **Blocking I/O** | The process voluntarily yields control — it trusts the system to wake it when it can make progress |
+| **Busy-waiting / spinlocks** | **Nonblocking polling loops** | The process never truly yields; it burns CPU cycles checking a condition over and over |
+| **Preemptive scheduling** | **Readiness APIs (`epoll`/`poll`)** | The kernel decides when the process should run, based on external events the process cannot predict |
+
+Blocking I/O is cooperative scheduling applied to I/O. The process calls `recv()` and says "I have nothing useful to do until data arrives, so I'll give up the CPU." It decides when to yield, just as a cooperatively scheduled process decides when to call `yield()`. Nonblocking I/O with polling is the busy-wait antipattern — the process keeps asking "is data ready?" and burning cycles when the answer is "no," just as a spin-lock burns cycles waiting for a lock to become available. Readiness APIs are preemptive scheduling applied to I/O: the process hands the kernel a list of things it cares about and sleeps. The kernel wakes it based on external events — the process does not control its own wake-up timing, just as a preemptively scheduled process does not choose when the timer interrupt fires.
+
+> **💡 Connection to LN10/LN11:** The OS keeps solving the same fundamental problem across different subsystems: *who runs, and when?* Scheduling answered it for CPU time. Blocking, nonblocking, and readiness answer it for I/O time. The design tradeoffs — simplicity versus efficiency, voluntary versus involuntary yielding, wasted cycles versus event-driven wakeups — are structurally identical.
+
+---
+
+## Why the Abstraction Matters
+
+By now, the shape of the socket abstraction should be clear. The program sees an endpoint handle. The kernel manages transport state beneath it. The network stack translates application operations into packet movement. The waiting model determines how the process experiences time. That is an enormous amount of compression packed behind a tiny API.
+
+### What the Kernel Is Hiding
+
+Under a single socket, the kernel may be handling local and remote addressing, port-based multiplexing, buffering and copying, checksums and header construction, packet arrival timing, retransmission and acknowledgment logic, connection setup and teardown, and wakeups and scheduling interactions. The programmer writes `send()` and `recv()`. The kernel does everything else.
+
+### What Still Leaks Upward
+
+No abstraction hides everything. Socket programming still exposes some of the distributed world's real complexity. Remote peers can disappear without warning. Timeouts still happen. Partial reads and writes still exist — a `recv()` may return fewer bytes than expected, and the program must handle that. Datagrams sent over UDP can be lost. Streams over TCP need message framing at the application layer because TCP's byte-stream abstraction erases the boundaries between individual sends. And the choice between blocking, nonblocking, and readiness-based I/O still affects performance and responsiveness in ways the socket itself does not resolve.
+
+| Application Sees | Kernel Is Handling Beneath It |
+| :--- | :--- |
+| `connect()` | address resolution, routing choice, transport setup |
+| `send()` | buffering, packetization, transmission scheduling |
+| `recv()` | demultiplexing, buffering, wakeup on arrival |
+| "would block" | resource timing, buffer state, asynchronous reality |
+| connection failure | a distributed system that did not cooperate |
+
+> **🤔 Abstraction Test:** A good OS abstraction does not make complexity disappear. It moves complexity to the layer best positioned to manage it. Sockets succeed because the kernel is much better positioned than each application to manage transport state and host-level delivery.
+
+{/* ABSTRACTION COMPRESSION VISUAL: Three stacked views of the same conversation.
+    Top: Application view — "client asks", "server replies".
+    Middle: Socket/transport view — endpoints, ports, connection state, readiness.
+    Bottom: Packet/path view — headers, packets, hops, NICs, DMA, interrupts.
+    The middle layer should look like a compression of the bottom layer and a
+    support beam for the top layer. */}
+
+### The Broader Lesson
+
+Sockets are to networking what file descriptors were to files and devices: small user-facing objects backed by large kernel machinery, successful because they hide complexity without erasing the underlying reality. This is why transport belongs naturally inside an OS course. It is one of the clearest examples of abstraction as systems engineering — the same design instinct that produced file descriptors, virtual address spaces, and the `file_operations` contract for drivers.
+
+---
+
+## Looking Forward
+
+Across the last four lectures, we have built a chain of increasingly general communication ideas. Processes need controlled communication paths, so the kernel mediates local IPC. Communication that leaves the machine must be carried in self-describing packets. And transport protocols compress that packet-level complexity into a programmer-facing abstraction — the socket — that lets applications think in terms of conversations rather than headers and hops.
+
+That means we now have enough conceptual machinery to inspect a real operating system and actually **recognize** what we are looking at. In Linux, sockets, packet paths, readiness models, `/proc`, `/sys`, drivers, and device interfaces are not separate trivia topics. They are cooperating parts of one real system — and every one of them maps onto something we have studied.
+
+The next lecture therefore changes gears. We stop speaking purely in abstractions and start tracing them inside Linux itself.
+
+---
+
+## Summary
+
+- Packets explain how data moves, but applications think in terms of conversations, not packet mechanics
+- The **transport layer** turns packet movement into an application-facing communication service
+- A **socket** is a kernel-managed communication endpoint, analogous to the other handle-based abstractions we have studied
+- An **endpoint** is one side of a conversation, usually identified by an IP address and port
+- **Ports** solve the host-level delivery problem: one machine can support many simultaneous conversations
+- **UDP** provides a minimal contract: ports, checksums, and preserved message boundaries, but little additional coordination
+- **TCP** provides a stronger contract: connection state, reliability, ordering, flow control, and a byte-stream abstraction
+- UDP and TCP are best understood as contrasting **transport contracts**, not as a good protocol and a bad protocol
+- Network waiting behavior is still an OS concern, so blocking, nonblocking, and readiness-based models matter
+- The socket abstraction hides a large amount of distributed complexity, but some realities such as failure, timing, and framing still leak upward
+- With transport and sockets in place, we are ready to recognize these abstractions in a real Linux system
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Transport Layer** | The layer that turns raw packet movement into an application-facing communication service |
+| **Socket** | A kernel-managed communication endpoint accessed through a file-descriptor-like handle |
+| **Endpoint** | One side of a network conversation, typically identified by an IP address and port |
+| **Port** | A transport-layer identifier used to distinguish sockets on the same host |
+| **UDP** | A connectionless datagram transport with minimal guarantees |
+| **TCP** | A connection-oriented, reliable, ordered byte-stream transport |
+| **Handshake** | An exchange that establishes shared connection state before normal data transfer |
+| **Nonblocking I/O** | A mode in which an operation returns immediately instead of sleeping if it cannot make progress |
+
+**Socket Operations at a Glance:**
+
+| Operation | Purpose |
+| :--- | :--- |
+| `socket()` | Create a communication endpoint |
+| `bind()` | Attach a socket to a local address and port |
+| `listen()` | Mark a TCP socket as accepting incoming connections |
+| `accept()` | Create a connected socket for one incoming TCP client |
+| `connect()` | Start communication with a remote endpoint |
+| `send()` / `write()` | Submit outgoing data |
+| `recv()` / `read()` | Receive incoming data |
+| `close()` | Release the socket and its state |
+
+**UDP vs TCP as Contracts:**
+
+| Property | UDP | TCP |
+| :--- | :--- | :--- |
+| Setup ceremony | None | Connection setup required |
+| Abstraction shape | Datagram / message | Byte stream |
+| Message boundaries preserved | Yes | No |
+| Reliability guarantee | No | Yes |
+| Ordering guarantee | No | Yes |
+| Retransmission | No | Yes |
+| Flow control | Minimal / application-managed | Built in |
+| Kernel state burden | Low | Higher |
+| Best framing | Minimal contract | Stateful contract |
+
+**How Host Delivery Works:**
+
+| Question | Solved By |
+| :--- | :--- |
+| Which machine should receive the data? | IP address |
+| Which socket on that machine should receive it? | Port number |
+| Which specific conversation is this part of? | Source/destination address and port combination |
+
+**Waiting Models:**
+
+| Model | Kernel Behavior | Program Experience | Best Fit |
+| :--- | :--- | :--- | :--- |
+| Blocking | Sleeps process until progress is possible | Simple sequential code | One or a few conversations |
+| Nonblocking | Returns immediately if not ready | Program handles "try again later" | Responsive or custom-loop code |
+| Readiness (`select`/`poll`/`epoll`) | Reports which sockets can make progress | One process manages many sockets efficiently | Servers and event-driven systems |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 48: Distributed Systems](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Helpful for the shift from local communication to communication without shared control
+- [Computer Networking: A Top-Down Approach (Kurose & Ross) Ch. 3](https://gaia.cs.umass.edu/kurose_ross/index.php) — Transport-layer concepts from the networking side
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/) — A classic, practical introduction to sockets, ports, and waiting models
+
+### Standards and References
+
+- [RFC 768: User Datagram Protocol](https://www.rfc-editor.org/rfc/rfc768) — The original UDP specification
+- [RFC 793: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc793) — The original TCP specification
+- [Linux `socket(7)` manual page](https://man7.org/linux/man-pages/man7/socket.7.html) — The general Linux socket interface
+- [Linux `epoll(7)` manual page](https://man7.org/linux/man-pages/man7/epoll.7.html) — Linux readiness notification at scale
+
+### Rust Systems Programming
+
+- [Rust `std::net`](https://doc.rust-lang.org/std/net/index.html) — Standard Rust TCP and UDP types
+- [mio](https://github.com/tokio-rs/mio) — Low-level nonblocking I/O and readiness in Rust
+- [Tokio Tutorial](https://tokio.rs/tokio/tutorial) — A high-level async model built on the readiness ideas discussed here
+
+### Historical and Design Context
+
+- [End-to-End Arguments in System Design](https://web.mit.edu/Saltzer/www/publications/endtoend/endtoend.pdf) — Why some communication logic belongs at endpoints rather than in the network
+- [The Design Philosophy of the DARPA Internet Protocols](https://ccr.sigcomm.org/archive/1995/jan95/ccr-9501-clark.pdf) — A concise statement of the design tradeoffs behind the Internet stack
+
+</LectureResources>

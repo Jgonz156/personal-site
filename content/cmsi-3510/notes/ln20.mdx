@@ -1,0 +1,763 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap — The Kernel as Mediator
+
+Last lecture we followed one `read()` request along a U-shaped path through the system:
+
+- **The Trap** — A process cannot touch hardware directly; it must cross into kernel space through a controlled syscall
+- **Dispatch** — The kernel routes the generic request to the correct device driver
+- **The Hardware Interface** — The driver programs the device using privileged operations no user code can perform
+- **The Fork** — The process sleeps while the device runs independently, splitting the timeline in two
+- **The Return** — An interrupt fires, deferred work completes the job, and the two timelines rejoin
+- **The Code Is Lava** — Driver code is dangerous because it runs with maximum privilege across multiple execution contexts
+
+Throughout all of that, one structure was constant: the kernel stood in the middle and **mediated** communication between two endpoints. One endpoint was a process. The other was a device.
+
+Today we ask the natural next question: what happens when **both** endpoints are processes?
+
+The kernel is still in the middle. But the contracts, tradeoffs, and mechanisms change — and the design space opens up dramatically.
+
+---
+
+## Today's Agenda
+
+1. **Isolation Creates the Need** — Why protected processes cannot simply reach into one another
+2. **One Problem, Different Compromises** — The design axes that distinguish IPC mechanisms from each other
+3. **Pipes** — The simplest kernel-mediated byte stream
+4. **FIFOs** — Named pipes that outlive the processes that created them
+5. **Signals** — Communication where the payload is almost nothing
+6. **Message Queues** — Structured messages with preserved boundaries
+7. **Shared Memory** — Fastest communication, weakest isolation, highest coordination burden
+8. **Unix Domain Sockets** — Local IPC that dissolves the boundary between local and distributed
+9. **Looking Forward** — What changes when the communicating endpoints no longer share one kernel
+
+---
+
+## Isolation Creates the Need
+
+In LN9, we established that every process lives inside an **illusion of isolation**. It believes it has its own CPU, its own memory, and its own address space. The OS goes to great effort to make this illusion convincing — and for good reason. Isolation is what prevents one buggy process from corrupting another.
+
+But useful software must cooperate. A shell pipeline needs its stages to exchange data. A database server needs to talk to its client processes. A compositor needs to receive window buffers from every running application. If processes were truly isolated, none of this would work.
+
+<DefinitionBox term="Inter-Process Communication (IPC)">
+
+**Inter-Process Communication (IPC)** is any mechanism the operating system provides for processes to exchange data or synchronize execution across the protection boundary that normally separates them.
+
+</DefinitionBox>
+
+The key word is **provides**. IPC is not a violation of isolation — it is a controlled, kernel-mediated relaxation of it. The kernel decides what channels exist, who may use them, and how data moves through them. No process reaches into another's address space uninvited.
+
+> **💡 Connection to LN19:** In the driver lecture, we saw the kernel mediate between a process and a device. In IPC, the kernel mediates between a process and another process. The U-bend pattern is the same — one endpoint makes a request, the kernel carries it across a boundary, and the result arrives on the other side. The difference is that both endpoints are now software.
+
+### Why Not Just Share Memory Directly?
+
+A tempting shortcut: if two processes want to communicate, why not just let one write to the other's memory?
+
+Because that would destroy the isolation model entirely. If process A can write to process B's address space, then:
+
+- a bug in A can corrupt B's state
+- a compromised A can tamper with B's data
+- neither process can reason about its own memory in isolation
+
+The OS's entire protection architecture — virtual address spaces, page-table separation, ring-based privilege — exists to prevent exactly this. IPC must work *within* that architecture, not around it.
+
+> **📌 Callback to LN9:** This was introduced as the security manager's concern: "A user-mode process can't just write to another process's memory — it must use sanctioned channels that the kernel mediates." Today we explore what those sanctioned channels actually look like.
+
+---
+
+## One Problem, Different Compromises
+
+All IPC mechanisms solve the same fundamental problem: moving information between isolated processes. But they make different tradeoffs along several axes:
+
+| Axis | One End | Other End |
+| :--- | :--- | :--- |
+| **Data movement** | Copy through the kernel | Share a memory region directly |
+| **Structure** | Unstructured byte stream | Discrete messages with boundaries |
+| **Direction** | Unidirectional | Bidirectional |
+| **Naming** | Anonymous (related processes only) | Named (any process can connect) |
+| **Coordination** | Kernel handles blocking and wakeup | Processes must synchronize themselves |
+| **Persistence** | Exists only while processes run | Outlives the creating process |
+
+{/* IPC DESIGN-SPACE MAP: Interactive visual placing each mechanism on these axes.
+    Pipes: copy, stream, unidirectional, anonymous, kernel-coordinated, transient.
+    FIFOs: copy, stream, unidirectional, named, kernel-coordinated, persistent.
+    Signals: notify (almost no data), unidirectional, named by PID, kernel-delivered, transient.
+    Message queues: copy, messages, bidirectional, named, kernel-coordinated, persistent.
+    Shared memory: share, unstructured, bidirectional, named, process-coordinated, persistent.
+    Unix domain sockets: copy, stream or message, bidirectional, named, kernel-coordinated, persistent. */}
+
+No mechanism wins on every axis. The lecture that follows is not a ranked list — it is a tour of design tradeoffs, from the simplest and most constrained mechanism to the most flexible and network-like. Each mechanism survives because it occupies a niche where its particular tradeoffs are exactly what the problem requires.
+
+> **🤔 The Design Question:** Every IPC mechanism answers the same question differently: how much work should the kernel do, and how much should the processes handle themselves? More kernel involvement means more safety and simpler programming. Less kernel involvement means more performance and more danger.
+
+---
+
+## Pipes: The Simplest Conversation
+
+A pipe is the most basic IPC mechanism Unix offers. One process writes bytes into one end. Another process reads bytes from the other end. The kernel sits between them with a bounded buffer.
+
+<DefinitionBox term="Pipe">
+
+A **pipe** is a unidirectional, anonymous, kernel-buffered byte stream connecting a writer process to a reader process. The kernel manages the buffer, blocks the writer when it is full, and blocks the reader when it is empty.
+
+</DefinitionBox>
+
+{/* PIPE VISUAL: Two process boxes connected by a single one-way arrow.
+    Between them sits a small kernel buffer (a rectangular region with a few byte-slots).
+    The visual should feel almost trivially simple — minimal ceremony.
+    The arrow goes strictly one direction. The kernel buffer is the only structure.
+    Animation: bytes flow from writer into the buffer, then from buffer to reader.
+    When the buffer fills, the writer dims (blocked). When it empties, the reader dims. */}
+
+### How a Pipe Works
+
+```c
+int fds[2];
+pipe(fds);
+
+pid_t child = fork();
+if (child == 0) {
+    close(fds[1]);
+    char buf[64];
+    read(fds[0], buf, sizeof(buf));
+} else {
+    close(fds[0]);
+    write(fds[1], "temperature: 42", 15);
+}
+```
+
+The same idea in Rust, using standard library utilities:
+
+```rust
+use std::process::{Command, Stdio};
+use std::io::Write;
+
+let mut child = Command::new("cat")
+    .stdin(Stdio::piped())
+    .spawn()?;
+
+let stdin = child.stdin.as_mut().unwrap();
+stdin.write_all(b"temperature: 42")?;
+```
+
+In both cases, the data flows through the kernel. The writer never touches the reader's memory. The reader never touches the writer's memory. The kernel buffer is the meeting point.
+
+### Blocking and Buffering
+
+The kernel's pipe buffer is bounded — typically 64 KB on Linux. This creates natural flow control:
+
+| Condition | What Happens |
+| :--- | :--- |
+| Writer writes, buffer has space | Data is copied into the kernel buffer; writer continues |
+| Writer writes, buffer is full | Writer blocks until the reader drains some data |
+| Reader reads, buffer has data | Data is copied out of the kernel buffer; reader continues |
+| Reader reads, buffer is empty | Reader blocks until the writer produces data |
+
+This is the same bounded-buffer producer/consumer pattern from concurrency — but managed entirely by the kernel. The processes do not need to coordinate. They just call `write()` and `read()`, and the kernel handles blocking and wakeup.
+
+> **💡 Connection to LN18:** The blocking behavior here is the same synchronous-appearance principle from I/O software. The process calls `read()` and experiences a simple sequential return. Underneath, the kernel is coordinating timing, buffering, and scheduling — just as it did for device I/O.
+
+### Why Pipes Still Exist
+
+With more powerful mechanisms available, why would anyone use a pipe? Because pipes are the **lightest-weight IPC to set up**. No names to agree on, no cleanup to manage, no permissions to configure, no protocol to negotiate. Call `pipe()`, call `fork()`, and you have a working channel.
+
+This makes pipes the default composition mechanism for the Unix shell. Every `|` in a terminal is a pipe. When you type `ls | grep .rs | wc -l`, the shell creates two pipes and three processes, and data flows through kernel buffers from one to the next. You have been using IPC all semester.
+
+Pipes are the right choice when:
+
+- the communicating processes are parent and child (or share a common ancestor)
+- one process produces data and another consumes it
+- the communication is one-way and ephemeral
+- simplicity matters more than flexibility
+
+> **💻 The Shell Pipe:** The entire Unix philosophy of "small programs that do one thing well, composed through pipes" only works because pipes are cheap enough that creating one is not a design decision — it is a punctuation mark.
+
+---
+
+## FIFOs: Named Pipes
+
+Pipes have one fundamental limitation: they are **anonymous**. Only processes related by `fork()` can share the file descriptors. If two completely unrelated programs — a logging daemon and a monitoring tool, say — need to communicate through a byte stream, they need a name to agree on.
+
+A FIFO is a pipe with a name in the filesystem.
+
+<DefinitionBox term="FIFO (Named Pipe)">
+
+A **FIFO** (First In, First Out) is a named, unidirectional, kernel-buffered byte stream that appears as a special file in the filesystem. Any process with appropriate permissions can open it for reading or writing, regardless of ancestry.
+
+</DefinitionBox>
+
+{/* FIFO VISUAL: Multiple process boxes that are NOT connected by parentage lines.
+    They are visually separated — different colors, no fork arrows, scattered in space.
+    In the center sits a filesystem path label ("/tmp/sensor_pipe") acting as rendezvous.
+    Arrows converge on the named path from different, unrelated sources.
+    The visual should feel more disconnected than the pipe diagram — the processes
+    found each other through a name, not through a family tree.
+    Animation: bytes from various writers flow through the named path to the reader. */}
+
+### Using a FIFO
+
+In C:
+
+```c
+mkfifo("/tmp/sensor_pipe", 0666);
+
+// Writer process (one program)
+int fd = open("/tmp/sensor_pipe", O_WRONLY);
+write(fd, "42\n", 3);
+
+// Reader process (a completely separate program)
+int fd = open("/tmp/sensor_pipe", O_RDONLY);
+char buf[16];
+read(fd, buf, sizeof(buf));
+```
+
+In Rust:
+
+```rust
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
+
+// Writer (assumes FIFO was created by mkfifo or nix::unistd::mkfifo)
+let mut fifo = OpenOptions::new()
+    .write(true)
+    .open("/tmp/sensor_pipe")?;
+fifo.write_all(b"42\n")?;
+
+// Reader (separate process)
+let mut fifo = File::open("/tmp/sensor_pipe")?;
+let mut buf = String::new();
+fifo.read_to_string(&mut buf)?;
+```
+
+> **📌 Key Point:** FIFOs live in `/tmp` or wherever you create them, but they are not regular files. The data does not touch disk. The filesystem entry is just a name that processes agree on — the kernel buffer is still the meeting point.
+
+### Why FIFOs Still Exist
+
+FIFOs solve one problem that pipes cannot: **discovery**. A daemon that starts at boot and a monitoring tool that starts hours later can communicate through a FIFO at a well-known path without any shared ancestry. Logging services, named input channels for media players, and inter-service data feeds all use FIFOs because the communicating processes have no parent-child relationship.
+
+FIFOs are the right choice when:
+
+- the processes are unrelated (no common `fork()` ancestor)
+- a well-known rendezvous point makes discovery simple
+- the communication is still one-way and byte-stream-shaped
+- the overhead of setting up sockets would be disproportionate to the task
+
+They inherit all other pipe limitations — unidirectional, byte-stream, kernel-buffered — but the addition of a name turns pipes from a family affair into a public service.
+
+---
+
+## Signals: Communication With Almost No Data
+
+Not all communication is about moving bytes. Sometimes the entire message is just: "something happened."
+
+<DefinitionBox term="Signal">
+
+A **signal** is a software notification delivered by the kernel to a process. It carries almost no data — just a signal number — and is used primarily for asynchronous event notification rather than data transfer.
+
+</DefinitionBox>
+
+{/* SIGNAL VISUAL: Multiple process boxes scattered in space — no channels, no buffers,
+    no structure connecting them. Small colored dots fly between processes (or from kernel
+    to process). Each dot is labeled with a signal name (SIGINT, SIGTERM, etc.).
+    The visual should feel sparse and fast — no managed infrastructure, just point-to-point
+    pings flying through space. This contrasts sharply with the pipe/FIFO diagrams,
+    which have visible kernel buffers. Signals have no persistent mechanism at all.
+    Animation: dots appear, fly to their target process, and trigger a flash on arrival. */}
+
+### Signals Are Enums
+
+In Rust terms, signals are a fixed set of named variants with no associated data — they are essentially an enum:
+
+```rust
+enum Signal {
+    Int   = 2,   // Ctrl+C
+    Kill  = 9,   // Force terminate (uncatchable)
+    Term  = 15,  // Polite shutdown
+    Child = 17,  // Child process changed state
+    Stop  = 19,  // Pause (uncatchable)
+    Usr1  = 10,  // User-defined
+}
+```
+
+The process receives a variant, not a message. There is no payload, no buffer, no channel. The signal tells the process *what kind of event happened* — not the details.
+
+### Common Signals
+
+| Signal | Number | Default Action | Typical Use |
+| :--- | :--- | :--- | :--- |
+| `SIGINT` | 2 | Terminate | User pressed Ctrl+C |
+| `SIGKILL` | 9 | Terminate (uncatchable) | Force-kill a process |
+| `SIGTERM` | 15 | Terminate | Polite shutdown request |
+| `SIGCHLD` | 17 | Ignore | Child process changed state |
+| `SIGSTOP` | 19 | Stop (uncatchable) | Pause execution |
+| `SIGUSR1` | 10 | Terminate | User-defined notification |
+
+### Handling Signals
+
+In C:
+
+```c
+#include <signal.h>
+
+void handle_sigint(int sig) {
+    write(STDOUT_FILENO, "Caught interrupt\n", 17);
+}
+
+int main() {
+    signal(SIGINT, handle_sigint);
+    while (1) pause();
+}
+```
+
+In Rust, the standard library deliberately does not expose signal handling — the language considers it unsafe enough to gate behind external crates:
+
+```rust
+use signal_hook::consts::SIGINT;
+use signal_hook::iterator::Signals;
+
+let mut signals = Signals::new(&[SIGINT])?;
+for sig in signals.forever() {
+    match sig {
+        SIGINT => {
+            println!("Caught interrupt, shutting down...");
+            break;
+        }
+        _ => unreachable!(),
+    }
+}
+```
+
+> **🤔 Notice the Rust choice:** Rust's standard library has first-class support for pipes (`std::process::Stdio`) and sockets (`std::os::unix::net`), but requires an external crate for signals. The language is telling you something about the safety profile of each mechanism — signals are so difficult to handle correctly that Rust does not want to make them easy by accident.
+
+### Why Signals Still Exist
+
+Signals are the **only IPC mechanism that works when the receiver hasn't opted in**. You can send `SIGTERM` to any process you own — it does not need to have opened a pipe, listened on a socket, or mapped a shared region. Signals are the OS's fire alarm, not its telephone.
+
+They are also the lightest possible communication: no buffers to allocate, no channels to create, no data to serialize. The kernel delivers a single integer and returns. For lifecycle management — "stop," "pause," "resume," "your child exited" — this is exactly the right amount of mechanism.
+
+Signals are the right choice when:
+
+- the communication is about attention, not data
+- the receiver has not set up any other communication channel
+- the event is urgent and must interrupt whatever the process is doing
+- the payload is "something happened," not "here is a result"
+
+> **💡 Key Insight:** Signals are to IPC what interrupts are to I/O. They are asynchronous notifications that say "something happened" without carrying bulk data. The process must already know what to do when the notification arrives — the signal just tells it *when*.
+
+> **⚠️ Gotcha:** Signal handlers are one of the hardest things to write correctly in C. The handler runs asynchronously, can interrupt almost any code, and may only safely call a restricted set of "async-signal-safe" functions. The reentrancy pressure from LN19 shows up again here — inside one process instead of inside the kernel.
+
+### Who Actually Delivers the Signal?
+
+We keep saying "the kernel delivers a signal." But by now we should ask: what does that actually mean? The kernel is not a separate process sitting in the background watching for work. It does not have its own CPU time. So who is doing this?
+
+The answer demystifies what "the kernel" really is. When a process calls `kill(target_pid, SIGTERM)`, that process traps into kernel space — the same left-descent we saw in LN19's U-bend. The CPU is now running kernel code **in the sending process's context**, using the sending process's time slice. That kernel code finds the target process's `task_struct` (its PCB in kernel memory) and sets a bit in its pending-signal bitmask. Then the syscall returns. No separate entity was involved — the sending process's own CPU time paid for the privileged work.
+
+The target process does not receive the signal immediately. It receives it later, at a very specific moment: **when the kernel is about to return control to that process's user-space code** — after a syscall return, after an interrupt handler finishes, or when the scheduler dispatches the process. Right before jumping back to Ring 3, the kernel's return-to-userspace path checks the pending-signal bitmask. If a signal is pending, the kernel handles it right there — still running in the target process's context, still using the target process's kernel stack.
+
+If the default action is termination, the kernel calls its internal exit routine. If a custom handler was registered, the kernel rewrites the process's user-space stack and saved instruction pointer so that when execution returns to user space, it jumps to the handler function instead of resuming where it was interrupted. The handler runs, returns, and the kernel restores the original execution point.
+
+The process was hijacked by its own kernel code path.
+
+> **💡 Key Insight:** The kernel is not a process. It is **code that executes using borrowed execution context**. When we say "the kernel delivers a signal," we mean that kernel code, mapped into every process's address space but only accessible in Ring 0, runs during the target process's own time on the CPU. The kernel is the privileged code that processes involuntarily run when they cross the boundary. Every syscall, every interrupt return, every signal delivery is the process paying for kernel work with its own execution.
+
+> **📌 Connection to LN19:** This is why process context mattered so much. The kernel knows which process is current because it is *that process's* kernel code path that is executing. The U-bend's descent into kernel space is not a transfer to a different entity — it is the same process running different, privileged code.
+
+---
+
+## Message Queues: Communication With Structure
+
+Pipes move bytes. Sometimes that is not enough. Consider a job dispatch system: a coordinator sends tasks to workers, and each task is a self-contained unit with a type, a priority, and a payload. With a pipe, the coordinator must invent a framing protocol — length prefixes, delimiters, or fixed-size records — and every worker must parse it correctly. A single off-by-one error in the framing code corrupts every subsequent message in the stream.
+
+Message queues let the kernel preserve message boundaries so the application does not have to.
+
+<DefinitionBox term="Message Queue">
+
+A **message queue** is a kernel-managed IPC mechanism that stores discrete messages, each with its own boundaries and optional type or priority, and delivers them intact to the receiving process.
+
+</DefinitionBox>
+
+{/* MESSAGE QUEUE VISUAL: Two process boxes with a visible managed structure between them.
+    The structure is a queue with discrete boxes/slots — each slot holds one labeled message.
+    The kernel is visibly involved: a "kernel" region wraps the queue structure.
+    Message boundaries are drawn explicitly (each message is a separate colored block).
+    This diagram should feel noticeably more "busy" than pipes — there is real infrastructure
+    managing the messages. Headers, types, and slot boundaries are visible.
+    Animation: discrete messages enter the queue from the sender, sit in their slots,
+    and are pulled out intact by the receiver. Messages never merge or split. */}
+
+### Streams vs Messages
+
+| Property | Byte Stream (Pipe) | Message Queue |
+| :--- | :--- | :--- |
+| Unit of transfer | Arbitrary byte runs | Discrete messages |
+| Boundary preservation | None — reader sees a continuous stream | Yes — each message arrives intact |
+| Order | FIFO | FIFO, or selectable by message type |
+| Naming | Anonymous or filesystem path | System-wide key or name |
+| Parsing burden | Application must reconstruct boundaries | Kernel guarantees them |
+
+The distinction determines **where parsing work lives**. With pipes, the application reconstructs message boundaries from raw bytes — and bugs in that reconstruction are a classic source of security vulnerabilities. With queues, the kernel guarantees that each `receive` returns exactly one complete message.
+
+### Using Message Queues
+
+In C (POSIX message queue):
+
+```c
+#include <mqueue.h>
+
+struct task { int type; char payload[64]; };
+
+// Sender
+mqd_t mq = mq_open("/jobs", O_CREAT | O_WRONLY, 0666, NULL);
+struct task t = { .type = 1, .payload = "compress file.dat" };
+mq_send(mq, (char *)&t, sizeof(t), 0);
+
+// Receiver
+mqd_t mq = mq_open("/jobs", O_RDONLY);
+struct task t;
+mq_receive(mq, (char *)&t, sizeof(t), NULL);
+```
+
+Rust's standard library does not include POSIX message queues, but its `mpsc` channel is the conceptual analog — a typed, boundary-preserving message channel:
+
+```rust
+use std::sync::mpsc;
+
+struct Task { task_type: u32, payload: String }
+
+let (tx, rx) = mpsc::channel();
+
+tx.send(Task {
+    task_type: 1,
+    payload: "compress file.dat".into(),
+})?;
+
+let task = rx.recv()?;
+// task arrives as a complete Task — no framing needed
+```
+
+> **📌 Key Point:** Rust's `mpsc::channel` is thread-level IPC rather than process-level IPC, but the design principle is identical: typed, boundary-preserving messages that arrive intact. The fact that Rust chose this as its primary concurrency primitive tells you something about how valuable preserved message boundaries are.
+
+### Why Message Queues Still Exist
+
+Message queues are the right choice when:
+
+- the communication is naturally structured into discrete units (jobs, commands, events)
+- message boundaries matter for correctness — losing a boundary means losing meaning
+- multiple message types need to coexist in one channel, with optional priority or selection
+- the sender and receiver are decoupled in time — the queue persists even if one side is temporarily absent
+
+They sit in the design space between the simplicity of pipes and the flexibility of sockets: more structured than a byte stream, less ceremonial than a full connection protocol.
+
+> **💡 Preview:** This stream-vs-message distinction will appear again when we reach networking. TCP is a byte stream like a pipe — the application must reconstruct record boundaries. UDP is message-oriented like a message queue — each `send` produces one discrete datagram. The tradeoff is structural, not incidental.
+
+---
+
+## Shared Memory: Fastest, But You Own Coordination
+
+Every IPC mechanism so far copies data through the kernel. The writer puts data into a kernel buffer. The reader takes data out of a kernel buffer. This is safe — neither process ever touches the other's memory — but it means every byte crosses the user/kernel boundary at least twice.
+
+Shared memory eliminates the copies by letting two processes map the same physical memory region into their respective address spaces.
+
+<DefinitionBox term="Shared Memory">
+
+**Shared memory** is an IPC mechanism where the kernel maps the same physical memory region into the virtual address spaces of two or more processes, allowing them to read and write a common region without kernel involvement per operation.
+
+</DefinitionBox>
+
+{/* SHARED MEMORY VISUAL: Two process boxes whose memory regions literally overlap.
+    A highlighted zone labeled "shared region" sits where both address spaces meet.
+    Inside the shared zone: no kernel buffer, no managed infrastructure — just raw memory.
+    A dashed boundary or warning icon in the shared zone signals "you're on your own."
+    The visual should feel noticeably different from all previous diagrams: there is
+    no kernel mediation visible in the data path. The absence of structure IS the point.
+    Animation: both processes read/write the same cells. Without synchronization,
+    concurrent writes produce garbled values (shown as flickering or conflicting colors). */}
+
+### The Tradeoff
+
+| Property | Kernel-Buffered IPC (Pipes, Queues) | Shared Memory |
+| :--- | :--- | :--- |
+| Data copies per transfer | At least 2 (writer → kernel, kernel → reader) | 0 (direct read/write) |
+| Kernel involvement per operation | Yes — every `read()` and `write()` is a syscall | No — reads and writes are plain memory operations |
+| Isolation | Preserved — kernel controls the buffer | Relaxed — both processes see the same memory |
+| Coordination | Kernel handles blocking and wakeup | Processes must synchronize themselves |
+| Safety | Higher — kernel enforces ordering | Lower — race conditions are the application's problem |
+
+### Using Shared Memory
+
+In C:
+
+```c
+int fd = shm_open("/sensor_data", O_CREAT | O_RDWR, 0666);
+ftruncate(fd, sizeof(struct sensor_reading));
+struct sensor_reading *shared = mmap(NULL, sizeof(struct sensor_reading),
+    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+shared->temp = 42;  // visible to any process that maps the same region
+```
+
+In Rust, shared memory requires `unsafe` — the compiler cannot verify that another process is not writing to the same region concurrently:
+
+```rust
+use memmap2::MmapMut;
+use std::fs::OpenOptions;
+
+let file = OpenOptions::new()
+    .read(true).write(true).create(true)
+    .open("/dev/shm/sensor_data")?;
+file.set_len(std::mem::size_of::<SensorReading>() as u64)?;
+
+let mut mmap = unsafe { MmapMut::map_mut(&file)? };
+// mmap[..] is now a shared byte slice
+// any concurrent access from another process is a data race
+// unless WE synchronize — the kernel will not do it for us
+```
+
+> **🤔 Notice the `unsafe`:** Rust requires `unsafe` for memory-mapped I/O because the compiler's ownership model cannot cross process boundaries. If another process writes to the same region, Rust has no way to enforce exclusive access. The `unsafe` block is the language saying: "I can't protect you here — you're on your own." The language's safety boundary mirrors the OS's isolation boundary.
+
+### Why Shared Memory Still Exists
+
+Shared memory exists because some workloads cannot afford kernel-mediated copies. Video compositors receive frame buffers from every running application — copying every pixel through the kernel would be prohibitively slow. Database buffer pools share cached pages between query processes. High-frequency trading systems share market data between analysis engines. Scientific computing shares large matrices between simulation stages.
+
+In all these cases, the performance gain from zero-copy communication is non-negotiable, and the engineering team is willing to accept the coordination burden.
+
+Shared memory is the right choice when:
+
+- the data volume is large enough that copying it twice is unacceptable
+- the processes are trusted and well-engineered enough to synchronize correctly
+- the coordination cost (mutexes, semaphores, atomics) is worth the copy savings
+- the communication pattern is more "shared state" than "message passing"
+
+> **📌 Callback to LN12:** This is exactly the synchronization problem from the deadlock and concurrency lectures. Shared memory reintroduces the dangers of concurrent access that isolation was supposed to prevent. Every lesson about locking discipline, ordering, and deadlock avoidance applies directly here.
+
+> **🤔 The Recurring Systems Lesson:** Removing kernel mediation usually increases performance and risk together. Shared memory is the purest example: maximum speed, minimum safety net. The cost of performance is coordination responsibility.
+
+---
+
+## Unix Domain Sockets: Local IPC That Dissolves Boundaries
+
+Everything so far has been constrained in some way — unidirectional, byte-stream-only, no message structure, or requiring processes to handle their own coordination. Unix domain sockets remove most of those constraints while remaining local to one machine.
+
+But the truly remarkable thing about Unix domain sockets is not what they do. It is what they **imply**.
+
+<DefinitionBox term="Unix Domain Socket">
+
+A **Unix domain socket** is a bidirectional IPC endpoint identified by a filesystem path. It supports both stream and datagram modes, uses the same socket API as network communication (`socket`, `bind`, `listen`, `accept`, `connect`), but all data stays within the local kernel — no network stack is involved.
+
+</DefinitionBox>
+
+{/* UNIX DOMAIN SOCKET VISUAL: Full bidirectional connection with the socket API ceremony
+    visible (socket, bind, listen, accept, connect labels along the path).
+    The most complex diagram so far — the most "ceremony" and infrastructure.
+    Two variants side by side:
+    Variant A: AF_UNIX — both processes on one machine, connected through a kernel buffer.
+    Variant B: AF_INET — same two processes, same API calls, but now on different machines
+    connected through a network. The visual structure is IDENTICAL except for the
+    address family label and the wire between the machines.
+    The point: the programming model did not change. Only the deployment did. */}
+
+### The Socket API — Locally
+
+In C:
+
+```c
+// Server
+int srv = socket(AF_UNIX, SOCK_STREAM, 0);
+struct sockaddr_un addr = { .sun_family = AF_UNIX };
+strncpy(addr.sun_path, "/tmp/sensor.sock", sizeof(addr.sun_path) - 1);
+bind(srv, (struct sockaddr *)&addr, sizeof(addr));
+listen(srv, 5);
+int client = accept(srv, NULL, NULL);
+
+// Client
+int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+write(sock, "read_temp", 9);
+```
+
+In Rust — using the **standard library**, no external crates needed:
+
+```rust
+use std::os::unix::net::{UnixListener, UnixStream};
+use std::io::{Read, Write};
+
+// Server
+let listener = UnixListener::bind("/tmp/sensor.sock")?;
+let (mut stream, _) = listener.accept()?;
+let mut buf = [0u8; 64];
+let n = stream.read(&mut buf)?;
+
+// Client
+let mut stream = UnixStream::connect("/tmp/sensor.sock")?;
+stream.write_all(b"read_temp")?;
+```
+
+> **💡 Key Insight:** Rust includes `UnixStream` and `UnixListener` in the standard library alongside `TcpStream` and `TcpListener`. The language treats local sockets and network sockets as equally fundamental — because they are the same abstraction at different scales.
+
+### The One-Line Difference
+
+Compare the Unix domain socket code above to a network socket. In C, the structural difference is exactly this:
+
+| Property | Unix Domain Socket | Network Socket |
+| :--- | :--- | :--- |
+| Address family | `AF_UNIX` | `AF_INET` / `AF_INET6` |
+| Endpoint naming | Filesystem path | IP address + port |
+| Modes | Stream (`SOCK_STREAM`) and datagram (`SOCK_DGRAM`) | Stream (TCP) and datagram (UDP) |
+| Data path | Kernel buffer, local only | Network stack, crosses machines |
+| Kernel mediation | Full — one kernel sees both sides | Partial — each side has its own kernel |
+| Performance | Fast — no network overhead | Slower — protocol processing, serialization |
+
+The programming model is identical. `socket()`, `bind()`, `listen()`, `accept()`, `connect()`, `read()`, `write()` — every call is the same. Only the address family and the naming scheme change.
+
+> **📚 Historical Note:** The socket API was designed at UC Berkeley in the early 1980s as part of BSD Unix. The designers made a deliberate choice to unify local and network communication under one interface. That decision is why switching from `AF_UNIX` to `AF_INET` is a one-line change — the abstractions were designed to compose.
+
+### The Deeper Insight: Processes as Nodes
+
+Here is where the socket abstraction reveals something profound about how we think about systems.
+
+If every process communicates through sockets, and sockets work the same way regardless of whether the other endpoint is local or remote, then the distinction between "a process on my machine" and "a process on another machine" becomes a **deployment detail**, not an architectural one.
+
+Think about it in graph-theoretical terms:
+
+- Every running process is a **node**
+- Every socket connection is an **edge**
+- Whether an edge stays within one machine or crosses a network is a property of the **edge**, not the **nodes**
+- A machine is just a cluster of co-located nodes that happen to share a kernel and memory
+
+The socket abstraction dissolves the hardware view of computing. You stop thinking about "this machine" and "that machine" and start thinking about a **graph of communicating processes** where some edges are fast (local kernel buffers) and some are slow (network packets across a wire).
+
+> **🤔 The Machine Vanishes:** Once you adopt sockets as your universal communication mechanism, the machine boundary stops being an architectural boundary. It becomes a performance boundary — local edges are faster than remote edges — but the programming model, the connection lifecycle, and the failure modes are all the same.
+
+### Why This Changes Everything
+
+This insight is the foundation of modern distributed systems:
+
+| Concept | What It Really Means |
+| :--- | :--- |
+| **Microservices** | Each service is a process (or group of processes) that communicates over sockets. Whether two services run on the same machine or different machines is a deployment decision. |
+| **Containers** | A container is a process with its own isolated namespace. It communicates with other containers through network sockets — even when they are on the same physical host. |
+| **Kubernetes** | An orchestrator that decides *where* process-nodes run in a cluster. It moves processes between machines without changing how they communicate — because the socket API is the same everywhere. |
+| **Cloud computing** | A datacenter is a pool of machines that host processes on behalf of users. "Process as a service" — you write software that talks over sockets, and the cloud decides which physical machines run it. |
+
+The Earth starts to look like one massive system. Billions of processes, connected by socket edges, running on machines that are just clusters of co-located nodes. The distinction between "local" and "remote" shrinks to a latency number. The programming model is the same everywhere.
+
+> **💡 Key Insight:** The socket abstraction does not just let local processes pretend to be networked. It lets networked processes pretend to be local. Borrowing sockets for IPC means that processes on other machines act the same as the ones on ours. That is not a convenience — it is the conceptual foundation of distributed computing.
+
+This is why we spend time on Unix domain sockets even though they never leave the machine. They are not just "good local IPC." They are the proof that the boundary between local and distributed computing is thinner than it appears — and the training ground for building software that can cross that boundary without a rewrite.
+
+---
+
+## Looking Forward
+
+Every IPC mechanism this lecture covered enjoys three luxuries:
+
+1. **A shared kernel** — one operating system sees both endpoints and can enforce rules, manage buffers, and coordinate scheduling for both sides
+2. **Optional shared memory** — when performance matters enough, both processes can map the same physical region
+3. **A shared scheduler** — the kernel knows when each endpoint is ready, blocked, or running, and can make intelligent decisions about when to deliver data
+
+Networking begins when those luxuries disappear.
+
+When the communicating endpoints live on different machines, no single kernel can see both sides. Shared memory is physically impossible — there is no common RAM. No shared scheduler exists to coordinate timing. The data must be serialized into discrete packets, pushed through hardware, and reassembled on the other side without any global view of the conversation.
+
+But as Unix domain sockets just showed us, the *programming model* does not have to change. The socket API works across machine boundaries. What changes is not how you write the code — it is what guarantees the system can provide, and what new failure modes become possible.
+
+The next lecture asks: what happens at the hardware level when packets must leave the machine? The answer takes us from kernel buffers to NICs, from addresses to routing, and from the comfort of one OS to the reality of a network where no single entity sees the whole conversation.
+
+> **💡 Preview:** If IPC is communication under a shared kernel, networking is IPC after removing shared memory, the shared scheduler, and the comfort of one OS seeing the whole conversation. Everything gets harder — but the fundamental U-bend pattern is the same: request, mediate, deliver.
+
+---
+
+## Summary
+
+- Process isolation is a **feature**, not a limitation — IPC exists as a controlled, kernel-mediated relaxation of that isolation
+- All IPC mechanisms solve the same problem but make different tradeoffs — each survives because it occupies a niche where its particular tradeoffs are exactly right
+- **Pipes** are the lightest-weight IPC: anonymous, unidirectional, kernel-buffered, and the engine behind every shell pipeline
+- **FIFOs** add naming to pipes, letting unrelated processes discover each other through the filesystem
+- **Signals** are the only IPC that works without the receiver opting in — they are enums, not messages, and they serve the control path rather than the data path
+- **Message queues** preserve message boundaries in the kernel, freeing applications from the framing and parsing work that byte streams impose
+- **Shared memory** eliminates kernel copying for maximum performance, but shifts all coordination responsibility to the processes — reintroducing the concurrency dangers from earlier in the course
+- **Unix domain sockets** use the same API as network sockets, dissolving the boundary between local and distributed communication into a deployment detail
+- The socket abstraction turns systems into **graphs of communicating processes** — the foundation of microservices, containers, Kubernetes, and cloud computing
+- IPC enjoys three luxuries that networking will remove: a shared kernel, optional shared memory, and a shared scheduler
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Inter-Process Communication (IPC)** | Any kernel-provided mechanism for processes to exchange data or synchronize across protection boundaries |
+| **Pipe** | A unidirectional, anonymous, kernel-buffered byte stream between a writer and a reader |
+| **FIFO (Named Pipe)** | A pipe with a filesystem name, allowing unrelated processes to connect |
+| **Signal** | An asynchronous kernel-delivered notification carrying a signal number (essentially an enum variant), used for event notification rather than data transfer |
+| **Message Queue** | A kernel-managed IPC mechanism that stores and delivers discrete messages with preserved boundaries |
+| **Shared Memory** | An IPC mechanism where the kernel maps the same physical region into multiple processes' address spaces, eliminating copies but requiring process-managed synchronization |
+| **Unix Domain Socket** | A bidirectional IPC endpoint using the socket API with a filesystem path, supporting both stream and datagram modes locally |
+
+**IPC Mechanism Comparison:**
+
+| Mechanism | Data Movement | Structure | Direction | Naming | Coordination | Best For |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Pipe | Copy (kernel) | Byte stream | Unidirectional | Anonymous | Kernel | Shell composition, parent-child data flow |
+| FIFO | Copy (kernel) | Byte stream | Unidirectional | Filesystem path | Kernel | Daemon communication, logging, unrelated processes |
+| Signal | Notification | Enum variant | Unidirectional | PID | Kernel | Lifecycle events, urgent control, uninvited notification |
+| Message Queue | Copy (kernel) | Discrete messages | Bidirectional | System key | Kernel | Job dispatch, structured commands, decoupled producers/consumers |
+| Shared Memory | Share (mapped) | Unstructured | Bidirectional | System key | Process | Video compositing, database buffers, large-volume zero-copy |
+| Unix Domain Socket | Copy (kernel) | Stream or datagram | Bidirectional | Filesystem path | Kernel | Client/server, network-shaped local IPC, portability to distributed |
+
+**What IPC Enjoys (and Networking Will Lose):**
+
+| Luxury | Why It Helps | What Replaces It in Networking |
+| :--- | :--- | :--- |
+| Shared kernel | One OS mediates both sides, enforcing rules and managing buffers | Each machine has its own OS; no global view |
+| Optional shared memory | Eliminates copies when performance matters | Physically impossible — no common RAM |
+| Shared scheduler | Kernel knows when both endpoints are ready | No coordination between remote schedulers |
+
+**Rust Safety Gradient Across IPC:**
+
+| Mechanism | Rust Support | Safety Implication |
+| :--- | :--- | :--- |
+| Pipes | `std::process::Stdio` (stdlib) | Safe — kernel mediates everything |
+| FIFOs | `std::fs::File` on FIFO path (stdlib) | Safe — same as file I/O |
+| Signals | `signal-hook` crate (external) | Gated — too dangerous for stdlib defaults |
+| Message Queues | `mpsc::channel` (stdlib, thread-level analog) | Safe — typed, boundary-preserving |
+| Shared Memory | `memmap2` crate + `unsafe` | Explicitly unsafe — compiler cannot verify cross-process access |
+| Unix Domain Sockets | `std::os::unix::net` (stdlib) | Safe — kernel mediates the data path |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 5: Interlude - Process API](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Process creation and the `fork()`/`exec()` model that gives pipes their ancestry-based naming
+- [Modern Operating Systems (Tanenbaum) Ch. 2.3](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — IPC mechanisms, race conditions, and the relationship between communication and synchronization
+- [The Linux Programming Interface Ch. 43-57](https://man7.org/tlpi/) — Comprehensive POSIX IPC coverage: pipes, FIFOs, message queues, shared memory, semaphores, and sockets
+
+### Linux IPC References
+
+- [pipe(2) man page](https://man7.org/linux/man-pages/man2/pipe.2.html) — The system call that creates anonymous pipes
+- [unix(7) man page](https://man7.org/linux/man-pages/man7/unix.7.html) — Unix domain socket semantics, address formats, and ancillary data
+- [shm_overview(7) man page](https://man7.org/linux/man-pages/man7/shm_overview.7.html) — POSIX shared memory API and usage conventions
+- [mq_overview(7) man page](https://man7.org/linux/man-pages/man7/mq_overview.7.html) — POSIX message queue API and kernel configuration
+
+### Historical Context
+
+- [The UNIX Time-Sharing System (Ritchie & Thompson, 1974)](https://dsf.berkeley.edu/cs262/unix.pdf) — The paper that introduced pipes as a fundamental OS primitive
+- [An Advanced 4.4BSD Interprocess Communication Tutorial](https://docs.freebsd.org/en/books/developers-handbook/sockets/) — The BSD socket tutorial that shaped how generations of programmers learned IPC and networking
+- [Plan 9 from Bell Labs](https://9p.io/plan9/) — The successor to Unix that pushed the "everything is a file" philosophy further, turning network connections and IPC into filesystem operations
+
+### Distributed Systems and Cloud Computing
+
+- [Kubernetes Documentation: What is Kubernetes?](https://kubernetes.io/docs/concepts/overview/) — How container orchestration builds on the same process-graph model that Unix domain sockets reveal
+- [The Twelve-Factor App](https://12factor.net/) — Design principles for software that treats network boundaries as deployment details rather than architectural ones
+- [Google's Borg Paper (2015)](https://research.google/pubs/pub43438/) — The cluster management system that preceded Kubernetes, treating a datacenter as one pool of processes
+
+### Rust Systems Programming
+
+- [The Rust Book: Fearless Concurrency](https://doc.rust-lang.org/book/ch16-00-concurrency.html) — Channels, mutexes, and shared state in Rust — the language-level analogs of IPC mechanisms
+- [std::os::unix::net (Rust stdlib)](https://doc.rust-lang.org/std/os/unix/net/index.html) — Unix domain socket support in Rust's standard library
+- [signal-hook crate](https://docs.rs/signal-hook/latest/signal_hook/) — The standard Rust approach to Unix signal handling
+
+</LectureResources>

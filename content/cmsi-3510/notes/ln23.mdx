@@ -1,0 +1,755 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap — Abstractions All the Way Down
+
+Over the last several lectures we built a chain of increasingly general communication abstractions:
+
+- **Drivers and the U-bend** — A process's `read()` descends through a syscall, dispatch, driver code, and hardware interaction, then returns through interrupts and deferred work
+- **IPC** — Local communication mechanisms range from lightweight pipes to network-like Unix domain sockets, each making different tradeoffs about data movement, structure, and coordination
+- **Packets and layering** — Once communication leaves the machine, data must travel as self-describing packets through a layered protocol stack
+- **Transport and sockets** — The OS compresses packet-level complexity into a programmer-facing abstraction backed by different contract choices (UDP and TCP)
+- **Waiting behavior** — Blocking, nonblocking, and readiness-based I/O give programs control over how they experience asynchronous reality
+
+Each of these abstractions was introduced in isolation, as a design idea with a clean definition and a small example. But real operating systems do not run one abstraction at a time. They run all of them at once, cooperating on every meaningful action a user takes.
+
+Today we stop speaking purely in abstractions and start tracing them inside a real operating system: Linux.
+
+---
+
+## Today's Agenda
+
+1. **Linux as Interacting Abstractions** — Framing the lecture around recognition rather than subsystem coverage
+2. **Setting Up** — The Multipass VM as our inspection environment
+3. **Walkthrough 1: Process to Device** — Tracing a device-oriented action from user space into the kernel and back
+4. **Walkthrough 2: Process to Network** — Tracing a socket-oriented action through the network stack
+5. **Linux's Windows Into Itself** — `/proc`, `/sys`, and `/dev` as structured views into kernel state
+6. **Extending the Kernel Without Rebooting** — Kernel modules, `lsmod`, `modinfo`, and the bridge to contribution
+7. **Observing the Real System** — Using `ps`, `strace`, `dmesg`, `ip`, and `ss` as evidence
+8. **What You Should Now Recognize** — Mapping the semester's abstractions to their Linux counterparts
+9. **Looking Forward** — From recognition to safe contribution
+
+---
+
+## Linux as a System of Interacting Abstractions
+
+Linux is not interesting because it is famous. Linux is interesting because it makes the course's abstractions concrete. Process management, virtual memory, drivers, filesystems, and networking all cooperate inside one real system — the same real system running on most of the world's servers, most of the world's phones, and most of the world's cloud infrastructure.
+
+This lecture is not a survey of Linux subsystems. It is a guided tour through two end-to-end actions — one device-oriented and one network-oriented — that let familiar course concepts reappear naturally as the action travels through the system. The goal is **recognition**: you should be able to watch something happen in Linux and say "I know what that is. That is the driver dispatch we saw in LN19. That is the transport layer from LN22. That is the blocking behavior from our scheduling lectures."
+
+{/* COURSE-TO-LINUX MAP: A visual showing the major abstractions from the semester
+    (processes, syscalls, drivers, IPC, packets, transport, sockets, scheduling,
+    memory, filesystems) arranged around a central Linux kernel icon.
+    Each abstraction connects to specific Linux surfaces or tools.
+    As the two walkthroughs progress, the relevant abstractions light up.
+    This visual should serve as a persistent orientation map for the whole lecture. */}
+
+> **🤔 Key Framing:** The question driving this lecture is not "what is Linux?" It is "where do the abstractions from this course show up when a user actually does something in Linux?"
+
+---
+
+## Setting Up: The Lecture VM
+
+To make today's walkthroughs concrete and reproducible, we will use a lightweight Linux virtual machine running through **Multipass**. Multipass provides a terminal-first Ubuntu instance backed by a headless QEMU VM — no GUI overhead, no complex setup, and it works the same on macOS (Intel and Apple Silicon), Windows, and Linux hosts.
+
+<DefinitionBox term="Multipass">
+
+**Multipass** is a tool for launching and managing lightweight Ubuntu virtual machines from the command line. It provides a full Linux kernel and user space — not a container — making it suitable for kernel-level inspection and module development.
+
+</DefinitionBox>
+
+### The Lecture Instance
+
+The lecture VM is a mostly stock Ubuntu LTS instance with a small set of observability tools preinstalled and a demo directory containing the scripts used during both walkthroughs. The full setup — Multipass launch commands, provisioning steps, and every demo file — is collected in the **Addendum** at the bottom of this page. You can use that section alone to reproduce everything shown in this lecture on your own machine.
+
+> **📌 Note:** The lecture focuses on concepts, not environment wrangling. If you want to follow along or recreate the walkthroughs later, jump to the Addendum for the complete setup.
+
+---
+
+## Walkthrough 1: Process to Device
+
+Our first walkthrough traces a process interacting with a device-like resource in Linux. We will read from `/dev/urandom` — a pseudo-device that returns random bytes. It is not real hardware, but it exercises the exact same kernel path: a process opens a device node, calls `read()`, crosses the syscall boundary, enters a driver-like code path, and receives data.
+
+### The Action
+
+```bash
+dd if=/dev/urandom bs=16 count=1 2>/dev/null | xxd
+```
+
+> `dd` copies data between files — here it reads 16 bytes (`bs=16 count=1`) from the input file (`if=`) `/dev/urandom`. The `2>/dev/null` suppresses `dd`'s status output. The pipe `|` sends those bytes to `xxd`, which displays raw data in hexadecimal so we can see what came back.
+
+Simple on the surface. Underneath, the entire U-bend from LN19 plays out.
+
+### What We Can Observe
+
+Let's trace the syscalls that `dd` makes during this operation:
+
+```bash
+strace -e openat,read,write,close dd if=/dev/urandom bs=16 count=1 2>/dev/null
+```
+
+> `strace` intercepts every system call a program makes and prints it to the terminal. The `-e` flag filters to only the syscalls we care about — `openat`, `read`, `write`, and `close`. Everything after the flags is the command being traced.
+
+The output reveals the U-bend in action. The process calls `openat()` to open `/dev/urandom` — that is the left tip of the U, descending through the syscall boundary. The kernel resolves the path through VFS, finds the device node, and locates the driver registered for this major/minor number. Then `read()` enters the driver's code, which generates random bytes and copies them into the process's buffer. The process receives data and calls `write()` to send it to stdout. Finally, `close()` releases the file descriptor.
+
+> **💡 Connection to LN19:** This is exactly the U-bend. The process called `read()`. The kernel dispatched to a driver. The driver produced data. The result ascended back through the syscall boundary to the process. Every step we diagrammed in the abstract is visible here through `strace`.
+
+### Where the Abstractions Appear
+
+| Course Abstraction | Where It Appears in This Walkthrough |
+| :--- | :--- |
+| Syscall boundary (LN19) | `openat()` and `read()` cross from user space into kernel space |
+| VFS and device dispatch (LN18) | The kernel resolves `/dev/urandom` through VFS to the correct driver |
+| Major/minor numbers (LN18) | The device node encodes which driver handles this device |
+| Driver code (LN19) | The random number generator runs in kernel context |
+| File descriptor (LN18) | `dd` holds an `fd` that represents the open device |
+| Blocking / synchronous appearance (LN18) | `read()` returns when the data is ready — the process experiences a simple sequential call |
+
+### Inspecting the Device Node
+
+```bash
+ls -la /dev/urandom
+```
+
+> `ls -la` lists a file with full details: permissions, owner, group, and — for device nodes — the major and minor numbers instead of a file size.
+
+The output shows that `/dev/urandom` is a character device with specific major and minor numbers. Those numbers are the dispatch key the kernel uses to find the right driver — the same major/minor system we studied in LN18.
+
+```bash
+cat /proc/devices | head -20
+```
+
+> `cat` prints a file's contents. `/proc/devices` is a virtual file the kernel generates listing all registered device drivers and their major numbers. `head -20` shows only the first 20 lines to keep the output manageable.
+
+This reveals the mapping between major numbers and driver names. The random driver is registered here, and `/dev/urandom` points to it.
+
+> **📌 Key Point:** Nothing in this walkthrough is new theory. Every step maps directly onto concepts from earlier lectures. Linux is where those concepts stop being diagrams and start being commands.
+
+{/* DEVICE WALKTHROUGH STEPPER: A Linux-specific version of the LN19 U-bend.
+    Left tip: dd calls read() on /dev/urandom.
+    Left descent: syscall crosses into kernel space.
+    VFS dispatch: kernel resolves path, finds device node, locates driver.
+    Driver code: random number generator produces bytes.
+    Right ascent: data copied to user buffer, read() returns.
+    Right tip: dd writes the bytes to stdout.
+    Each step links to the strace output and the corresponding course concept.
+    The visual should feel like the LN19 U-bend but grounded in real Linux paths. */}
+
+---
+
+## Walkthrough 2: Process to Network
+
+Our second walkthrough traces a process communicating over the network. We will use a simple client/server exchange over TCP on the loopback interface — one process listens, another connects and sends a message.
+
+### The Action
+
+In one terminal (the server):
+
+```bash
+nc -l 4000
+```
+
+> `nc` (netcat) is a simple networking utility. The `-l` flag tells it to **listen** for incoming connections. `4000` is the port number. This turns `nc` into a minimal TCP server that waits for a client and prints whatever it receives.
+
+In another terminal (the client):
+
+```bash
+echo "GET_TEMP" | nc 127.0.0.1 4000
+```
+
+> `echo` prints the string `"GET_TEMP"`. The pipe sends it to `nc`, which connects to `127.0.0.1` (the loopback address — this same machine) on port `4000` and transmits the data over TCP.
+
+The server receives the message and prints it. This is our temperature-service example from LN22, stripped down to the simplest possible form.
+
+### What We Can Observe
+
+Tracing the server side with `strace`:
+
+```bash
+strace -e socket,bind,listen,accept,read,write,close nc -l 4000
+```
+
+> Same `strace` as before, but now filtering for socket-related syscalls: `socket`, `bind`, `listen`, `accept`, `read`, `write`, and `close`. The command being traced is the `nc` server.
+
+The output reveals the socket lifecycle we studied in LN22. The process calls `socket()` to create an endpoint. It calls `bind()` to attach to port `4000`. It calls `listen()` to mark the socket as accepting connections. Then it blocks on `accept()` — sleeping until a client arrives. When the client connects, `accept()` returns with a new file descriptor for the connected conversation (the well-known port discovery pattern). The server then calls `read()` on that new descriptor and receives the client's message.
+
+On the client side:
+
+```bash
+strace -e socket,connect,write,close sh -c 'echo "GET_TEMP" | nc 127.0.0.1 4000'
+```
+
+> The `sh -c '...'` wraps the piped command so `strace` can trace the entire pipeline. We filter for the client-side syscalls: `socket`, `connect`, `write`, and `close`.
+
+The client calls `socket()`, then `connect()` to initiate the TCP handshake with the server. Once connected, `write()` sends the data. The kernel handles the rest — packetization, transport headers, loopback delivery.
+
+> **💡 Connection to LN22:** Every socket operation we defined — `socket()`, `bind()`, `listen()`, `accept()`, `connect()`, `read()`, `write()`, `close()` — appears directly in the `strace` output. The abstraction is not a simplification for the lecture; it is the actual API the program uses.
+
+### Inspecting the Network State
+
+While the server is listening (before the client connects), we can inspect the socket:
+
+```bash
+ss -tlnp
+```
+
+> `ss` is Linux's socket statistics tool (successor to `netstat`). The flags: `-t` for TCP sockets, `-l` for listening sockets only, `-n` for numeric output (don't resolve hostnames), `-p` to show the process that owns each socket.
+
+This shows the listening socket on port `4000`, the process that owns it, and its state. After the client connects, running `ss` again reveals the established connection with its full 4-tuple — the same multiplexing story from LN22, made visible.
+
+```bash
+ip addr show lo
+```
+
+> `ip` is Linux's network configuration tool. `addr show` lists IP addresses assigned to interfaces. `lo` specifies the loopback interface, which is the virtual network interface a machine uses to talk to itself.
+
+This reveals the loopback interface — the "network" our packets are traveling over. Even on localhost, the full network stack runs: the kernel still builds packets, applies transport headers, and delivers through the protocol layers. The loopback interface simply short-circuits the NIC — the same IPC mirror insight from LN21.
+
+### Where the Abstractions Appear
+
+| Course Abstraction | Where It Appears in This Walkthrough |
+| :--- | :--- |
+| Socket as handle (LN22) | `socket()` returns a file descriptor for the endpoint |
+| Ports and multiplexing (LN22) | `bind()` to port `4000`, `ss` shows the 4-tuple |
+| Well-known port / `accept()` (LN22) | Server listens on a known port; each client gets its own connected socket |
+| TCP handshake (LN22) | `connect()` triggers the three-way handshake before data flows |
+| Transport layer (LN22) | The kernel adds TCP headers, manages sequencing and acknowledgments |
+| Packet path (LN21) | Even over loopback, the kernel builds and processes packets through the stack |
+| IPC mirror (LN21) | Loopback communication uses the full network API but skips the physical wire |
+| Blocking I/O (LN22) | `accept()` blocks until a client arrives — the server sleeps and wakes on an event |
+
+{/* NETWORK WALKTHROUGH STEPPER: A Linux-specific version of the LN21/LN22 path.
+    Server side: socket() → bind() → listen() → accept() [blocks] → read() → data arrives.
+    Client side: socket() → connect() [handshake] → write() → data sent.
+    Below the application layer: transport headers added, packet path through loopback.
+    Each step links to strace output, ss output, and the corresponding course concept.
+    The visual should make the socket lifecycle feel tangible rather than theoretical. */}
+
+---
+
+## Linux's Windows Into Itself
+
+Both walkthroughs used specific Linux surfaces to inspect what the kernel is doing. Those surfaces are not random files — they are structured interfaces the kernel exposes so that user-space programs can observe and interact with kernel state.
+
+### `/proc` — Process and Kernel Status
+
+<DefinitionBox term="procfs (/proc)">
+
+**/proc** is a virtual filesystem that exposes per-process information and kernel status as readable files. Nothing in `/proc` lives on disk — the kernel generates the contents on demand when a process reads the file.
+
+</DefinitionBox>
+
+Every running process has a directory in `/proc` named by its PID. Inside that directory, files like `status`, `maps`, `fd/`, and `cmdline` reveal the process's state, memory layout, open file descriptors, and command-line arguments.
+
+```bash
+ls /proc/self/fd
+cat /proc/self/status
+```
+
+> `/proc/self` is a magic symlink that always points to the `/proc` directory of whichever process reads it. `fd/` is a subdirectory containing a numbered entry for each open file descriptor. `status` is a virtual file the kernel fills with the process's name, PID, state, memory usage, and more.
+
+The first command shows the file descriptors currently open in this shell — including `0` (stdin), `1` (stdout), and `2` (stderr). The second shows the process's name, PID, state, memory usage, and more.
+
+> **💡 Connection to LN9:** We introduced processes as the OS's unit of isolation and management. `/proc` is where Linux lets you peek inside that management layer without needing kernel source code.
+
+### `/sys` — Structured Subsystem Information
+
+<DefinitionBox term="sysfs (/sys)">
+
+**/sys** is a virtual filesystem that exposes structured information about the kernel's view of devices, drivers, buses, and other subsystems. It is organized hierarchically by subsystem rather than by process.
+
+</DefinitionBox>
+
+Where `/proc` is organized around processes, `/sys` is organized around the kernel's device and subsystem model. You can find information about block devices, network interfaces, PCI devices, and more.
+
+```bash
+ls /sys/class/net/
+cat /sys/class/net/lo/mtu
+```
+
+> `/sys/class/net/` groups all network interfaces by class. Each subdirectory is an interface (e.g., `lo`, `eth0`). The `mtu` file inside each contains a single number — the Maximum Transmission Unit in bytes — that you can read like a regular file.
+
+The first command lists the network interfaces the kernel knows about. The second reads the MTU (Maximum Transmission Unit) of the loopback interface — a direct view into the link-layer configuration we discussed in LN21.
+
+### `/dev` — Device Endpoints
+
+We already used `/dev/urandom` in the first walkthrough. The `/dev` directory contains device nodes — special files that represent endpoints for device communication. Each node encodes a major and minor number that the kernel uses to dispatch operations to the correct driver.
+
+```bash
+ls -la /dev/urandom /dev/null /dev/zero
+```
+
+> Lists three common device nodes side by side. `/dev/null` discards everything written to it. `/dev/zero` produces an infinite stream of zero bytes. `/dev/urandom` produces random bytes. All three are character devices with distinct major/minor numbers routing to different drivers.
+
+These are all character devices managed by different drivers, accessible through the same `open()`/`read()`/`write()` interface.
+
+### Three Windows, Three Perspectives
+
+| Surface | Organized By | What It Reveals | Example |
+| :--- | :--- | :--- | :--- |
+| `/proc` | Process (PID) | Per-process state, kernel-wide counters | `/proc/self/status`, `/proc/meminfo` |
+| `/sys` | Subsystem / device hierarchy | Device attributes, driver bindings, bus topology | `/sys/class/net/lo/mtu` |
+| `/dev` | Device node (major/minor) | Communication endpoints for device I/O | `/dev/urandom`, `/dev/null` |
+
+> **📌 Key Point:** These are not just directories with random files. They are the kernel's way of making its internal abstractions visible without requiring user-space programs to read kernel source or parse binary structures. Every file you read in `/proc`, `/sys`, or `/dev` is the kernel generating an answer to your question on demand.
+
+---
+
+## Extending the Kernel Without Rebooting — Kernel Modules
+
+Everything we have traced so far — the driver behind `/dev/urandom`, the network stack handling our TCP exchange, even the virtual filesystems `/proc` and `/sys` — lives inside the running kernel. But Linux does not force all of this code to be compiled in at build time. Much of it is loaded on demand as **kernel modules**.
+
+<DefinitionBox term="Kernel Module">
+
+A **kernel module** is a compiled object file that can be loaded into a running Linux kernel to add functionality — typically a device driver, filesystem, or protocol — without rebooting. Modules run with full kernel privilege and have the same access to hardware and kernel data structures as built-in code.
+
+</DefinitionBox>
+
+This is a direct consequence of the design we studied in LN19. The kernel provides a stable internal interface (the `file_operations` struct, registration functions, and the VFS dispatch layer). A module plugs into that interface. When you load a module, the kernel links it into its address space and calls its initialization function. When you unload it, the kernel calls its cleanup function and removes it. The machine never stops running.
+
+### Why Modules Matter
+
+Modules solve a practical problem: the Linux kernel supports thousands of devices, filesystems, and protocols, but no single machine needs all of them. Rather than shipping a monolithic kernel binary containing everything, Linux ships a small core kernel with a large collection of modules. The system loads only the modules it actually needs — when a USB device is plugged in, when a filesystem is mounted, when a network protocol is requested.
+
+This has a deeper implication for us. The entire "code is lava" discussion from LN19 — privilege, reentrancy, the danger of bugs in kernel space — applies to every module. A buggy module can crash the entire system, corrupt data, or open security holes. There is no sandbox separating module code from the rest of the kernel. This is exactly why safe kernel-space programming matters and why Rust's entry into the Linux kernel (which we will see in the next lecture) is significant.
+
+### Observing Modules
+
+```bash
+lsmod | head -20
+```
+
+> `lsmod` lists all currently loaded kernel modules. Each line shows the module name, its size in memory, and how many other modules depend on it. `head -20` limits the output to the first 20 entries.
+
+The output shows the modules currently loaded on this machine. You will likely see entries for filesystem drivers, network protocols, and device drivers. Each one is a piece of kernel code that was loaded after the kernel itself started.
+
+```bash
+modinfo e1000
+```
+
+> `modinfo` prints detailed information about a specific kernel module — its description, author, license, parameters it accepts, and which devices it supports. `e1000` is Intel's Gigabit Ethernet driver, one of the most common network drivers.
+
+This shows the metadata for a specific module. Notice the `license` field — Linux requires modules to declare their license, and the kernel logs a "taint" warning when a non-GPL module is loaded. This is the community's way of flagging when kernel-space code cannot be inspected or audited.
+
+```bash
+ls /lib/modules/$(uname -r)/kernel/drivers/net/ | head -20
+```
+
+> `uname -r` prints the running kernel version. `/lib/modules/<version>/kernel/drivers/net/` is where compiled network driver modules are stored on disk as `.ko` (kernel object) files. This command lists the network drivers available for loading.
+
+The modules directory on disk mirrors the kernel's subsystem structure. There are subdirectories for `drivers/`, `fs/`, `net/`, `crypto/`, and more — each containing the `.ko` files that can be loaded on demand.
+
+### The Module Lifecycle
+
+| Operation | Command | What Happens |
+| :--- | :--- | :--- |
+| List loaded modules | `lsmod` | Shows all modules currently in kernel memory |
+| Inspect a module | `modinfo <name>` | Shows metadata, parameters, and dependencies |
+| Load a module | `sudo modprobe <name>` | Loads the module and any dependencies it requires |
+| Unload a module | `sudo modprobe -r <name>` | Removes the module from kernel memory (if nothing depends on it) |
+
+> **💡 Connection to LN19:** A kernel module is the tangible artifact behind the "driver" abstraction we studied. When we said the kernel "dispatches to a driver," this is how the driver got there — it was loaded as a module that registered itself with the kernel's dispatch infrastructure. The U-bend does not just cross into kernel space; it crosses into specific module code that may not have even been present when the machine booted.
+
+> **🤔 Looking Ahead:** In the next lecture, we will write a kernel module ourselves — in Rust. The module system is what makes this possible: we can compile our code, load it into a running kernel, test it, and unload it, all without rebooting. Understanding how modules fit into the kernel's architecture is the bridge between observing Linux and contributing to it.
+
+---
+
+## Observing the Real System
+
+Both walkthroughs relied on a small set of Linux tools. These tools are not trivia to memorize — they are the standard vocabulary for inspecting a running Linux system. Each one gives visibility into a different layer of the abstractions we have studied.
+
+### The Core Toolkit
+
+| Tool | What It Reveals | Course Connection |
+| :--- | :--- | :--- |
+| `ps` | Running processes, their states, PIDs, resource usage | Process management (LN9) |
+| `strace` | Syscalls a process makes in real time | Syscall boundary, U-bend entry/exit (LN19) |
+| `dmesg` | Kernel log messages, including driver and hardware events | Driver events, kernel-space activity (LN19) |
+| `ip` | Network interface configuration, addresses, routing | Network layer, addressing (LN21) |
+| `ss` | Socket state — listening, established, 4-tuples, ports | Transport, sockets, multiplexing (LN22) |
+
+### Putting Them Together
+
+The power of these tools is not in any single command. It is in combining them to build a picture of what the system is doing across layers.
+
+To see a process, trace its syscalls, inspect its sockets, and check the kernel log:
+
+```bash
+ps aux | grep nc
+strace -p <pid> -e read,write
+ss -tnp | grep 4000
+dmesg | tail
+```
+
+> `ps aux` lists all running processes with details (user, PID, CPU/memory usage, command). Piping through `grep nc` filters for lines containing "nc." `strace -p <pid>` attaches to an already-running process by its PID rather than launching a new one. `ss -tnp` shows TCP sockets (`-t`) with numeric output (`-n`) and owning process (`-p`). `dmesg` prints the kernel's ring buffer — its internal log — and `tail` shows the most recent entries.
+
+Each tool reveals a different slice of the same underlying action. `ps` shows the process exists and is running. `strace` shows what kernel services the process is requesting. `ss` shows the transport-layer state of its sockets. `dmesg` shows what the kernel itself has to say about recent events. Together, they turn the abstract U-bend into observable evidence.
+
+<DefinitionBox term="Syscall Tracing">
+
+**Syscall tracing** (via `strace` on Linux) is the practice of intercepting and recording every system call a process makes. It reveals the exact sequence of kernel services a program requests, making the user-space/kernel-space boundary directly observable.
+
+</DefinitionBox>
+
+> **📌 Key Point:** Understanding the OS includes knowing how to *inspect* it, not just how to theorize about it. These tools are how working systems engineers verify what the kernel is actually doing rather than guessing.
+
+---
+
+## What You Should Now Recognize
+
+After this course, you should be able to look at a Linux system and recognize the following:
+
+| What You See in Linux | What You Learned in This Course |
+| :--- | :--- |
+| A process in `ps` output | The OS's unit of protection and scheduling (LN9) |
+| A syscall in `strace` | The controlled crossing from user space to kernel space (LN19) |
+| A device node in `/dev` | A handle dispatched through VFS to a driver (LN18, LN19) |
+| A pipe connecting two commands | IPC through a kernel-managed buffer (LN20) |
+| A socket visible in `ss` | A transport endpoint backed by the full network stack (LN22) |
+| A listening port | Discovery through well-known ports, multiplexing through 4-tuples (LN22) |
+| An entry in `/proc` | The kernel exposing process state through a virtual filesystem (LN9) |
+| An MTU value in `/sys` | Link-layer configuration for the network interface (LN21) |
+| A kernel message in `dmesg` | Driver or subsystem activity in kernel space (LN19) |
+| A blocked process | A process sleeping until an event — the same waiting we saw in I/O and scheduling (LN18, LN10) |
+
+This is the payoff. None of these are new Linux facts to memorize. They are course concepts made visible in a real system.
+
+> **🤔 The Recognition Test:** If you can watch `strace` output and narrate what the kernel is doing at each syscall — which abstraction is being invoked, which boundary is being crossed, which subsystem is handling the request — then you understand what this course taught. Linux is just the place where you prove it.
+
+---
+
+## Looking Forward
+
+This lecture traced familiar abstractions inside a living operating system. Processes, syscalls, drivers, sockets, transport, buffering, and waiting behavior all appeared exactly where the course predicted they would. The abstractions are not simplified teaching models — they are the actual design of the system.
+
+That raises one final question. If Linux is built from all of these cooperating abstractions, and if the code that implements them runs with maximum privilege in kernel space — the same "code is lava" environment we studied in LN19 — then how do real engineers safely contribute to functionality at this level?
+
+The answer involves the language this course has been teaching all semester. The next lecture explores how Rust is changing the safety story for kernel and driver development, and what it looks like to participate in a system like Linux rather than just observe it.
+
+---
+
+## Summary
+
+- Linux is not a separate topic — it is where the semester's abstractions become concrete
+- The lecture traces two end-to-end walkthroughs rather than surveying subsystems
+- **Walkthrough 1 (device):** reading from `/dev/urandom` reveals the full U-bend — syscall, VFS dispatch, driver code, data return
+- **Walkthrough 2 (network):** a TCP client/server exchange reveals sockets, ports, the transport layer, and the packet path — all observable through `strace` and `ss`
+- **/proc**, **/sys**, and **/dev** are three structured windows the kernel provides into its own state, each organized differently
+- **Kernel modules** allow Linux to extend its functionality at runtime without rebooting — drivers, filesystems, and protocols are loaded on demand, running with full kernel privilege
+- **`ps`**, **`strace`**, **`dmesg`**, **`ip`**, and **`ss`** form a core toolkit for observing Linux from user space
+- Every observable behavior in the walkthroughs maps directly onto a concept from earlier in the course
+- The next lecture moves from recognition to participation: safely contributing to Linux through Rust
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Multipass** | A tool for launching lightweight Ubuntu VMs from the command line, providing a full Linux kernel for inspection |
+| **procfs (`/proc`)** | A virtual filesystem exposing per-process information and kernel status as readable files |
+| **sysfs (`/sys`)** | A virtual filesystem exposing structured subsystem, device, and driver information |
+| **Kernel Module** | A compiled object file that can be loaded into a running kernel to add drivers, filesystems, or protocols without rebooting |
+| **VFS** | The kernel's abstraction layer providing a uniform file-like interface regardless of what sits behind each path |
+| **Syscall Tracing** | Intercepting and recording every system call a process makes to observe the user/kernel boundary |
+
+**Linux Observation Toolkit:**
+
+| Tool | Layer It Reveals | What to Look For |
+| :--- | :--- | :--- |
+| `ps` | Process management | Process state, PID, resource usage |
+| `strace` | Syscall boundary | Which kernel services the process requests |
+| `dmesg` | Kernel-space events | Driver messages, hardware events, kernel warnings |
+| `ip` | Network interfaces | Addresses, MTU, routing configuration |
+| `ss` | Transport / sockets | Listening ports, established connections, 4-tuples |
+| `lsmod` | Kernel modules | Currently loaded modules and their dependencies |
+| `modinfo` | Module metadata | Description, license, parameters, supported devices |
+
+**Three Virtual Filesystem Surfaces:**
+
+| Surface | Organized By | Reveals |
+| :--- | :--- | :--- |
+| `/proc` | Process (PID) | Per-process state, kernel counters |
+| `/sys` | Subsystem hierarchy | Device attributes, driver bindings |
+| `/dev` | Device node (major/minor) | Device I/O endpoints |
+
+**Walkthrough 1 Abstraction Map (Device):**
+
+| Step | Linux Artifact | Course Concept |
+| :--- | :--- | :--- |
+| Open device | `openat("/dev/urandom")` | Syscall boundary, VFS dispatch (LN18/19) |
+| Kernel dispatch | Major/minor number lookup | Driver registration (LN18) |
+| Driver code runs | Random number generator | Driver in kernel context (LN19) |
+| Data returned | `read()` returns bytes | U-bend completion (LN19) |
+
+**Walkthrough 2 Abstraction Map (Network):**
+
+| Step | Linux Artifact | Course Concept |
+| :--- | :--- | :--- |
+| Create endpoint | `socket()` returns fd | Socket as handle (LN22) |
+| Bind to port | `bind()` on port 4000 | Port-based naming (LN22) |
+| Wait for client | `accept()` blocks | Blocking I/O, cooperative yielding (LN22) |
+| Client connects | `connect()` triggers handshake | TCP connection setup (LN22) |
+| Data flows | `read()`/`write()` on connected fd | Transport-mediated byte stream (LN22) |
+| Inspect state | `ss -tnp` shows 4-tuple | Multiplexing and demultiplexing (LN22) |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP — The Linux Kernel](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Chapters on processes, memory, and persistence as they manifest in Linux
+- [Linux Kernel Documentation](https://www.kernel.org/doc/html/latest/) — The upstream kernel documentation for subsystem details beyond this course
+- [The Linux Programming Interface (Kerrisk)](https://man7.org/tlpi/) — The definitive reference for Linux system calls and their behavior
+
+### Linux Observability
+
+- [strace(1) manual page](https://man7.org/linux/man-pages/man1/strace.1.html) — Full reference for syscall tracing
+- [ss(8) manual page](https://man7.org/linux/man-pages/man8/ss.8.html) — Socket statistics and transport-layer inspection
+- [proc(5) manual page](https://man7.org/linux/man-pages/man5/proc.5.html) — The `/proc` filesystem in detail
+- [sysfs documentation](https://www.kernel.org/doc/html/latest/filesystems/sysfs.html) — How `/sys` is organized
+
+### Environment Setup
+
+- [Multipass](https://multipass.run/) — The VM tool used for the lecture environment
+- [Ubuntu LTS](https://ubuntu.com/download/server) — The base image Multipass uses
+
+### Rust Systems Programming
+
+- [Rust for Linux](https://rust-for-linux.com/) — The project bringing Rust into the Linux kernel
+- [Linux kernel Rust documentation](https://www.kernel.org/doc/html/latest/rust/index.html) — Upstream docs on Rust support in Linux
+
+</LectureResources>
+
+---
+
+## Addendum — Lecture VM Setup and Demo Files
+
+This section contains everything you need to reproduce the lecture walkthroughs on your own machine. You can follow these steps after class, or set up ahead of time and follow along live.
+
+### Step 1: Install Multipass
+
+Download and install Multipass from [multipass.run](https://multipass.run/). It works on macOS (Intel and Apple Silicon), Windows, and Linux. Once installed, the `multipass` command should be available in your terminal.
+
+### Step 2: Launch the VM
+
+```bash
+multipass launch --name ln23 lts
+```
+
+> This creates a new virtual machine named `ln23` running the latest Ubuntu LTS release. The download happens once; subsequent launches reuse the cached image.
+
+### Step 3: Enter the VM
+
+```bash
+multipass shell ln23
+```
+
+> Opens a shell session inside the `ln23` VM. Everything from here on runs inside the VM, not on your host machine.
+
+### Step 4: Install Tools
+
+```bash
+sudo apt update && sudo apt install -y strace iproute2 procps curl netcat-openbsd tree build-essential kmod
+```
+
+> Installs the observability tools used throughout the lecture. `strace` for syscall tracing, `iproute2` for `ip` and `ss`, `procps` for `ps`, `netcat-openbsd` for `nc`, `tree` for directory visualization, `build-essential` for compilation tools, and `kmod` for `lsmod`/`modinfo`/`modprobe`.
+
+### Step 5: Create the Demo Directory
+
+Run the following commands inside the VM to create the demo directory with all files used during the lecture:
+
+```bash
+mkdir -p ~/ln23-demo && cd ~/ln23-demo
+```
+
+#### `device-read.sh` — Walkthrough 1 Device Read
+
+```bash
+cat > ~/ln23-demo/device-read.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== Reading 16 bytes from /dev/urandom ==="
+dd if=/dev/urandom bs=16 count=1 2>/dev/null | xxd
+
+echo ""
+echo "=== Device node details ==="
+ls -la /dev/urandom
+
+echo ""
+echo "=== Major/minor number mapping (first 20 lines) ==="
+cat /proc/devices | head -20
+SCRIPT
+chmod +x ~/ln23-demo/device-read.sh
+```
+
+#### `device-trace.sh` — Walkthrough 1 Syscall Trace
+
+```bash
+cat > ~/ln23-demo/device-trace.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== Tracing syscalls for dd reading /dev/urandom ==="
+strace -e openat,read,write,close dd if=/dev/urandom bs=16 count=1 2>&1 | head -30
+SCRIPT
+chmod +x ~/ln23-demo/device-trace.sh
+```
+
+#### `server.sh` — Walkthrough 2 TCP Server
+
+```bash
+cat > ~/ln23-demo/server.sh << 'SCRIPT'
+#!/bin/bash
+echo "Starting server on port 4000..."
+echo "Run 'client.sh' in another terminal to send a message."
+nc -l 4000
+SCRIPT
+chmod +x ~/ln23-demo/server.sh
+```
+
+#### `client.sh` — Walkthrough 2 TCP Client
+
+```bash
+cat > ~/ln23-demo/client.sh << 'SCRIPT'
+#!/bin/bash
+echo "Sending GET_TEMP to 127.0.0.1:4000..."
+echo "GET_TEMP" | nc 127.0.0.1 4000
+echo "Message sent."
+SCRIPT
+chmod +x ~/ln23-demo/client.sh
+```
+
+#### `server-trace.sh` — Walkthrough 2 Server with Syscall Tracing
+
+```bash
+cat > ~/ln23-demo/server-trace.sh << 'SCRIPT'
+#!/bin/bash
+echo "Starting traced server on port 4000..."
+echo "Run 'client.sh' in another terminal to send a message."
+strace -e socket,bind,listen,accept,read,write,close nc -l 4000
+SCRIPT
+chmod +x ~/ln23-demo/server-trace.sh
+```
+
+#### `inspect-proc.sh` — Exploring /proc
+
+```bash
+cat > ~/ln23-demo/inspect-proc.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== Open file descriptors for this shell ==="
+ls /proc/self/fd
+
+echo ""
+echo "=== Process status ==="
+cat /proc/self/status | head -15
+
+echo ""
+echo "=== System memory info ==="
+cat /proc/meminfo | head -10
+SCRIPT
+chmod +x ~/ln23-demo/inspect-proc.sh
+```
+
+#### `inspect-sys.sh` — Exploring /sys
+
+```bash
+cat > ~/ln23-demo/inspect-sys.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== Network interfaces ==="
+ls /sys/class/net/
+
+echo ""
+echo "=== Loopback MTU ==="
+cat /sys/class/net/lo/mtu
+
+echo ""
+echo "=== Block devices ==="
+ls /sys/class/block/
+SCRIPT
+chmod +x ~/ln23-demo/inspect-sys.sh
+```
+
+#### `inspect-dev.sh` — Exploring /dev
+
+```bash
+cat > ~/ln23-demo/inspect-dev.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== Common device nodes ==="
+ls -la /dev/urandom /dev/null /dev/zero
+
+echo ""
+echo "=== Device tree (first 20 entries) ==="
+ls /dev | head -20
+SCRIPT
+chmod +x ~/ln23-demo/inspect-dev.sh
+```
+
+#### `inspect-modules.sh` — Exploring Kernel Modules
+
+```bash
+cat > ~/ln23-demo/inspect-modules.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== Loaded kernel modules (first 20) ==="
+lsmod | head -20
+
+echo ""
+echo "=== Available network driver modules (first 20) ==="
+ls /lib/modules/$(uname -r)/kernel/drivers/net/ | head -20
+SCRIPT
+chmod +x ~/ln23-demo/inspect-modules.sh
+```
+
+#### `inspect-net.sh` — Network State Inspection
+
+```bash
+cat > ~/ln23-demo/inspect-net.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== Loopback interface ==="
+ip addr show lo
+
+echo ""
+echo "=== Listening TCP sockets ==="
+ss -tlnp
+
+echo ""
+echo "=== All established TCP connections ==="
+ss -tnp
+SCRIPT
+chmod +x ~/ln23-demo/inspect-net.sh
+```
+
+### Verifying the Setup
+
+Once all scripts are created, verify the demo directory:
+
+```bash
+tree ~/ln23-demo/
+```
+
+You should see:
+
+```
+ln23-demo/
+├── client.sh
+├── device-read.sh
+├── device-trace.sh
+├── inspect-dev.sh
+├── inspect-modules.sh
+├── inspect-net.sh
+├── inspect-proc.sh
+├── inspect-sys.sh
+├── server-trace.sh
+└── server.sh
+```
+
+Each script is self-contained and prints labeled output, so you can run them in any order. For the network walkthrough, open two terminal sessions into the VM (`multipass shell ln23` in two host terminals) — run the server script in one and the client script in the other.
+
+### Cleanup
+
+When you are done, you can stop or delete the VM:
+
+```bash
+multipass stop ln23
+multipass delete ln23 && multipass purge
+```
+
+> `stop` halts the VM but preserves its disk. `delete` marks it for removal, and `purge` actually frees the disk space.

@@ -1,0 +1,638 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap — Communication Under One Roof
+
+Last lecture we explored the design space of inter-process communication:
+
+- **Isolation creates the need** — Processes cannot simply reach into one another's memory; the kernel must provide sanctioned channels
+- **Different mechanisms, different tradeoffs** — Pipes, FIFOs, signals, message queues, shared memory, and Unix domain sockets each occupy a niche defined by data movement, structure, direction, naming, and coordination burden
+- **The kernel is not a process** — It is privileged code that executes using borrowed process context, mediating every channel
+- **Sockets dissolve boundaries** — Unix domain sockets use the same API as network sockets, turning the difference between local and remote communication into a deployment detail rather than an architectural one
+- **Three luxuries** — All IPC enjoyed a shared kernel, optional shared memory, and a shared scheduler
+
+That left us with a clear next question: what happens when those three luxuries disappear? What changes when the other endpoint lives on a different machine — with its own kernel, its own memory, and its own scheduler?
+
+Today we follow a message out of the machine and see what the operating system must do differently when communication can no longer rely on shared local state.
+
+---
+
+## Today's Agenda
+
+1. **When Communication Leaves the Machine** — The three luxuries IPC enjoyed and why they vanish
+2. **The NIC Is Still Just I/O** — Keeping networking anchored in the driver, DMA, and interrupt story
+3. **Why Packets Exist** — Discrete transfer units with enough metadata to survive unshared, unreliable links
+4. **Addresses and Hops** — Local-link delivery versus routed delivery across multiple machines
+5. **Layering as Division of Labor** — The standard models, and building the packet layer by layer
+6. **The Send Path** — From application intent to wire transmission
+7. **The Full Journey** — End-to-end animation across machines and routers
+8. **The Receive Path** — From wire to application delivery
+9. **The IPC Mirror** — What the kernel collapses when communication stays local
+10. **Looking Forward** — Packets move, but the OS still owes applications usable transport abstractions
+
+---
+
+## When Communication Leaves the Machine
+
+In LN20, IPC worked because both endpoints shared everything that matters. One kernel saw both processes. One scheduler knew when each was ready, blocked, or running. Shared memory was physically possible because both processes mapped the same RAM. The kernel could enforce ordering, manage buffers, and guarantee delivery — because it was the sole authority over both sides of the conversation.
+
+Networking begins where those luxuries end.
+
+### What Is Lost
+
+| IPC Luxury | What Happened Locally | What Happens Remotely |
+| :--- | :--- | :--- |
+| **Shared kernel** | One OS mediates both endpoints, enforcing rules and managing buffers | Each machine has its own OS; no entity sees both sides |
+| **Shared memory** | Processes can map the same physical region for zero-copy transfer | Physically impossible — the machines have separate RAM |
+| **Shared scheduler** | The kernel knows when both endpoints are ready | Neither scheduler knows about the other machine's processes |
+
+{/* LOST-LUXURIES VISUAL: Two-panel comparison.
+    Left panel: Local IPC — two processes connected through a single kernel block in the middle.
+    The kernel wraps both endpoints in one large boundary. Everything is visible to one entity.
+    Right panel: Remote communication — two processes on separate machines, each with its own
+    kernel block. Between the machines: an untrusted link (dashed, uncertain).
+    No shared memory, no shared view. The gap between the machines should feel exposed. */}
+
+With no single authority, new problems appear:
+
+- **No guaranteed delivery** — data can be lost on the wire, corrupted in transit, or arrive out of order
+- **No shared clock** — the sender and receiver cannot agree on timing without explicit coordination
+- **No shared naming** — file paths and PIDs are meaningless across machines; a new naming system is needed
+- **No instant notification** — the receiver cannot be woken by the sender's kernel; the notification must travel physically
+
+> **🤔 The Fundamental Shift:** IPC is communication under centralized control. Networking is communication under **no** centralized control. Every mechanism we build from here forward exists to compensate for what was lost when the conversation left the machine.
+
+### But the Pattern Is the Same
+
+Despite everything that changes, the U-bend pattern from LN19 still holds. A process makes a request. The kernel mediates. Data crosses a boundary. The result comes back. What is different is the **width** of the bend — it now stretches across a wire, through hardware on both sides, and across two separate kernels.
+
+> **💡 Connection to LN19:** The fractal U-bend observation applies directly. The network is a U-bend nested inside the application's U-bend: the local kernel descends into its NIC driver, the data crosses the wire, and the remote kernel ascends from its NIC driver to deliver the data. Each side runs its own half of the horseshoe.
+
+---
+
+## The NIC Is Still Just I/O
+
+Before networking starts to feel like a separate discipline, let's anchor it back where it belongs: the I/O story.
+
+A Network Interface Card (NIC) is a device. It has a controller, it connects to the host through a bus (typically PCIe), it uses DMA to move data, and it raises interrupts when work completes. From the kernel's perspective, it is managed by a driver, just like the temperature sensor in LN19.
+
+<DefinitionBox term="Network Interface Card (NIC)">
+
+A **Network Interface Card (NIC)** is an I/O device specialized for sending and receiving packets over a network link. It connects to the host via a bus, uses DMA to transfer packet data between its own buffers and host memory, and signals the kernel through interrupts when packets arrive or transmissions complete.
+
+</DefinitionBox>
+
+### What Makes the NIC Special
+
+The NIC follows every I/O pattern we have already studied:
+
+| I/O Concept | How It Appears in the NIC |
+| :--- | :--- |
+| Controller / functional hardware | Controller: PCIe interface, MAC engine, descriptor rings. Functional: PHY transceiver, signal encoding |
+| DMA | Packets are DMA'd between NIC buffers and host memory — the CPU does not copy each byte |
+| Interrupts | The NIC raises an interrupt when a packet arrives or a transmission completes |
+| Driver | A kernel module that programs the NIC's descriptor rings, manages buffers, and handles interrupts |
+| Buffering | Ring buffers hold packets waiting for the kernel to process them |
+
+> **💡 Connection to LN17:** The NIC appears in our system interconnect diagram as a PCIe device with a controller interface and a PHY transceiver. It is the same device anatomy — controller plus functional hardware — that every I/O device exhibits.
+
+> **📌 Callback to LN18:** Network devices were the exception to "everything is a file." They do not appear in `/dev/` — they use the socket API instead. Now we can see why: networking does not fit the sequential `open`/`read`/`write`/`close` model because connections are stateful, bidirectional, multiplexed, and addressed to remote endpoints. The socket API exists because the file abstraction broke down here.
+
+### The NIC's Job
+
+The NIC performs a narrow but critical function:
+
+- **On send:** accept a packet from host memory (via DMA), encode it for the physical medium (Ethernet, WiFi), and transmit it onto the link
+- **On receive:** capture a signal from the physical medium, decode it into a packet, DMA it into host memory, and interrupt the kernel
+
+Everything above that — routing, addressing, protocol handling, delivery to the right process — is the kernel's responsibility, not the NIC's. The NIC moves bits onto and off of a wire. The kernel gives those bits meaning.
+
+---
+
+## Why Packets Exist
+
+In IPC, the kernel could move data as a continuous byte stream (pipes) or as discrete messages (queues). Both worked because the kernel managed the buffer and both endpoints were local.
+
+Once data must survive outside the machine, a byte stream is no longer viable. There is no shared buffer to stream through. Data must be packaged into **self-contained units** that can be handled independently by every machine and link along the path.
+
+<DefinitionBox term="Packet">
+
+A **packet** is a discrete unit of data transmitted over a network. It contains a **payload** (the actual data being sent) and one or more **headers** (metadata describing source, destination, protocol, length, error-detection codes, and other information needed to handle the packet independently of any shared state).
+
+</DefinitionBox>
+
+### Why Not Just Stream Bytes?
+
+In local IPC, the kernel provided context that byte streams could rely on:
+
+| What the Kernel Provided Locally | Why Packets Must Carry It Instead |
+| :--- | :--- |
+| The kernel knew who the sender was | The packet header must identify the source |
+| The kernel knew who the receiver was | The packet header must identify the destination |
+| The kernel enforced ordering | The packet header must include sequence information |
+| The kernel detected errors via memory protection | The packet header must include error-detection codes |
+| The kernel guaranteed delivery | The protocol must handle retransmission if needed |
+
+Every header field exists because some piece of information that was **free** in local communication must now be **explicit** in each transfer unit.
+
+> **🤔 Key Framing:** Packets are the tax you pay for leaving the machine. Every header byte compensates for shared state that no longer exists.
+
+{/* PROGRESSIVE PACKET ANATOMY — Stage 0: Raw Payload
+    Show a single rectangular block labeled "Application Data" or "hello".
+    This is what IPC moved — just raw bytes, no metadata needed.
+    The visual should feel bare and simple. No headers, no structure.
+    This is the starting point. Subsequent stages will wrap this payload
+    in progressively more headers as the lecture introduces each layer.
+    Use consistent colors across all stages so students see the payload
+    persist while headers accumulate around it. */}
+
+### Frames vs Packets
+
+<DefinitionBox term="Frame">
+
+A **frame** is the link-layer transfer unit — a packet wrapped in the metadata required for one specific physical link (e.g., Ethernet, WiFi). Frames include link-layer addressing (MAC addresses), error-detection codes (CRC), and framing delimiters.
+
+</DefinitionBox>
+
+The terminology reflects the layered nature of networking:
+
+| Term | Layer | What It Carries | Scope |
+| :--- | :--- | :--- | :--- |
+| **Frame** | Link | Payload + link-layer header (MAC addresses, CRC) | One physical hop |
+| **Packet** | Network | Payload + network-layer header (IP addresses, TTL) | End-to-end across many hops |
+
+A packet is placed inside a frame for each physical hop, and the frame is stripped and rebuilt at every router. The packet survives the entire journey; the frame is local to each link.
+
+> **💡 Key Insight:** Frames are ephemeral — they live and die on each link. Packets are durable — they survive the entire journey from source to destination. The frame is the envelope for one leg of the trip; the packet is the letter inside.
+
+---
+
+## Addresses and Hops
+
+A packet knows where it wants to go. But how does it get there? The answer depends on whether the destination is on the same physical link or across many links.
+
+### Two Kinds of Addresses
+
+<DefinitionBox term="MAC Address">
+
+A **MAC address** (Media Access Control) is a hardware identifier burned into a network interface. It is used for local-link delivery — identifying which device on the current physical link should receive a frame.
+
+</DefinitionBox>
+
+<DefinitionBox term="IP Address">
+
+An **IP address** (Internet Protocol) is a logical identifier assigned to a network interface by software. It is used for end-to-end delivery — identifying the ultimate source and destination across any number of intermediate links and routers.
+
+</DefinitionBox>
+
+| Property | MAC Address | IP Address |
+| :--- | :--- | :--- |
+| **Scope** | One physical link | Global (end-to-end) |
+| **Assigned by** | Hardware manufacturer | Network configuration (DHCP, static) |
+| **Changes with location?** | No — burned into the NIC | Yes — depends on which network you join |
+| **Used by** | Link layer (Ethernet, WiFi) | Network layer (IP) |
+| **Analogous to** | A person's fingerprint | A person's mailing address |
+
+> **📌 Key Point:** MAC addresses answer "who is next on this link?" IP addresses answer "who is the final destination?" Both are needed because most communication crosses multiple links to reach its destination.
+
+### Routing: One Hop at a Time
+
+<DefinitionBox term="Router">
+
+A **router** is a device that connects two or more network links and forwards packets between them. It examines each packet's destination IP address, consults a routing table, and sends the packet toward the next hop on the path to its destination.
+
+</DefinitionBox>
+
+When the destination is on the same local link, the sender can deliver the frame directly using the destination's MAC address. When the destination is on a different network, the packet must be **routed** — forwarded hop by hop through one or more routers until it reaches the destination's local link.
+
+{/* HOP-BY-HOP VISUAL (animated): A source machine, two routers, and a destination machine
+    connected in a chain by physical links (each link segment drawn as a distinct wire).
+    The packet is a colored inner block. The frame is an outer envelope with a different color.
+    
+    Animation sequence:
+    Step 1: Source machine wraps packet in Frame A (src MAC: source NIC, dst MAC: router 1).
+            Show the progressive anatomy: [Eth hdr A | IP hdr | TCP hdr | payload | CRC A].
+            Highlight that IP src/dst stay the same; only Eth hdr is link-local.
+    Step 2: Frame A travels across Link 1 to Router 1.
+    Step 3: Router 1 strips Frame A (outer envelope peels off). Inner packet revealed.
+            Router reads destination IP, consults routing table, determines next hop.
+    Step 4: Router 1 wraps packet in Frame B (src MAC: router 1 outgoing, dst MAC: router 2).
+            Show: [Eth hdr B | IP hdr | TCP hdr | payload | CRC B].
+            CRITICAL: IP header is UNCHANGED. Only the Eth header and CRC differ.
+    Step 5: Frame B travels across Link 2 to Router 2.
+    Step 6: Router 2 strips Frame B, wraps in Frame C (dst MAC: destination NIC).
+    Step 7: Frame C travels across Link 3 to Destination.
+    Step 8: Destination strips Frame C, processes up the stack.
+    
+    Key visual cues:
+    - Packet (inner block) never changes color or content throughout.
+    - Frame (outer envelope) changes color/label at every hop.
+    - Link type labels could differ (e.g., "Ethernet" on Link 1, "WiFi" on Link 2, 
+      "Ethernet" on Link 3) to show that the frame type can change at each hop.
+    - MAC addresses in each frame header should visibly differ.
+    - IP addresses in the packet header should visibly remain constant. */}
+
+At each hop:
+
+1. The router receives a frame on one link
+2. It strips the link-layer frame to reveal the packet inside
+3. It reads the destination IP address from the packet header
+4. It consults its routing table to determine the next hop
+5. It wraps the packet in a new frame addressed to the next hop's MAC address
+6. It sends the new frame onto the outgoing link
+
+The packet survives the entire journey unchanged. The frames are rebuilt at every hop. This is why networking needs two kinds of addresses — one for each link segment, and one for the overall destination.
+
+> **💡 Key Insight:** Routing is postal delivery. The letter inside (the packet) always says the same destination address. The envelope (the frame) gets replaced at every post office along the way, addressed to the next office in the chain. No single post office needs to know the full route — it only needs to know the next hop.
+
+---
+
+## Layering as Division of Labor
+
+By now we have seen several distinct concerns in network communication:
+
+- moving bits across a physical link
+- addressing and forwarding packets across multiple links
+- ensuring reliability, ordering, and flow control for applications
+
+Trying to solve all of these in one mechanism would produce an unmanageable tangle. Networking therefore splits the work into **layers**, each responsible for one concern.
+
+This division is not an invention of this course. It is an industry-standard framework with two common models:
+
+### The Standard Models
+
+| TCP/IP Layer | OSI Equivalent | What We Call It | Job |
+| :--- | :--- | :--- | :--- |
+| Application | Application + Presentation + Session | (covered in LN22 and beyond) | Application-specific protocols |
+| Transport | Transport | **Transport** | Ports, reliability, ordering, flow control |
+| Internet | Network | **Network** | IP addressing, routing across many links |
+| Link | Data Link | **Link** | Frames, MAC addresses, one-hop delivery |
+| (Physical) | Physical | (folded into Link) | Electrical signals, encoding — handled by the NIC |
+
+The **OSI model** uses 7 layers; the **TCP/IP model** compresses them to 5 (or sometimes 4). For an OS course, the TCP/IP model is more practical because it matches how real network stacks are implemented. The OSI model's upper three layers (Application, Presentation, Session) collapse into one, and the Physical layer is folded into Link because the OS rarely deals with signal encoding directly — the NIC handles that.
+
+> **📚 Historical Note:** The OSI model was designed by committee in the 1970s-80s as an international standard. The TCP/IP model was designed by practitioners (Cerf, Kahn, Clark) building the actual Internet. The practitioner model won in implementation; the committee model survived in textbooks. Both describe the same separation of concerns.
+
+### Building the Packet, Layer by Layer
+
+Each layer adds its own header when sending. Let's watch the packet grow as we walk through each layer.
+
+**Transport layer** — The kernel adds a transport header: source port, destination port, and (for TCP) a sequence number and checksum. The application data is now a **segment** (TCP) or **datagram** (UDP).
+
+{/* PROGRESSIVE PACKET ANATOMY — Stage 1: Transport
+    Show the Stage 0 payload block from earlier, now with a new colored band
+    prepended on the left: the transport header (labeled "TCP/UDP hdr").
+    Fields visible in the header: src port, dst port, seq #, checksum.
+    The payload block should be the SAME color and size as Stage 0.
+    The visual should feel like "one layer of wrapping has been added."
+    Label: [TCP/UDP hdr | Application Data] */}
+
+**Network layer** — The kernel adds an IP header: source IP address, destination IP address, TTL (time to live), and a protocol field identifying the transport layer above. The data is now a **packet**.
+
+{/* PROGRESSIVE PACKET ANATOMY — Stage 2: Network
+    Show Stage 1 (transport header + payload), now with another colored band
+    prepended: the IP header (labeled "IP hdr").
+    Fields visible: src IP, dst IP, TTL, protocol.
+    The transport header and payload should be the SAME as Stage 1.
+    Visual should convey: two layers of wrapping around the original data.
+    Label: [IP hdr | TCP/UDP hdr | Application Data] */}
+
+**Link layer** — The kernel determines the next hop's MAC address, adds a frame header (source MAC, destination MAC, EtherType) and appends a CRC for error detection. The data is now a **frame** — ready for the wire.
+
+{/* PROGRESSIVE PACKET ANATOMY — Stage 3: Link (complete frame)
+    Show Stage 2 (IP header + transport header + payload), now wrapped in
+    a frame header on the left AND a CRC block on the right.
+    Frame header fields: dst MAC, src MAC, EtherType.
+    CRC block on the trailing end.
+    The interior (IP + TCP + payload) should be IDENTICAL to Stage 2.
+    This is the complete frame as it appears on the wire.
+    Label: [Eth hdr | IP hdr | TCP/UDP hdr | Application Data | CRC] */}
+
+The result is an **envelope-in-envelope** structure. Each layer wraps the output of the layer above it:
+
+```
+[ Link Header [ Network Header [ Transport Header [ Application Data ] ] ] CRC ]
+```
+
+### Why Layering Matters
+
+Layering is not just an organizational convenience. It is a **separation of concerns** that lets each layer evolve independently:
+
+- The link layer can change from Ethernet to WiFi without affecting the IP layer
+- The network layer can route packets through any number of hops without knowing whether the transport provides reliability
+- The transport layer can offer different guarantees (reliable streams, unreliable datagrams) without knowing what physical medium carries the data
+
+> **💡 Connection to LN18:** This is the same principle as device independence in I/O software. Just as the OS provides a uniform interface to applications regardless of whether the underlying device is an SSD or a USB drive, the network stack provides a uniform transport interface regardless of whether the link is Ethernet, WiFi, or cellular.
+
+> **📌 Key Point:** Each layer has one job. The link layer asks "how do I move this frame to the next device?" The network layer asks "how do I get this packet to the right machine?" The transport layer asks "how do I give the application the communication behavior it needs?" No layer tries to answer the others' questions.
+
+---
+
+## The Send Path
+
+Let's follow our toy example: a process wants to send a short message to a process on another machine. What happens between the application's `write()` and the bits leaving the wire?
+
+### From Application to Wire
+
+1. **Application** — The process calls `write()` (or `send()`) on a socket. This is a syscall — the same left-descent we saw in LN19.
+
+2. **Transport layer** — The kernel's transport code adds a transport header (source port, destination port, sequence number if TCP, checksum). The data is now a **segment** (TCP) or **datagram** (UDP).
+
+3. **Network layer** — The kernel's IP code adds a network header (source IP, destination IP, TTL, protocol field). The data is now a **packet**.
+
+4. **Link layer** — The kernel's link code determines the next hop's MAC address (via ARP or neighbor cache), adds a frame header and CRC. The data is now a **frame**.
+
+5. **Driver** — The NIC driver places the frame into a transmit descriptor ring in host memory. It writes to the NIC's doorbell register to notify the hardware.
+
+6. **NIC hardware** — The NIC DMA's the frame from host memory into its own transmit buffer, encodes it for the physical medium, and pushes the signal onto the wire.
+
+7. **Interrupt** — The NIC signals completion. The driver cleans up the transmit descriptor. The U-bend's bottom is complete.
+
+```
+Application:  write(sock, "hello", 5)
+                    ↓ syscall
+Transport:    [TCP hdr] + "hello"
+                    ↓
+Network:      [IP hdr] + [TCP hdr] + "hello"
+                    ↓
+Link:         [Eth hdr] + [IP hdr] + [TCP hdr] + "hello" + [CRC]
+                    ↓
+Driver:       → descriptor ring → NIC doorbell
+                    ↓
+NIC:          DMA → encode → wire
+```
+
+> **📌 Key Point:** The process never touches the wire. Every step after the syscall is kernel code and hardware doing privileged work — the same pattern we traced through LN19's U-bend. The application expressed intent. The kernel and NIC made it physical.
+
+---
+
+## The Full Journey
+
+Before we look at the receive path in isolation, let's see the entire end-to-end trip in one animated view. This combines everything we've built — the progressive packet anatomy, the hop-by-hop routing, the send path, and the upcoming receive path — into a single continuous animation.
+
+{/* FULL JOURNEY ANIMATION (large, multi-phase):
+    This is the flagship visual of the lecture. It shows the complete lifecycle
+    of a message from sender process to receiver process across a network.
+    
+    Layout: Two machines (left: Sender, right: Receiver) with 1-2 routers between them.
+    Each machine shows a vertical stack of layers: Application → Transport → Network → Link → NIC.
+    Routers show only Link → Network → Link (they don't go above Network).
+    
+    Phase 1 — Sender Descends (Send Path):
+      Application: "hello" appears as raw payload (Stage 0 color).
+      Transport: TCP header wraps it (Stage 1 color added).
+      Network: IP header wraps it (Stage 2 color added).
+      Link: Frame header + CRC wrap it (Stage 3 color added).
+      NIC: Frame moves via DMA to NIC, then onto the wire.
+      Each step visually adds a header band, matching the progressive anatomy stages.
+    
+    Phase 2 — Transit (Hop-by-Hop):
+      Frame travels across Link 1 to Router 1.
+      Router 1 strips the frame (Stage 3 peels off), reads IP header (Stage 2 visible),
+      wraps in new frame (new Stage 3 color), sends on Link 2.
+      If two routers: repeat at Router 2.
+      CRITICAL: the inner packet (Stages 0-2) NEVER changes during transit.
+      Only the frame (Stage 3) is rebuilt at each hop.
+      Link types may differ (Ethernet → WiFi → Ethernet) to show frame type changes.
+    
+    Phase 3 — Receiver Ascends (Receive Path):
+      NIC: Frame arrives via wire, DMA'd into host memory. Interrupt fires.
+      Link: Frame header + CRC stripped (Stage 3 peels off). CRC checked.
+      Network: IP header stripped (Stage 2 peels off). Destination IP confirmed.
+      Transport: TCP header stripped (Stage 1 peels off). Port matched to socket.
+      Application: Raw payload "hello" delivered to process's read() buffer.
+      Each step visually removes a header band — the mirror of Phase 1.
+    
+    Controls: Play/pause, step-forward, step-backward. Speed control.
+    Annotations: At each step, a small label explains what is happening and why.
+    The visual should feel like watching a letter being packaged, mailed through
+    multiple post offices, and unpacked at the destination. */}
+
+> **🤔 Key Observation:** Watch how the packet's interior never changes during transit. Every router only touches the outermost layer (the frame). The packet core — your application data wrapped in transport and network headers — travels the entire distance untouched. This is encapsulation in action.
+
+---
+
+## The Receive Path
+
+The mirror image. A packet arrives from the wire. What happens between the electrical signal and the application's `read()` returning?
+
+### From Wire to Application
+
+1. **NIC hardware** — The NIC detects a signal on the wire, decodes it into a frame, and DMA's it into a pre-allocated receive buffer in host memory.
+
+2. **Interrupt** — The NIC raises an interrupt. The driver's interrupt handler runs — in interrupt context, just as in LN19.
+
+3. **Driver** — The interrupt handler does the minimum: acknowledge the device, note which receive descriptor completed. Deferred work handles the rest.
+
+4. **Link layer** — The kernel strips the frame header, checks the CRC for corruption. If the frame is invalid, it is dropped silently.
+
+5. **Network layer** — The kernel reads the IP header. Is this packet addressed to us? If not (and we are not a router), drop it. If yes, strip the IP header and pass the payload upward.
+
+6. **Transport layer** — The kernel reads the transport header. Which local socket does this belong to? The port number tells it. The kernel places the data in the appropriate socket's receive buffer.
+
+7. **Application** — The process's `read()` (or `recv()`) returns with the data. The process was sleeping in a blocked state — just like the sensor driver in LN19. The U-bend is complete.
+
+```
+NIC:          wire → decode → DMA → host buffer
+                    ↓ interrupt
+Driver:       acknowledge NIC, schedule deferred work
+                    ↓
+Link:         strip Ethernet header, check CRC
+                    ↓
+Network:      check destination IP, strip IP header
+                    ↓
+Transport:    match port → socket receive buffer
+                    ↓
+Application:  read(sock, buf, n) returns
+```
+
+> **💡 Connection to LN19:** This is the driver U-bend, extended through multiple protocol layers. The NIC is the device. The interrupt handler is the top half. The protocol processing is deferred work. The sleeping process wakes when the data reaches its socket buffer. Every concept from the driver lecture reappears here — just with more layers of interpretation between the hardware event and the application.
+
+> **🤔 Notice the symmetry:** The send path wraps headers layer by layer going down. The receive path strips headers layer by layer going up. Encapsulation on send, decapsulation on receive. The structure is perfectly mirrored.
+
+---
+
+## The IPC Mirror — What the Kernel Collapses
+
+Now that we have seen the full network journey, let's revisit local IPC from LN20 through this new lens. When two processes communicate via a Unix domain socket on the same machine, the *code path* mimics a network exchange — the process calls `write()` on a socket, the kernel receives the data, and the receiving process calls `read()` on its socket. The API is identical.
+
+But look at what vanishes:
+
+| Network Journey Step | What Happens in Local IPC |
+| :--- | :--- |
+| Transport header added | The kernel can skip transport encoding — both endpoints share the same kernel memory |
+| IP header added | No IP address needed — the kernel knows both endpoints directly |
+| Frame header + CRC added | No frame needed — there is no physical link to cross |
+| NIC DMA, wire transmission | No NIC involved — data stays in kernel buffers |
+| Router frame strip/rebuild | No routers — there is no routing |
+| Receive-side NIC, interrupt | No interrupt — the kernel is already holding the data |
+| Transport/Network header strip | Nothing to strip — headers were never added |
+
+The kernel **collapses** the entire network stack because it is the single authority over both endpoints. It doesn't need packets, headers, or physical transmission — it can simply copy from one socket buffer to another.
+
+{/* IPC MIRROR VISUAL (second-page style, same structure as full journey):
+    Layout: Same two-machine structure as the full journey animation,
+    BUT both processes are on the SAME machine, inside ONE kernel boundary.
+    
+    Left side: Show the "network" journey — the full path with all layers,
+    routers, frames, etc. (greyed out or faded, labeled "Network Path").
+    
+    Right side (or overlaid): Show the LOCAL IPC path —
+    same API calls (write/read on socket), but the entire middle is
+    collapsed into a single kernel-internal copy operation.
+    
+    Visual effect: The U-bend of the network path is tall and wide,
+    stretching across machines. The U-bend of the local IPC path is
+    SHORT and NARROW — it dips into the kernel and immediately comes back up.
+    The kernel box in the middle replaces the entire wire/router chain.
+    
+    Animation: Start with the network journey playing at normal speed.
+    Then transition to the local view: the same send/receive API calls appear,
+    but the middle collapses — layers fold inward, routers disappear,
+    the wire shrinks to nothing, and only a kernel buffer copy remains.
+    The contrast should make students viscerally feel how much the shared
+    kernel simplifies communication.
+    
+    Key label: "Same API. The kernel replaces the entire network." */}
+
+> **💡 This is the LN20 insight, visualized:** Unix domain sockets use the network API without the network cost. The socket abstraction gives applications a uniform interface; the kernel decides whether the data needs to leave the machine. When it doesn't, the kernel short-circuits the entire stack.
+
+---
+
+## Looking Forward
+
+This lecture explained how packets move: from application through the kernel stack, through the NIC, across the wire, and back up through the remote kernel stack to the remote application. That is the physical story of networking.
+
+But packets alone are too raw for most software. Consider what the application must deal with if it works directly at the packet level:
+
+- packets can arrive out of order
+- packets can be lost entirely
+- packets can be duplicated
+- packets can arrive faster than the receiver can process them
+- multiple applications on the same machine share one IP address
+
+None of these problems existed in local IPC. The shared kernel handled ordering, guaranteed delivery, prevented duplication, managed flow control, and multiplexed by file descriptor.
+
+The next lecture asks: how does the OS rebuild those guarantees on top of unreliable packet delivery? The answer is **transport protocols** — TCP and UDP — and the **socket abstraction** that lets applications program against them.
+
+> **💡 Preview:** TCP rebuilds the reliable, ordered byte stream that pipes provided locally — but over unreliable packets. UDP provides the lightweight, boundary-preserving message delivery that signals and datagrams provided locally — but without guarantees. The socket API unifies both behind one interface, just as `file_operations` unified block and character devices in LN18.
+
+---
+
+## Summary
+
+- Networking begins where IPC's three luxuries — shared kernel, shared memory, shared scheduler — disappear
+- The NIC is still just an I/O device: it has a controller, uses DMA, raises interrupts, and is managed by a driver
+- **Packets** exist because data leaving the machine must carry its own context — every header field replaces shared state that was free in local communication
+- **Frames** are link-local transfer units that are rebuilt at every hop; **packets** survive the entire journey end-to-end
+- **MAC addresses** identify devices on one physical link; **IP addresses** identify endpoints across the entire network
+- **Routers** forward packets hop by hop, replacing frames at each link while preserving the packet inside
+- **Layering** is standardized (TCP/IP and OSI models) and separates concerns: link (one hop), network (many hops), transport (application behavior)
+- The packet builds up progressively: raw payload → transport header wraps it → network header wraps that → frame header and CRC complete it for the wire
+- The **send path** wraps headers layer by layer as data descends from application to wire
+- The **receive path** strips headers layer by layer as data ascends from wire to application — the perfect mirror of the send path
+- Both paths are extensions of the driver U-bend from LN19 — the same I/O patterns with additional protocol interpretation
+- **Local IPC collapses the entire network stack** — when both endpoints share a kernel, all headers, routing, and physical transmission vanish; the kernel short-circuits to a buffer copy
+- Packets alone are too raw; the next lecture explains how transport protocols rebuild usable communication abstractions on top of them
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Network Interface Card (NIC)** | An I/O device specialized for sending and receiving packets, using DMA and interrupts like any other device |
+| **Packet** | A discrete unit of network data containing a payload and headers with metadata (source, destination, protocol, error detection) |
+| **Frame** | A link-layer transfer unit — a packet wrapped in metadata for one physical hop (MAC addresses, CRC) |
+| **MAC Address** | A hardware identifier for local-link delivery — which device on this link should receive the frame |
+| **IP Address** | A logical identifier for end-to-end delivery — which machine across the network is the final destination |
+| **Router** | A device that forwards packets between links by examining destination IP addresses and consulting routing tables |
+
+**Frame vs Packet:**
+
+| Property | Frame | Packet |
+| :--- | :--- | :--- |
+| Layer | Link | Network |
+| Addressing | MAC addresses (local link) | IP addresses (end-to-end) |
+| Lifespan | One physical hop | Entire source-to-destination journey |
+| Rebuilt at routers? | Yes — new frame for each link | No — packet contents persist |
+
+**What IPC Had vs What Networking Must Build:**
+
+| IPC Luxury | Networking Replacement |
+| :--- | :--- |
+| Shared kernel mediates delivery | Each side has its own kernel; protocols coordinate |
+| Shared memory for zero-copy | Data must be serialized into packets and physically transmitted |
+| Shared scheduler for timing | No shared clock; protocols must handle timing and ordering |
+| Kernel guarantees ordering | Sequence numbers in headers |
+| Kernel guarantees delivery | Acknowledgments and retransmission |
+| Kernel detects errors via memory protection | Checksums and CRCs in headers |
+| Process IDs for naming | IP addresses and port numbers |
+
+**Network Layer Summary:**
+
+| Layer | Job | Unit | Addressing |
+| :--- | :--- | :--- | :--- |
+| Link | One-hop delivery | Frame | MAC address |
+| Network | Multi-hop routing | Packet | IP address |
+| Transport | Application-facing behavior | Segment / Datagram | Port number |
+
+**TCP/IP vs OSI Model:**
+
+| TCP/IP Layer | OSI Layers | Our Focus | Key Concept |
+| :--- | :--- | :--- | :--- |
+| Application | Application + Presentation + Session | LN22+ | Application-specific protocols |
+| Transport | Transport | LN22 | Ports, reliability, ordering, flow control |
+| Internet | Network | This lecture | IP addressing, routing across many links |
+| Link | Data Link | This lecture | Frames, MAC addresses, one-hop delivery |
+| (Physical) | Physical | Folded into Link | Handled by the NIC hardware |
+
+**Progressive Packet Anatomy:**
+
+| Stage | What Is Added | Resulting Unit | Layer |
+| :--- | :--- | :--- | :--- |
+| 0 | Nothing — raw application data | Payload | Application |
+| 1 | Transport header (ports, seq #, checksum) | Segment / Datagram | Transport |
+| 2 | Network header (IP addresses, TTL) | Packet | Network |
+| 3 | Frame header (MAC addresses) + CRC | Frame | Link |
+
+**IPC vs Networking Path Comparison:**
+
+| Step | Network Path | Local IPC Path |
+| :--- | :--- | :--- |
+| API call | `write()` on socket | `write()` on socket |
+| Transport encoding | Header added | Skipped — kernel sees both sides |
+| Network addressing | IP header added | Skipped — no routing needed |
+| Link framing | Frame built, CRC computed | Skipped — no physical link |
+| Transmission | NIC DMA → wire | Kernel buffer copy |
+| Routing | Routers strip/rebuild frames | None |
+| Delivery | Reverse of send path | Kernel wakes receiving process |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP Chapter 48: Distributed Systems](https://pages.cs.wisc.edu/~remzi/OSTEP/) — The systems perspective on communication beyond one machine
+- [Modern Operating Systems (Tanenbaum) Ch. 5](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003295) — I/O and device management, including network device handling
+- [Computer Networking: A Top-Down Approach (Kurose & Ross) Ch. 1, 4, 5](https://gaia.cs.umass.edu/kurose_ross/index.php) — Networking fundamentals from an application-down perspective that complements our bottom-up OS view
+
+### Networking References
+
+- [RFC 791: Internet Protocol (IP)](https://www.rfc-editor.org/rfc/rfc791) — The original IP specification, defining the packet header format and routing model
+- [RFC 826: ARP](https://www.rfc-editor.org/rfc/rfc826) — How IP addresses are resolved to MAC addresses on a local link
+- [Linux Kernel Documentation: NAPI](https://www.kernel.org/doc/html/latest/networking/napi.html) — How modern Linux handles high-rate packet reception using interrupt coalescing and polling
+
+### Historical Context
+
+- [A Protocol for Packet Network Intercommunication (Cerf & Kahn, 1974)](https://www.cs.princeton.edu/courses/archive/fall06/cos561/papers/cerf74.pdf) — The foundational paper that proposed TCP/IP
+- [End-to-End Arguments in System Design (Saltzer, Reed, Clark, 1984)](https://web.mit.edu/Saltzer/www/publications/endtoend/endtoend.pdf) — The design principle that shaped where intelligence lives in the network stack
+- [The Design Philosophy of the DARPA Internet Protocols (Clark, 1988)](https://ccr.sigcomm.org/archive/1995/jan95/ccr-9501-clark.pdf) — Why the Internet was designed the way it was — survivability, heterogeneity, and distributed management
+
+### Rust Systems Programming
+
+- [smoltcp](https://github.com/smoltcp-rs/smoltcp) — A standalone TCP/IP stack written in Rust, designed for embedded and OS-level use
+- [The Rust Networking Cookbook](https://doc.rust-lang.org/std/net/index.html) — Rust standard library networking primitives (`TcpStream`, `UdpSocket`, etc.)
+
+</LectureResources>

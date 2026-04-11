@@ -1,0 +1,1256 @@
+import { LectureNotes, LectureResources } from "@/components/lecture-sections"
+import { DefinitionBox } from "@/components/interactive-example"
+
+## Recap — From Recognition to Participation
+
+The previous lecture traced two end-to-end actions inside a living Linux system:
+
+- **Walkthrough 1 (device)** — A `dd` read from `/dev/urandom` revealed the full U-bend: the syscall boundary, VFS dispatch, driver code, and data return — all visible through `strace`
+- **Walkthrough 2 (network)** — A TCP client/server exchange through `nc` showed the socket lifecycle, port binding, the `accept()` discovery pattern, and the transport layer — all observable through `strace` and `ss`
+- **Linux's windows** — `/proc`, `/sys`, and `/dev` exposed kernel state as structured, readable surfaces
+- **Kernel modules** — Linux extends its own functionality at runtime through loadable modules that run with full kernel privilege
+- **Observability** — Tools like `ps`, `strace`, `dmesg`, `ip`, `ss`, `lsmod`, and `modinfo` made the kernel's behavior visible from user space
+
+Linux is no longer a black box. You can trace an action from a user-space process through the kernel and back, name the abstractions involved, and observe them with standard tools. The system is legible.
+
+That legibility raises the question this lecture addresses. If Linux is built from all of these cooperating abstractions — drivers, protocol stacks, schedulers, memory managers, filesystems — and if all of that code runs in the privileged, unforgiving environment we called "code is lava" in LN19, then how do real engineers safely contribute to this system? And what role does the language we have been learning all semester play in making that contribution safer?
+
+---
+
+## Today's Agenda
+
+1. **Why Kernel and Driver Code Is Dangerous** — Privilege, asynchrony, and system-wide consequences
+2. **The Bug Classes That Matter** — Memory-safety failures and why they dominate systems software vulnerability reports
+3. **What Rust Prevents, and What It Does Not** — Honest boundaries around Rust's safety guarantees
+4. **Why Rust Fits Linux** — Connecting the semester's Rust lens to a real operating-system context
+5. **Small Contributions, Not Heroics** — Modules, pseudo-devices, and realistic contribution scope
+6. **Safe Experimentation Workflow — Building `rustecho`** — A staged demo: C skeleton, Rust character device, and what Rust structurally prevents
+7. **Looking Beyond the Course** — What you should now believe about entering systems work
+
+---
+
+## Why Kernel and Driver Code Is Dangerous
+
+Every program you have written in this course ran in user space. The operating system protected you from your own mistakes. A null pointer dereference killed your process, not the machine. An infinite loop consumed your time slice, not every process's. A bad memory access triggered a segfault, and the kernel cleaned up after you. User space is a sandbox with a safety net.
+
+Kernel code has no safety net.
+
+When code runs in kernel space — Ring 0, full privilege, direct access to hardware and every byte of physical memory — the consequences of bugs change qualitatively. A null pointer dereference does not kill a process; it panics the entire kernel. A buffer overrun does not corrupt one program's heap; it can overwrite kernel data structures that manage every process on the machine. A race condition does not produce a wrong answer in one thread; it can corrupt the scheduler's view of what is runnable, the filesystem's view of what is on disk, or the network stack's view of what connections exist.
+
+This is the "code is lava" principle from LN19 made concrete. When we studied the U-bend, we noted that driver code runs in a context with different rules — no sleeping in interrupt context, reentrancy requirements, shared state with hardware. Those rules are not arbitrary restrictions. They exist because the kernel has no external authority to catch it when it fails. The kernel is the authority.
+
+<DefinitionBox term="Kernel Panic">
+
+A **kernel panic** is an unrecoverable error detected by the kernel itself. When the kernel encounters a state it cannot safely continue from — a corrupted data structure, an unhandled exception in critical code, a failed assertion — it halts the entire system rather than risk further damage. There is no process to kill, no signal to send. The machine stops.
+
+</DefinitionBox>
+
+### The Asymmetry of Consequence
+
+The core insight is an asymmetry. In user space, the OS limits the blast radius of your mistakes. In kernel space, there is nothing above you to limit anything. The same bug that would be a minor annoyance in a user-space program becomes a system-wide catastrophe in a driver or kernel module.
+
+| Environment | Who catches your mistake? | Blast radius |
+| :--- | :--- | :--- |
+| User space | The kernel (signals, segfaults, OOM killer) | One process |
+| Kernel space | Nothing — the hardware faults or the kernel panics | The entire machine |
+
+{/* RISK MAP: A visual showing concentric zones radiating outward from hardware at the center.
+    Innermost zone: hardware registers — a bad write can physically misconfigure a device.
+    Next zone: kernel data structures — corruption affects all processes.
+    Next zone: driver code — bugs crash the kernel or create security holes.
+    Outer zone: user space — bugs are contained to one process.
+    The visual should make the expanding blast radius feel visceral.
+    As you move inward, the color shifts from safe (cool) to dangerous (hot).
+    Labels connect each zone to the course concept that governs it. */}
+
+This asymmetry is why the language you use in kernel space matters far more than the language you use in a web application. A memory-safety bug in a REST API handler might leak some data or crash a server process that gets restarted automatically. The same category of bug in a kernel driver can take down every process on the machine, corrupt the filesystem, or open a privilege-escalation vulnerability that compromises the entire system.
+
+> **💡 Connection to LN19:** This is the same argument we made when discussing why driver code is dangerous. The difference now is that we have seen real kernel code paths in LN23 — real `strace` output, real device nodes, real socket lifecycles. The danger is not hypothetical. It applies to every module loaded into the kernel, including the ones we listed with `lsmod`.
+
+---
+
+## The Bug Classes That Matter
+
+Not all bugs are equally dangerous in systems software. Some categories of failure have caused disproportionate damage over decades of operating-system and driver development. Understanding which bug classes matter most is essential context for understanding why Rust was designed the way it was and why the Linux kernel community eventually decided to allow a second language into their codebase.
+
+### Use-After-Free
+
+A pointer continues to be used after the memory it points to has been deallocated. The memory may have been reallocated for a completely different purpose. Reading from it produces garbage. Writing to it silently corrupts whatever now lives there.
+
+In kernel space, this is catastrophic. The freed memory might now hold another process's page table, a socket buffer, or a scheduler queue entry. Corrupting it can compromise any subsystem.
+
+```c
+struct device_data *dev = kmalloc(sizeof(*dev), GFP_KERNEL);
+/* ... use dev ... */
+kfree(dev);
+/* Later, in a different code path: */
+dev->status = READY;  // use-after-free: dev's memory may now hold anything
+```
+
+### Double Free
+
+Memory is freed twice. The allocator's internal bookkeeping is corrupted, which can cause future allocations to return overlapping regions. Two unrelated subsystems now believe they own the same memory.
+
+```c
+kfree(buffer);
+/* ... other code ... */
+kfree(buffer);  // double free: allocator metadata is now corrupt
+```
+
+### Buffer Overrun
+
+A write exceeds the bounds of an allocated buffer. In user space, this might trigger a segfault if you are lucky. In kernel space, the adjacent memory likely belongs to another kernel data structure, and the overwrite proceeds silently.
+
+Buffer overruns are the single most exploited vulnerability class in the history of computer security. They are the foundation of stack smashing, return-oriented programming, and countless privilege-escalation attacks.
+
+```c
+char buf[64];
+memcpy(buf, user_data, user_len);  // if user_len > 64, adjacent kernel memory is overwritten
+```
+
+### Data Races
+
+Two execution contexts — say, a process-context code path and an interrupt handler — access the same memory concurrently, and at least one of them writes. Without proper synchronization, the result is undefined. The data structure may end up in a state that neither code path intended, and the corruption may not manifest until much later.
+
+In the kernel, data races are particularly insidious because the concurrent contexts are often invisible. A driver's `read()` handler runs in process context. An interrupt arrives and runs the driver's interrupt handler. Both touch the same device state. If the locking is wrong — or absent — the device state becomes inconsistent.
+
+```c
+/* Process context: */
+shared->count++;
+
+/* Interrupt handler, running concurrently on the same CPU or another: */
+shared->count++;
+// Without a lock or atomic operation, the final value of count is unpredictable
+```
+
+### Invalid Pointer Dereference
+
+A pointer that was never initialized, or that has been set to an invalid address, is dereferenced. In user space, the MMU catches this and delivers a segfault. In kernel space, the kernel itself is the one that would need to catch it — and if the address happens to map to valid kernel memory, the dereference succeeds silently, reading or writing the wrong data.
+
+### The Common Thread
+
+Every one of these bug classes involves **memory**: accessing it after it is gone, freeing it incorrectly, writing past its boundaries, sharing it without coordination, or following a pointer to the wrong place. They are not logic bugs (where the algorithm is wrong) or design bugs (where the architecture is flawed). They are mechanical failures in how the program interacts with memory.
+
+This distinction matters because it defines what a programming language can realistically prevent.
+
+{/* BUG CLASS MAP: A visual organizing the five bug classes around a central "memory safety" concept.
+    Each bug class connects outward to the kind of kernel damage it can cause:
+    - use-after-free → data structure corruption, privilege escalation
+    - double free → allocator corruption, overlapping allocations
+    - buffer overrun → adjacent memory corruption, code execution attacks
+    - data race → inconsistent state, intermittent failures
+    - invalid dereference → silent wrong-data access or kernel panic
+    The visual should make it clear that all five converge on the same root cause:
+    unsupervised memory access in a language that trusts the programmer completely. */}
+
+### These Are Not Hypothetical
+
+These bug classes are not textbook curiosities. They are the dominant source of real-world systems vulnerabilities, and they are being found and fixed *right now* in active projects.
+
+The **uutils/coreutils** project — a complete rewrite of GNU coreutils in Rust — has been systematically discovering and eliminating these bugs as it reimplements tools like `dd`, `cp`, `sort`, and `ls`. The GNU C originals of these tools have been maintained for decades by expert programmers, and they still contain buffer-handling bugs, partial-write errors, and edge cases that the Rust type system catches at compile time. As of 2026, Ubuntu has adopted the Rust coreutils in place of the GNU versions, starting with Ubuntu 25.10.
+
+The same story plays out in the kernel. The Linux kernel's own security team, along with independent analyses from Microsoft and Google, consistently reports that **60–70% of critical vulnerabilities** in systems software are memory-safety failures — the exact bug classes cataloged above. These are not rare edge cases in obscure code paths. They are the routine, predictable consequence of writing millions of lines of memory-unsafe code.
+
+> **📌 Key Point:** The Linux kernel has been written in C for over 30 years. C trusts the programmer to manage memory correctly. When that trust is misplaced — and in millions of lines of code maintained by thousands of contributors, it inevitably is — the result is one of the bug classes above.
+
+---
+
+## What Rust Prevents, and What It Does Not
+
+Rust was not designed as a general-purpose replacement for every language. It was designed to solve a specific engineering problem: how to write systems software that is as fast and low-level as C, but that eliminates the memory-safety bug classes we just cataloged — at compile time, before the code ever runs.
+
+### What the Compiler Enforces
+
+The Rust features you have been using all semester — ownership, borrowing, lifetimes, and the type system — are not academic abstractions. They are the compiler's mechanism for preventing the exact bug classes that dominate systems software vulnerabilities.
+
+| Bug Class | How Rust Prevents It |
+| :--- | :--- |
+| Use-after-free | Ownership ensures exactly one owner. When the owner goes out of scope, the memory is freed. Borrowing rules prevent any reference from outliving the data it points to. |
+| Double free | Single ownership means there is exactly one `drop`. You cannot free what you do not own. |
+| Buffer overrun | Slice and array access is bounds-checked at runtime. Iterators eliminate the need for manual index arithmetic in most cases. |
+| Data races | The type system enforces that mutable references are exclusive (`&mut T`). `Send` and `Sync` traits gate which types can cross thread boundaries. Sharing mutable state requires explicit synchronization types (`Mutex`, `RwLock`, atomics). |
+| Invalid dereference | References are always valid by construction. `Option<T>` replaces null pointers. |
+
+This is not magic. The compiler is performing a static analysis of your program's memory-access patterns. It rejects programs that it cannot prove are memory-safe. The cost is that some programs that would be correct are also rejected — the compiler is conservative. The benefit is that every program that passes the compiler's checks is free of the bug classes above (outside of `unsafe` blocks).
+
+> **💡 Connection to LN2–LN4:** This is why ownership, borrowing, and lifetimes felt so strict when you first learned them. They are not stylistic preferences. They are the mechanism that eliminates the bug classes that have historically made kernel and driver development so hazardous.
+
+### What Rust Does Not Prevent
+
+Rust's safety guarantees have clear boundaries. It is important to understand them honestly rather than treating Rust as a panacea.
+
+**Logic bugs.** Rust will not stop you from implementing the wrong algorithm, using the wrong formula, or making an incorrect architectural decision. If your driver reads from the wrong register offset, the compiler cannot catch that — the code is memory-safe, just semantically wrong.
+
+**Deadlocks.** Rust prevents data races (concurrent unsynchronized access) but does not prevent deadlocks (two threads each waiting for a lock the other holds). Locking discipline is still an engineering responsibility.
+
+**Resource leaks.** While Rust's `Drop` trait ensures memory is freed, other resources — file descriptors, hardware locks, network connections — can still leak if the cleanup logic is incorrect.
+
+**`unsafe` misuse.** Rust allows `unsafe` blocks where the programmer takes responsibility for invariants the compiler cannot check. In kernel development, `unsafe` is unavoidable — interacting with hardware registers, calling C functions through FFI, and manipulating raw pointers all require it. An `unsafe` block is a promise by the programmer that the code inside upholds the safety invariants Rust expects. If that promise is broken, all the same bug classes return.
+
+<DefinitionBox term="unsafe Rust">
+
+An **`unsafe` block** in Rust is a region where the compiler's safety checks are partially relaxed. Inside `unsafe`, you can dereference raw pointers, call foreign (C) functions, access mutable statics, and implement unsafe traits. The compiler still enforces syntax and type rules, but memory-safety guarantees depend on the programmer's correctness rather than the compiler's proof.
+
+</DefinitionBox>
+
+**Bad system design.** No language prevents you from building a poorly designed system. Rust gives you stronger mechanical guarantees about memory, but architecture, modularity, error handling strategy, and operational discipline remain human responsibilities.
+
+| Category | Rust helps? | Why or why not |
+| :--- | :--- | :--- |
+| Memory-safety bugs | Yes — eliminated or sharply reduced at compile time | Ownership, borrowing, and lifetimes are checked statically |
+| Data races | Yes — prevented by the type system | `Send`/`Sync` and exclusive `&mut` |
+| Logic bugs | No | The compiler cannot know your intent |
+| Deadlocks | No | Lock ordering is an engineering discipline |
+| Resource leaks | Partially — `Drop` helps, but not for everything | Non-memory resources need explicit management |
+| `unsafe` misuse | No — `unsafe` means you opted out | The programmer's promise replaces the compiler's proof |
+| Bad architecture | No | Language cannot substitute for design judgment |
+
+> **🤔 Key Framing:** Rust does not make systems programming easy. It makes one specific, historically devastating class of failure significantly harder to introduce. That is a meaningful change, but it is not a complete solution. Safe systems work still requires engineering discipline, careful design, and deep understanding of the system you are modifying.
+
+---
+
+## Why Rust Fits Linux
+
+This course has used Rust as its systems programming language from the first lecture. That choice was not arbitrary. Rust is the first language other than C to be accepted into the Linux kernel's source tree — a codebase that has been exclusively C (with some assembly) for over three decades.
+
+Understanding why the Linux community made this decision connects everything in the course.
+
+### The Problem Rust Addresses in Linux
+
+Linux is maintained by thousands of contributors, many of whom write driver and subsystem code. As we saw in LN23, drivers are loaded as kernel modules — they run with full kernel privilege, share the kernel's address space, and interact with hardware and concurrent execution contexts. Every driver is a potential source of the bug classes we just studied.
+
+The Linux kernel's own security team has reported that a majority of kernel vulnerabilities originate in drivers. This is not because driver authors are careless. It is because C provides no compiler-enforced protection against the memory-safety failures that are most dangerous in privileged code. Every driver author must manually uphold the invariants that Rust's compiler enforces automatically.
+
+### What Rust in Linux Looks Like
+
+Rust does not replace C in the Linux kernel. The kernel's core — the scheduler, the memory manager, the VFS layer — remains in C and is unlikely to be rewritten. What Rust provides is a safer option for new code, particularly drivers and modules, where memory-safety failures are most common and most dangerous.
+
+The Rust-for-Linux project provides kernel-safe abstractions — Rust wrappers around kernel APIs that allow module authors to interact with kernel services (allocating memory, registering devices, managing locks) through safe Rust interfaces. The `unsafe` code that bridges Rust and the kernel's C internals is concentrated in these wrapper layers, reviewed carefully, and shared across all Rust modules. Individual module authors write mostly safe Rust.
+
+<DefinitionBox term="FFI (Foreign Function Interface)">
+
+**FFI** is the mechanism that allows code written in one programming language to call functions defined in another. In the Linux kernel context, Rust code uses FFI to call kernel C functions — memory allocators, device registration routines, synchronization primitives. The FFI boundary is inherently `unsafe` because the Rust compiler cannot verify the C side's behavior.
+
+</DefinitionBox>
+
+This architecture mirrors a pattern you should recognize. The kernel's C API is the hardware-like layer. The Rust safe wrappers are the driver-like abstraction. Individual modules are the user-facing code. It is the U-bend again — but applied to the language boundary rather than the hardware boundary.
+
+> **💡 Connection to LN19:** The U-bend taught us that crossing a privilege boundary requires careful mediation — the syscall interface, the driver dispatch, the interrupt handler protocol. The Rust/C boundary in the kernel is another instance of the same principle: `unsafe` wrappers mediate the crossing, concentrating danger in reviewed, shared code so that the wider module ecosystem can operate safely.
+
+### Recent Kernel Contributions in Rust
+
+This is not a future plan. Rust code is being merged into the Linux kernel right now, and the contributions illustrate the patterns we have been discussing.
+
+The **`register!` macro** (merged early 2026) provides a safe, ergonomic API for hardware register access in Rust drivers. Instead of raw pointer arithmetic to read device registers — exactly the kind of code where buffer overruns and invalid dereferences hide — the macro generates type-checked accessor methods. The Nova GPU driver and the Rust PCI sample driver already use it.
+
+A **C linked-list interop module** (2026) provides safe Rust iteration over the kernel's internal doubly-linked lists — data structures that are shared across subsystems and historically prone to use-after-free bugs when traversed concurrently. The Rust wrapper ensures that iteration follows the kernel's locking protocol without requiring every user to get it right manually.
+
+The **Rust `scull` character device sample** (merged into kernel samples in 2024) reimplements the classic teaching device from the *Linux Device Drivers* book in safe Rust. It demonstrates the full module lifecycle — `init`, `cleanup`, `read`, `write`, device registration — using the Rust-for-Linux abstractions. We will look at code very similar to this when we build our own module later in this lecture.
+
+These contributions share a common shape: they are small, well-scoped, and focused on wrapping dangerous C patterns in safe Rust interfaces. None of them rewrote a major subsystem. All of them made the kernel meaningfully safer.
+
+### Rust Is Rewriting the Toolbox, Not Just the Kernel
+
+The kernel is the highest-stakes target for Rust, but it is not the only one. A broader movement is rewriting the classic Unix command-line tools — the same tools you used in LN23 — in Rust. These projects demonstrate that the language's safety and performance benefits extend from kernel space all the way up to everyday user-space utilities.
+
+| Classic Tool | Rust Alternative | What Changed |
+| :--- | :--- | :--- |
+| GNU coreutils (`ls`, `cp`, `dd`, `sort`, ...) | **uutils/coreutils** | 94.7% GNU compatibility; adopted by Ubuntu 25.10+ |
+| `grep` | **ripgrep (`rg`)** | 3–10x faster; respects `.gitignore` by default |
+| `find` | **fd** | Simplified syntax, colored output, `.gitignore`-aware |
+| `cat` | **bat** | Syntax highlighting, line numbers, Git integration |
+| `ls` | **eza** | Icons, Git status, tree view |
+| `top` | **bottom (`btm`)** | GPU, network, and disk I/O monitoring |
+| util-linux (`dmesg`, `lscpu`, ...) | **uutils/util-linux** | Active rewrite of core system information tools |
+
+The uutils coreutils project is particularly significant. Ubuntu — one of the most widely used Linux distributions — replaced its GNU coreutils with the Rust versions starting in Ubuntu 25.10, with the 26.04 LTS release continuing the transition. This means that `ls`, `cp`, `dd`, `sort`, and dozens of other tools that millions of users run every day are now Rust binaries. The rewrite found and eliminated real bugs in the process — buffer-handling errors, partial-write failures, and edge cases that had survived decades of maintenance in C.
+
+> **🤔 The Bigger Picture:** Rust is not confined to one layer of the system. It is being used to write kernel modules at Ring 0, device drivers that bridge hardware and software, system utilities that run as user-space processes, and high-performance CLI tools. The same ownership and borrowing model you learned in this course applies at every level. That is what makes it a true systems language rather than a niche tool for one domain.
+
+### Why This Matters for You
+
+You have spent the semester learning ownership, borrowing, and lifetimes. You have used `Mutex` and `mpsc` channels. You have thought about when data moves versus when it is borrowed. All of that was preparation for exactly this kind of work.
+
+A Rust developer approaching Linux module development is not starting from zero. The mental model you built in this course — that memory has an owner, that shared access requires explicit coordination, that the compiler is a partner in enforcing invariants — is the same mental model that makes writing a safe kernel module possible.
+
+And if kernel work is not where your interests lead, the same foundation applies to the user-space Rust ecosystem: contributing to `ripgrep`, `uutils`, or any of the tools in the table above uses the same language, the same mental model, and the same open-source contribution workflow. The skills transfer.
+
+---
+
+## Small Contributions, Not Heroics
+
+There is a common misconception that contributing to an operating system requires understanding the entire system. It does not. Real systems are built from many small, well-scoped contributions, not from individual heroics. The Linux kernel has over 30 million lines of code and thousands of contributors. No single person understands all of it. The architecture is designed so that they do not need to.
+
+### Modules as Contribution Boundaries
+
+The kernel module system we explored in LN23 is the mechanism that makes bounded contribution possible. A module is a self-contained unit of kernel functionality with a defined interface: an initialization function, a cleanup function, and a set of operations it registers with the kernel. The module author needs to understand the kernel's API for the subsystem they are extending, but not the internal implementation of every other subsystem.
+
+This is the same principle of abstraction that runs through the entire course. Just as a process does not need to understand the scheduler's implementation to call `fork()`, a module author does not need to understand the memory manager's internals to call `kmalloc()`. The API boundary is the scope boundary.
+
+### What a Realistic Contribution Looks Like
+
+The kinds of contributions that are educational and achievable — the kinds that match the scope of what you have learned — tend to be small:
+
+- A **character device module** that exposes a new pseudo-device in `/dev`, responding to `read()` and `write()` with custom behavior
+- A **procfs or sysfs entry** that exposes some computed kernel-side information to user space
+- A **protocol or format handler** that processes data according to a specific structure
+- A **sensor or hardware interface module** that bridges a specific device to the kernel's driver framework
+
+None of these require understanding the entire kernel. Each one requires understanding the relevant subsystem API, the module lifecycle, and the safety constraints of kernel-space execution. That is a bounded, learnable scope.
+
+{/* SCOPE LADDER: A visual showing a vertical ladder of contribution sizes.
+    Bottom rung (smallest): "Hello world" module that prints to dmesg on load/unload.
+    Next rung: Character device that responds to read/write.
+    Next rung: Module that creates a /proc entry with computed data.
+    Next rung: Simple device driver for a well-documented device.
+    Top rung (largest): Full subsystem (filesystem, network protocol, scheduler class).
+    The bottom 2-3 rungs are highlighted as "educational scope — achievable with this course's foundation."
+    The top rungs are labeled "industrial scope — requires years of kernel-specific experience."
+    The visual should make the accessible scope feel large enough to be meaningful
+    while being honest about the distance to full subsystem work. */}
+
+### A Real Contribution: 27 Lines That Fixed `dd`
+
+To make this concrete, consider a real pull request merged into the uutils/coreutils project in January 2026. The contributor — who noted "this is almost my first snippet in Rust" — fixed a bug in the Rust implementation of `dd`.
+
+The problem: `dd` was using line-buffered stdout, which meant that partial writes could silently lose data when piping output to another process. The fix was 27 lines of additions and 3 deletions across 2 files, switching from line-buffered to block-buffered stdout.
+
+This contribution is worth studying because of what it *is*:
+
+- **Small** — a 30-line diff across two files
+- **Meaningful** — it fixed a real data-loss bug in a tool used by millions of people
+- **Grounded in I/O concepts** — the bug was about buffering behavior, exactly the kind of systems concern this course teaches
+- **Written by a beginner** — the author was new to Rust
+- **Reviewed and merged** — it went through code review and was accepted by the project maintainers
+
+That is what a realistic contribution looks like. Not a new filesystem. Not a rewrite of the scheduler. A small, well-understood fix to a real problem, made possible by understanding how I/O buffering works at the systems level.
+
+### What a Kernel Contribution Looks Like
+
+On the kernel side, the Rust `scull` character device sample (merged into the kernel's `samples/rust/` directory) demonstrates the same principle at a higher privilege level. It implements a simple character device — one that stores bytes written to it and returns them when read — using the Rust-for-Linux abstractions. The module registers a device, wires up `read` and `write` handlers through the kernel's `file_operations` equivalent, and manages its internal buffer with safe Rust ownership.
+
+The full module is small enough to read end to end in a few minutes. It exercises real kernel APIs — device registration, memory allocation, file operations — and runs with full kernel privilege. But it is scoped tightly enough that a single developer can understand every line. Later in this lecture, we will build something very similar.
+
+### Scoping as an Engineering Skill
+
+Choosing the right scope for a contribution is itself an engineering skill. A well-scoped contribution:
+
+- Is **small enough to understand end to end** — you can trace every code path the module takes
+- Is **large enough to be meaningful** — it exercises real kernel APIs and real privilege constraints
+- Has **observable behavior** — you can verify it works through `dmesg`, `/proc`, `/dev`, or other kernel surfaces
+- Is **safely reversible** — you can unload the module and return the system to its previous state
+
+This is not a compromise. It is how professional systems engineering works. Large systems are maintained through many small, comprehensible changes, each of which is reviewed, tested, and observable.
+
+> **📌 Key Point:** The goal is not to write a filesystem or a network stack. The goal is to write something small that runs in kernel space, exercises real kernel APIs, and demonstrates that you understand the privilege, safety, and lifecycle constraints that kernel code demands. That is a genuine systems contribution, not a toy exercise. The `dd` fix and the `scull` sample both prove the point — meaningful work happens at small scale.
+
+---
+
+## Safe Experimentation Workflow — Building `rustecho`
+
+Writing kernel code is dangerous. We have established that. But dangerous does not mean inaccessible. It means that the workflow surrounding the code matters as much as the code itself. Rather than describe this workflow abstractly, we will walk through it live by building a small kernel module called **`rustecho`** — a character device that echoes back whatever you write to it.
+
+### The Environment: Disposable VMs
+
+In LN23, we set up a Multipass VM as an inspection environment. That same VM serves a second critical purpose: it is a **disposable sandbox** for kernel experimentation. If your module panics the kernel, you lose a VM — not your development machine, not your data, not your other running processes. You restart the VM and try again.
+
+This is not a workaround. It is how kernel developers actually work. The Linux kernel development community routinely uses VMs and emulators (QEMU, virtme, syzkaller's VM harness) precisely because kernel bugs are machine-level failures. A good workflow makes those failures cheap and recoverable rather than catastrophic.
+
+### What We Are Building
+
+`rustecho` is a character device module. When loaded, it creates a device node at `/dev/rustecho`. You can write data to it, and when you read from it, you get back whatever was last written. It is conceptually an `echo` — not the shell command, but the idea of a kernel-level buffer that stores and returns data through the standard `read()`/`write()` interface.
+
+This exercises every layer we have studied:
+
+- **Module lifecycle** — `init` registers the device, `cleanup` removes it (LN23)
+- **File operations** — the module provides `read`, `write`, `open`, and `release` handlers that the kernel dispatches through VFS (LN18, LN19)
+- **Kernel memory** — the module allocates and manages a buffer in kernel space
+- **Privilege boundary** — user-space programs interact through `/dev/rustecho` via syscalls; the module code runs in kernel space (LN19)
+- **Observability** — we verify every step through `dmesg`, `ls /dev/`, `strace`, and `lsmod` (LN23)
+
+### The Development Loop
+
+Safe kernel development follows a tight, observable loop:
+
+```
+edit → build → load → observe → interact → observe → unload → verify
+```
+
+We will follow this loop for each stage of `rustecho`. The full source for every stage is in the **Addendum** at the bottom of this page — the lecture walks through the concepts and the key code, while the Addendum provides everything needed to reproduce the demo.
+
+{/* WORKFLOW TIMELINE: An animated or interactive stepper showing the development loop.
+    Each step is a node in a circular or linear flow.
+    Clicking/stepping through each node shows:
+    - what the developer does
+    - what command they run
+    - what output they look for
+    - what could go wrong and how to recover
+    The visual should emphasize that the loop is tight and repeatable.
+    A "reset" arrow from any failure state goes back to "edit" via VM restart if needed. */}
+
+### Stage 1: The Skeleton — Load, Log, Unload
+
+The first version of `rustecho` does nothing useful. It loads, prints a message to the kernel log, and unloads. The entire point is to verify the workflow before adding any real functionality.
+
+```c
+#include <linux/init.h>
+#include <linux/module.h>
+
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("rustecho — a character device that echoes data back");
+
+static int __init rustecho_init(void) {
+    pr_info("rustecho: module loaded\n");
+    return 0;
+}
+
+static void __exit rustecho_exit(void) {
+    pr_info("rustecho: module unloaded\n");
+}
+
+module_init(rustecho_init);
+module_exit(rustecho_exit);
+```
+
+> We start in C because the kernel's build system and module infrastructure are better documented for C, and it makes the translation to Rust more meaningful when we see both. A Rust equivalent using the kernel's Rust abstractions would use `module!` and `impl kernel::Module` instead of `module_init`/`module_exit`.
+
+After building, we follow the loop:
+
+```bash
+sudo insmod rustecho.ko
+```
+
+> `insmod` inserts a compiled kernel module (`.ko` file) into the running kernel. The kernel calls the module's `init` function immediately.
+
+```bash
+dmesg | tail -5
+```
+
+> Check the last 5 lines of the kernel ring buffer. You should see `rustecho: module loaded`.
+
+```bash
+lsmod | grep rustecho
+```
+
+> Verify the module appears in the loaded module list.
+
+```bash
+sudo rmmod rustecho
+```
+
+> `rmmod` removes a loaded module. The kernel calls the module's `exit` function.
+
+```bash
+dmesg | tail -5
+```
+
+> Confirm `rustecho: module unloaded` appears. The system is clean.
+
+That is the complete loop for Stage 1. Nothing interesting happened — and that is the point. The workflow works. The module loads and unloads cleanly. We can now add functionality with confidence that the infrastructure is sound.
+
+### Stage 2: The Character Device — Creating `/dev/rustecho` in Rust
+
+The second stage is where the course's Rust investment pays off. We are going to register a character device so that a node appears in `/dev`, and we are going to do it in Rust.
+
+Before we write the Rust version, it helps to see what the kernel expects at the C level, since C is the kernel's native language and the interface Rust must ultimately connect to. In C, a character device wires up its handlers through a `file_operations` struct — the same dispatch table from LN19:
+
+```c
+static struct file_operations rustecho_fops = {
+    .owner   = THIS_MODULE,
+    .open    = rustecho_open,
+    .release = rustecho_release,
+    .read    = rustecho_read,
+    .write   = rustecho_write,
+};
+```
+
+> This is the kernel's C dispatch table. Each field is a function pointer. When a user-space process calls `read()` on your device, the kernel looks up `.read` in this struct and calls whatever function is there. The C version requires the developer to manually manage memory (`kmalloc`/`kfree`), manually lock shared state (`mutex_lock`/`mutex_unlock`), and manually copy data across the user/kernel boundary (`copy_to_user`/`copy_from_user`). Every one of those manual steps is an opportunity for the bug classes we cataloged earlier.
+
+The Rust version replaces that manual ceremony with the language features you have been learning all semester. Here is the core of the Rust `rustecho` module:
+
+```rust
+use kernel::prelude::*;
+use kernel::sync::Mutex;
+use kernel::{file, miscdev};
+
+module! {
+    type: RustEcho,
+    name: "rustecho",
+    author: "LN24 Demo",
+    description: "A character device that echoes data back",
+    license: "GPL",
+}
+
+struct RustEchoDevice {
+    buffer: Mutex<Vec<u8>>,
+}
+
+struct RustEcho {
+    _dev: Pin<Box<miscdev::Registration<RustEchoDevice>>>,
+}
+
+impl kernel::Module for RustEcho {
+    fn init(_module: &'static ThisModule) -> Result<Self> {
+        pr_info!("rustecho: module loaded\n");
+        let dev = RustEchoDevice {
+            buffer: Mutex::new(Vec::new()),
+        };
+        let reg = miscdev::Registration::new_pinned(fmt!("rustecho"), dev)?;
+        Ok(Self { _dev: reg })
+    }
+}
+
+impl Drop for RustEcho {
+    fn drop(&mut self) {
+        pr_info!("rustecho: module unloaded\n");
+    }
+}
+
+#[vtable]
+impl file::Operations for RustEchoDevice {
+    fn write(this: &Self, _file: &file::File, data: &mut impl IoBufferReader) -> Result<usize> {
+        let mut buf = this.buffer.lock();
+        buf.clear();
+        let len = data.len();
+        buf.try_reserve(len)?;
+        data.read_all(&mut *buf)?;
+        pr_info!("rustecho: wrote {} bytes\n", len);
+        Ok(len)
+    }
+
+    fn read(this: &Self, _file: &file::File, data: &mut impl IoBufferWriter) -> Result<usize> {
+        let buf = this.buffer.lock();
+        let len = core::cmp::min(data.len(), buf.len());
+        data.write_slice(&buf[..len])?;
+        pr_info!("rustecho: read {} bytes\n", len);
+        Ok(len)
+    }
+}
+```
+
+Read through this carefully — every major design choice maps onto something you learned earlier in the course:
+
+- **`module!` macro + `impl kernel::Module`** replaces C's `module_init`/`module_exit`. The `init` function returns `Result<Self>`, so initialization failures are handled through the same `Result` pattern you have used all semester. `Drop` replaces the cleanup function — when the module is unloaded, the Rust runtime calls `drop()` automatically.
+
+- **`Mutex<Vec<u8>>`** is the buffer. You cannot access it without calling `.lock()`, and the lock guard auto-releases when it goes out of scope. The compiler prevents data races at compile time — there is no way to forget to lock or to hold the lock too long and forget to release it.
+
+- **`IoBufferReader` and `IoBufferWriter`** replace C's raw `copy_from_user`/`copy_to_user`. These safe wrappers handle the user/kernel memory boundary without exposing raw pointers.
+
+- **Ownership handles cleanup.** The buffer is a field of `RustEchoDevice`. When the module struct is dropped, the buffer is dropped. There is no `kfree` call to forget. There is exactly one owner and exactly one `Drop`. Use-after-free and double-free are structurally impossible.
+
+> **📌 Note:** Building Rust kernel modules requires a kernel configured with `CONFIG_RUST=y` and the appropriate Rust toolchain. This is more setup than C modules require — the Addendum at the bottom of this page walks through the full toolchain provisioning. That extra setup is the current cost of being early to Rust in the kernel. The safety guarantees you get in return are the reason the Linux community accepted that cost.
+
+After building and loading the Rust module, the workflow is identical to what we would do with a C module:
+
+```bash
+sudo insmod rustecho.ko && dmesg | tail -5
+```
+
+> Load the Rust module and check for initialization messages. You should see `rustecho: module loaded`.
+
+```bash
+ls -la /dev/rustecho
+```
+
+> Verify the device node exists. It should show as a character device.
+
+```bash
+echo "hello from user space" > /dev/rustecho
+```
+
+> Write a string to the device. This triggers a `write()` syscall that crosses into kernel space, dispatches through VFS to the Rust `write` handler, and stores the data in the `Mutex`-protected buffer.
+
+```bash
+cat /dev/rustecho
+```
+
+> Read from the device. The Rust `read` handler locks the buffer, copies the stored data back to user space, and releases the lock when the guard goes out of scope. You should see `hello from user space`.
+
+```bash
+strace -e openat,read,write,close cat /dev/rustecho
+```
+
+> Trace the syscalls to see the U-bend in action. The `strace` output is identical whether the module is written in C or Rust — the kernel dispatches through the same VFS path. The difference is entirely in what happens on the kernel side of that boundary.
+
+```bash
+sudo rmmod rustecho && dmesg | tail -5
+```
+
+> Unload and verify cleanup. `Drop` runs, the buffer is freed, the device node disappears.
+
+> **💡 Connection to LN19 and LN23:** You are now on the inside of the U-bend. In LN23, you watched `strace` reveal the syscall boundary from the process's perspective. Now you have written the code that runs on the kernel side of that boundary — in the same language you have been using all semester. The same `openat()`, `read()`, `write()`, and `close()` syscalls are dispatching to *your* Rust handlers.
+
+### Stage 3: What Rust Structurally Prevents
+
+Now that we have seen both the C interface and the Rust implementation, we can make the comparison concrete. This is not a matter of style or preference. The two versions have structurally different failure modes.
+
+| Concern | C Version | Rust Version |
+| :--- | :--- | :--- |
+| **Buffer lifetime** | Developer must call `kfree` in the cleanup function. Forgetting it leaks memory. Calling it twice is a double free. | Buffer is owned by the module struct. `Drop` frees it exactly once. The compiler enforces single ownership. |
+| **Lock discipline** | Developer must call `mutex_lock` before access and `mutex_unlock` after. Forgetting to unlock deadlocks. Forgetting to lock creates a data race. | `Mutex<T>` wraps the data. You cannot access it without `.lock()`. The guard auto-releases on scope exit. The compiler prevents unguarded access. |
+| **User/kernel copy** | `copy_to_user` and `copy_from_user` take raw pointers and lengths. A wrong length is a buffer overrun. | `IoBufferReader`/`IoBufferWriter` are safe abstractions. Bounds are checked at the API level. |
+| **Error propagation** | Functions return negative integers for errors. The caller must check every return value manually. Missing a check silently continues with corrupt state. | Functions return `Result<T>`. The `?` operator propagates errors automatically. The compiler warns about unused `Result` values. |
+| **Null pointers** | Pointers can be `NULL`. Dereferencing a null pointer in kernel space can panic the kernel. | References are non-null by construction. `Option<T>` makes the absence of a value explicit and checked. |
+
+Look at the `rustecho_exit` function in C (the full version is in the Addendum):
+
+```c
+static void __exit rustecho_exit(void)
+{
+    device_destroy(rustecho_class, dev_num);
+    class_destroy(rustecho_class);
+    cdev_del(&rustecho_cdev);
+    unregister_chrdev_region(dev_num, 1);
+    pr_info("rustecho: module unloaded\n");
+}
+```
+
+> Four cleanup calls, in a specific order that reverses the initialization order. If the developer forgets one, resources leak. If they get the order wrong, the kernel may access freed memory. If a future contributor adds a new resource to `init` but forgets to add the corresponding cleanup to `exit`, the module silently leaks every time it is unloaded.
+
+In the Rust version, there is no `exit` function to write. `Drop` runs automatically when the module struct goes out of scope. Every field is dropped in reverse declaration order. Resources owned by the struct are freed by their own `Drop` implementations. The developer cannot forget a cleanup step because there are no cleanup steps to write — ownership handles it.
+
+This is the payoff of the entire semester's work with Rust. The strictness of ownership, borrowing, and lifetimes — the rules that felt constraining in LN2 through LN4 — is precisely what makes kernel code safer. The compiler does not trust you with memory, and in kernel space, that distrust is exactly what you want.
+
+> **🤔 Key Framing:** The C version is not wrong. It works. The Linux kernel has run on C modules like it for decades. But every line of that cleanup function is a line where a human can make a mistake that crashes the entire machine. The Rust version does not eliminate all possible bugs — logic errors, deadlocks, and `unsafe` misuse remain — but it eliminates the mechanical memory-safety failures that account for the majority of kernel vulnerabilities. That is not a theoretical improvement. It is an engineering decision backed by decades of vulnerability data.
+
+### Recovery: When Things Go Wrong
+
+Kernel bugs manifest in a few characteristic ways:
+
+| Symptom | What Likely Happened | Recovery |
+| :--- | :--- | :--- |
+| Module loads but produces no `dmesg` output | Init function failed silently or never ran | Check return codes, add logging, rebuild |
+| Module loads but device does not appear in `/dev` | Device registration failed | Check `dmesg` for error messages from the registration call |
+| Reading/writing the device causes an error | The `file_operations` handler has a bug | Check `dmesg`, add more logging to the handler |
+| The kernel panics (VM becomes unresponsive) | A null dereference, invalid memory access, or deadlock in module code | Restart the VM, examine the panic trace in `dmesg` (if it was logged before the halt), fix the bug |
+| Module refuses to unload | Something still holds a reference (an open file descriptor, a dependent module) | Close all handles, check `lsmod` for "Used by" count |
+
+The VM is your safety net. A kernel panic in a VM is a 30-second restart. The same panic on bare metal could mean a corrupted filesystem and lost work.
+
+> **📌 Key Point:** Safe systems experimentation is not about never making mistakes. It is about making mistakes cheaply, observing their effects clearly, and recovering quickly. The combination of Rust's compile-time guarantees, a disposable VM environment, and systematic logging through `dmesg` creates a workflow where kernel development is demanding but not reckless.
+
+---
+
+## Looking Beyond the Course
+
+This course began with a process — the operating system's fundamental unit of isolation, protection, and resource management. It moved through scheduling, synchronization, memory, deadlocks, and file systems. It crossed into I/O, drivers, and the privileged boundary between user space and kernel space. It traced communication from local IPC through the full network stack. It entered Linux and watched the abstractions become real. And now, in this final lecture, it arrived at the question of participation: how you, equipped with these abstractions and a memory-safe systems language, can approach real systems work responsibly.
+
+The honest answer is that this course does not make you a kernel developer. It makes you a person who can understand what kernel developers do, why it is hard, why the tools and languages matter, and where the dangers live. That understanding is the foundation everything else builds on.
+
+### What You Should Now Believe
+
+After this course, these claims should feel earned rather than aspirational:
+
+- **Operating systems are engineered, not magical.** Every behavior you see — process isolation, device communication, network transport, file access — is the result of specific design decisions that you can now name and critique.
+
+- **Abstractions are real.** The concepts from this course are not simplified teaching models. They are the actual vocabulary of real systems — the same syscalls, the same driver dispatch, the same socket lifecycle, the same module system.
+
+- **Rust is a meaningful tool for systems work.** Not because it solves every problem, but because it eliminates the specific class of failure that has historically made systems work so hazardous. Your semester of ownership, borrowing, and lifetimes was not busywork. It was training for exactly this domain.
+
+- **Safe contribution is about scope and discipline, not genius.** You do not need to understand the entire kernel to write a module that runs inside it. You need to understand the relevant API, the privilege constraints, the observation tools, and the recovery workflow. That is a learnable, bounded skill set.
+
+- **You can enter this space.** Not tomorrow, and not alone. But with the foundation this course has built — the abstractions, the language, the understanding of why things are hard — you have a credible path into systems work. The kernel is just code. Complicated, privileged, consequential code — but code that follows the same principles you have studied all semester.
+
+> **🤔 Final Thought:** The best systems engineers are not the ones who write the most code. They are the ones who understand the system well enough to write the least code that solves the right problem safely. That understanding — of abstraction, of privilege, of consequence, of discipline — is what this course has been about.
+
+---
+
+## Summary
+
+- Kernel and driver code is **qualitatively more dangerous** than user-space code because there is no external authority to limit the blast radius of failures
+- The bug classes that dominate systems software vulnerabilities — use-after-free, double free, buffer overrun, data races, invalid dereference — are all **memory-safety failures**, and they are being found and fixed right now in projects like the **Rust coreutils** rewrite
+- Rust eliminates or sharply reduces these bug classes at compile time through **ownership, borrowing, lifetimes, and the type system**
+- Rust does **not** prevent logic bugs, deadlocks, `unsafe` misuse, or bad architecture — it is a tool, not a guarantee
+- Rust was accepted into the **Linux kernel** as a second language because it addresses the exact failure class that has historically made driver and module development so risky — recent contributions include the **`register!` macro**, **C linked-list interop**, and the **Rust `scull` sample**
+- **Rust is rewriting the Unix toolbox**: `ripgrep`, `fd`, `bat`, `eza`, and the full GNU coreutils (adopted by Ubuntu) demonstrate that the same language works from kernel modules to everyday CLI tools
+- The Rust/C boundary in the kernel uses **`unsafe` wrappers** to mediate the crossing — the same U-bend principle applied to the language boundary
+- Realistic kernel contributions are **small, well-scoped modules** — the `dd` stdout fix (27 lines, by a beginner) and the kernel `scull` sample show what this looks like in practice
+- We built **`rustecho`** — a character device module — through three stages: a C skeleton to validate the workflow, a Rust character device as the primary demo, and a C-vs-Rust comparison showing what the Rust version structurally prevents — all following a disciplined **workflow** inside a disposable VM
+- The course's abstractions — processes, syscalls, drivers, IPC, networking, transport, modules — are the **actual vocabulary** of real systems
+- You now have the foundation to **understand, observe, and begin contributing** to systems at the kernel level
+
+<LectureNotes>
+
+**Key Definitions:**
+
+| Term | Definition |
+| :--- | :--- |
+| **Kernel Panic** | An unrecoverable error in kernel space that halts the entire system |
+| **Use-After-Free** | Accessing memory through a pointer after that memory has been deallocated |
+| **Double Free** | Deallocating the same memory region twice, corrupting the allocator's state |
+| **Buffer Overrun** | Writing past the boundaries of an allocated buffer into adjacent memory |
+| **Data Race** | Concurrent unsynchronized access to shared memory where at least one access is a write |
+| **`unsafe` Rust** | A Rust block where the compiler's memory-safety checks are partially relaxed and the programmer assumes responsibility |
+| **FFI** | Foreign Function Interface — the mechanism for calling functions across language boundaries (e.g., Rust calling C kernel APIs) |
+| **Memory Safety** | The property that a program cannot access memory it does not own, has not initialized, or has already freed |
+
+**Rust Safety Boundary:**
+
+| Category | Compiler-enforced? | Mechanism |
+| :--- | :--- | :--- |
+| Use-after-free | Yes | Ownership + lifetimes |
+| Double free | Yes | Single ownership + `Drop` |
+| Buffer overrun | Mostly (runtime bounds checks) | Slice/array access, iterators |
+| Data races | Yes | `Send`/`Sync` + exclusive `&mut` |
+| Invalid dereference | Yes | No null references, `Option<T>` |
+| Logic bugs | No | — |
+| Deadlocks | No | — |
+| `unsafe` misuse | No | Programmer's responsibility |
+
+**`rustecho` Demo Stages:**
+
+| Stage | Language | What It Does | Key Insight |
+| :--- | :--- | :--- | :--- |
+| 1 — Skeleton | C | Loads and prints to `dmesg` | Validates the workflow before adding functionality |
+| 2 — Character Device | Rust | Creates `/dev/rustecho`; stores and echoes data via safe Rust handlers | Ownership handles cleanup; `Mutex<T>` enforces locking; `Result` handles errors |
+| 3 — Comparison | C vs Rust | Side-by-side analysis of the same module | Identifies which bug classes become structurally impossible in the Rust version |
+
+**Safe Experimentation Workflow:**
+
+| Step | Tool | What to Check |
+| :--- | :--- | :--- |
+| Build | `make` | Compilation errors and warnings |
+| Load | `insmod` / `modprobe` | `dmesg` for init messages |
+| Observe | `dmesg`, `lsmod`, `ls /dev/` | Module presence, device registration |
+| Interact | Application-specific | Expected behavior, `strace` if needed |
+| Unload | `rmmod` | `dmesg` for cleanup messages, `lsmod` for removal confirmation |
+| Recover | VM restart | Kernel panic trace in `dmesg` (if captured) |
+
+**Rust Tool Ecosystem:**
+
+| Classic Tool | Rust Alternative | Status |
+| :--- | :--- | :--- |
+| GNU coreutils | uutils/coreutils | Adopted by Ubuntu 25.10+ |
+| `grep` | ripgrep (`rg`) | Widely adopted |
+| `find` | fd | Widely adopted |
+| `cat` | bat | Widely adopted |
+| `ls` | eza | Widely adopted |
+| util-linux | uutils/util-linux | Active development |
+
+**Course Abstraction → Systems Reality:**
+
+| Course Concept | Where It Lives in Practice |
+| :--- | :--- |
+| Ownership and borrowing (LN2–4) | Compile-time memory safety for kernel modules |
+| Concurrency and synchronization (LN6, LN12) | Lock discipline in kernel-space shared state |
+| Processes and scheduling (LN9, LN10) | The units the kernel manages and multiplexes |
+| Syscall boundary (LN19) | The privilege crossing every user program makes |
+| Drivers and U-bend (LN19) | The code path kernel modules implement |
+| IPC (LN20) | Local communication through kernel-mediated channels |
+| Networking and transport (LN21, LN22) | The protocol stack modules can extend |
+| Kernel modules (LN23) | The contribution mechanism for kernel functionality |
+| Observability tools (LN23) | The verification layer for safe experimentation |
+
+</LectureNotes>
+
+<LectureResources>
+
+### Recommended Reading
+
+- [OSTEP — Security](https://pages.cs.wisc.edu/~remzi/OSTEP/) — Chapters on protection, isolation, and the consequences of privileged-code failure
+- [The Linux Programming Interface (Kerrisk)](https://man7.org/tlpi/) — System call semantics and the user-space/kernel-space contract
+- [Linux Kernel Module Programming Guide](https://sysprog21.github.io/lkmpg/) — A practical introduction to writing and loading kernel modules
+
+### Memory Safety and Systems Bugs
+
+- [Microsoft: 70% of CVEs are memory safety issues](https://msrc.microsoft.com/blog/2019/07/a-proactive-approach-to-more-secure-code/) — The data behind the industry's push toward memory-safe languages
+- [Google: Memory Safety in Chrome](https://security.googleblog.com/2021/09/an-update-on-memory-safety-in-chrome.html) — Chrome's experience with memory-safety vulnerabilities
+- [CWE-416: Use After Free](https://cwe.mitre.org/data/definitions/416.html) — The formal classification of one of the most critical bug classes
+
+### Rust in Systems and Linux
+
+- [Rust for Linux](https://rust-for-linux.com/) — The project bringing Rust into the Linux kernel
+- [Linux kernel Rust documentation](https://www.kernel.org/doc/html/latest/rust/index.html) — Upstream docs on Rust support in the kernel
+- [Rust `unsafe` keyword documentation](https://doc.rust-lang.org/std/keyword.unsafe.html) — Official reference on what `unsafe` allows and what it means
+
+### Rust Tooling Ecosystem
+
+- [uutils/coreutils](https://github.com/uutils/coreutils) — The Rust rewrite of GNU coreutils, adopted by Ubuntu
+- [ripgrep](https://github.com/BurntSushi/ripgrep) — A fast Rust alternative to `grep`
+- [uutils/util-linux](https://github.com/uutils/util-linux) — Rust rewrite of util-linux system tools
+
+### Historical Context
+
+- [The Rust Programming Language — Motivation](https://doc.rust-lang.org/book/foreword.html) — Why Rust was created and the problems it targets
+- [Greg Kroah-Hartman on Rust in Linux](https://lore.kernel.org/lkml/) — Kernel maintainer perspectives on introducing a second language
+- [Linus Torvalds on Rust in the kernel](https://lkml.org/lkml/2022/9/19/1105) — The decision to merge initial Rust support
+
+</LectureResources>
+
+---
+
+## Addendum — `rustecho` Module Source and Setup
+
+This section contains everything you need to reproduce the `rustecho` demo on your own machine. Both the C and Rust versions are provided — the C version serves as a reference for the kernel's native interface, and the Rust version is what the lecture demo uses.
+
+### VM Setup
+
+If you already have the `ln23` VM running, you can reuse it. Otherwise, create a new one:
+
+```bash
+multipass launch --name ln24 lts
+multipass shell ln24
+```
+
+Install the C kernel development toolchain:
+
+```bash
+sudo apt update && sudo apt install -y build-essential linux-headers-$(uname -r) kmod strace tree
+```
+
+> `build-essential` provides `gcc` and `make`. `linux-headers-$(uname -r)` installs the header files for the currently running kernel — these are needed to compile modules that link against this specific kernel version. `kmod` provides `insmod`, `rmmod`, `lsmod`, and `modprobe`.
+
+### Rust Kernel Toolchain Setup
+
+Building Rust kernel modules requires additional toolchain configuration beyond what the C modules need. The kernel must be configured with `CONFIG_RUST=y`, and you need a specific Rust toolchain version that matches the kernel's expectations.
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+rustup override set $(scripts/min-tool-version.sh rustc)
+rustup component add rust-src
+```
+
+> `rustup` installs the Rust toolchain. The kernel specifies a minimum Rust compiler version — `scripts/min-tool-version.sh` (in the kernel source tree) tells you which one. `rust-src` provides the Rust standard library source, which the kernel build system needs to compile `core` and `alloc` for the kernel's `no_std` environment.
+
+The kernel source tree with Rust support enabled is required to build Rust modules. Follow the [Rust for Linux documentation](https://www.kernel.org/doc/html/latest/rust/index.html) for full instructions on configuring and building a Rust-enabled kernel. For the lecture demo, the VM is pre-configured with this setup so the audience sees the results without waiting for compilation.
+
+> **📌 Note:** This is more setup than C modules require. That is the current cost of being early to Rust in the kernel — the toolchain is newer and less integrated into distribution packages. The safety guarantees you get in return are the reason the Linux community accepted that cost. As Rust support matures in the kernel, distribution kernels will increasingly ship with `CONFIG_RUST=y` enabled by default.
+
+Create the project directory:
+
+```bash
+mkdir -p ~/rustecho && cd ~/rustecho
+```
+
+---
+
+### About the Makefile
+
+> **What is a Makefile?** A `Makefile` is a build automation file used by the `make` tool. It defines rules that specify how to compile source files into executables or, in this case, kernel modules. The Linux kernel relies heavily on Makefiles — the kernel source tree contains thousands of them, organized hierarchically. When you build a kernel module, your `Makefile` delegates to the kernel's own build system by pointing `make -C` at the kernel's build directory (`/lib/modules/.../build`). The `obj-m` variable tells the kernel build system which source files to compile as loadable modules. This pattern — `obj-m += yourmodule.o` with `make -C $(KDIR) M=$(PWD) modules` — is the standard way to build out-of-tree kernel modules, whether in C or Rust.
+
+#### `Makefile`
+
+```bash
+cat > ~/rustecho/Makefile << 'MK'
+obj-m += rustecho.o
+
+KDIR := /lib/modules/$(shell uname -r)/build
+
+all:
+	make -C $(KDIR) M=$(PWD) modules
+
+clean:
+	make -C $(KDIR) M=$(PWD) clean
+MK
+```
+
+---
+
+### Stage 1: Skeleton Module (C)
+
+This stage verifies the build and load/unload workflow before adding any real functionality.
+
+#### `rustecho_stage1.c`
+
+```bash
+cat > ~/rustecho/rustecho_stage1.c << 'SRC'
+#include <linux/init.h>
+#include <linux/module.h>
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("LN24 Demo");
+MODULE_DESCRIPTION("rustecho — a character device that echoes data back");
+
+static int __init rustecho_init(void)
+{
+    pr_info("rustecho: module loaded\n");
+    return 0;
+}
+
+static void __exit rustecho_exit(void)
+{
+    pr_info("rustecho: module unloaded\n");
+}
+
+module_init(rustecho_init);
+module_exit(rustecho_exit);
+SRC
+```
+
+#### Build and Test Stage 1
+
+```bash
+cp rustecho_stage1.c rustecho.c
+make
+sudo insmod rustecho.ko
+dmesg | tail -3
+lsmod | grep rustecho
+sudo rmmod rustecho
+dmesg | tail -3
+```
+
+You should see `rustecho: module loaded` and `rustecho: module unloaded` in `dmesg`, and the module should appear and disappear from `lsmod`.
+
+---
+
+### Stage 2: Rust Character Device (Primary)
+
+This is the version demonstrated in the lecture. It implements the full character device in Rust using the kernel's Rust abstractions.
+
+#### `rustecho.rs`
+
+```bash
+cat > ~/rustecho/rustecho.rs << 'SRC'
+// SPDX-License-Identifier: GPL-2.0
+
+use kernel::prelude::*;
+use kernel::sync::Mutex;
+use kernel::{file, miscdev};
+
+module! {
+    type: RustEcho,
+    name: "rustecho",
+    author: "LN24 Demo",
+    description: "A character device that echoes data back",
+    license: "GPL",
+}
+
+struct RustEchoDevice {
+    buffer: Mutex<Vec<u8>>,
+}
+
+struct RustEcho {
+    _dev: Pin<Box<miscdev::Registration<RustEchoDevice>>>,
+}
+
+impl kernel::Module for RustEcho {
+    fn init(_module: &'static ThisModule) -> Result<Self> {
+        pr_info!("rustecho: module loaded\n");
+        let dev = RustEchoDevice {
+            buffer: Mutex::new(Vec::new()),
+        };
+        let reg = miscdev::Registration::new_pinned(fmt!("rustecho"), dev)?;
+        Ok(Self { _dev: reg })
+    }
+}
+
+impl Drop for RustEcho {
+    fn drop(&mut self) {
+        pr_info!("rustecho: module unloaded\n");
+    }
+}
+
+#[vtable]
+impl file::Operations for RustEchoDevice {
+    fn write(this: &Self, _file: &file::File, data: &mut impl IoBufferReader) -> Result<usize> {
+        let mut buf = this.buffer.lock();
+        buf.clear();
+        let len = data.len();
+        buf.try_reserve(len)?;
+        data.read_all(&mut *buf)?;
+        pr_info!("rustecho: wrote {} bytes\n", len);
+        Ok(len)
+    }
+
+    fn read(this: &Self, _file: &file::File, data: &mut impl IoBufferWriter) -> Result<usize> {
+        let buf = this.buffer.lock();
+        let len = core::cmp::min(data.len(), buf.len());
+        data.write_slice(&buf[..len])?;
+        pr_info!("rustecho: read {} bytes\n", len);
+        Ok(len)
+    }
+}
+SRC
+```
+
+#### Build and Test Stage 2 (Rust)
+
+```bash
+make clean && make
+sudo insmod rustecho.ko
+dmesg | tail -5
+ls -la /dev/rustecho
+echo "hello from user space" > /dev/rustecho
+cat /dev/rustecho
+strace -e openat,read,write,close cat /dev/rustecho
+dmesg | tail -10
+sudo rmmod rustecho
+dmesg | tail -3
+ls /dev/rustecho 2>&1
+```
+
+You should see:
+- `rustecho: module loaded` in `dmesg`
+- The device node appear in `/dev` after loading
+- `"hello from user space"` echoed back when reading
+- `strace` showing the syscall dispatch to your module's Rust handlers
+- Clean removal with `Drop` running automatically
+
+---
+
+### C Reference: Character Device with Read/Write
+
+This is the equivalent C version for reference and comparison. It implements the same functionality as the Rust version but requires manual memory management, manual locking, and manual cleanup.
+
+#### `rustecho_c_reference.c`
+
+```bash
+cat > ~/rustecho/rustecho_c_reference.c << 'SRC'
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/cdev.h>
+#include <linux/device.h>
+#include <linux/uaccess.h>
+#include <linux/mutex.h>
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("LN24 Demo");
+MODULE_DESCRIPTION("rustecho — a character device that echoes data back (C reference)");
+
+#define DEVICE_NAME "rustecho"
+#define BUFFER_SIZE 4096
+
+static dev_t dev_num;
+static struct cdev rustecho_cdev;
+static struct class *rustecho_class;
+
+static char buffer[BUFFER_SIZE];
+static size_t buffer_len;
+static DEFINE_MUTEX(buffer_mutex);
+
+static int rustecho_open(struct inode *inode, struct file *file)
+{
+    pr_info("rustecho: device opened\n");
+    return 0;
+}
+
+static int rustecho_release(struct inode *inode, struct file *file)
+{
+    pr_info("rustecho: device closed\n");
+    return 0;
+}
+
+static ssize_t rustecho_read(struct file *file, char __user *user_buf,
+                             size_t count, loff_t *offset)
+{
+    size_t to_copy;
+
+    mutex_lock(&buffer_mutex);
+
+    if (*offset >= buffer_len) {
+        mutex_unlock(&buffer_mutex);
+        return 0;
+    }
+
+    to_copy = min(count, buffer_len - (size_t)*offset);
+
+    if (copy_to_user(user_buf, buffer + *offset, to_copy)) {
+        mutex_unlock(&buffer_mutex);
+        return -EFAULT;
+    }
+
+    *offset += to_copy;
+    mutex_unlock(&buffer_mutex);
+
+    pr_info("rustecho: read %zu bytes\n", to_copy);
+    return to_copy;
+}
+
+static ssize_t rustecho_write(struct file *file, const char __user *user_buf,
+                              size_t count, loff_t *offset)
+{
+    size_t to_copy;
+
+    mutex_lock(&buffer_mutex);
+
+    to_copy = min(count, (size_t)BUFFER_SIZE);
+    if (copy_from_user(buffer, user_buf, to_copy)) {
+        mutex_unlock(&buffer_mutex);
+        return -EFAULT;
+    }
+
+    buffer_len = to_copy;
+    mutex_unlock(&buffer_mutex);
+
+    pr_info("rustecho: wrote %zu bytes\n", to_copy);
+    return to_copy;
+}
+
+static struct file_operations rustecho_fops = {
+    .owner   = THIS_MODULE,
+    .open    = rustecho_open,
+    .release = rustecho_release,
+    .read    = rustecho_read,
+    .write   = rustecho_write,
+};
+
+static int __init rustecho_init(void)
+{
+    int ret;
+
+    ret = alloc_chrdev_region(&dev_num, 0, 1, DEVICE_NAME);
+    if (ret < 0) {
+        pr_err("rustecho: failed to allocate major number\n");
+        return ret;
+    }
+
+    cdev_init(&rustecho_cdev, &rustecho_fops);
+    ret = cdev_add(&rustecho_cdev, dev_num, 1);
+    if (ret < 0) {
+        unregister_chrdev_region(dev_num, 1);
+        pr_err("rustecho: failed to add cdev\n");
+        return ret;
+    }
+
+    rustecho_class = class_create(DEVICE_NAME);
+    if (IS_ERR(rustecho_class)) {
+        cdev_del(&rustecho_cdev);
+        unregister_chrdev_region(dev_num, 1);
+        pr_err("rustecho: failed to create class\n");
+        return PTR_ERR(rustecho_class);
+    }
+
+    device_create(rustecho_class, NULL, dev_num, NULL, DEVICE_NAME);
+
+    pr_info("rustecho: module loaded, major=%d minor=%d\n",
+            MAJOR(dev_num), MINOR(dev_num));
+    return 0;
+}
+
+static void __exit rustecho_exit(void)
+{
+    device_destroy(rustecho_class, dev_num);
+    class_destroy(rustecho_class);
+    cdev_del(&rustecho_cdev);
+    unregister_chrdev_region(dev_num, 1);
+    pr_info("rustecho: module unloaded\n");
+}
+
+module_init(rustecho_init);
+module_exit(rustecho_exit);
+SRC
+```
+
+#### Build and Test C Reference
+
+To test the C version instead of the Rust version:
+
+```bash
+cp rustecho_c_reference.c rustecho.c
+make clean && make
+sudo insmod rustecho.ko
+echo "hello" > /dev/rustecho && cat /dev/rustecho
+sudo rmmod rustecho
+```
+
+The behavior from user space is identical. The differences are entirely in the kernel-side safety properties.
+
+---
+
+### Testing Script
+
+A convenience script to test the Rust module through the full workflow:
+
+```bash
+cat > ~/rustecho/test_rustecho.sh << 'SCRIPT'
+#!/bin/bash
+set -e
+
+echo "=== Building Rust module ==="
+make clean && make
+
+echo ""
+echo "=== Loading module ==="
+sudo insmod rustecho.ko
+dmesg | tail -3
+
+echo ""
+echo "=== Checking device node ==="
+ls -la /dev/rustecho
+
+echo ""
+echo "=== Writing to device ==="
+echo "hello from user space" > /dev/rustecho
+
+echo ""
+echo "=== Reading from device ==="
+cat /dev/rustecho
+
+echo ""
+echo "=== Tracing syscalls ==="
+strace -e openat,read,write,close cat /dev/rustecho 2>&1 | head -15
+
+echo ""
+echo "=== Kernel log ==="
+dmesg | tail -10
+
+echo ""
+echo "=== Unloading module ==="
+sudo rmmod rustecho
+dmesg | tail -3
+
+echo ""
+echo "=== Verifying cleanup ==="
+ls /dev/rustecho 2>&1 || echo "/dev/rustecho removed — clean."
+lsmod | grep rustecho || echo "Module not in lsmod — clean."
+
+echo ""
+echo "=== Done ==="
+SCRIPT
+chmod +x ~/rustecho/test_rustecho.sh
+```
+
+---
+
+### Verifying the Project
+
+```bash
+tree ~/rustecho/
+```
+
+You should see:
+
+```
+rustecho/
+├── Makefile
+├── rustecho.rs
+├── rustecho_c_reference.c
+├── rustecho_stage1.c
+└── test_rustecho.sh
+```
+
+---
+
+### Extension Challenges
+
+The base `rustecho` module is fully functional but intentionally minimal. The following extensions build naturally on the foundation and are suitable as self-directed projects. Each one exercises additional course concepts and would make a strong addition to a systems programming portfolio.
+
+**1. Capacity Management** — Add a configurable maximum buffer size. Reject writes that exceed it with an appropriate error code (`-ENOSPC`). This exercises error handling at the kernel API boundary. *(Connects to: LN18 device contracts, LN19 privilege-boundary error propagation)*
+
+**2. Read Statistics via `/proc`** — Create a `/proc/rustecho` entry that reports the total number of reads, writes, and bytes transferred. This exercises the procfs interface from LN23 and gives you a second kernel surface for the same module. *(Connects to: LN23 `/proc` as a kernel window)*
+
+**3. Multiple Instances** — Support multiple minor numbers, each with an independent buffer. Users can `echo "a" > /dev/rustecho0` and `echo "b" > /dev/rustecho1` with separate storage. This exercises device registration and the major/minor number system from LN18. *(Connects to: LN18 major/minor dispatch, LN19 driver multiplexing)*
+
+**4. Persistent Buffer** — Save the buffer contents to a file on module unload and restore them on load. This exercises the boundary between volatile kernel state and persistent storage. *(Connects to: filesystem concepts, LN19 module lifecycle)*
+
+**5. Concurrent Access Control** — Add a reader/writer lock (`rwlock`) instead of a simple mutex, allowing multiple simultaneous readers but exclusive writers. Log contention events to `dmesg`. This exercises the concurrency and synchronization material from LN6 and LN12 in a real kernel context. *(Connects to: LN6 concurrency, LN12 safety vs. liveness)*
+
+**6. Access Permissions** — Implement permission checking in the `open()` handler. Only allow writes from root. Log denied access attempts. This exercises the privilege and security material from the course. *(Connects to: LN19 privilege boundary, kernel security model)*
+
+Each extension is independent — you can pick any combination. The module remains loadable and testable through the same `insmod`/`rmmod`/`dmesg` workflow regardless of which features you add.
+
+### Cleanup
+
+```bash
+cd ~/rustecho && make clean
+cd ~ && rm -rf ~/rustecho
+```
+
+If you created a dedicated VM:
+
+```bash
+multipass stop ln24
+multipass delete ln24 && multipass purge
+```
