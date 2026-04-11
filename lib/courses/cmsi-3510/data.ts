@@ -164,6 +164,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture, we begin our full investigation of Rust by looking at the syntax and semantics of Variable Declarations. We cover on many topics including memory management, ownership, scope, and mutability. We then turn to VSCode to see examples.",
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
+    lnTopics: [
+      "Variables",
+      "Mutability",
+      "Scope",
+      "Stack and Heap",
+      "Data Types",
+    ],
     contentUrl: "/cmsi-3510/ln2",
     recordings: [
       {
@@ -181,6 +188,12 @@ const allEvents: CourseEvent[] = [
       "In this lecture, we take a deeper look at memory handling in rust with the stack and the heap. We also investigate the concept of references and how they are used in Rust's Ownership system to manage memory.",
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
+    lnTopics: [
+      "Memory Management",
+      "Ownership",
+      "Borrowing",
+      "Moves",
+    ],
     contentUrl: "/cmsi-3510/ln3",
     recordings: [
       {
@@ -241,6 +254,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture, we see all that functions have to offer in Rust and their unique Ownership management. Everything from associated functions, to closures, and more!",
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
+    lnTopics: [
+      "Functions",
+      "Closures",
+      "Associated Functions",
+      "Higher-Order Functions",
+      "Dynamic Dispatch",
+    ],
     contentUrl: "/cmsi-3510/ln4",
     recordings: [
       {
@@ -258,6 +278,12 @@ const allEvents: CourseEvent[] = [
       "In this lecture we round off our foundational knowledge of Rust itself with structs, traits, and lifetimes. We investigate how they interact with one another to create a memory safe and comprehensive OOP system.",
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
+    lnTopics: [
+      "Structs",
+      "Enums",
+      "Traits",
+      "Standard Library Types",
+    ],
     contentUrl: "/cmsi-3510/ln5",
     recordings: [
       {name: "Class Recording", url: "https://lmula.zoom.us/rec/share/Wpn41QXBcS1AJb_ri-EaGb9yBLnYK1xK9I-D1P4eorinK5A3Qx6mE4AHx7z4ginT.QwooTvEDONIXDZLX"}
@@ -272,6 +298,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture we begin our investigation of concurrent programming by starting from the beginning with a brief history of computer hardware as it relates to the OS and a large picture of how our hardware makes it all the way down to threads. We then investigate how to create threads in Rust and briefly introduce some of the oddities of Concurrent Programming.",
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
+    lnTopics: [
+      "OS History",
+      "Processes",
+      "Threads",
+      "Kernel vs User Threads",
+      "Rust Threading",
+    ],
     contentUrl: "/cmsi-3510/ln6",
     recordings: [
       {
@@ -289,6 +322,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture we sharpen our understanding of threads by investigating parallel and concurrent programming theory. By investigating Partitioning, Communication, Synchronization, and Load Balancing we can identify, summarize, and alleviate the many pitfalls of out of order programming.",
     courseId: "cmsi-3510",
     standard: "Concurrent Programming",
+    lnTopics: [
+      "Sequential vs Concurrent vs Parallel",
+      "Partitioning",
+      "Communication",
+      "Synchronization",
+      "Load Balancing",
+    ],
     contentUrl: "/cmsi-3510/ln7",
     recordings: [
       {
@@ -332,6 +372,14 @@ const allEvents: CourseEvent[] = [
       "In this lecture we begin our deep dive into computer hardware by breaking down the CPU! We will discover ISAs, Registers, ALUs, and more!",
     courseId: "cmsi-3510",
     standard: "CPU",
+    lnTopics: [
+      "CPU Architecture",
+      "ISAs",
+      "Registers",
+      "ALU",
+      "Privilege Rings",
+      "Interrupts",
+    ],
     contentUrl: "/cmsi-3510/ln8",
     recordings: [
       {
@@ -349,6 +397,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture we view the many different, unique yet important perspectives of different portions of the OS and hardware to answer the most important question about our OSs, what is a process?",
     courseId: "cmsi-3510",
     standard: "CPU",
+    lnTopics: [
+      "Process Control Block",
+      "Process Address Space",
+      "Process State",
+      "Inter-Process Communication",
+      "Context Switching",
+    ],
     contentUrl: "/cmsi-3510/ln9",
     recordings: [
       {
@@ -366,6 +421,12 @@ const allEvents: CourseEvent[] = [
       "In this lecture we dive into the intricacies of when and when not to context switch between processes. This problem concerns our users expectations, our processes to complete, and the direct hardware we are using! This is the Scheduling problem!",
     courseId: "cmsi-3510",
     standard: "CPU",
+    lnTopics: [
+      "The Scheduling Problem",
+      "Compute-Bound vs I/O-Bound",
+      "Cooperative vs Preemptive",
+      "System Types",
+    ],
     contentUrl: "/cmsi-3510/ln10",
     recordings: [
       {
@@ -400,6 +461,12 @@ const allEvents: CourseEvent[] = [
       "In this lecture we continue our investigation of scheduling by learning many of the techniques used by Batch, Interactive, and even Real time systems! These include straightforward techniques like using a simple queue (FCFS) all the way to using multi-queue round robin techniques that rely on an internal lottery!",
     courseId: "cmsi-3510",
     standard: "CPU",
+    lnTopics: [
+      "Batch Scheduling",
+      "Interactive Scheduling",
+      "Real-Time Scheduling",
+      "Linux CFS",
+    ],
     contentUrl: "/cmsi-3510/ln11",
     recordings: [
       {
@@ -417,6 +484,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture we spend some time investigating how processes interact with limited resources! Namely, how they interact with them incorrectly to form a new universe of problems referred to as Deadlocking!",
     courseId: "cmsi-3510",
     standard: "CPU",
+    lnTopics: [
+      "Deadlock",
+      "Coffman Conditions",
+      "Resource Allocation Graphs",
+      "Dining Philosophers",
+      "Deadlock Handling",
+    ],
     contentUrl: "/cmsi-3510/ln12",
     recordings: [
       {
@@ -434,6 +508,12 @@ const allEvents: CourseEvent[] = [
       "In this lecture we investigate different memory hardware technologies, how they are used, their advantages, and their disadvantages to set up a foundation for understanding Processes fit into memory. This includes volatility, speed, size, cost, and more!",
     courseId: "cmsi-3510",
     standard: "Memory",
+    lnTopics: [
+      "Volatile Memory",
+      "Non-Volatile Memory",
+      "Memory Hierarchy",
+      "Memory Abstraction Layers",
+    ],
     contentUrl: "/cmsi-3510/ln13",
     recordings: [
       {
@@ -451,6 +531,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture we investigate memory allocation! We begin with studying contiguous memory allocation techniques like fixed and dynamic partitioning. We then use these techniques to investigate the problem of fragmentation and setup the foundation for virtual memory!",
     courseId: "cmsi-3510",
     standard: "Memory",
+    lnTopics: [
+      "Contiguous Allocation",
+      "Fixed Partitioning",
+      "Dynamic Partitioning",
+      "Fragmentation",
+      "Logical vs Physical Addresses",
+    ],
     contentUrl: "/cmsi-3510/ln14",
     recordings: [
       {
@@ -510,6 +597,13 @@ const allEvents: CourseEvent[] = [
       "In this lecture we continue looking into memory allocation. We begin with Virtual Memory and how it is used to create the illusion of infinite memory! We then investigate how this illusion is created, and maintained, by a new non-contiguous allocation technique called paging!",
     courseId: "cmsi-3510",
     standard: "Memory",
+    lnTopics: [
+      "Virtual Memory",
+      "Paging",
+      "Page Faults",
+      "Page Tables",
+      "MMU",
+    ],
     contentUrl: "/cmsi-3510/ln15",
     recordings: [
       {
@@ -527,6 +621,12 @@ const allEvents: CourseEvent[] = [
       "In this lecture we finish our investigation of memory allocation by covering a comprehensive example of paging and seeing some real world examples of how modern systems must adapt the paging technique to work with current hardware and LAS sizes. Lastly, we finish by briefly covering segmentation and how it is used with paging to create our modern systems.",
     courseId: "cmsi-3510",
     standard: "Memory",
+    lnTopics: [
+      "Multi-Level Page Tables",
+      "Page Replacement",
+      "Segmentation",
+      "Paging vs Segmentation",
+    ],
     contentUrl: "/cmsi-3510/ln16",
     recordings: [
       {
@@ -544,9 +644,19 @@ const allEvents: CourseEvent[] = [
       "In this lecture we cover I/O devices! We'll start with a brief history of data transfer standards, cover the major techniques (Block, Character, Network, etc), upgrade our visual model of the hardware, and finish by laying the foundation for the use of direct memory access (DMA) in modern systems!",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
+    lnTopics: [
+      "I/O Devices",
+      "Block vs Character vs Network",
+      "Interrupts vs Polling",
+      "Memory-Mapped I/O",
+      "DMA",
+    ],
     contentUrl: "/cmsi-3510/ln17",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/LmDxRcmMvChFQEbxOBDxacC1_NuKajieQew5p9vX4LOPoghtX8WxmIqVBnaVk0k.0UyByV_1DBVCAnRo"
+      }
     ],
   },
   {
@@ -558,69 +668,97 @@ const allEvents: CourseEvent[] = [
       "In this lecture we cover the software fundamentals of developing I/O systems. We cover the critical software principles we follow, the approaches used to make those ideals real, and then the implementation of those principals on modern systems. We cover device independence, buffering, spooling, and more.",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
+    lnTopics: [
+      "I/O Software Principles",
+      "Device Independence",
+      "Buffering",
+      "Device Drivers",
+    ],
     contentUrl: "/cmsi-3510/ln18",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url:"https://lmula.zoom.us/rec/share/iHk08qktK7VrQ1owI8_D3ND3p_Kt-4G9TwgXTlGZ9gn2VQA3hl51AG-jzmyJW-Wx.oTAdlLsIVgsxQE1N"
+      }
     ],
   },
 
   {
     id: "3510-ln19",
-    title: "LN 19: Intro to Networking",
+    title: "LN 19: Read Between the Lines",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln19"),
     description:
-      "In this lecture we cover the basics of networking!",
+      "In this lecture we deepen our driver story from LN18 and make the boundary lines explicit. We trace a single read() request end to end across user space, kernel space, the driver, and back, examining syscall paths, interrupt context, deferred work, and why driver code is uniquely dangerous.",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
+    lnTopics: [
+      "Kernel Space vs User Space",
+      "Syscalls and Traps",
+      "Driver Dispatch",
+      "Interrupt Context",
+      "Deferred Work",
+    ],
     contentUrl: "/cmsi-3510/ln19",
     recordings: [],
   },
   {
     id: "3510-ln20",
-    title: "LN 20: Routing Traffic",
+    title: "LN 20: Pipe Dreams",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln20"),
     description:
-      "In this lecture we networking hardware and the magic of routing!",
+      "In this lecture we turn communication into the central lens. We investigate how isolated processes communicate without breaking the OS's protection model, exploring pipes, signals, message queues, shared memory, and Unix domain sockets as a spectrum of IPC tradeoffs.",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
+    lnTopics: [
+      "IPC",
+      "Pipes and FIFOs",
+      "Signals",
+      "Message Queues",
+      "Shared Memory",
+      "Unix Domain Sockets",
+    ],
     contentUrl: "/cmsi-3510/ln20",
     recordings: [],
   },
   {
     id: "3510-ln21",
-    title: "LN 21: Hard Software and Soft Hardware",
+    title: "LN 21: Lost in Transmission",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln21"),
     description:
-      "In this lecture we become familiarized with Oracle's VirtualBox and how it can be used to create a virtual machine and run an operating system! Additionally, we use it to run Ubuntu and play with I/O devices!",
+      "In this lecture we explore what changes when communication leaves the machine. We treat the NIC as an I/O device, explain why packets exist as discrete metadata-rich transfer units, introduce addressing and forwarding, and trace the send and receive paths through the kernel's network stack.",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
-    contentUrl: "/cmsi-3510/ln21",
-    recordings: [
-      {
-        name: "Class Video",
-        url: "https://lmula.zoom.us/rec/share/AQH6s0E3M-triNORwwmxmsQFWFbGVj-_DKBI3eNLgL_Fe4SNQuDYOPg3UguTksuN.E2FnLwzgWD77V9lX",
-      },
+    lnTopics: [
+      "Network Interface Cards",
+      "Packets and Frames",
+      "MAC and IP Addressing",
+      "Protocol Layering",
+      "Send and Receive Paths",
     ],
+    contentUrl: "/cmsi-3510/ln21",
+    recordings: [],
   },
   {
     id: "3510-ln22",
-    title: "LN 22: The Kernel of Truth",
+    title: "LN 22: It's Not Socket Science",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln22"),
     description:
-      "In this lecture we continue our use of VirtualBox to download the Linux kernel, explore the source code, and build it from scratch!",
+      "In this lecture we discover how the OS turns raw packet movement into something applications can program against. We cover sockets as kernel-managed endpoints, port-based multiplexing, UDP and TCP as contrasting transport contracts, and blocking versus readiness-based waiting models.",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
-    contentUrl: "/cmsi-3510/ln22",
-    recordings: [
-      {
-        name: "Class Video",
-        url: "https://lmula.zoom.us/rec/share/alFosoID7Pv3iJwTbbmRPmLf6G9vXqW7Zyb287lp7mJk5wcn-gVrW5D_Py8o5eLS.5bDZ22t4RiV2Py2Z",
-      },
+    lnTopics: [
+      "Sockets and Endpoints",
+      "Ports and Multiplexing",
+      "UDP",
+      "TCP",
+      "Blocking and Nonblocking I/O",
     ],
+    contentUrl: "/cmsi-3510/ln22",
+    recordings: [],
   },
   {
     id: "3510-hw3",
@@ -670,21 +808,35 @@ const allEvents: CourseEvent[] = [
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln23"),
     description:
-      "In this lecture we cover Linux architecturally using the framework we developed in previous lectures!",
+      "In this lecture we stop speaking in pure abstraction and inspect a real operating system. We trace two end-to-end Linux walkthroughs, one device-oriented and one network-oriented, and use /proc, /sys, /dev, strace, dmesg, ip, and ss to recognize the semester's abstractions in a living system.",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
+    lnTopics: [
+      "Linux Walkthroughs",
+      "VFS and Device Nodes",
+      "/proc, /sys, /dev",
+      "Syscall Tracing",
+      "Observability Tools",
+    ],
     contentUrl: "/cmsi-3510/ln23",
     recordings: [],
   },
   {
     id: "3510-ln24",
-    title: "LN 24: The WAN Show",
+    title: "LN 24: C You Later!",
     type: "lecture",
     date: schedule.getNextRecurringDate("3510-ln24"),
     description:
-      "In this lecture we continue covering Linux architecturally!",
+      "In this final lecture we connect the semester's Rust foundation to real systems development. We examine the bug classes that make kernel work dangerous, what Rust prevents and what it does not, how small kernel-space contributions work in practice, and the safe experimentation workflow that makes participation possible.",
     courseId: "cmsi-3510",
     standard: "I/O and Networking",
+    lnTopics: [
+      "Memory Safety",
+      "Rust for Linux",
+      "Kernel Modules",
+      "Safe Contribution",
+      "Systems Engineering Workflow",
+    ],
     contentUrl: "/cmsi-3510/ln24",
     recordings: [],
   },

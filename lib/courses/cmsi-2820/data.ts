@@ -726,7 +726,10 @@ const allEvents: CourseEvent[] = [
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln20",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/CKYTw2ASlUXw9D8WpwFt2pcS_k0RR3nkbkOQcxFEbyc25naS0qBVFSQ5LT9bagV6.SU9z9KiTmtyFxH8s"
+      }
     ],
   },
   {
@@ -740,7 +743,10 @@ const allEvents: CourseEvent[] = [
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln21",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/klrdLBzdOym01LOyCg4e4-LtdY2eqIbfI4CFAfytSQctzeo0uDxgWVJKQwKvsx6B.knT2HWvDZnPlybUP"
+      }
     ],
   },
   {
