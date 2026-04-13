@@ -12,7 +12,7 @@ type NodeId =
   | "sleep" | "device"
   | "interrupt" | "deferred" | "wake" | "bytes"
 
-type Phase = 0 | 1 | 2 | 3 | 4 | 5
+type Phase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
 type VisualState = "active" | "done" | "dimmed" | "dormant"
 
 interface NodeDef {
@@ -68,7 +68,15 @@ function nodeState(id: NodeId, phase: Phase): VisualState {
       if (id === "read" || id === "trap" || id === "dispatch" || id === "hardware") return "done"
       return "dimmed"
     case 5:
-      if (id === "interrupt" || id === "deferred" || id === "wake" || id === "bytes") return "active"
+      if (id === "interrupt" || id === "device") return "active"
+      if (id === "read" || id === "trap" || id === "dispatch" || id === "hardware" || id === "sleep") return "done"
+      return "dimmed"
+    case 6:
+      if (id === "deferred" || id === "wake") return "active"
+      if (id === "read" || id === "trap" || id === "dispatch" || id === "hardware" || id === "device" || id === "sleep" || id === "interrupt") return "done"
+      return "dimmed"
+    case 7:
+      if (id === "bytes") return "active"
       return "done"
     default:
       return "dimmed"
@@ -88,9 +96,9 @@ const edges: EdgeDef[] = [
   { d: "M 270 337 L 270 375",               phase: 4, fork: "sleep" },
   { d: "M 270 337 Q 370 375 430 375",       phase: 4, fork: "device" },
   { d: "M 430 375 L 430 337",               phase: 5 },
-  { d: "M 494 318 Q 580 318 580 253",       phase: 5 },
-  { d: "M 580 215 L 580 163",               phase: 5 },
-  { d: "M 580 125 L 580 61",                phase: 5 },
+  { d: "M 494 318 Q 580 318 580 253",       phase: 6 },
+  { d: "M 580 215 L 580 163",               phase: 6 },
+  { d: "M 580 125 L 580 61",                phase: 7 },
 ]
 
 function edgeState(e: EdgeDef, phase: Phase): VisualState {
@@ -109,7 +117,9 @@ const phaseInfo: { title: string; desc: string }[] = [
   { title: "Dispatch",            desc: "The kernel consults file descriptor tables and driver registrations to route the generic read() to the correct device driver." },
   { title: "Hardware Interface",  desc: "The driver's .read() runs at the deepest privilege level — reading status registers, writing commands, programming the device." },
   { title: "The Fork",            desc: "The process goes to sleep and the device runs on its own clock. Two timelines that were traveling together split apart." },
-  { title: "The Return",          desc: "The device fires an interrupt. Deferred work bridges execution contexts, the process wakes, and bytes cross back into user space." },
+  { title: "The Interrupt",       desc: "The device fires an interrupt — on its schedule, not ours. The interrupt handler runs in a different execution context with severe restrictions: no sleeping, no user-buffer access, must be fast." },
+  { title: "Deferred Work & Wake", desc: "Deferred work bridges the gap from interrupt context back to process context. The bottom half completes the transfer, wakes the sleeping process, and restores its execution environment." },
+  { title: "The Complete Path",   desc: "The full U-bend in one view. The process called read(), descended into the kernel, reached hardware, forked into independent timelines, and reassembled through interrupt, deferred work, and wake — returning bytes to user space." },
 ]
 
 function edgeStroke(state: VisualState, fork?: "sleep" | "device"): string {
@@ -187,7 +197,7 @@ function UBendSVG({ phase }: { phase: Phase }) {
       </text>
 
       {/* Fork zone indicator */}
-      {(phase === 0 || phase === 4 || phase === 5) && (
+      {(phase === 0 || phase === 4 || phase === 5 || phase === 7) && (
         <g>
           <rect x={200} y={366} width={300} height={46} rx={8}
             className={cn(
@@ -227,10 +237,10 @@ function UBendSVG({ phase }: { phase: Phase }) {
           )}
         />
       )}
-      {(phase === 0 || phase === 5) && (
+      {(phase === 0 || phase === 7) && (
         <circle cx={580} cy={BOUNDARY_Y} r={4}
           className={cn("transition-all duration-300",
-            phase === 5 ? "fill-yellow-500" : "fill-yellow-500/30"
+            phase === 7 ? "fill-yellow-500" : "fill-yellow-500/30"
           )}
         />
       )}
@@ -259,7 +269,7 @@ function UBendSVG({ phase }: { phase: Phase }) {
             subCls = "fill-muted-foreground/30"
             break
           case "dormant":
-            rectCls = "fill-red-500/8 stroke-red-500/25 stroke-1"
+            rectCls = "fill-red-500/10 stroke-red-500/25 stroke-1"
             labelCls = "fill-red-500/40 dark:fill-red-400/40 font-medium"
             subCls = "fill-red-500/25"
             break
@@ -301,15 +311,15 @@ function UBendSVG({ phase }: { phase: Phase }) {
       })}
 
       {/* Interrupt lightning bolt (phase 5) */}
-      {phase === 5 && (
+      {(phase === 5 || phase === 6) && (
         <text x={430} y={295} textAnchor="middle"
-          className="fill-amber-500 animate-pulse font-bold" fontSize={14}>
+          className={cn("font-bold", phase === 5 ? "fill-amber-500 animate-pulse" : "fill-amber-500/30")} fontSize={14}>
           ⚡
         </text>
       )}
 
-      {/* Process wakes label (phase 5) */}
-      {phase === 5 && (
+      {/* Process wakes label (phase 6) */}
+      {(phase === 6 || phase === 7) && (
         <text x={270} y={414} textAnchor="middle"
           className="fill-blue-500/50 dark:fill-blue-400/40" fontSize={7}>
           blocked → ready
@@ -328,7 +338,7 @@ export function UBendStepper({ className }: { className?: string }) {
       <div className="px-4 py-3 bg-muted/50 border-b flex items-center justify-between">
         <h4 className="text-sm font-semibold">{info.title}</h4>
         <span className="text-xs text-muted-foreground font-mono">
-          {phase === 0 ? "Overview" : `Phase ${phase} of 5`}
+          {phase === 0 ? "Overview" : `Phase ${phase} of 7`}
         </span>
       </div>
       <div className="p-4">
@@ -349,8 +359,8 @@ export function UBendStepper({ className }: { className?: string }) {
             Reset
           </button>
           <button
-            onClick={() => setPhase(Math.min(5, phase + 1) as Phase)}
-            disabled={phase === 5}
+            onClick={() => setPhase(Math.min(7, phase + 1) as Phase)}
+            disabled={phase === 7}
             className="px-3 py-1 rounded border text-sm font-medium disabled:opacity-30 hover:bg-muted transition-colors"
           >
             Next
@@ -361,7 +371,7 @@ export function UBendStepper({ className }: { className?: string }) {
   )
 }
 
-export function UBendDiagram({ phase, className }: { phase: 1 | 2 | 3 | 4 | 5; className?: string }) {
+export function UBendDiagram({ phase, className }: { phase: 1 | 2 | 3 | 4 | 5 | 6 | 7; className?: string }) {
   return (
     <div className={cn("my-6", className)}>
       <UBendSVG phase={phase} />

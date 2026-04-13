@@ -347,6 +347,8 @@ The interrupt could arrive while *any* process is running — or while the kerne
 
 ### Deferred Work: Bridging the Gap
 
+<UBendDiagram phase={6} />
+
 <DefinitionBox term="Deferred Work">
 
 **Deferred work** splits interrupt handling into two parts: a small urgent portion that runs in interrupt context, and a later portion that runs where sleeping and user-buffer access are safe.
@@ -362,6 +364,26 @@ The "later" in bottom half is not vague. It has a specific target: **the moment 
 
 > **💡 Key Insight:** Deferred work is not just "doing less in the interrupt handler." It is the kernel's strategy for moving execution from a context that lacks process identity back to one that has it — so the job can be completed with the right address space, the right credentials, and the right sleeping permissions.
 
+### Where Does the Bottom Half Run?
+
+A natural question: if the bottom half does not run in interrupt context and the sleeping process has not woken up yet, then *who* runs it and *where*?
+
+The bottom half is **not** a new process. Creating a process is far too expensive for something that happens on every device completion. It is also **not** code that gets passed to the sleeping process to run when it wakes — the sleeping process is still asleep when the bottom half executes.
+
+Instead, the kernel provides lightweight mechanisms specifically designed for this kind of schedulable-but-not-a-process work:
+
+| Mechanism | Where It Runs | Can It Sleep? | Typical Use |
+| :--- | :--- | :--- | :--- |
+| **Softirqs** | Right after interrupt handlers return, in kernel context with interrupts re-enabled | No | High-frequency, performance-critical work (networking, block I/O) |
+| **Tasklets** | Built on softirqs — a lighter-weight callback interface | No | Per-device interrupt completion |
+| **Workqueues** | In the context of a kernel worker thread managed by the kernel itself | Yes | Work that may need to sleep (e.g., allocating memory, taking sleeping locks) |
+
+The important pattern is the same across all three: the interrupt handler **schedules** the bottom half (think of it as leaving a note that says "run this function when you can"), and the kernel runs it shortly after — in a context that is safer than interrupt context but is still kernel infrastructure, not the original process.
+
+The bottom half does the bookkeeping: it records that data is ready, possibly moves data from device buffers into kernel buffers, and then **wakes the sleeping process** by marking it as ready in the scheduler. Only after the scheduler dispatches the process does the original code path resume. The process never "runs" the deferred work — it just benefits from the state the deferred work set up.
+
+> **📌 Key Point:** The bottom half is the bridge between the two forked timelines of the U-bend. It runs in kernel space on behalf of the system, not on behalf of any particular process. Only after it finishes its work and wakes the sleeping process do the two paths rejoin into a single flow again.
+
 ### The Process Wakes
 
 Once deferred work runs and the completion is recorded:
@@ -376,6 +398,8 @@ Once deferred work runs and the completion is recorded:
 The U-bend is complete. The process experienced one continuous call. The system experienced at least two different execution contexts, with other work interleaved in between, and a hardware event arriving on a completely separate timeline.
 
 > **📌 Key Point:** The hardest part of driver development is not programming hardware registers correctly. It is preserving one coherent process-facing story across multiple execution contexts and multiple moments in time.
+
+<UBendStepper />
 
 ---
 
