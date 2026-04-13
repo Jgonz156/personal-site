@@ -1,5 +1,15 @@
 import { LectureNotes, LectureResources } from "@/components/lecture-sections"
 import { DefinitionBox } from "@/components/interactive-example"
+import { LayerFocusDiagram } from "@/components/layer-focus-diagram"
+import { PacketVsConversationDiagram } from "@/components/packet-vs-conversation-diagram"
+import { SocketNarrowWaistDiagram } from "@/components/socket-narrow-waist-diagram"
+import { HostMultiplexingDiagram } from "@/components/host-multiplexing-diagram"
+import { PortAcceptStepper } from "@/components/port-accept-stepper"
+import { UDPContractDiagram } from "@/components/udp-contract-diagram"
+import { UDPTCPComparisonDiagram } from "@/components/udp-tcp-comparison-diagram"
+import { WaitingModelTimeline } from "@/components/waiting-model-timeline"
+import { AbstractionCompressionDiagram } from "@/components/abstraction-compression-diagram"
+import { ProtocolLandscapeDiagram } from "@/components/protocol-landscape-diagram"
 
 ## Recap — From Packet Paths to Programmable Conversations
 
@@ -35,15 +45,7 @@ Programs usually do not want to think in terms of individual packets. They want 
 
 Last lecture we introduced the standard layering model that divides network communication into cooperating layers. We covered the bottom of the stack — link-layer framing, network-layer addressing and routing, and the physical I/O path through the NIC. Today we move one row up.
 
-{/* LAYER MODEL STATIC VISUAL: The TCP/IP layer stack from LN21, displayed vertically.
-    Rows from bottom to top: Physical (folded into Link), Link, Network, Transport, Application.
-    The Link and Network rows should appear filled-in / solid — these were covered in LN21.
-    The Transport row should be highlighted, glowing, or outlined in an accent color
-    with a label: "Today's lecture."
-    The Application row should be dimmed or shown as a dashed outline —
-    it sits above transport but is not the focus of this lecture.
-    This visual should be compact (not a full-page diagram) and serve as a
-    quick orientation: "you are here in the stack." */}
+<LayerFocusDiagram />
 
 | Layer | Status |
 | :--- | :--- |
@@ -70,14 +72,7 @@ To keep today's lecture concrete, we will follow one tiny client/server conversa
 
 This example is intentionally small. The point is not to design an application-layer protocol. The point is to watch the OS answer a series of abstraction questions as the example evolves: how does the client name the server? How does the host know which program should receive incoming data? What guarantees does the program want from the transport? And what should the program do while it waits for a reply?
 
-{/* PACKET VIEW VS CONVERSATION VIEW: Two synchronized panels.
-    Left panel: raw packet motion across a network with multiple packet boxes,
-    headers, possible reordering, and timing gaps.
-    Right panel: one simple client/server exchange labeled request -> reply.
-    The left side should feel mechanically busy. The right side should feel
-    like what a programmer actually wants to think about.
-    Animation: as several packets move on the left, the right side keeps the
-    single higher-level intent visible: "client asks", "server answers." */}
+<PacketVsConversationDiagram />
 
 ### Why This Is an OS Lecture
 
@@ -149,14 +144,7 @@ Once a socket exists, the program interacts with it through a small vocabulary. 
 | `recv()` / `read()` | Pull data from the kernel's receive path |
 | `close()` | Release the endpoint and its kernel state |
 
-{/* SOCKET ABSTRACTION VISUAL: Vertical layered diagram.
-    Application at the top calls send/recv on a socket handle.
-    Below that: socket object in the kernel.
-    Below that: transport logic.
-    Below that: packet path from LN21.
-    The visual should emphasize compression: a tiny API at the top resting on
-    a much wider and more complicated stack below.
-    Label the socket as the "narrow waist" that the program actually sees. */}
+<SocketNarrowWaistDiagram />
 
 ### The Big Idea
 
@@ -204,12 +192,7 @@ In the temperature-service example, the server binds to a known port such as `40
 
 This is why a server can serve many clients at once without confusion. Each conversation has a distinct endpoint identity. The server does not need to guess which client sent which request — the transport layer has already labeled everything.
 
-{/* HOST MULTIPLEXING VISUAL: One machine with one NIC and one IP address.
-    Inside the host are many sockets, each with a labeled local port.
-    Incoming arrows arrive at the machine, then fan inward to different sockets.
-    Outgoing arrows originate from many sockets and merge onto one interface.
-    The visual should make the host feel like a switchboard operator:
-    one external face, many internal conversations. */}
+<HostMultiplexingDiagram />
 
 ### Well-Known Ports and the Discovery Problem
 
@@ -228,43 +211,7 @@ The original listening socket on port `80` is still there, still waiting for the
 
 The well-known port is the address on the building. The 4-tuple is the specific meeting room inside. The front door (`listen` + `accept`) keeps creating new rooms as clients arrive, so the building never runs out of space for conversations.
 
-{/* WELL-KNOWN PORT ANIMATION:
-    Layout: Two machines — a Client (left) and a Server (right).
-    The server shows a vertical column of port slots. Port 80 is highlighted
-    and labeled "listening" with a door icon or open-gate metaphor.
-    The client shows its own column of port slots, mostly empty.
-
-    Phase 1 — Discovery:
-      Client wants to reach the HTTP server. It knows the well-known port: 80.
-      An arrow reaches from the client toward port 80 on the server.
-      The client's OS assigns an ephemeral port (e.g., 53014) automatically.
-      Label appears: 4-tuple (192.168.1.10:53014 ↔ 203.0.113.10:80).
-
-    Phase 2 — accept() creates a new socket:
-      The server's port 80 "listening" socket remains in place (still glowing).
-      A NEW socket appears on the server, labeled with the full 4-tuple.
-      The arrow from the client now connects to this new socket, NOT directly
-      to port 80's listener. Port 80 is free to accept again.
-
-    Phase 3 — Second client arrives:
-      A second client (different IP or different ephemeral port) sends a
-      connection request to port 80.
-      accept() fires again. Another new socket appears on the server with
-      a DIFFERENT 4-tuple.
-      Now the server has two active conversations plus the still-listening
-      port 80 socket.
-
-    Phase 4 — Many clients:
-      Several more clients connect. The server accumulates many active sockets,
-      each with a unique 4-tuple. Port 80's listener is always available.
-      The visual should make it clear: the well-known port is the rendezvous
-      point for discovery. The 4-tuple is the identity of the actual conversation.
-
-    Key visual cues:
-      - The listening socket stays visually distinct (a door, a gate, a beacon).
-      - Each accepted socket is a separate object with its own 4-tuple label.
-      - Ephemeral ports on the client side should look temporary / auto-assigned.
-      - The server's port 80 never "fills up" — it just keeps spawning new sockets. */}
+<PortAcceptStepper />
 
 > **📌 Key Point:** Well-known ports solve the **discovery** problem — how does the client know where to knock? The 4-tuple solves the **multiplexing** problem — how does the server handle many clients at once? They are complementary, not contradictory. The well-known port gets you to the front door; `accept()` gives you your own room.
 
@@ -360,11 +307,7 @@ The kernel still does meaningful work here. It manages the socket object, attach
 
 UDP is attractive when the application wants low latency more than perfect reliability, when it already has its own recovery or timing strategy, when losing an old message is better than stalling for retransmission, or when preserved message boundaries are a more natural fit than a byte stream. DNS queries, voice and video traffic, multiplayer games, and custom control protocols all use UDP because the overhead of stronger guarantees would hurt more than it helps.
 
-{/* UDP CONTRACT VISUAL: Same temperature-service example shown with a lightweight path.
-    Small datagram blocks go from client to server and back.
-    Guarantees panel shows only a few boxes checked: ports, checksums, boundaries.
-    Unchecked boxes: reliability, ordering, retransmission, connection state.
-    The diagram should feel fast and low-ceremony. */}
+<UDPContractDiagram />
 
 ---
 
@@ -451,16 +394,13 @@ That means any application that needs message boundaries on top of TCP must defi
 
 The most important conceptual point about TCP is not memorizing its flags or state diagram. It is seeing what the handshake accomplishes at a systems level: both endpoints agree that a conversation exists, both sides begin tracking sequence numbers, and acknowledgments and retransmissions become meaningful. Once the handshake completes, the kernel can maintain a durable transport relationship across many packets. That shared state is what makes reliability, ordering, and flow control possible — and it is also the source of TCP's higher cost.
 
-{/* UDP VS TCP CONTRACT COMPARISON: Same client/server example rendered twice.
-    Left side (UDP): one datagram out, one datagram back, sparse state.
-    Right side (TCP): handshake first, then stream data, acknowledgments,
-    retransmission possibility, and receiver window / flow-control cues.
-    The guarantee panel should compare the two as contracts, not as winners.
-    Use phrasing like "minimal contract" versus "stateful contract." */}
+<UDPTCPComparisonDiagram />
 
 ### Protocol Design Is a General Systems Problem
 
 UDP and TCP are not the only protocols that face these tradeoffs. The design space — how much metadata to attach, what guarantees to offer, how to multiplex many conversations over a shared medium — recurs everywhere in systems engineering. USB has a layered protocol with device enumeration (analogous to a connection handshake), multiple endpoint types with different guarantee profiles (control, bulk, interrupt, and isochronous transfers — roughly paralleling the spectrum from TCP-like reliability to UDP-like low-latency delivery), and host-level multiplexing across many devices sharing one bus. PCIe has its own transaction layer, data link layer, and physical layer — a layered model strikingly similar to the network stack.
+
+<ProtocolLandscapeDiagram />
 
 > **💡 Connection to LN17/LN18:** The device protocols we studied in the I/O lectures face the same fundamental questions as network transport: what metadata does each transfer carry, what delivery guarantees does the protocol provide, and how does the system multiplex many conversations over shared hardware? Protocol design is not unique to networking — it is a universal systems problem, and once you understand UDP and TCP, you already have the vocabulary to reason about any protocol you encounter.
 
@@ -548,14 +488,7 @@ poll.poll(&mut events, None)?;
 
 The specific API is less important than the design progression. Blocking is simple but handles only one conversation at a time. Nonblocking exposes "not ready yet" to the program so it can keep running. Readiness APIs let one process manage many conversations efficiently by consolidating the waiting into a single kernel call.
 
-{/* WAITING-MODEL TIMELINE: Three horizontal timelines for one process.
-    Row 1: Blocking socket — process sleeps on one call until data arrives.
-    Row 2: Nonblocking socket — process keeps running, repeatedly encountering
-    "would block" until data becomes available.
-    Row 3: Readiness model — process waits once on the kernel for any of many
-    sockets to become ready, then services the ready ones.
-    The visual should tie back to scheduling and wakeup rather than feeling like
-    a pure networking artifact. */}
+<WaitingModelTimeline />
 
 ### Why This Matters
 
@@ -599,12 +532,7 @@ No abstraction hides everything. Socket programming still exposes some of the di
 
 > **🤔 Abstraction Test:** A good OS abstraction does not make complexity disappear. It moves complexity to the layer best positioned to manage it. Sockets succeed because the kernel is much better positioned than each application to manage transport state and host-level delivery.
 
-{/* ABSTRACTION COMPRESSION VISUAL: Three stacked views of the same conversation.
-    Top: Application view — "client asks", "server replies".
-    Middle: Socket/transport view — endpoints, ports, connection state, readiness.
-    Bottom: Packet/path view — headers, packets, hops, NICs, DMA, interrupts.
-    The middle layer should look like a compression of the bottom layer and a
-    support beam for the top layer. */}
+<AbstractionCompressionDiagram />
 
 ### The Broader Lesson
 

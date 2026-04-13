@@ -41,14 +41,24 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     li: ({ children }) => <li className="leading-7">{children}</li>,
 
-    // Code blocks
-    code: ({ children }) => (
-      <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">
-        {children}
-      </code>
-    ),
-    pre: ({ children }) => (
-      <pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-4 border">
+    // Code blocks — preserve hljs/language-* classes from rehype-highlight
+    code: ({ children, className, ...props }) => {
+      const isHighlighted = typeof className === "string" && /hljs|language-/.test(className)
+      return (
+        <code
+          className={
+            isHighlighted
+              ? `${className} text-sm font-mono`
+              : "bg-muted px-1.5 py-0.5 rounded text-sm font-mono"
+          }
+          {...props}
+        >
+          {children}
+        </code>
+      )
+    },
+    pre: ({ children, ...props }) => (
+      <pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-4 border" {...props}>
         {children}
       </pre>
     ),

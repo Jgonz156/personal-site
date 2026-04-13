@@ -1,5 +1,12 @@
 import { LectureNotes, LectureResources } from "@/components/lecture-sections"
 import { DefinitionBox } from "@/components/interactive-example"
+import { IPCDesignMap } from "@/components/ipc-design-map"
+import { PipeFlowDiagram } from "@/components/pipe-flow-diagram"
+import { FIFOFlowDiagram } from "@/components/fifo-flow-diagram"
+import { SignalDeliveryDiagram } from "@/components/signal-delivery-diagram"
+import { MessageQueueDiagram } from "@/components/message-queue-diagram"
+import { SharedMemoryDiagram } from "@/components/shared-memory-diagram"
+import { SocketComparisonDiagram } from "@/components/socket-comparison-diagram"
 
 ## Recap — The Kernel as Mediator
 
@@ -79,13 +86,7 @@ All IPC mechanisms solve the same fundamental problem: moving information betwee
 | **Coordination** | Kernel handles blocking and wakeup | Processes must synchronize themselves |
 | **Persistence** | Exists only while processes run | Outlives the creating process |
 
-{/* IPC DESIGN-SPACE MAP: Interactive visual placing each mechanism on these axes.
-    Pipes: copy, stream, unidirectional, anonymous, kernel-coordinated, transient.
-    FIFOs: copy, stream, unidirectional, named, kernel-coordinated, persistent.
-    Signals: notify (almost no data), unidirectional, named by PID, kernel-delivered, transient.
-    Message queues: copy, messages, bidirectional, named, kernel-coordinated, persistent.
-    Shared memory: share, unstructured, bidirectional, named, process-coordinated, persistent.
-    Unix domain sockets: copy, stream or message, bidirectional, named, kernel-coordinated, persistent. */}
+<IPCDesignMap />
 
 No mechanism wins on every axis. The lecture that follows is not a ranked list — it is a tour of design tradeoffs, from the simplest and most constrained mechanism to the most flexible and network-like. Each mechanism survives because it occupies a niche where its particular tradeoffs are exactly what the problem requires.
 
@@ -103,12 +104,7 @@ A **pipe** is a unidirectional, anonymous, kernel-buffered byte stream connectin
 
 </DefinitionBox>
 
-{/* PIPE VISUAL: Two process boxes connected by a single one-way arrow.
-    Between them sits a small kernel buffer (a rectangular region with a few byte-slots).
-    The visual should feel almost trivially simple — minimal ceremony.
-    The arrow goes strictly one direction. The kernel buffer is the only structure.
-    Animation: bytes flow from writer into the buffer, then from buffer to reader.
-    When the buffer fills, the writer dims (blocked). When it empties, the reader dims. */}
+<PipeFlowDiagram />
 
 ### How a Pipe Works
 
@@ -187,13 +183,7 @@ A **FIFO** (First In, First Out) is a named, unidirectional, kernel-buffered byt
 
 </DefinitionBox>
 
-{/* FIFO VISUAL: Multiple process boxes that are NOT connected by parentage lines.
-    They are visually separated — different colors, no fork arrows, scattered in space.
-    In the center sits a filesystem path label ("/tmp/sensor_pipe") acting as rendezvous.
-    Arrows converge on the named path from different, unrelated sources.
-    The visual should feel more disconnected than the pipe diagram — the processes
-    found each other through a name, not through a family tree.
-    Animation: bytes from various writers flow through the named path to the reader. */}
+<FIFOFlowDiagram />
 
 ### Using a FIFO
 
@@ -257,13 +247,7 @@ A **signal** is a software notification delivered by the kernel to a process. It
 
 </DefinitionBox>
 
-{/* SIGNAL VISUAL: Multiple process boxes scattered in space — no channels, no buffers,
-    no structure connecting them. Small colored dots fly between processes (or from kernel
-    to process). Each dot is labeled with a signal name (SIGINT, SIGTERM, etc.).
-    The visual should feel sparse and fast — no managed infrastructure, just point-to-point
-    pings flying through space. This contrasts sharply with the pipe/FIFO diagrams,
-    which have visible kernel buffers. Signals have no persistent mechanism at all.
-    Animation: dots appear, fly to their target process, and trigger a flash on arrival. */}
+<SignalDeliveryDiagram />
 
 ### Signals Are Enums
 
@@ -377,14 +361,7 @@ A **message queue** is a kernel-managed IPC mechanism that stores discrete messa
 
 </DefinitionBox>
 
-{/* MESSAGE QUEUE VISUAL: Two process boxes with a visible managed structure between them.
-    The structure is a queue with discrete boxes/slots — each slot holds one labeled message.
-    The kernel is visibly involved: a "kernel" region wraps the queue structure.
-    Message boundaries are drawn explicitly (each message is a separate colored block).
-    This diagram should feel noticeably more "busy" than pipes — there is real infrastructure
-    managing the messages. Headers, types, and slot boundaries are visible.
-    Animation: discrete messages enter the queue from the sender, sit in their slots,
-    and are pulled out intact by the receiver. Messages never merge or split. */}
+<MessageQueueDiagram />
 
 ### Streams vs Messages
 
@@ -465,14 +442,7 @@ Shared memory eliminates the copies by letting two processes map the same physic
 
 </DefinitionBox>
 
-{/* SHARED MEMORY VISUAL: Two process boxes whose memory regions literally overlap.
-    A highlighted zone labeled "shared region" sits where both address spaces meet.
-    Inside the shared zone: no kernel buffer, no managed infrastructure — just raw memory.
-    A dashed boundary or warning icon in the shared zone signals "you're on your own."
-    The visual should feel noticeably different from all previous diagrams: there is
-    no kernel mediation visible in the data path. The absence of structure IS the point.
-    Animation: both processes read/write the same cells. Without synchronization,
-    concurrent writes produce garbled values (shown as flickering or conflicting colors). */}
+<SharedMemoryDiagram />
 
 ### The Tradeoff
 
@@ -547,15 +517,7 @@ A **Unix domain socket** is a bidirectional IPC endpoint identified by a filesys
 
 </DefinitionBox>
 
-{/* UNIX DOMAIN SOCKET VISUAL: Full bidirectional connection with the socket API ceremony
-    visible (socket, bind, listen, accept, connect labels along the path).
-    The most complex diagram so far — the most "ceremony" and infrastructure.
-    Two variants side by side:
-    Variant A: AF_UNIX — both processes on one machine, connected through a kernel buffer.
-    Variant B: AF_INET — same two processes, same API calls, but now on different machines
-    connected through a network. The visual structure is IDENTICAL except for the
-    address family label and the wire between the machines.
-    The point: the programming model did not change. Only the deployment did. */}
+<SocketComparisonDiagram />
 
 ### The Socket API — Locally
 

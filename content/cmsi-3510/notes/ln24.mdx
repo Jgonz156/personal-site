@@ -1,5 +1,9 @@
 import { LectureNotes, LectureResources } from "@/components/lecture-sections"
 import { DefinitionBox } from "@/components/interactive-example"
+import { BlastRadiusDiagram } from "@/components/blast-radius-diagram"
+import { BugClassMap } from "@/components/bug-class-map"
+import { ScopeLadderDiagram } from "@/components/scope-ladder-diagram"
+import { DevLoopStepper } from "@/components/dev-loop-stepper"
 
 ## Recap — From Recognition to Participation
 
@@ -54,14 +58,7 @@ The core insight is an asymmetry. In user space, the OS limits the blast radius 
 | User space | The kernel (signals, segfaults, OOM killer) | One process |
 | Kernel space | Nothing — the hardware faults or the kernel panics | The entire machine |
 
-{/* RISK MAP: A visual showing concentric zones radiating outward from hardware at the center.
-    Innermost zone: hardware registers — a bad write can physically misconfigure a device.
-    Next zone: kernel data structures — corruption affects all processes.
-    Next zone: driver code — bugs crash the kernel or create security holes.
-    Outer zone: user space — bugs are contained to one process.
-    The visual should make the expanding blast radius feel visceral.
-    As you move inward, the color shifts from safe (cool) to dangerous (hot).
-    Labels connect each zone to the course concept that governs it. */}
+<BlastRadiusDiagram />
 
 This asymmetry is why the language you use in kernel space matters far more than the language you use in a web application. A memory-safety bug in a REST API handler might leak some data or crash a server process that gets restarted automatically. The same category of bug in a kernel driver can take down every process on the machine, corrupt the filesystem, or open a privilege-escalation vulnerability that compromises the entire system.
 
@@ -133,23 +130,15 @@ Every one of these bug classes involves **memory**: accessing it after it is gon
 
 This distinction matters because it defines what a programming language can realistically prevent.
 
-{/* BUG CLASS MAP: A visual organizing the five bug classes around a central "memory safety" concept.
-    Each bug class connects outward to the kind of kernel damage it can cause:
-    - use-after-free → data structure corruption, privilege escalation
-    - double free → allocator corruption, overlapping allocations
-    - buffer overrun → adjacent memory corruption, code execution attacks
-    - data race → inconsistent state, intermittent failures
-    - invalid dereference → silent wrong-data access or kernel panic
-    The visual should make it clear that all five converge on the same root cause:
-    unsupervised memory access in a language that trusts the programmer completely. */}
+<BugClassMap />
 
 ### These Are Not Hypothetical
 
 These bug classes are not textbook curiosities. They are the dominant source of real-world systems vulnerabilities, and they are being found and fixed *right now* in active projects.
 
-The **uutils/coreutils** project — a complete rewrite of GNU coreutils in Rust — has been systematically discovering and eliminating these bugs as it reimplements tools like `dd`, `cp`, `sort`, and `ls`. The GNU C originals of these tools have been maintained for decades by expert programmers, and they still contain buffer-handling bugs, partial-write errors, and edge cases that the Rust type system catches at compile time. As of 2026, Ubuntu has adopted the Rust coreutils in place of the GNU versions, starting with Ubuntu 25.10.
+The **[uutils/coreutils](https://github.com/uutils/coreutils)** project — a complete rewrite of GNU coreutils in Rust — has been systematically discovering and eliminating these bugs as it reimplements tools like `dd`, `cp`, `sort`, and `ls`. The GNU C originals of these tools have been maintained for decades by expert programmers, and they still contain buffer-handling bugs, partial-write errors, and edge cases that the Rust type system catches at compile time. As of 2026, [Ubuntu has adopted the Rust coreutils](https://www.phoronix.com/news/Rust-Coreutils-0.8-Released) in place of the GNU versions, starting with Ubuntu 25.10.
 
-The same story plays out in the kernel. The Linux kernel's own security team, along with independent analyses from Microsoft and Google, consistently reports that **60–70% of critical vulnerabilities** in systems software are memory-safety failures — the exact bug classes cataloged above. These are not rare edge cases in obscure code paths. They are the routine, predictable consequence of writing millions of lines of memory-unsafe code.
+The same story plays out in the kernel. The Linux kernel's own security team, along with independent analyses from [Microsoft](https://msrc.microsoft.com/blog/2019/07/a-proactive-approach-to-more-secure-code/) and [Google](https://security.googleblog.com/2021/09/an-update-on-memory-safety-in-chrome.html), consistently reports that **60–70% of critical vulnerabilities** in systems software are memory-safety failures — the exact bug classes cataloged above. These are not rare edge cases in obscure code paths. They are the routine, predictable consequence of writing millions of lines of memory-unsafe code.
 
 > **📌 Key Point:** The Linux kernel has been written in C for over 30 years. C trusts the programmer to manage memory correctly. When that trust is misplaced — and in millions of lines of code maintained by thousands of contributors, it inevitably is — the result is one of the bug classes above.
 
@@ -225,7 +214,7 @@ The Linux kernel's own security team has reported that a majority of kernel vuln
 
 Rust does not replace C in the Linux kernel. The kernel's core — the scheduler, the memory manager, the VFS layer — remains in C and is unlikely to be rewritten. What Rust provides is a safer option for new code, particularly drivers and modules, where memory-safety failures are most common and most dangerous.
 
-The Rust-for-Linux project provides kernel-safe abstractions — Rust wrappers around kernel APIs that allow module authors to interact with kernel services (allocating memory, registering devices, managing locks) through safe Rust interfaces. The `unsafe` code that bridges Rust and the kernel's C internals is concentrated in these wrapper layers, reviewed carefully, and shared across all Rust modules. Individual module authors write mostly safe Rust.
+The [Rust-for-Linux](https://rust-for-linux.com/) project provides kernel-safe abstractions — Rust wrappers around kernel APIs that allow module authors to interact with kernel services (allocating memory, registering devices, managing locks) through safe Rust interfaces. The `unsafe` code that bridges Rust and the kernel's C internals is concentrated in these wrapper layers, reviewed carefully, and shared across all Rust modules. Individual module authors write mostly safe Rust.
 
 <DefinitionBox term="FFI (Foreign Function Interface)">
 
@@ -241,11 +230,11 @@ This architecture mirrors a pattern you should recognize. The kernel's C API is 
 
 This is not a future plan. Rust code is being merged into the Linux kernel right now, and the contributions illustrate the patterns we have been discussing.
 
-The **`register!` macro** (merged early 2026) provides a safe, ergonomic API for hardware register access in Rust drivers. Instead of raw pointer arithmetic to read device registers — exactly the kind of code where buffer overruns and invalid dereferences hide — the macro generates type-checked accessor methods. The Nova GPU driver and the Rust PCI sample driver already use it.
+The **[`register!` macro](https://www.spinics.net/lists/kernel/msg6061888.html)** (merged early 2026) provides a safe, ergonomic API for hardware register access in Rust drivers. Instead of raw pointer arithmetic to read device registers — exactly the kind of code where buffer overruns and invalid dereferences hide — the macro generates type-checked accessor methods. The Nova GPU driver and the Rust PCI sample driver already use it.
 
-A **C linked-list interop module** (2026) provides safe Rust iteration over the kernel's internal doubly-linked lists — data structures that are shared across subsystems and historically prone to use-after-free bugs when traversed concurrently. The Rust wrapper ensures that iteration follows the kernel's locking protocol without requiring every user to get it right manually.
+A **[C linked-list interop module](https://lore.gitlab.freedesktop.org/drm-ai-reviews/20260319210722.1543776-1-joelagnelf@nvidia.com/t/)** (2026) provides safe Rust iteration over the kernel's internal doubly-linked lists — data structures that are shared across subsystems and historically prone to use-after-free bugs when traversed concurrently. The Rust wrapper ensures that iteration follows the kernel's locking protocol without requiring every user to get it right manually.
 
-The **Rust `scull` character device sample** (merged into kernel samples in 2024) reimplements the classic teaching device from the *Linux Device Drivers* book in safe Rust. It demonstrates the full module lifecycle — `init`, `cleanup`, `read`, `write`, device registration — using the Rust-for-Linux abstractions. We will look at code very similar to this when we build our own module later in this lecture.
+The **[Rust `scull` character device sample](https://lkml.iu.edu/2410.1/07279.html)** (merged into kernel samples in 2024) reimplements the classic teaching device from the [*Linux Device Drivers*](https://lwn.net/Kernel/LDD3/) book in safe Rust. It demonstrates the full module lifecycle — `init`, `cleanup`, `read`, `write`, device registration — using the Rust-for-Linux abstractions. We will look at code very similar to this when we build our own module later in this lecture.
 
 These contributions share a common shape: they are small, well-scoped, and focused on wrapping dangerous C patterns in safe Rust interfaces. None of them rewrote a major subsystem. All of them made the kernel meaningfully safer.
 
@@ -255,13 +244,13 @@ The kernel is the highest-stakes target for Rust, but it is not the only one. A 
 
 | Classic Tool | Rust Alternative | What Changed |
 | :--- | :--- | :--- |
-| GNU coreutils (`ls`, `cp`, `dd`, `sort`, ...) | **uutils/coreutils** | 94.7% GNU compatibility; adopted by Ubuntu 25.10+ |
-| `grep` | **ripgrep (`rg`)** | 3–10x faster; respects `.gitignore` by default |
-| `find` | **fd** | Simplified syntax, colored output, `.gitignore`-aware |
-| `cat` | **bat** | Syntax highlighting, line numbers, Git integration |
-| `ls` | **eza** | Icons, Git status, tree view |
-| `top` | **bottom (`btm`)** | GPU, network, and disk I/O monitoring |
-| util-linux (`dmesg`, `lscpu`, ...) | **uutils/util-linux** | Active rewrite of core system information tools |
+| GNU coreutils (`ls`, `cp`, `dd`, `sort`, ...) | **[uutils/coreutils](https://github.com/uutils/coreutils)** | 94.7% GNU compatibility; adopted by Ubuntu 25.10+ |
+| `grep` | **[ripgrep (`rg`)](https://github.com/BurntSushi/ripgrep)** | 3–10x faster; respects `.gitignore` by default |
+| `find` | **[fd](https://github.com/sharkdp/fd)** | Simplified syntax, colored output, `.gitignore`-aware |
+| `cat` | **[bat](https://github.com/sharkdp/bat)** | Syntax highlighting, line numbers, Git integration |
+| `ls` | **[eza](https://github.com/eza-community/eza)** | Icons, Git status, tree view |
+| `top` | **[bottom (`btm`)](https://github.com/ClementTsang/bottom)** | GPU, network, and disk I/O monitoring |
+| util-linux (`dmesg`, `lscpu`, ...) | **[uutils/util-linux](https://github.com/uutils/util-linux)** | Active rewrite of core system information tools |
 
 The uutils coreutils project is particularly significant. Ubuntu — one of the most widely used Linux distributions — replaced its GNU coreutils with the Rust versions starting in Ubuntu 25.10, with the 26.04 LTS release continuing the transition. This means that `ls`, `cp`, `dd`, `sort`, and dozens of other tools that millions of users run every day are now Rust binaries. The rewrite found and eliminated real bugs in the process — buffer-handling errors, partial-write failures, and edge cases that had survived decades of maintenance in C.
 
@@ -298,20 +287,11 @@ The kinds of contributions that are educational and achievable — the kinds tha
 
 None of these require understanding the entire kernel. Each one requires understanding the relevant subsystem API, the module lifecycle, and the safety constraints of kernel-space execution. That is a bounded, learnable scope.
 
-{/* SCOPE LADDER: A visual showing a vertical ladder of contribution sizes.
-    Bottom rung (smallest): "Hello world" module that prints to dmesg on load/unload.
-    Next rung: Character device that responds to read/write.
-    Next rung: Module that creates a /proc entry with computed data.
-    Next rung: Simple device driver for a well-documented device.
-    Top rung (largest): Full subsystem (filesystem, network protocol, scheduler class).
-    The bottom 2-3 rungs are highlighted as "educational scope — achievable with this course's foundation."
-    The top rungs are labeled "industrial scope — requires years of kernel-specific experience."
-    The visual should make the accessible scope feel large enough to be meaningful
-    while being honest about the distance to full subsystem work. */}
+<ScopeLadderDiagram />
 
 ### A Real Contribution: 27 Lines That Fixed `dd`
 
-To make this concrete, consider a real pull request merged into the uutils/coreutils project in January 2026. The contributor — who noted "this is almost my first snippet in Rust" — fixed a bug in the Rust implementation of `dd`.
+To make this concrete, consider a [real pull request](https://github.com/uutils/coreutils/pull/10235) merged into the uutils/coreutils project in January 2026. The contributor — who noted "this is almost my first snippet in Rust" — fixed a bug in the Rust implementation of `dd`.
 
 The problem: `dd` was using line-buffered stdout, which meant that partial writes could silently lose data when piping output to another process. The fix was 27 lines of additions and 3 deletions across 2 files, switching from line-buffered to block-buffered stdout.
 
@@ -327,7 +307,7 @@ That is what a realistic contribution looks like. Not a new filesystem. Not a re
 
 ### What a Kernel Contribution Looks Like
 
-On the kernel side, the Rust `scull` character device sample (merged into the kernel's `samples/rust/` directory) demonstrates the same principle at a higher privilege level. It implements a simple character device — one that stores bytes written to it and returns them when read — using the Rust-for-Linux abstractions. The module registers a device, wires up `read` and `write` handlers through the kernel's `file_operations` equivalent, and manages its internal buffer with safe Rust ownership.
+On the kernel side, the [Rust `scull` character device sample](https://lkml.iu.edu/2410.1/07279.html) (merged into the kernel's `samples/rust/` directory) demonstrates the same principle at a higher privilege level. It implements a simple character device — one that stores bytes written to it and returns them when read — using the Rust-for-Linux abstractions. The module registers a device, wires up `read` and `write` handlers through the kernel's `file_operations` equivalent, and manages its internal buffer with safe Rust ownership.
 
 The full module is small enough to read end to end in a few minutes. It exercises real kernel APIs — device registration, memory allocation, file operations — and runs with full kernel privilege. But it is scoped tightly enough that a single developer can understand every line. Later in this lecture, we will build something very similar.
 
@@ -378,15 +358,7 @@ edit → build → load → observe → interact → observe → unload → veri
 
 We will follow this loop for each stage of `rustecho`. The full source for every stage is in the **Addendum** at the bottom of this page — the lecture walks through the concepts and the key code, while the Addendum provides everything needed to reproduce the demo.
 
-{/* WORKFLOW TIMELINE: An animated or interactive stepper showing the development loop.
-    Each step is a node in a circular or linear flow.
-    Clicking/stepping through each node shows:
-    - what the developer does
-    - what command they run
-    - what output they look for
-    - what could go wrong and how to recover
-    The visual should emphasize that the loop is tight and repeatable.
-    A "reset" arrow from any failure state goes back to "edit" via VM restart if needed. */}
+<DevLoopStepper />
 
 ### Stage 1: The Skeleton — Load, Log, Unload
 

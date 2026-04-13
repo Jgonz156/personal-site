@@ -245,9 +245,8 @@
   }
 }
 
-/* Syntax Highlighting - Highlight.js (GitHub Style) */
+/* Syntax Highlighting - Code block containers (in @layer so @apply works) */
 @layer components {
-  /* Code block container */
   pre {
     @apply rounded-lg overflow-x-auto my-4;
   }
@@ -255,185 +254,171 @@
   pre code {
     @apply block p-4 text-sm leading-relaxed;
   }
+}
 
-  /* Light mode syntax highlighting - GitHub style */
-  :root {
-    pre code.hljs {
-      background-color: hsl(var(--muted));
-      color: hsl(var(--foreground));
-    }
-  }
+/*
+ * Highlight.js token colors — kept OUTSIDE @layer so Tailwind never purges them.
+ * (hljs-* classes are generated at build time by rehype-highlight and don't appear
+ *  in source files, so Tailwind's JIT purges them from @layer blocks.)
+ */
+pre code.hljs {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
 
-  .dark pre code.hljs {
-    background-color: hsl(var(--muted));
-    color: hsl(var(--foreground));
-  }
+.dark pre code.hljs {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
 
-  /* Highlight.js classes - VS Code style */
-  /* Comments */
-  .hljs-comment,
-  .hljs-quote {
-    color: #008000; /* Green */
-    font-style: italic;
-  }
+.hljs-comment,
+.hljs-quote {
+  color: #008000;
+  font-style: italic;
+}
 
-  .dark .hljs-comment,
-  .dark .hljs-quote {
-    color: #6a9955; /* VS Code comment green */
-    font-style: italic;
-  }
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: #6a9955;
+  font-style: italic;
+}
 
-  /* Keywords (if, for, def, class, import, etc.) */
-  .hljs-keyword,
-  .hljs-selector-tag,
-  .hljs-literal,
-  .hljs-type {
-    color: #0000ff; /* Blue */
-  }
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-type {
+  color: #0000ff;
+}
 
-  .dark .hljs-keyword,
-  .dark .hljs-selector-tag,
-  .dark .hljs-literal,
-  .dark .hljs-type {
-    color: #569cd6; /* VS Code keyword blue */
-  }
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-literal,
+.dark .hljs-type {
+  color: #569cd6;
+}
 
-  /* Strings */
-  .hljs-string,
-  .hljs-meta .hljs-string {
-    color: #a31515; /* Red-brown */
-  }
+.hljs-string,
+.hljs-meta .hljs-string {
+  color: #a31515;
+}
 
-  .dark .hljs-string,
-  .dark .hljs-meta .hljs-string {
-    color: #ce9178; /* VS Code string orange */
-  }
+.dark .hljs-string,
+.dark .hljs-meta .hljs-string {
+  color: #ce9178;
+}
 
-  /* Function names and class names */
-  .hljs-title,
-  .hljs-section,
-  .hljs-selector-id,
-  .hljs-function .hljs-title {
-    color: #795e26; /* Brown */
-  }
+.hljs-title,
+.hljs-section,
+.hljs-selector-id,
+.hljs-function .hljs-title {
+  color: #795e26;
+}
 
-  .dark .hljs-title,
-  .dark .hljs-section,
-  .dark .hljs-selector-id,
-  .dark .hljs-function .hljs-title {
-    color: #dcdcaa; /* VS Code function yellow */
-  }
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-selector-id,
+.dark .hljs-function .hljs-title {
+  color: #dcdcaa;
+}
 
-  /* Numbers and constants */
-  .hljs-number {
-    color: #098658; /* Green */
-  }
+.hljs-number {
+  color: #098658;
+}
 
-  .dark .hljs-number {
-    color: #b5cea8; /* VS Code number light green */
-  }
+.dark .hljs-number {
+  color: #b5cea8;
+}
 
-  /* Variables and parameters */
-  .hljs-variable,
-  .hljs-template-variable,
-  .hljs-params {
-    color: #001080; /* Dark blue */
-  }
+.hljs-variable,
+.hljs-template-variable,
+.hljs-params {
+  color: #001080;
+}
 
-  .dark .hljs-variable,
-  .dark .hljs-template-variable,
-  .dark .hljs-params {
-    color: #9cdcfe; /* VS Code variable light blue */
-  }
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-params {
+  color: #9cdcfe;
+}
 
-  /* Built-in functions and classes */
-  .hljs-built_in,
-  .hljs-class .hljs-title {
-    color: #267f99; /* Teal */
-  }
+.hljs-built_in,
+.hljs-class .hljs-title {
+  color: #267f99;
+}
 
-  .dark .hljs-built_in,
-  .dark .hljs-class .hljs-title {
-    color: #4ec9b0; /* VS Code class teal */
-  }
+.dark .hljs-built_in,
+.dark .hljs-class .hljs-title {
+  color: #4ec9b0;
+}
 
-  /* Attributes and properties */
-  .hljs-attr,
-  .hljs-attribute,
-  .hljs-tag .hljs-attr {
-    color: #0451a5; /* Bright blue */
-  }
+.hljs-attr,
+.hljs-attribute,
+.hljs-tag .hljs-attr {
+  color: #0451a5;
+}
 
-  .dark .hljs-attr,
-  .dark .hljs-attribute,
-  .dark .hljs-tag .hljs-attr {
-    color: #9cdcfe; /* VS Code attribute light blue */
-  }
+.dark .hljs-attr,
+.dark .hljs-attribute,
+.dark .hljs-tag .hljs-attr {
+  color: #9cdcfe;
+}
 
-  /* Decorators (Python) */
-  .hljs-meta {
-    color: #795e26; /* Brown */
-  }
+.hljs-meta {
+  color: #795e26;
+}
 
-  .dark .hljs-meta {
-    color: #dcdcaa; /* VS Code decorator yellow */
-  }
+.dark .hljs-meta {
+  color: #dcdcaa;
+}
 
-  /* Operators */
-  .hljs-operator {
-    color: #000000; /* Black */
-  }
+.hljs-operator {
+  color: #000000;
+}
 
-  .dark .hljs-operator {
-    color: #d4d4d4; /* VS Code light gray */
-  }
+.dark .hljs-operator {
+  color: #d4d4d4;
+}
 
-  /* Tags (HTML/XML) */
-  .hljs-tag {
-    color: #800000; /* Dark red */
-  }
+.hljs-tag {
+  color: #800000;
+}
 
-  .dark .hljs-tag {
-    color: #808080; /* VS Code tag gray */
-  }
+.dark .hljs-tag {
+  color: #808080;
+}
 
-  /* Deletions (diffs) */
-  .hljs-deletion {
-    color: #a31515;
-    background-color: rgba(255, 200, 200, 0.3);
-  }
+.hljs-deletion {
+  color: #a31515;
+  background-color: rgba(255, 200, 200, 0.3);
+}
 
-  .dark .hljs-deletion {
-    color: #f48771;
-    background-color: rgba(255, 0, 0, 0.2);
-  }
+.dark .hljs-deletion {
+  color: #f48771;
+  background-color: rgba(255, 0, 0, 0.2);
+}
 
-  /* Additions (diffs) */
-  .hljs-addition {
-    color: #098658;
-    background-color: rgba(200, 255, 200, 0.3);
-  }
+.hljs-addition {
+  color: #098658;
+  background-color: rgba(200, 255, 200, 0.3);
+}
 
-  .dark .hljs-addition {
-    color: #b5cea8;
-    background-color: rgba(0, 255, 0, 0.2);
-  }
+.dark .hljs-addition {
+  color: #b5cea8;
+  background-color: rgba(0, 255, 0, 0.2);
+}
 
-  /* Emphasis and strong */
-  .hljs-emphasis {
-    font-style: italic;
-  }
+.hljs-emphasis {
+  font-style: italic;
+}
 
-  .hljs-strong {
-    font-weight: 600;
-  }
+.hljs-strong {
+  font-weight: 600;
+}
 
-  /* Punctuation */
-  .hljs-punctuation {
-    color: #000000;
-  }
+.hljs-punctuation {
+  color: #000000;
+}
 
-  .dark .hljs-punctuation {
-    color: #d4d4d4;
-  }
+.dark .hljs-punctuation {
+  color: #d4d4d4;
 }

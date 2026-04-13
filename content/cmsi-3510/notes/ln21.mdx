@@ -1,5 +1,11 @@
 import { LectureNotes, LectureResources } from "@/components/lecture-sections"
 import { DefinitionBox } from "@/components/interactive-example"
+import { LostLuxuriesDiagram } from "@/components/lost-luxuries-diagram"
+import { PacketAnatomyStepper, PacketAnatomyStage } from "@/components/packet-anatomy-stepper"
+import { HopByHopStepper } from "@/components/hop-by-hop-stepper"
+import { NetworkJourneyStepper } from "@/components/network-journey-stepper"
+import { IPCMirrorDiagram } from "@/components/ipc-mirror-diagram"
+import { NicDeviceDiagram } from "@/components/nic-device-diagram"
 
 ## Recap — Communication Under One Roof
 
@@ -46,12 +52,7 @@ Networking begins where those luxuries end.
 | **Shared memory** | Processes can map the same physical region for zero-copy transfer | Physically impossible — the machines have separate RAM |
 | **Shared scheduler** | The kernel knows when both endpoints are ready | Neither scheduler knows about the other machine's processes |
 
-{/* LOST-LUXURIES VISUAL: Two-panel comparison.
-    Left panel: Local IPC — two processes connected through a single kernel block in the middle.
-    The kernel wraps both endpoints in one large boundary. Everything is visible to one entity.
-    Right panel: Remote communication — two processes on separate machines, each with its own
-    kernel block. Between the machines: an untrusted link (dashed, uncertain).
-    No shared memory, no shared view. The gap between the machines should feel exposed. */}
+<LostLuxuriesDiagram />
 
 With no single authority, new problems appear:
 
@@ -98,6 +99,8 @@ The NIC follows every I/O pattern we have already studied:
 
 > **📌 Callback to LN18:** Network devices were the exception to "everything is a file." They do not appear in `/dev/` — they use the socket API instead. Now we can see why: networking does not fit the sequential `open`/`read`/`write`/`close` model because connections are stateful, bidirectional, multiplexed, and addressed to remote endpoints. The socket API exists because the file abstraction broke down here.
 
+<NicDeviceDiagram />
+
 ### The NIC's Job
 
 The NIC performs a narrow but critical function:
@@ -137,14 +140,7 @@ Every header field exists because some piece of information that was **free** in
 
 > **🤔 Key Framing:** Packets are the tax you pay for leaving the machine. Every header byte compensates for shared state that no longer exists.
 
-{/* PROGRESSIVE PACKET ANATOMY — Stage 0: Raw Payload
-    Show a single rectangular block labeled "Application Data" or "hello".
-    This is what IPC moved — just raw bytes, no metadata needed.
-    The visual should feel bare and simple. No headers, no structure.
-    This is the starting point. Subsequent stages will wrap this payload
-    in progressively more headers as the lecture introduces each layer.
-    Use consistent colors across all stages so students see the payload
-    persist while headers accumulate around it. */}
+<PacketAnatomyStage stage={0} />
 
 ### Frames vs Packets
 
@@ -205,32 +201,7 @@ A **router** is a device that connects two or more network links and forwards pa
 
 When the destination is on the same local link, the sender can deliver the frame directly using the destination's MAC address. When the destination is on a different network, the packet must be **routed** — forwarded hop by hop through one or more routers until it reaches the destination's local link.
 
-{/* HOP-BY-HOP VISUAL (animated): A source machine, two routers, and a destination machine
-    connected in a chain by physical links (each link segment drawn as a distinct wire).
-    The packet is a colored inner block. The frame is an outer envelope with a different color.
-    
-    Animation sequence:
-    Step 1: Source machine wraps packet in Frame A (src MAC: source NIC, dst MAC: router 1).
-            Show the progressive anatomy: [Eth hdr A | IP hdr | TCP hdr | payload | CRC A].
-            Highlight that IP src/dst stay the same; only Eth hdr is link-local.
-    Step 2: Frame A travels across Link 1 to Router 1.
-    Step 3: Router 1 strips Frame A (outer envelope peels off). Inner packet revealed.
-            Router reads destination IP, consults routing table, determines next hop.
-    Step 4: Router 1 wraps packet in Frame B (src MAC: router 1 outgoing, dst MAC: router 2).
-            Show: [Eth hdr B | IP hdr | TCP hdr | payload | CRC B].
-            CRITICAL: IP header is UNCHANGED. Only the Eth header and CRC differ.
-    Step 5: Frame B travels across Link 2 to Router 2.
-    Step 6: Router 2 strips Frame B, wraps in Frame C (dst MAC: destination NIC).
-    Step 7: Frame C travels across Link 3 to Destination.
-    Step 8: Destination strips Frame C, processes up the stack.
-    
-    Key visual cues:
-    - Packet (inner block) never changes color or content throughout.
-    - Frame (outer envelope) changes color/label at every hop.
-    - Link type labels could differ (e.g., "Ethernet" on Link 1, "WiFi" on Link 2, 
-      "Ethernet" on Link 3) to show that the frame type can change at each hop.
-    - MAC addresses in each frame header should visibly differ.
-    - IP addresses in the packet header should visibly remain constant. */}
+<HopByHopStepper />
 
 At each hop:
 
@@ -279,34 +250,15 @@ Each layer adds its own header when sending. Let's watch the packet grow as we w
 
 **Transport layer** — The kernel adds a transport header: source port, destination port, and (for TCP) a sequence number and checksum. The application data is now a **segment** (TCP) or **datagram** (UDP).
 
-{/* PROGRESSIVE PACKET ANATOMY — Stage 1: Transport
-    Show the Stage 0 payload block from earlier, now with a new colored band
-    prepended on the left: the transport header (labeled "TCP/UDP hdr").
-    Fields visible in the header: src port, dst port, seq #, checksum.
-    The payload block should be the SAME color and size as Stage 0.
-    The visual should feel like "one layer of wrapping has been added."
-    Label: [TCP/UDP hdr | Application Data] */}
+<PacketAnatomyStage stage={1} />
 
 **Network layer** — The kernel adds an IP header: source IP address, destination IP address, TTL (time to live), and a protocol field identifying the transport layer above. The data is now a **packet**.
 
-{/* PROGRESSIVE PACKET ANATOMY — Stage 2: Network
-    Show Stage 1 (transport header + payload), now with another colored band
-    prepended: the IP header (labeled "IP hdr").
-    Fields visible: src IP, dst IP, TTL, protocol.
-    The transport header and payload should be the SAME as Stage 1.
-    Visual should convey: two layers of wrapping around the original data.
-    Label: [IP hdr | TCP/UDP hdr | Application Data] */}
+<PacketAnatomyStage stage={2} />
 
 **Link layer** — The kernel determines the next hop's MAC address, adds a frame header (source MAC, destination MAC, EtherType) and appends a CRC for error detection. The data is now a **frame** — ready for the wire.
 
-{/* PROGRESSIVE PACKET ANATOMY — Stage 3: Link (complete frame)
-    Show Stage 2 (IP header + transport header + payload), now wrapped in
-    a frame header on the left AND a CRC block on the right.
-    Frame header fields: dst MAC, src MAC, EtherType.
-    CRC block on the trailing end.
-    The interior (IP + TCP + payload) should be IDENTICAL to Stage 2.
-    This is the complete frame as it appears on the wire.
-    Label: [Eth hdr | IP hdr | TCP/UDP hdr | Application Data | CRC] */}
+<PacketAnatomyStage stage={3} />
 
 The result is an **envelope-in-envelope** structure. Each layer wraps the output of the layer above it:
 
@@ -328,125 +280,17 @@ Layering is not just an organizational convenience. It is a **separation of conc
 
 ---
 
-## The Send Path
+## The Full Journey — Send, Transit, and Receive
 
-Let's follow our toy example: a process wants to send a short message to a process on another machine. What happens between the application's `write()` and the bits leaving the wire?
+Let's follow our toy example end-to-end: a process wants to send `"hello"` to a process on another machine. This interactive walkthrough traces every layer of the send path, through two routers, and back up the receive path — combining everything we've built so far into one continuous animation.
 
-### From Application to Wire
-
-1. **Application** — The process calls `write()` (or `send()`) on a socket. This is a syscall — the same left-descent we saw in LN19.
-
-2. **Transport layer** — The kernel's transport code adds a transport header (source port, destination port, sequence number if TCP, checksum). The data is now a **segment** (TCP) or **datagram** (UDP).
-
-3. **Network layer** — The kernel's IP code adds a network header (source IP, destination IP, TTL, protocol field). The data is now a **packet**.
-
-4. **Link layer** — The kernel's link code determines the next hop's MAC address (via ARP or neighbor cache), adds a frame header and CRC. The data is now a **frame**.
-
-5. **Driver** — The NIC driver places the frame into a transmit descriptor ring in host memory. It writes to the NIC's doorbell register to notify the hardware.
-
-6. **NIC hardware** — The NIC DMA's the frame from host memory into its own transmit buffer, encodes it for the physical medium, and pushes the signal onto the wire.
-
-7. **Interrupt** — The NIC signals completion. The driver cleans up the transmit descriptor. The U-bend's bottom is complete.
-
-```
-Application:  write(sock, "hello", 5)
-                    ↓ syscall
-Transport:    [TCP hdr] + "hello"
-                    ↓
-Network:      [IP hdr] + [TCP hdr] + "hello"
-                    ↓
-Link:         [Eth hdr] + [IP hdr] + [TCP hdr] + "hello" + [CRC]
-                    ↓
-Driver:       → descriptor ring → NIC doorbell
-                    ↓
-NIC:          DMA → encode → wire
-```
+<NetworkJourneyStepper />
 
 > **📌 Key Point:** The process never touches the wire. Every step after the syscall is kernel code and hardware doing privileged work — the same pattern we traced through LN19's U-bend. The application expressed intent. The kernel and NIC made it physical.
 
----
-
-## The Full Journey
-
-Before we look at the receive path in isolation, let's see the entire end-to-end trip in one animated view. This combines everything we've built — the progressive packet anatomy, the hop-by-hop routing, the send path, and the upcoming receive path — into a single continuous animation.
-
-{/* FULL JOURNEY ANIMATION (large, multi-phase):
-    This is the flagship visual of the lecture. It shows the complete lifecycle
-    of a message from sender process to receiver process across a network.
-    
-    Layout: Two machines (left: Sender, right: Receiver) with 1-2 routers between them.
-    Each machine shows a vertical stack of layers: Application → Transport → Network → Link → NIC.
-    Routers show only Link → Network → Link (they don't go above Network).
-    
-    Phase 1 — Sender Descends (Send Path):
-      Application: "hello" appears as raw payload (Stage 0 color).
-      Transport: TCP header wraps it (Stage 1 color added).
-      Network: IP header wraps it (Stage 2 color added).
-      Link: Frame header + CRC wrap it (Stage 3 color added).
-      NIC: Frame moves via DMA to NIC, then onto the wire.
-      Each step visually adds a header band, matching the progressive anatomy stages.
-    
-    Phase 2 — Transit (Hop-by-Hop):
-      Frame travels across Link 1 to Router 1.
-      Router 1 strips the frame (Stage 3 peels off), reads IP header (Stage 2 visible),
-      wraps in new frame (new Stage 3 color), sends on Link 2.
-      If two routers: repeat at Router 2.
-      CRITICAL: the inner packet (Stages 0-2) NEVER changes during transit.
-      Only the frame (Stage 3) is rebuilt at each hop.
-      Link types may differ (Ethernet → WiFi → Ethernet) to show frame type changes.
-    
-    Phase 3 — Receiver Ascends (Receive Path):
-      NIC: Frame arrives via wire, DMA'd into host memory. Interrupt fires.
-      Link: Frame header + CRC stripped (Stage 3 peels off). CRC checked.
-      Network: IP header stripped (Stage 2 peels off). Destination IP confirmed.
-      Transport: TCP header stripped (Stage 1 peels off). Port matched to socket.
-      Application: Raw payload "hello" delivered to process's read() buffer.
-      Each step visually removes a header band — the mirror of Phase 1.
-    
-    Controls: Play/pause, step-forward, step-backward. Speed control.
-    Annotations: At each step, a small label explains what is happening and why.
-    The visual should feel like watching a letter being packaged, mailed through
-    multiple post offices, and unpacked at the destination. */}
-
 > **🤔 Key Observation:** Watch how the packet's interior never changes during transit. Every router only touches the outermost layer (the frame). The packet core — your application data wrapped in transport and network headers — travels the entire distance untouched. This is encapsulation in action.
 
----
-
-## The Receive Path
-
-The mirror image. A packet arrives from the wire. What happens between the electrical signal and the application's `read()` returning?
-
-### From Wire to Application
-
-1. **NIC hardware** — The NIC detects a signal on the wire, decodes it into a frame, and DMA's it into a pre-allocated receive buffer in host memory.
-
-2. **Interrupt** — The NIC raises an interrupt. The driver's interrupt handler runs — in interrupt context, just as in LN19.
-
-3. **Driver** — The interrupt handler does the minimum: acknowledge the device, note which receive descriptor completed. Deferred work handles the rest.
-
-4. **Link layer** — The kernel strips the frame header, checks the CRC for corruption. If the frame is invalid, it is dropped silently.
-
-5. **Network layer** — The kernel reads the IP header. Is this packet addressed to us? If not (and we are not a router), drop it. If yes, strip the IP header and pass the payload upward.
-
-6. **Transport layer** — The kernel reads the transport header. Which local socket does this belong to? The port number tells it. The kernel places the data in the appropriate socket's receive buffer.
-
-7. **Application** — The process's `read()` (or `recv()`) returns with the data. The process was sleeping in a blocked state — just like the sensor driver in LN19. The U-bend is complete.
-
-```
-NIC:          wire → decode → DMA → host buffer
-                    ↓ interrupt
-Driver:       acknowledge NIC, schedule deferred work
-                    ↓
-Link:         strip Ethernet header, check CRC
-                    ↓
-Network:      check destination IP, strip IP header
-                    ↓
-Transport:    match port → socket receive buffer
-                    ↓
-Application:  read(sock, buf, n) returns
-```
-
-> **💡 Connection to LN19:** This is the driver U-bend, extended through multiple protocol layers. The NIC is the device. The interrupt handler is the top half. The protocol processing is deferred work. The sleeping process wakes when the data reaches its socket buffer. Every concept from the driver lecture reappears here — just with more layers of interpretation between the hardware event and the application.
+> **💡 Connection to LN19:** The receive path is the driver U-bend, extended through multiple protocol layers. The NIC is the device. The interrupt handler is the top half. The protocol processing is deferred work. The sleeping process wakes when the data reaches its socket buffer. Every concept from the driver lecture reappears here — just with more layers of interpretation between the hardware event and the application.
 
 > **🤔 Notice the symmetry:** The send path wraps headers layer by layer going down. The receive path strips headers layer by layer going up. Encapsulation on send, decapsulation on receive. The structure is perfectly mirrored.
 
@@ -470,30 +314,7 @@ But look at what vanishes:
 
 The kernel **collapses** the entire network stack because it is the single authority over both endpoints. It doesn't need packets, headers, or physical transmission — it can simply copy from one socket buffer to another.
 
-{/* IPC MIRROR VISUAL (second-page style, same structure as full journey):
-    Layout: Same two-machine structure as the full journey animation,
-    BUT both processes are on the SAME machine, inside ONE kernel boundary.
-    
-    Left side: Show the "network" journey — the full path with all layers,
-    routers, frames, etc. (greyed out or faded, labeled "Network Path").
-    
-    Right side (or overlaid): Show the LOCAL IPC path —
-    same API calls (write/read on socket), but the entire middle is
-    collapsed into a single kernel-internal copy operation.
-    
-    Visual effect: The U-bend of the network path is tall and wide,
-    stretching across machines. The U-bend of the local IPC path is
-    SHORT and NARROW — it dips into the kernel and immediately comes back up.
-    The kernel box in the middle replaces the entire wire/router chain.
-    
-    Animation: Start with the network journey playing at normal speed.
-    Then transition to the local view: the same send/receive API calls appear,
-    but the middle collapses — layers fold inward, routers disappear,
-    the wire shrinks to nothing, and only a kernel buffer copy remains.
-    The contrast should make students viscerally feel how much the shared
-    kernel simplifies communication.
-    
-    Key label: "Same API. The kernel replaces the entire network." */}
+<IPCMirrorDiagram />
 
 > **💡 This is the LN20 insight, visualized:** Unix domain sockets use the network API without the network cost. The socket abstraction gives applications a uniform interface; the kernel decides whether the data needs to leave the machine. When it doesn't, the kernel short-circuits the entire stack.
 

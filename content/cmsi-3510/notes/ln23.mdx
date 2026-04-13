@@ -1,5 +1,8 @@
 import { LectureNotes, LectureResources } from "@/components/lecture-sections"
 import { DefinitionBox } from "@/components/interactive-example"
+import { CourseToLinuxMap } from "@/components/course-to-linux-map"
+import { DeviceWalkthroughStepper } from "@/components/device-walkthrough-stepper"
+import { NetworkWalkthroughStepper } from "@/components/network-walkthrough-stepper"
 
 ## Recap — Abstractions All the Way Down
 
@@ -37,12 +40,7 @@ Linux is not interesting because it is famous. Linux is interesting because it m
 
 This lecture is not a survey of Linux subsystems. It is a guided tour through two end-to-end actions — one device-oriented and one network-oriented — that let familiar course concepts reappear naturally as the action travels through the system. The goal is **recognition**: you should be able to watch something happen in Linux and say "I know what that is. That is the driver dispatch we saw in LN19. That is the transport layer from LN22. That is the blocking behavior from our scheduling lectures."
 
-{/* COURSE-TO-LINUX MAP: A visual showing the major abstractions from the semester
-    (processes, syscalls, drivers, IPC, packets, transport, sockets, scheduling,
-    memory, filesystems) arranged around a central Linux kernel icon.
-    Each abstraction connects to specific Linux surfaces or tools.
-    As the two walkthroughs progress, the relevant abstractions light up.
-    This visual should serve as a persistent orientation map for the whole lecture. */}
+<CourseToLinuxMap />
 
 > **🤔 Key Framing:** The question driving this lecture is not "what is Linux?" It is "where do the abstractions from this course show up when a user actually does something in Linux?"
 
@@ -125,15 +123,7 @@ This reveals the mapping between major numbers and driver names. The random driv
 
 > **📌 Key Point:** Nothing in this walkthrough is new theory. Every step maps directly onto concepts from earlier lectures. Linux is where those concepts stop being diagrams and start being commands.
 
-{/* DEVICE WALKTHROUGH STEPPER: A Linux-specific version of the LN19 U-bend.
-    Left tip: dd calls read() on /dev/urandom.
-    Left descent: syscall crosses into kernel space.
-    VFS dispatch: kernel resolves path, finds device node, locates driver.
-    Driver code: random number generator produces bytes.
-    Right ascent: data copied to user buffer, read() returns.
-    Right tip: dd writes the bytes to stdout.
-    Each step links to the strace output and the corresponding course concept.
-    The visual should feel like the LN19 U-bend but grounded in real Linux paths. */}
+<DeviceWalkthroughStepper />
 
 ---
 
@@ -218,12 +208,7 @@ This reveals the loopback interface — the "network" our packets are traveling 
 | IPC mirror (LN21) | Loopback communication uses the full network API but skips the physical wire |
 | Blocking I/O (LN22) | `accept()` blocks until a client arrives — the server sleeps and wakes on an event |
 
-{/* NETWORK WALKTHROUGH STEPPER: A Linux-specific version of the LN21/LN22 path.
-    Server side: socket() → bind() → listen() → accept() [blocks] → read() → data arrives.
-    Client side: socket() → connect() [handshake] → write() → data sent.
-    Below the application layer: transport headers added, packet path through loopback.
-    Each step links to strace output, ss output, and the corresponding course concept.
-    The visual should make the socket lifecycle feel tangible rather than theoretical. */}
+<NetworkWalkthroughStepper />
 
 ---
 

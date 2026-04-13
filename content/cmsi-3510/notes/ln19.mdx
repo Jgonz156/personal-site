@@ -2,6 +2,7 @@ import { LectureNotes, LectureResources } from "@/components/lecture-sections"
 import { DefinitionBox } from "@/components/interactive-example"
 import { KernelUserRingDiagram } from "@/components/kernel-user-ring-diagram"
 import { ProcessStateDiagram } from "@/components/process-state-diagram"
+import { UBendStepper, UBendDiagram } from "@/components/u-bend-stepper"
 
 ## Recap — I/O Software Meets Hardware
 
@@ -88,19 +89,7 @@ Notice the shape. The process's steps 1 and 2 — calling `read()` and beginning
 
 The shape is a **U** — or a horseshoe, if you prefer. The two tips are the process's view of the world in user space. The interior bend is the system's view, entirely in kernel space.
 
-{/* U-BEND INTERACTIVE: Full request-path stepper goes here.
-    Shape: horseshoe/U with left tip at top-left, right tip at top-right, bend at bottom.
-    Left tip  = process calls read(), begins wait  (user space)
-    Left descent = syscall/trap crosses boundary
-    Left side of bend = kernel dispatches to driver  (kernel space)
-    Bottom of bend = driver programs hardware
-    Fork point = process sleeps / device runs independently (U bifurcates into two paths)
-    Right side of bend = interrupt arrives, deferred work runs  (kernel space)
-    Right ascent = process wakes, crosses boundary back
-    Right tip  = process receives bytes, continues  (user space)
-    A horizontal line across the top of the U marks the user-space / kernel-space boundary.
-    Color-coded phases: each section of the lecture highlights its current phase.
-    Sub-variants of this diagram appear in each section below with the active phase emphasized. */}
+<UBendStepper />
 
 A horizontal line cuts across the top of the U, separating user space from kernel space. Our `read()` call descends through that line on the left, and the result ascends back through it on the right. Every section of today's lecture will advance us one step further along this path.
 
@@ -114,10 +103,7 @@ A horizontal line cuts across the top of the U, separating user space from kerne
 
 Our `read()` call has begun. The process wants bytes from a device. But the very first thing it discovers is that it cannot satisfy its own request.
 
-{/* U-BEND VARIANT: Phase 1 — highlight the left descent crossing the user/kernel boundary line.
-    The process step "call read()" is at the left tip (done).
-    The syscall arrow crosses the horizontal boundary into kernel space.
-    Everything below and to the right remains dimmed. */}
+<UBendDiagram phase={1} />
 
 ### Recall: Two Privilege Worlds
 
@@ -159,9 +145,7 @@ read(fd, buf, n)
 
 The kernel must answer a second question: what does this file descriptor actually refer to?
 
-{/* U-BEND VARIANT: Phase 2 — highlight the left side of the bend (kernel space).
-    The trap crossing is complete (shown dimmed/done). Now we are inside the kernel,
-    and the dispatch path from syscall layer → VFS/device layer → driver is highlighted. */}
+<UBendDiagram phase={2} />
 
 ### Generic Request, Specific Destination
 
@@ -229,10 +213,7 @@ This answers the question the U-bend poses visually: why does the path descend i
 
 The driver has been found. Its `.read` function has been called. Now the abstraction stops being uniform, and the driver must speak the device's own language.
 
-{/* U-BEND VARIANT: Phase 3 — highlight the bottom of the bend.
-    Dispatch is done (dimmed). We are at the deepest point of privilege, where the driver
-    directly interacts with hardware registers and device controllers.
-    This is the furthest point from user space in the entire path. */}
+<UBendDiagram phase={3} />
 
 ### What Drivers Actually Do
 
@@ -298,13 +279,7 @@ This is the bottom of the U-bend — the furthest point from user space. From he
 
 Look at the driver code above. Line by line, it reaches `wait_event_interruptible` — and at that moment, two things that were traveling together split apart.
 
-{/* U-BEND VARIANT: Phase 4 — the U-bend bifurcates here.
-    The single path splits into two parallel tracks diverging from the bottom of the bend:
-    Left track: the process path — process is marked blocked/sleeping (greyed out, dormant)
-    Right track: the device path — device is actively measuring (highlighted, active)
-    Both tracks run independently. The visual should convey that the CPU is free
-    and the device is operating on its own clock. The two tracks will merge at Phase 5.
-    This bifurcation is the key visual innovation of the U-bend. */}
+<UBendDiagram phase={4} />
 
 ### The Process Sleeps
 
@@ -349,14 +324,7 @@ Everything the driver did so far — reading registers, writing commands, puttin
 
 The device finishes. It does not politely wait for the process to wake up and check. It fires an interrupt — on **its** schedule, not ours.
 
-{/* U-BEND VARIANT: Phase 5 — the two forked tracks rejoin.
-    The device track fires an interrupt (highlighted with a lightning bolt or signal).
-    The interrupt handler runs briefly in interrupt context.
-    Deferred work is scheduled. The process track transitions from blocked → ready.
-    The two tracks merge back into a single path ascending toward user space.
-    The right ascent crosses the user/kernel boundary line back into user space.
-    The right tip shows the process receiving bytes and continuing.
-    This variant should show the rejoining clearly — two lines becoming one again. */}
+<UBendDiagram phase={5} />
 
 ### Interrupt Context: A Different World
 
