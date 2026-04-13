@@ -411,6 +411,19 @@ We have now followed the full U-bend. Along the way, we accumulated every reason
 
 The driver runs in kernel space with full machine access. A bug does not just crash the driver — it can corrupt memory, wedge hardware, or panic the entire machine. There is no safety net. The process isolation that protects user-space programs from each other does not protect the kernel from itself.
 
+Consider the same two lines of code in each environment:
+
+```c
+char *p = NULL;
+*p = 'x';
+```
+
+In user space, the MMU catches the null dereference, the kernel delivers `SIGSEGV`, and the process dies. Every other process is fine. The OS cleans up.
+
+In kernel space, the same dereference triggers a kernel oops or panic. There is no higher authority to deliver a signal to. The machine halts, takes every running process with it, and any in-flight I/O — disk writes, network packets, device transactions — may be left in an inconsistent state.
+
+> **💡 Connection to Rust:** In Rust, null pointers do not exist. The equivalent situation uses `Option<T>` — accessing the inner value requires an explicit `.unwrap()` or pattern match, making the risk visible in source code rather than hidden behind a bare pointer. The bug above would require the programmer to write `unwrap()` — a deliberate opt-in to the danger rather than an invisible default.
+
 ### Dual Interface
 
 As we saw at the dispatch step, the driver must satisfy two contracts simultaneously:
@@ -419,6 +432,53 @@ As we saw at the dispatch step, the driver must satisfy two contracts simultaneo
 2. The **hardware contract** below: register protocols, timing requirements, interrupt acknowledgment, DMA descriptor formats
 
 Violating either one breaks the driver, even if the other is perfectly correct.
+
+Correct kernel contract, broken hardware contract:
+
+```c
+static ssize_t sensor_read(struct file *f, char __user *buf,
+                           size_t n, loff_t *off) {
+    iowrite32(READ_DATA, dev->cmd_reg);       /* ✗ device expects START first */
+    iowrite32(START_MEASUREMENT, dev->cmd_reg);
+    wait_event_interruptible(dev->wq, dev->data_ready);
+    return copy_to_user(buf, &dev->last_reading, sizeof(u32));
+}
+```
+
+The function signature is correct, the return convention is correct, the locking is fine — but the device ignores `READ_DATA` because no measurement was started. The hardware contract was violated. The driver returns garbage.
+
+Correct hardware protocol, broken kernel contract:
+
+```c
+static ssize_t sensor_read(struct file *f, char __user *buf,
+                           size_t n, loff_t *off) {
+    iowrite32(START_MEASUREMENT, dev->cmd_reg);
+    wait_event_interruptible(dev->wq, dev->data_ready);
+    copy_to_user(buf, &dev->last_reading, sizeof(u32));
+    return 0;  /* ✗ should return bytes read — kernel thinks nothing was transferred */
+}
+```
+
+The hardware interaction is perfect. But the kernel contract says `.read` must return the number of bytes transferred. Returning `0` tells the kernel "end of file" — the calling process receives no data even though the device produced it.
+
+Both contracts satisfied:
+
+```c
+static ssize_t sensor_read(struct file *f, char __user *buf,
+                           size_t n, loff_t *off) {
+    struct sensor_dev *dev = f->private_data;
+    iowrite32(START_MEASUREMENT, dev->cmd_reg);       /* ✓ hardware: start first */
+    wait_event_interruptible(dev->wq, dev->data_ready);
+    iowrite32(READ_DATA, dev->cmd_reg);               /* ✓ hardware: then read */
+    if (copy_to_user(buf, &dev->last_reading, sizeof(u32)))
+        return -EFAULT;                               /* ✓ kernel: error code on failure */
+    return sizeof(u32);                               /* ✓ kernel: bytes transferred on success */
+}
+```
+
+The hardware sees the correct register sequence. The kernel receives a proper byte count on success and a negative error code on failure. Both interfaces are honored simultaneously.
+
+> **💡 Connection to Rust:** Rust cannot help with either broken version above. The wrong register order is a semantic constraint that lives in the device's datasheet, not in the type system — the wrong-order version compiles and runs fine, it just produces garbage. Similarly, returning `Ok(0)` instead of `Ok(4)` is valid Rust. These are logic bugs, and no compiler can catch them. The dual interface is a design discipline, not a language feature.
 
 ### Multiple Execution Contexts
 
@@ -432,6 +492,39 @@ The fork showed us that driver code does not run in one clean, predictable flow.
 | A second user opens the device | Process context (different process) | Another program reads the sensor |
 
 Each of these has different rules about what is safe, and the driver must handle all of them correctly.
+
+Here is a top half that does too much — it does the bottom half's job inline, blocking interrupts the entire time:
+
+```c
+/* ✗ BROKEN: top half does all the work — no deferred work, blocks interrupts too long */
+static irqreturn_t sensor_irq(int irq, void *data) {
+    struct sensor_dev *dev = data;
+    dev->last_reading = ioread32(dev->data_reg);
+    dev->data_ready = true;
+    wake_up_interruptible(&dev->wq);
+    return IRQ_HANDLED;
+}
+```
+
+This might appear to work, but it violates the top-half/bottom-half contract. While this handler runs, interrupts at the same or lower priority are blocked. Processing the data, updating shared state, and waking a process are all work that should be deferred. On a busy system with many devices, a top half that takes too long starves every other interrupt source.
+
+The correct pattern captures the minimum urgent state and schedules the rest for a bottom half:
+
+```c
+/* ✓ CORRECT: top half captures urgent state, defers the rest */
+static irqreturn_t sensor_irq(int irq, void *data) {
+    struct sensor_dev *dev = data;
+    dev->raw_value = ioread32(dev->data_reg);
+    tasklet_schedule(&dev->bh_tasklet);
+    return IRQ_HANDLED;
+}
+```
+
+The top half reads the device register — the one thing that truly cannot wait, since the device may overwrite its data register on the next measurement — and immediately schedules a tasklet. The tasklet (the bottom half) will process the data, set the ready flag, and wake the sleeping process in a context where interrupts are re-enabled and the system can breathe.
+
+> **💡 Connection to Deferred Work:** This is the top-half/bottom-half split in action. The `tasklet_schedule` call is the interrupt handler "leaving a note" — exactly the pattern we described in the deferred work section. The bottom half does the heavier work; the top half just captures what would be lost if it waited.
+
+> **💡 Connection to Rust:** Rust cannot prevent this mistake either. Doing too much work inside an interrupt handler is a design error — the compiler has no concept of "interrupt context" or "this function is a top half." Both the broken and correct versions would compile identically in Rust. The discipline of knowing what belongs in a top half versus a bottom half is an engineering judgment that no type system can enforce.
 
 ### Reentrancy
 
@@ -450,6 +543,37 @@ Our toy driver might be touched simultaneously by:
 
 Shared state must be protected explicitly. Assumptions about "who is running now" must be spelled out in code. Reentrancy is especially valuable here because it guards against the most insidious class of driver bugs: the ones where everything works until two events happen to overlap.
 
+Without protection, two concurrent reads corrupt each other:
+
+```c
+/* ✗ BROKEN: no lock — two concurrent reads share dev->buf */
+static ssize_t sensor_read(struct file *f, char __user *buf,
+                           size_t n, loff_t *off) {
+    struct sensor_dev *dev = f->private_data;
+    dev->buf = dev->last_reading;  /* Process A writes here... */
+    /* — Process B calls sensor_read on another CPU, overwrites dev->buf — */
+    return copy_to_user(buf, &dev->buf, sizeof(u32));  /* ...A reads B's data */
+}
+```
+
+The fix is explicit serialization:
+
+```c
+/* ✓ CORRECT: mutex serializes access to shared state */
+static ssize_t sensor_read(struct file *f, char __user *buf,
+                           size_t n, loff_t *off) {
+    struct sensor_dev *dev = f->private_data;
+    ssize_t ret;
+    mutex_lock(&dev->lock);
+    dev->buf = dev->last_reading;
+    ret = copy_to_user(buf, &dev->buf, sizeof(u32));
+    mutex_unlock(&dev->lock);
+    return ret;
+}
+```
+
+> **💡 Connection to Rust:** In the Rust equivalent, the buffer would be wrapped in `Mutex<T>`. The unprotected version would not compile — you cannot access the data without calling `.lock()`. The compiler enforces what C leaves to discipline.
+
 > **⚠️ Gotcha:** In user space, a race condition might corrupt one program's output. In a driver, a race condition can corrupt the device's state, the kernel's internal structures, and every process currently using that device — all at once.
 
 ### The Cost Gradient
@@ -461,6 +585,18 @@ The same conceptual mistake — say, an unprotected shared variable — has radi
 | User-space application | One process crashes; the OS cleans up |
 | Kernel subsystem | Machine may panic or become unstable |
 | Device driver | Machine, device, *and* pending process state may all become inconsistent simultaneously |
+
+To make this concrete, consider the same unprotected increment in all three locations:
+
+```c
+count++;  /* no lock, no atomic — just a bare read-modify-write */
+```
+
+- **User-space application:** Two threads race on a counter. One update is lost. The final count is off by one. The program logs a wrong number. Nobody else is affected.
+- **Kernel subsystem:** Two CPUs race on a scheduler queue length. The scheduler believes there are fewer runnable processes than there actually are. A process starves. The machine becomes sluggish or unresponsive, and the cause is nearly impossible to reproduce.
+- **Device driver:** The interrupt handler and a process-context path race on `dev->pending_requests`. The driver thinks a request completed that has not. It reuses a DMA buffer that the device is still writing to. The device overwrites kernel memory. The corruption may not manifest until minutes later, in a completely unrelated subsystem.
+
+> **💡 Connection to Rust:** Rust eliminates the *data race* — two threads cannot mutably access the same `count` without going through `Mutex`, `AtomicUsize`, or another synchronization primitive. The bare `count++` above would not compile. But if you wrap it in an `AtomicUsize` and use the wrong memory ordering, or increment the wrong counter, the logic bug persists. Rust removes the mechanical failure; the semantic failure remains yours.
 
 This cost gradient is why the industry cares so much about safer implementation techniques in kernel code — and why Rust's ownership model is attracting serious interest for driver development.
 
