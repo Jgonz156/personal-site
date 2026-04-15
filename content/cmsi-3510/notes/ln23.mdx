@@ -3,6 +3,7 @@ import { DefinitionBox } from "@/components/interactive-example"
 import { CourseToLinuxMap } from "@/components/course-to-linux-map"
 import { DeviceWalkthroughStepper } from "@/components/device-walkthrough-stepper"
 import { NetworkWalkthroughStepper } from "@/components/network-walkthrough-stepper"
+import { MultipassDiagram } from "@/components/multipass-diagram"
 
 ## Recap — Abstractions All the Way Down
 
@@ -56,11 +57,46 @@ To make today's walkthroughs concrete and reproducible, we will use a lightweigh
 
 </DefinitionBox>
 
-### The Lecture Instance
+### Why a Virtual Machine?
 
-The lecture VM is a mostly stock Ubuntu LTS instance with a small set of observability tools preinstalled and a demo directory containing the scripts used during both walkthroughs. The full setup — Multipass launch commands, provisioning steps, and every demo file — is collected in the **Addendum** at the bottom of this page. You can use that section alone to reproduce everything shown in this lecture on your own machine.
+In LN19, we established that kernel-space code is dangerous — "code is lava." A bug in a driver or kernel module does not crash an application; it crashes the entire machine. You cannot safely experiment with `strace`, `kallsyms`, or kernel modules on the same machine you use for homework and email.
 
-> **📌 Note:** The lecture focuses on concepts, not environment wrangling. If you want to follow along or recreate the walkthroughs later, jump to the Addendum for the complete setup.
+A **virtual machine** solves this. A VM is a complete operating system — its own kernel, its own memory, its own `/dev` and `/proc` — running inside a sandbox managed by a **hypervisor**. The hypervisor is a thin software layer that allocates real hardware resources (CPU time, RAM, virtual disk) to the VM while keeping it isolated from your host. If the VM's kernel panics, your host is unaffected. If you load a buggy module, only the VM crashes. You delete it and start fresh.
+
+This is not emulation — the VM runs real Linux kernel code on real CPU instructions. The hypervisor just ensures the VM cannot reach outside its sandbox. When you type `multipass shell ln23`, your terminal opens a connection to the VM's shell over a local socket. Your keystrokes flow in, the VM's output flows back, and the experience feels identical to a local terminal — but every command executes inside the isolated guest OS.
+
+<MultipassDiagram />
+
+This architecture is exactly what makes the next lecture possible: we will compile and load our own kernel module inside a VM, knowing that any mistake is contained. The VM is our lab bench — we can inspect the kernel, modify it, and break it, all without risk to the machine we depend on.
+
+### Setting Up Your VM
+
+Every command in this lecture is meant to be run inside a Linux VM. Before continuing, complete the following setup. The **Addendum** at the bottom of this page contains additional detail and the full script contents if you need them.
+
+**1. Install Multipass** from [multipass.run](https://multipass.run/) if you haven't already.
+
+**2. Launch and enter the VM** (run these on your host machine):
+
+```bash
+multipass launch --name ln23 lts
+multipass shell ln23
+```
+
+**3. Install tools** (run this inside the VM):
+
+```bash
+sudo apt update && sudo apt install -y strace iproute2 procps curl netcat-openbsd tree build-essential kmod
+```
+
+**4. Create the demo scripts** by following **Addendum Step 5** at the bottom of this page. Once done, verify:
+
+```bash
+tree ~/ln23-demo/
+```
+
+You should see `device-read.sh`, `device-trace.sh`, and the various `inspect-*.sh` scripts.
+
+> **📌 Note:** All commands from this point forward are run inside the VM, in the `~/ln23-demo/` directory. Run `cd ~/ln23-demo` now before continuing.
 
 ---
 
@@ -70,27 +106,50 @@ Our first walkthrough traces a process interacting with a device-like resource i
 
 ### The Action
 
+> **🖥️ Run this in your VM:**
+
 ```bash
 dd if=/dev/urandom bs=16 count=1 2>/dev/null | xxd
 ```
 
 > `dd` copies data between files — here it reads 16 bytes (`bs=16 count=1`) from the input file (`if=`) `/dev/urandom`. The `2>/dev/null` suppresses `dd`'s status output. The pipe `|` sends those bytes to `xxd`, which displays raw data in hexadecimal so we can see what came back.
 
-Simple on the surface. Underneath, the entire U-bend from LN19 plays out.
+You should see one line of hex output — 16 random bytes:
+
+```
+00000000: adb8 452f 5892 8c22 12b7 aa3c f272 f1b4  ..E/X.."...<.r..
+```
+
+Your bytes will differ — they are random. Simple on the surface. Underneath, the entire U-bend from LN19 plays out.
 
 ### What We Can Observe
 
 Let's trace the syscalls that `dd` makes during this operation:
 
+> **🖥️ Run this in your VM:**
+
 ```bash
-strace -e openat,read,write,close dd if=/dev/urandom bs=16 count=1 2>/dev/null
+strace -e openat,read,write,close dd if=/dev/urandom bs=16 count=1
 ```
 
 > `strace` intercepts every system call a program makes and prints it to the terminal. The `-e` flag filters to only the syscalls we care about — `openat`, `read`, `write`, and `close`. Everything after the flags is the command being traced.
 
-The output reveals the U-bend in action. The process calls `openat()` to open `/dev/urandom` — that is the left tip of the U, descending through the syscall boundary. The kernel resolves the path through VFS, finds the device node, and locates the driver registered for this major/minor number. Then `read()` enters the driver's code, which generates random bytes and copies them into the process's buffer. The process receives data and calls `write()` to send it to stdout. Finally, `close()` releases the file descriptor.
+You will see a lot of startup noise — the dynamic linker opening shared libraries, locale files being loaded. Scroll past those. The lines that matter are near the **end** of the output:
+
+```
+openat(AT_FDCWD, "/dev/urandom", O_RDONLY) = 3
+read(0, "\x4a\xf1...", 16)             = 16
+write(1, "\x4a\xf1...", 16)            = 16
+close(0)                                = 0
+close(1)                                = 0
+write(2, "1+0 records in\n1+0 records out\n", 31) = 31
+```
+
+This output reveals the U-bend in action. The process calls `openat()` to open `/dev/urandom` — that is the left tip of the U, descending through the syscall boundary. The kernel resolves the path through VFS, finds the device node, and locates the driver registered for this major/minor number. Then `read()` enters the driver's code, which generates random bytes and copies them into the process's buffer. The process receives data and calls `write()` to send it to stdout. Finally, `close()` releases the file descriptor. Notice `dd`'s own status message (`1+0 records in...`) also appears as a `write(2, ...)` syscall — even the program's informational output crosses the syscall boundary.
 
 > **💡 Connection to LN19:** This is exactly the U-bend. The process called `read()`. The kernel dispatched to a driver. The driver produced data. The result ascended back through the syscall boundary to the process. Every step we diagrammed in the abstract is visible here through `strace`.
+
+> **📝 Cleaner output:** The raw `strace` output includes a lot of startup noise from the dynamic linker. Run `./device-trace.sh` to see the same trace with only the relevant syscalls — it filters out everything except the `openat`, `read`, `write`, and `close` calls that matter.
 
 ### Where the Abstractions Appear
 
@@ -105,13 +164,23 @@ The output reveals the U-bend in action. The process calls `openat()` to open `/
 
 ### Inspecting the Device Node
 
+> **🖥️ Run this in your VM:**
+
 ```bash
 ls -la /dev/urandom
 ```
 
 > `ls -la` lists a file with full details: permissions, owner, group, and — for device nodes — the major and minor numbers instead of a file size.
 
-The output shows that `/dev/urandom` is a character device with specific major and minor numbers. Those numbers are the dispatch key the kernel uses to find the right driver — the same major/minor system we studied in LN18.
+You should see output like:
+
+```
+crw-rw-rw- 1 root root 1, 9 Apr 14 16:55 /dev/urandom
+```
+
+The `c` at the start means **character device**. Where you would normally see a file size, you instead see `1, 9` — the **major** and **minor** numbers. These are the dispatch key the kernel uses to find the right driver — the same major/minor system we studied in LN18.
+
+> **🖥️ Run this in your VM:**
 
 ```bash
 cat /proc/devices | head -20
@@ -119,9 +188,172 @@ cat /proc/devices | head -20
 
 > `cat` prints a file's contents. `/proc/devices` is a virtual file the kernel generates listing all registered device drivers and their major numbers. `head -20` shows only the first 20 lines to keep the output manageable.
 
-This reveals the mapping between major numbers and driver names. The random driver is registered here, and `/dev/urandom` points to it.
+Look for major number `1` in the output — it maps to `mem`, the driver that handles `/dev/urandom`, `/dev/null`, `/dev/zero`, and other memory-related pseudo-devices. This is how the kernel knows that device node `1, 9` should be handled by the memory driver.
+
+> **📝 Cleaner output:** Run `./device-read.sh` to see the device read, device node details, and major/minor mapping all in one labeled output.
 
 > **📌 Key Point:** Nothing in this walkthrough is new theory. Every step maps directly onto concepts from earlier lectures. Linux is where those concepts stop being diagrams and start being commands.
+
+### Following the Dispatch to the Driver
+
+We now know that `/dev/urandom` is character device `1, 9` and that major `1` maps to the `mem` driver. But we can go further — the kernel provides enough information to trace from the device node all the way to the _actual source code_ of the function that runs when you call `read()` on this file.
+
+> **🖥️ Run this in your VM:**
+
+```bash
+cat /sys/devices/virtual/mem/urandom/uevent
+```
+
+> `/sys/devices/` is where the kernel exposes its internal device tree. The `uevent` file shows the kernel's own record of what this device is — its major/minor numbers and the name it registered under.
+
+You should see:
+
+```
+MAJOR=1
+MINOR=9
+DEVNAME=urandom
+DEVMODE=0666
+```
+
+This confirms the mapping: the kernel itself says this device is `1:9` and is named `urandom`. The mode `0666` means any process can read from or write to it — no special permissions needed.
+
+Next, we can look at the kernel's **symbol table** to find the entry point:
+
+> **🖥️ Run this in your VM:**
+
+```bash
+sudo grep urandom_fops /proc/kallsyms
+```
+
+> `/proc/kallsyms` lists _every_ symbol (function, struct, variable) in the running kernel, with its memory address. `urandom_fops` is the **file_operations struct** for `/dev/urandom` — the table of function pointers the kernel uses to dispatch `open()`, `read()`, `write()`, and `close()` calls on this device.
+
+You should see output like:
+
+```
+ffff800081998fd8 D urandom_fops
+```
+
+The `D` means this is a data symbol in the global (initialized) data section — it is a **struct**, not a function. This struct is the dispatch table from LN19: it contains the function pointers the kernel follows when your `read()` syscall reaches the driver.
+
+> **🖥️ Run this in your VM:**
+
+```bash
+sudo grep urandom_read_iter /proc/kallsyms
+```
+
+You should see:
+
+```
+ffff800080e27908 t urandom_read_iter
+```
+
+The `t` means this is a text symbol — **executable code** in the kernel. This is the actual function the kernel calls when you `read()` from `/dev/urandom`. The lowercase `t` means it has file-local scope (static), which makes sense — only the dispatch table should call it directly.
+
+#### Seeing the Source
+
+This VM runs kernel 6.8. The `urandom_fops` struct and the `urandom_read_iter` function live in [`drivers/char/random.c`](https://github.com/torvalds/linux/blob/v6.8/drivers/char/random.c) in the Linux source tree. Here is the actual dispatch table from that file:
+
+```c
+const struct file_operations urandom_fops = {
+    .read_iter  = urandom_read_iter,
+    .write_iter = random_write_iter,
+    .unlocked_ioctl = random_ioctl,
+    .compat_ioctl   = compat_ptr_ioctl,
+    .fasync     = random_fasync,
+    .llseek     = noop_llseek,
+    .splice_read = copy_splice_read,
+};
+```
+
+Look at `.read_iter = urandom_read_iter` — this is the exact connection. When `dd` calls `read()` on `/dev/urandom`:
+
+1. The syscall traps into the kernel (`read()` → `vfs_read()`)
+2. VFS follows fd 3 → inode → `urandom_fops`
+3. It calls `urandom_fops.read_iter`, which is `urandom_read_iter()`
+4. That function generates random bytes and copies them back to user space
+
+This is the same dispatch pattern we studied in LN19 when we looked at how drivers are structured — but now you are seeing it in a real, running system with a real production driver. The `file_operations` struct is not an abstract diagram; it is a real C struct at address `ffff800081998fd8` in this kernel's memory.
+
+#### Inside `urandom_read_iter()`
+
+We can go one level deeper. Here is the function that `urandom_fops.read_iter` points to — the code that actually runs when you `read()` from `/dev/urandom`:
+
+```c
+static ssize_t urandom_read_iter(struct kiocb *kiocb, struct iov_iter *iter)
+{
+    static int maxwarn = 10;
+
+    if (!crng_ready())
+        try_to_generate_entropy();
+
+    if (!crng_ready()) {
+        if (!ratelimit_disable && maxwarn <= 0)
+            ++urandom_warning.missed;
+        else if (ratelimit_disable || __ratelimit(&urandom_warning)) {
+            --maxwarn;
+            pr_notice("%s: uninitialized urandom read (%zu bytes read)\n",
+                current->comm, iov_iter_count(iter));
+        }
+    }
+
+    return get_random_bytes_user(iter);
+}
+```
+
+This function is surprisingly short. It does exactly two things:
+
+1. **Checks readiness** — if the kernel's cryptographic random number generator has not yet gathered enough entropy (e.g., very early in boot), it warns. For a normally running system, `crng_ready()` is true and this check is skipped entirely.
+2. **Dispatches to `get_random_bytes_user()`** — the function that actually generates and delivers the random bytes.
+
+Here is `get_random_bytes_user()`, where the real work happens:
+
+```c
+static ssize_t get_random_bytes_user(struct iov_iter *iter)
+{
+    u32 chacha_state[CHACHA_STATE_WORDS];
+    u8 block[CHACHA_BLOCK_SIZE];
+    size_t ret = 0, copied;
+
+    if (unlikely(!iov_iter_count(iter)))
+        return 0;
+
+    crng_make_state(chacha_state, (u8 *)&chacha_state[4], CHACHA_KEY_SIZE);
+
+    if (iov_iter_count(iter) <= CHACHA_KEY_SIZE) {
+        ret = copy_to_iter(&chacha_state[4], CHACHA_KEY_SIZE, iter);
+        goto out_zero_chacha;
+    }
+
+    for (;;) {
+        chacha20_block(chacha_state, block);
+        if (unlikely(chacha_state[12] == 0))
+            ++chacha_state[13];
+
+        copied = copy_to_iter(block, sizeof(block), iter);
+        ret += copied;
+        if (!iov_iter_count(iter) || copied != sizeof(block))
+            break;
+        /* ... periodic rescheduling for large reads ... */
+    }
+
+    memzero_explicit(block, sizeof(block));
+out_zero_chacha:
+    memzero_explicit(chacha_state, sizeof(chacha_state));
+    return ret ? ret : -EFAULT;
+}
+```
+
+Follow this through for our `dd` read of 16 bytes:
+
+1. **`crng_make_state()`** — initializes ChaCha20 cipher state from the kernel's entropy pool. This is the cryptographic core: ChaCha20 is a stream cipher that expands a small seed into an arbitrary-length stream of unpredictable bytes.
+
+2. **Short-path check** — `CHACHA_KEY_SIZE` is 32. Our request is 16 bytes, which is `<= 32`, so the function takes the **short path**: it copies the random bytes directly from the ChaCha state with `copy_to_iter()` and jumps to cleanup. No loop, no block generation — just a single copy.
+
+3. **`copy_to_iter()`** — this is the kernel's iterator-based version of `copy_to_user()`. It copies 16 bytes from the kernel's ChaCha state buffer into `dd`'s user-space buffer. This is where data crosses back over the user/kernel boundary.
+
+4. **`memzero_explicit()`** — the function **erases the ChaCha state from memory immediately after use**. Even if an attacker later reads kernel memory, they cannot reconstruct the random bytes that were generated. This is called _forward secrecy_, and it is a concrete example of the defensive kernel programming we discussed in LN19 — "code is lava" means cleaning up after yourself, even for data structures that will go out of scope.
+
+> **📌 Key insight:** The entire invisible interior of the U-bend — from `read()` entering the kernel to `read()` returning 16 — is just these four operations: set up ChaCha20 state, generate bytes, copy to user, zero the key material. Every step either produces the data or protects the system. Nothing is wasted.
 
 <DeviceWalkthroughStepper />
 
@@ -131,9 +363,11 @@ This reveals the mapping between major numbers and driver names. The random driv
 
 Our second walkthrough traces a process communicating over the network. We will use a simple client/server exchange over TCP on the loopback interface — one process listens, another connects and sends a message.
 
+> **📌 This walkthrough requires two terminal sessions in the VM.** Open a second host terminal and run `multipass shell ln23` so you have two independent shells inside the VM. We will call them **Terminal 1** (the server) and **Terminal 2** (the client). Make sure both are in the `~/ln23-demo/` directory.
+
 ### The Action
 
-In one terminal (the server):
+> **🖥️ Terminal 1 — Run this to start the server:**
 
 ```bash
 nc -l 4000
@@ -141,7 +375,9 @@ nc -l 4000
 
 > `nc` (netcat) is a simple networking utility. The `-l` flag tells it to **listen** for incoming connections. `4000` is the port number. This turns `nc` into a minimal TCP server that waits for a client and prints whatever it receives.
 
-In another terminal (the client):
+The server will appear to hang — that is correct. It is **blocking** on `accept()`, waiting for a client. Leave it running.
+
+> **🖥️ Terminal 2 — Run this to send a message:**
 
 ```bash
 echo "GET_TEMP" | nc 127.0.0.1 4000
@@ -149,11 +385,15 @@ echo "GET_TEMP" | nc 127.0.0.1 4000
 
 > `echo` prints the string `"GET_TEMP"`. The pipe sends it to `nc`, which connects to `127.0.0.1` (the loopback address — this same machine) on port `4000` and transmits the data over TCP.
 
-The server receives the message and prints it. This is our temperature-service example from LN22, stripped down to the simplest possible form.
+Switch back to Terminal 1. You should see `GET_TEMP` printed — the server received the message. This is our temperature-service example from LN22, stripped down to the simplest possible form.
 
 ### What We Can Observe
 
+Now let's repeat the exchange, but trace the syscalls. The server has already exited, so we start fresh.
+
 Tracing the server side with `strace`:
+
+> **🖥️ Terminal 1 — Run the traced server:**
 
 ```bash
 strace -e socket,bind,listen,accept,read,write,close nc -l 4000
@@ -161,9 +401,44 @@ strace -e socket,bind,listen,accept,read,write,close nc -l 4000
 
 > Same `strace` as before, but now filtering for socket-related syscalls: `socket`, `bind`, `listen`, `accept`, `read`, `write`, and `close`. The command being traced is the `nc` server.
 
-The output reveals the socket lifecycle we studied in LN22. The process calls `socket()` to create an endpoint. It calls `bind()` to attach to port `4000`. It calls `listen()` to mark the socket as accepting connections. Then it blocks on `accept()` — sleeping until a client arrives. When the client connects, `accept()` returns with a new file descriptor for the connected conversation (the well-known port discovery pattern). The server then calls `read()` on that new descriptor and receives the client's message.
+You will immediately see the setup syscalls appear, then the server will block:
 
-On the client side:
+```
+socket(AF_INET, SOCK_STREAM, 0)         = 3
+bind(3, {sin_port=htons(4000)}, 16)     = 0
+listen(3, 1)                            = 0
+accept(3, ...
+```
+
+The server is sleeping on `accept()` — waiting for a client. Now send the message:
+
+> **🖥️ Terminal 2 — Send the message again:**
+
+```bash
+echo "GET_TEMP" | nc 127.0.0.1 4000
+```
+
+Switch back to Terminal 1. The rest of the strace output has appeared:
+
+```
+accept(3, {sin_port=htons(54321)}, ...) = 4
+read(4, "GET_TEMP\n", 1024)             = 9
+write(1, "GET_TEMP\n", 9)               = 9
+close(4)                                = 0
+close(3)                                = 0
+```
+
+The output reveals the socket lifecycle we studied in LN22. The process calls `socket()` to create an endpoint. It calls `bind()` to attach to port `4000`. It calls `listen()` to mark the socket as accepting connections. Then it blocks on `accept()` — sleeping until a client arrives. When the client connects, `accept()` returns with a **new** file descriptor (`4`) for the connected conversation (the well-known port discovery pattern). The server then calls `read()` on that new descriptor and receives the client's message.
+
+On the client side, you can trace the other half of the exchange. Start the server again first:
+
+> **🖥️ Terminal 1 — Start the plain server:**
+
+```bash
+nc -l 4000
+```
+
+> **🖥️ Terminal 2 — Run the traced client:**
 
 ```bash
 strace -e socket,connect,write,close sh -c 'echo "GET_TEMP" | nc 127.0.0.1 4000'
@@ -171,13 +446,28 @@ strace -e socket,connect,write,close sh -c 'echo "GET_TEMP" | nc 127.0.0.1 4000'
 
 > The `sh -c '...'` wraps the piped command so `strace` can trace the entire pipeline. We filter for the client-side syscalls: `socket`, `connect`, `write`, and `close`.
 
+Look for these lines in the output:
+
+```
+socket(AF_INET, SOCK_STREAM, 0)                 = 3
+connect(3, {sin_port=htons(4000), sin_addr="127.0.0.1"}, 16) = 0
+```
+
 The client calls `socket()`, then `connect()` to initiate the TCP handshake with the server. Once connected, `write()` sends the data. The kernel handles the rest — packetization, transport headers, loopback delivery.
 
 > **💡 Connection to LN22:** Every socket operation we defined — `socket()`, `bind()`, `listen()`, `accept()`, `connect()`, `read()`, `write()`, `close()` — appears directly in the `strace` output. The abstraction is not a simplification for the lecture; it is the actual API the program uses.
 
 ### Inspecting the Network State
 
-While the server is listening (before the client connects), we can inspect the socket:
+Start the server one more time so we can inspect it while it's listening:
+
+> **🖥️ Terminal 1:**
+
+```bash
+nc -l 4000
+```
+
+> **🖥️ Terminal 2 — Inspect the socket state before the client connects:**
 
 ```bash
 ss -tlnp
@@ -185,7 +475,9 @@ ss -tlnp
 
 > `ss` is Linux's socket statistics tool (successor to `netstat`). The flags: `-t` for TCP sockets, `-l` for listening sockets only, `-n` for numeric output (don't resolve hostnames), `-p` to show the process that owns each socket.
 
-This shows the listening socket on port `4000`, the process that owns it, and its state. After the client connects, running `ss` again reveals the established connection with its full 4-tuple — the same multiplexing story from LN22, made visible.
+Look for a line with `*:4000` or `0.0.0.0:4000` in the output — that is our server's listening socket. This shows the listening socket on port `4000`, the process that owns it, and its state. After the client connects, running `ss -tnp` (without `-l`) reveals the established connection with its full 4-tuple — the same multiplexing story from LN22, made visible.
+
+> **🖥️ Terminal 2 — Inspect the loopback interface:**
 
 ```bash
 ip addr show lo
@@ -193,7 +485,19 @@ ip addr show lo
 
 > `ip` is Linux's network configuration tool. `addr show` lists IP addresses assigned to interfaces. `lo` specifies the loopback interface, which is the virtual network interface a machine uses to talk to itself.
 
+You should see:
+
+```
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host
+```
+
 This reveals the loopback interface — the "network" our packets are traveling over. Even on localhost, the full network stack runs: the kernel still builds packets, applies transport headers, and delivers through the protocol layers. The loopback interface simply short-circuits the NIC — the same IPC mirror insight from LN21.
+
+> **📝 Cleaner output:** Run `./inspect-net.sh` to see the loopback interface, listening sockets, and established connections in one labeled output. Run it while the server is listening in Terminal 1 to see the socket state.
+
+You can now stop the server in Terminal 1 with `Ctrl+C`.
 
 ### Where the Abstractions Appear
 
@@ -226,14 +530,27 @@ Both walkthroughs used specific Linux surfaces to inspect what the kernel is doi
 
 Every running process has a directory in `/proc` named by its PID. Inside that directory, files like `status`, `maps`, `fd/`, and `cmdline` reveal the process's state, memory layout, open file descriptors, and command-line arguments.
 
+> **🖥️ Run these in your VM:**
+
 ```bash
 ls /proc/self/fd
-cat /proc/self/status
+cat /proc/self/status | head -15
 ```
 
 > `/proc/self` is a magic symlink that always points to the `/proc` directory of whichever process reads it. `fd/` is a subdirectory containing a numbered entry for each open file descriptor. `status` is a virtual file the kernel fills with the process's name, PID, state, memory usage, and more.
 
-The first command shows the file descriptors currently open in this shell — including `0` (stdin), `1` (stdout), and `2` (stderr). The second shows the process's name, PID, state, memory usage, and more.
+The first command shows the file descriptors currently open — including `0` (stdin), `1` (stdout), and `2` (stderr). The second shows something like:
+
+```
+Name:   cat
+State:  R (running)
+Pid:    3520
+PPid:   3518
+```
+
+Notice the `Name` field says `cat`, not `bash` — that is because `/proc/self` resolves to *whichever process reads it*, and here `cat` is the process doing the reading. This is itself a mini-lesson in how the kernel tracks per-process state.
+
+> **📝 Cleaner output:** Run `./inspect-proc.sh` to see file descriptors, process status, and system memory info in one labeled output.
 
 > **💡 Connection to LN9:** We introduced processes as the OS's unit of isolation and management. `/proc` is where Linux lets you peek inside that management layer without needing kernel source code.
 
@@ -247,18 +564,24 @@ The first command shows the file descriptors currently open in this shell — in
 
 Where `/proc` is organized around processes, `/sys` is organized around the kernel's device and subsystem model. You can find information about block devices, network interfaces, PCI devices, and more.
 
+> **🖥️ Run these in your VM:**
+
 ```bash
 ls /sys/class/net/
 cat /sys/class/net/lo/mtu
 ```
 
-> `/sys/class/net/` groups all network interfaces by class. Each subdirectory is an interface (e.g., `lo`, `eth0`). The `mtu` file inside each contains a single number — the Maximum Transmission Unit in bytes — that you can read like a regular file.
+> `/sys/class/net/` groups all network interfaces by class. Each subdirectory is an interface (e.g., `lo`, `enp0s1`). The `mtu` file inside each contains a single number — the Maximum Transmission Unit in bytes — that you can read like a regular file.
 
-The first command lists the network interfaces the kernel knows about. The second reads the MTU (Maximum Transmission Unit) of the loopback interface — a direct view into the link-layer configuration we discussed in LN21.
+The first command lists the network interfaces the kernel knows about (you should see `enp0s1` and `lo`). The second prints `65536` — the MTU of the loopback interface, which is large because loopback does not traverse a real wire. This is a direct view into the link-layer configuration we discussed in LN21.
+
+> **📝 Cleaner output:** Run `./inspect-sys.sh` to see network interfaces, loopback MTU, and block devices in one labeled output.
 
 ### `/dev` — Device Endpoints
 
 We already used `/dev/urandom` in the first walkthrough. The `/dev` directory contains device nodes — special files that represent endpoints for device communication. Each node encodes a major and minor number that the kernel uses to dispatch operations to the correct driver.
+
+> **🖥️ Run this in your VM:**
 
 ```bash
 ls -la /dev/urandom /dev/null /dev/zero
@@ -266,7 +589,17 @@ ls -la /dev/urandom /dev/null /dev/zero
 
 > Lists three common device nodes side by side. `/dev/null` discards everything written to it. `/dev/zero` produces an infinite stream of zero bytes. `/dev/urandom` produces random bytes. All three are character devices with distinct major/minor numbers routing to different drivers.
 
-These are all character devices managed by different drivers, accessible through the same `open()`/`read()`/`write()` interface.
+You should see:
+
+```
+crw-rw-rw- 1 root root 1, 3 Apr 14 16:55 /dev/null
+crw-rw-rw- 1 root root 1, 9 Apr 14 16:55 /dev/urandom
+crw-rw-rw- 1 root root 1, 5 Apr 14 16:55 /dev/zero
+```
+
+All three share major number `1` (the `mem` driver) but have different minor numbers — `3`, `9`, and `5`. The kernel uses the minor number to dispatch to the correct behavior within the same driver. These are all character devices accessible through the same `open()`/`read()`/`write()` interface.
+
+> **📝 Cleaner output:** Run `./inspect-dev.sh` to see common device nodes and a broader device listing in one labeled output.
 
 ### Three Windows, Three Perspectives
 
@@ -300,21 +633,46 @@ This has a deeper implication for us. The entire "code is lava" discussion from 
 
 ### Observing Modules
 
+> **🖥️ Run this in your VM:**
+
 ```bash
 lsmod | head -20
 ```
 
 > `lsmod` lists all currently loaded kernel modules. Each line shows the module name, its size in memory, and how many other modules depend on it. `head -20` limits the output to the first 20 entries.
 
-The output shows the modules currently loaded on this machine. You will likely see entries for filesystem drivers, network protocols, and device drivers. Each one is a piece of kernel code that was loaded after the kernel itself started.
+You should see a table like:
 
-```bash
-modinfo e1000
+```
+Module                  Size  Used by
+tcp_diag               12288  0
+inet_diag              28672  1 tcp_diag
+tls                   159744  0
+binfmt_misc            28672  1
 ```
 
-> `modinfo` prints detailed information about a specific kernel module — its description, author, license, parameters it accepts, and which devices it supports. `e1000` is Intel's Gigabit Ethernet driver, one of the most common network drivers.
+Each of these is a piece of kernel code that was loaded after the kernel itself started — filesystem drivers, network protocols, diagnostics modules, and more.
 
-This shows the metadata for a specific module. Notice the `license` field — Linux requires modules to declare their license, and the kernel logs a "taint" warning when a non-GPL module is loaded. This is the community's way of flagging when kernel-space code cannot be inspected or audited.
+> **🖥️ Run this in your VM:**
+
+```bash
+modinfo e1000 | head -6
+```
+
+> `modinfo` prints detailed information about a specific kernel module — its description, author, license, parameters it accepts, and which devices it supports. `e1000` is Intel's Gigabit Ethernet driver, one of the most common network drivers. We pipe through `head -6` to see just the key metadata.
+
+You should see:
+
+```
+filename:       /lib/modules/.../e1000/e1000.ko.zst
+license:        GPL v2
+description:    Intel(R) PRO/1000 Network Driver
+author:         Intel Corporation, <linux.nics@intel.com>
+```
+
+Notice the `license` field — Linux requires modules to declare their license, and the kernel logs a "taint" warning when a non-GPL module is loaded. This is the community's way of flagging when kernel-space code cannot be inspected or audited.
+
+> **🖥️ Run this in your VM:**
 
 ```bash
 ls /lib/modules/$(uname -r)/kernel/drivers/net/ | head -20
@@ -323,6 +681,8 @@ ls /lib/modules/$(uname -r)/kernel/drivers/net/ | head -20
 > `uname -r` prints the running kernel version. `/lib/modules/<version>/kernel/drivers/net/` is where compiled network driver modules are stored on disk as `.ko` (kernel object) files. This command lists the network drivers available for loading.
 
 The modules directory on disk mirrors the kernel's subsystem structure. There are subdirectories for `drivers/`, `fs/`, `net/`, `crypto/`, and more — each containing the `.ko` files that can be loaded on demand.
+
+> **📝 Cleaner output:** Run `./inspect-modules.sh` to see loaded modules and available network drivers in one labeled output.
 
 ### The Module Lifecycle
 
@@ -333,7 +693,7 @@ The modules directory on disk mirrors the kernel's subsystem structure. There ar
 | Load a module | `sudo modprobe <name>` | Loads the module and any dependencies it requires |
 | Unload a module | `sudo modprobe -r <name>` | Removes the module from kernel memory (if nothing depends on it) |
 
-> **💡 Connection to LN19:** A kernel module is the tangible artifact behind the "driver" abstraction we studied. When we said the kernel "dispatches to a driver," this is how the driver got there — it was loaded as a module that registered itself with the kernel's dispatch infrastructure. The U-bend does not just cross into kernel space; it crosses into specific module code that may not have even been present when the machine booted.
+> **💡 Connection to LN19:** A kernel module is the tangible artifact behind the "driver" abstraction we studied. When we said the kernel "dispatches to a driver," this is how the driver got there — it was loaded as a module that registered itself with the kernel's dispatch infrastructure. The U-bend does not just cross into kernel space; it crosses into specific module code that may not have even been present when the machine booted. We saw exactly this dispatch in Walkthrough 1: `urandom_fops` is the `file_operations` struct that the `mem` driver registered, and `urandom_read_iter` is the function pointer the kernel follows when you call `read()`. A loadable module works the same way — it registers its own `file_operations` struct, and the kernel's dispatch layer treats it identically to built-in code.
 
 > **🤔 Looking Ahead:** In the next lecture, we will write a kernel module ourselves — in Rust. The module system is what makes this possible: we can compile our code, load it into a running kernel, test it, and unload it, all without rebooting. Understanding how modules fit into the kernel's architecture is the bridge between observing Linux and contributing to it.
 
@@ -357,7 +717,9 @@ Both walkthroughs relied on a small set of Linux tools. These tools are not triv
 
 The power of these tools is not in any single command. It is in combining them to build a picture of what the system is doing across layers.
 
-To see a process, trace its syscalls, inspect its sockets, and check the kernel log:
+For example, if you start `nc -l 4000` in one terminal, you could inspect it from another using:
+
+> **🖥️ Try any of these in your VM (with a server running in another terminal):**
 
 ```bash
 ps aux | grep nc
@@ -366,7 +728,7 @@ ss -tnp | grep 4000
 dmesg | tail
 ```
 
-> `ps aux` lists all running processes with details (user, PID, CPU/memory usage, command). Piping through `grep nc` filters for lines containing "nc." `strace -p <pid>` attaches to an already-running process by its PID rather than launching a new one. `ss -tnp` shows TCP sockets (`-t`) with numeric output (`-n`) and owning process (`-p`). `dmesg` prints the kernel's ring buffer — its internal log — and `tail` shows the most recent entries.
+> `ps aux` lists all running processes with details (user, PID, CPU/memory usage, command). Piping through `grep nc` filters for lines containing "nc." `strace -p <pid>` attaches to an already-running process by its PID rather than launching a new one — replace `<pid>` with the PID from the `ps` output. `ss -tnp` shows TCP sockets (`-t`) with numeric output (`-n`) and owning process (`-p`). `dmesg` prints the kernel's ring buffer — its internal log — and `tail` shows the most recent entries.
 
 Each tool reveals a different slice of the same underlying action. `ps` shows the process exists and is running. `strace` shows what kernel services the process is requesting. `ss` shows the transport-layer state of its sockets. `dmesg` shows what the kernel itself has to say about recent events. Together, they turn the abstract U-bend into observable evidence.
 
@@ -574,45 +936,11 @@ chmod +x ~/ln23-demo/device-read.sh
 cat > ~/ln23-demo/device-trace.sh << 'SCRIPT'
 #!/bin/bash
 echo "=== Tracing syscalls for dd reading /dev/urandom ==="
-strace -e openat,read,write,close dd if=/dev/urandom bs=16 count=1 2>&1 | head -30
+echo "(Showing only the interesting syscalls — startup noise filtered out)"
+echo ""
+strace -e openat,read,write,close -o /dev/stdout dd if=/dev/urandom bs=16 count=1 2>/dev/null | grep -aE 'urandom|read\(0|write\(1|write\(2|close\(0|close\(1|close\(2|exited'
 SCRIPT
 chmod +x ~/ln23-demo/device-trace.sh
-```
-
-#### `server.sh` — Walkthrough 2 TCP Server
-
-```bash
-cat > ~/ln23-demo/server.sh << 'SCRIPT'
-#!/bin/bash
-echo "Starting server on port 4000..."
-echo "Run 'client.sh' in another terminal to send a message."
-nc -l 4000
-SCRIPT
-chmod +x ~/ln23-demo/server.sh
-```
-
-#### `client.sh` — Walkthrough 2 TCP Client
-
-```bash
-cat > ~/ln23-demo/client.sh << 'SCRIPT'
-#!/bin/bash
-echo "Sending GET_TEMP to 127.0.0.1:4000..."
-echo "GET_TEMP" | nc 127.0.0.1 4000
-echo "Message sent."
-SCRIPT
-chmod +x ~/ln23-demo/client.sh
-```
-
-#### `server-trace.sh` — Walkthrough 2 Server with Syscall Tracing
-
-```bash
-cat > ~/ln23-demo/server-trace.sh << 'SCRIPT'
-#!/bin/bash
-echo "Starting traced server on port 4000..."
-echo "Run 'client.sh' in another terminal to send a message."
-strace -e socket,bind,listen,accept,read,write,close nc -l 4000
-SCRIPT
-chmod +x ~/ln23-demo/server-trace.sh
 ```
 
 #### `inspect-proc.sh` — Exploring /proc
@@ -714,19 +1042,16 @@ You should see:
 
 ```
 ln23-demo/
-├── client.sh
 ├── device-read.sh
 ├── device-trace.sh
 ├── inspect-dev.sh
 ├── inspect-modules.sh
 ├── inspect-net.sh
 ├── inspect-proc.sh
-├── inspect-sys.sh
-├── server-trace.sh
-└── server.sh
+└── inspect-sys.sh
 ```
 
-Each script is self-contained and prints labeled output, so you can run them in any order. For the network walkthrough, open two terminal sessions into the VM (`multipass shell ln23` in two host terminals) — run the server script in one and the client script in the other.
+Each script is self-contained and prints labeled output, so you can run them in any order. For the network walkthrough, open two terminal sessions into the VM (`multipass shell ln23` in two host terminals) — the lecture body provides the commands to run directly.
 
 ### Cleanup
 

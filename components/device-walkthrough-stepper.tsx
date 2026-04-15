@@ -4,118 +4,143 @@ import { cn } from "@/lib/utils"
 import { useState } from "react"
 
 const VW = 700
-const VH = 360
-const BOUNDARY_Y = 80
+const VH = 420
+const BOUNDARY_Y = 90
+
+const STRACE_X = 70
+const KERNEL_X = 440
+const COL_W = 140
+const NODE_H = 30
+const NODE_GAP = 8
 
 interface StepDef {
   title: string
   description: string
-  active: string[]
+  straceHighlight: string[]
+  kernelHighlight: string[]
   strace?: string
   concept: string
+  invisible?: boolean
 }
 
 const steps: StepDef[] = [
   {
     title: "Overview",
-    description: "dd reads 16 bytes from /dev/urandom. Follow the request through the full U-bend — from the user-space read() call down into the kernel, through VFS dispatch and driver code, and back up to the process with random bytes.",
-    active: ["dd", "read", "vfs", "devnode", "driver", "rng", "copy", "return"],
-    concept: "The full path",
+    description: "dd reads 16 bytes from /dev/urandom. The left column shows what strace reveals — the syscalls crossing the user/kernel boundary. The right column shows what happens invisibly inside the kernel between those crossings. Each kernel node corresponds to a real function you can find in drivers/char/random.c.",
+    straceHighlight: ["openat", "read_call", "write_call", "close_call"],
+    kernelHighlight: ["vfs", "devnode", "driver", "generate", "copy", "memzero"],
+    concept: "The full U-bend",
   },
   {
-    title: "dd calls read()",
-    description: "The dd process calls read(fd, buf, 16). The file descriptor fd was obtained from an earlier openat(\"/dev/urandom\") call. The CPU traps into the kernel — this is the left side of the U-bend descending through the syscall boundary.",
-    active: ["dd", "read"],
-    strace: "read(3, ..., 16)",
+    title: "openat(\"/dev/urandom\")",
+    description: "dd calls openat() to open /dev/urandom. The kernel resolves the path through VFS, finds the device node with major:minor 1:9, locates the registered driver, and returns file descriptor 3.",
+    straceHighlight: ["openat"],
+    kernelHighlight: ["vfs", "devnode"],
+    strace: "openat(AT_FDCWD, \"/dev/urandom\", O_RDONLY) = 3",
+    concept: "VFS + device dispatch (LN18)",
+  },
+  {
+    title: "read() enters the kernel",
+    description: "dd calls read(3, buf, 16). The CPU traps into kernel mode — the left side of the U-bend descending through the syscall boundary. The kernel looks up fd 3 and dispatches to urandom_fops.read_iter, which is urandom_read_iter() in drivers/char/random.c.",
+    straceHighlight: ["read_call"],
+    kernelHighlight: ["driver"],
+    strace: "read(3, ..., 16)  →  entering kernel",
     concept: "Syscall boundary (LN19)",
   },
   {
-    title: "VFS Resolves the Path",
-    description: "The kernel's Virtual File System layer looks up the file descriptor and finds that it points to a device node. VFS reads the major/minor numbers encoded in /dev/urandom and uses them to locate the registered driver — the same dispatch mechanism from LN18.",
-    active: ["vfs", "devnode"],
-    concept: "VFS + major/minor dispatch (LN18)",
+    title: "urandom_read_iter() → crng_make_state()",
+    description: "urandom_read_iter() calls get_random_bytes_user(), which calls crng_make_state() to initialize a ChaCha20 cipher state from the kernel's entropy pool. This is where the random bytes are generated — the deepest point of the U-bend.",
+    straceHighlight: [],
+    kernelHighlight: ["driver", "generate"],
+    concept: "Crypto RNG (drivers/char/random.c)",
+    invisible: true,
   },
   {
-    title: "Driver Code Runs",
-    description: "VFS calls the driver's .read() function. For /dev/urandom, this is the kernel's random number generator. The driver code runs entirely in kernel context with Ring 0 privilege — the deepest point of the U-bend.",
-    active: ["driver", "rng"],
-    concept: "Driver in kernel space (LN19)",
-  },
-  {
-    title: "Data Copied to User Buffer",
-    description: "The driver generates 16 random bytes and copies them into the process's user-space buffer via copy_to_user(). The data crosses back over the user/kernel boundary — the right side of the U ascending.",
-    active: ["copy"],
+    title: "copy_to_iter() → user buffer",
+    description: "Our read is 16 bytes (≤ 32), so get_random_bytes_user() takes the short path: it copies the bytes directly from the ChaCha state into dd's user-space buffer with copy_to_iter(). The data crosses back over the user/kernel boundary — the right side of the U ascending.",
+    straceHighlight: [],
+    kernelHighlight: ["copy"],
     concept: "Kernel → user data transfer (LN19)",
+    invisible: true,
   },
   {
-    title: "read() Returns",
-    description: "The read() syscall returns 16, indicating 16 bytes were successfully read. dd now holds random bytes in its buffer and writes them to stdout, which xxd formats as hex. The full U-bend is complete.",
-    active: ["return", "dd"],
-    strace: "read(3, \"\\x4a\\xf1...\", 16) = 16",
+    title: "memzero_explicit() — forward secrecy",
+    description: "Before returning, the kernel calls memzero_explicit() to erase the ChaCha state from memory. Even if an attacker later reads kernel memory, they cannot reconstruct the random bytes. This is forward secrecy — the \"code is lava\" principle from LN19 in action.",
+    straceHighlight: [],
+    kernelHighlight: ["memzero"],
+    concept: "Defensive cleanup (LN19)",
+    invisible: true,
+  },
+  {
+    title: "read() returns",
+    description: "The read() syscall returns 16 — the number of bytes successfully read. dd now holds 16 random bytes in its buffer. Between the read() entering the kernel and this return, four invisible operations occurred: dispatch, generate, copy, and cleanup.",
+    straceHighlight: ["read_call"],
+    kernelHighlight: [],
+    strace: "read(3, \"\\xad\\xb8\\x45...\", 16) = 16",
     concept: "U-bend completion (LN19)",
+  },
+  {
+    title: "write() to stdout",
+    description: "dd writes the 16 bytes to stdout (fd 1), which is piped to xxd. This is another syscall — another boundary crossing — but for output rather than device input.",
+    straceHighlight: ["write_call"],
+    kernelHighlight: [],
+    strace: "write(1, \"\\xad\\xb8\\x45...\", 16) = 16",
+    concept: "Everything is a syscall",
+  },
+  {
+    title: "close() releases the fd",
+    description: "dd calls close(3) to release the file descriptor for /dev/urandom. The kernel decrements the reference count on the underlying file structure. The full lifecycle — open, read, write, close — mirrors the U-bend we traced in LN19.",
+    straceHighlight: ["close_call"],
+    kernelHighlight: [],
+    strace: "close(3) = 0",
+    concept: "fd lifecycle (LN18)",
   },
 ]
 
-type NodeId = "dd" | "read" | "vfs" | "devnode" | "driver" | "rng" | "copy" | "return"
-
-interface NodeDef {
-  cx: number; cy: number; w: number; h: number
-  label: string; sub?: string
+interface VisNode {
+  id: string
+  label: string
+  sub?: string
+  x: number
+  yIdx: number
   accent: { fill: string; stroke: string; text: string }
 }
 
-const nodes: Record<NodeId, NodeDef> = {
-  dd:      { cx: 130, cy: 38,  w: 120, h: 36, label: "dd",                sub: "user process",
-    accent: { fill: "fill-green-500/15",  stroke: "stroke-green-500/50",  text: "fill-green-700 dark:fill-green-300" } },
-  read:    { cx: 130, cy: 130, w: 120, h: 36, label: "read(fd, buf, 16)", sub: "syscall trap",
-    accent: { fill: "fill-blue-500/15",   stroke: "stroke-blue-500/50",   text: "fill-blue-700 dark:fill-blue-300" } },
-  vfs:     { cx: 250, cy: 210, w: 120, h: 36, label: "VFS Lookup",        sub: "resolve fd → inode",
-    accent: { fill: "fill-purple-500/15", stroke: "stroke-purple-500/50", text: "fill-purple-700 dark:fill-purple-300" } },
-  devnode: { cx: 250, cy: 290, w: 130, h: 36, label: "/dev/urandom",      sub: "char 1:9",
-    accent: { fill: "fill-amber-500/15",  stroke: "stroke-amber-500/50",  text: "fill-amber-700 dark:fill-amber-300" } },
-  driver:  { cx: 390, cy: 290, w: 120, h: 36, label: "Driver .read()",    sub: "random subsystem",
-    accent: { fill: "fill-orange-500/15", stroke: "stroke-orange-500/50", text: "fill-orange-700 dark:fill-orange-300" } },
-  rng:     { cx: 390, cy: 210, w: 130, h: 36, label: "Generate Bytes",    sub: "entropy pool → buf",
-    accent: { fill: "fill-red-500/15",    stroke: "stroke-red-500/50",    text: "fill-red-700 dark:fill-red-300" } },
-  copy:    { cx: 500, cy: 130, w: 130, h: 36, label: "copy_to_user()",    sub: "kernel → user buf",
-    accent: { fill: "fill-cyan-500/15",   stroke: "stroke-cyan-500/50",   text: "fill-cyan-700 dark:fill-cyan-300" } },
-  return:  { cx: 570, cy: 38,  w: 120, h: 36, label: "Return 16",        sub: "bytes in buffer",
+const straceNodes: VisNode[] = [
+  { id: "openat", label: "openat()", sub: "\"/dev/urandom\" → fd 3", x: STRACE_X, yIdx: 0,
+    accent: { fill: "fill-green-500/15", stroke: "stroke-green-500/50", text: "fill-green-700 dark:fill-green-300" } },
+  { id: "read_call", label: "read(3, buf, 16)", sub: "→ returns 16 bytes", x: STRACE_X, yIdx: 1,
+    accent: { fill: "fill-blue-500/15", stroke: "stroke-blue-500/50", text: "fill-blue-700 dark:fill-blue-300" } },
+  { id: "write_call", label: "write(1, buf, 16)", sub: "data → stdout", x: STRACE_X, yIdx: 2,
+    accent: { fill: "fill-cyan-500/15", stroke: "stroke-cyan-500/50", text: "fill-cyan-700 dark:fill-cyan-300" } },
+  { id: "close_call", label: "close(3)", sub: "release fd", x: STRACE_X, yIdx: 3,
     accent: { fill: "fill-emerald-500/15", stroke: "stroke-emerald-500/50", text: "fill-emerald-700 dark:fill-emerald-300" } },
-}
-
-const nodeIds = Object.keys(nodes) as NodeId[]
-
-interface EdgeDef { from: NodeId; to: NodeId }
-
-const edges: EdgeDef[] = [
-  { from: "dd",      to: "read" },
-  { from: "read",    to: "vfs" },
-  { from: "vfs",     to: "devnode" },
-  { from: "devnode", to: "driver" },
-  { from: "driver",  to: "rng" },
-  { from: "rng",     to: "copy" },
-  { from: "copy",    to: "return" },
 ]
 
-function edgePath(e: EdgeDef): string {
-  const a = nodes[e.from], b = nodes[e.to]
-  if (a.cx === b.cx) {
-    return `M ${a.cx} ${a.cy + a.h / 2} L ${b.cx} ${b.cy - b.h / 2}`
-  }
-  const startY = a.cy + (b.cy > a.cy ? a.h / 2 : -a.h / 2)
-  const endY = b.cy + (b.cy > a.cy ? -b.h / 2 : b.h / 2)
-  const midY = (startY + endY) / 2
-  return `M ${a.cx} ${startY} C ${a.cx} ${midY}, ${b.cx} ${midY}, ${b.cx} ${endY}`
-}
+const kernelNodes: VisNode[] = [
+  { id: "vfs", label: "VFS Lookup", sub: "resolve path → inode", x: KERNEL_X, yIdx: 0,
+    accent: { fill: "fill-purple-500/15", stroke: "stroke-purple-500/50", text: "fill-purple-700 dark:fill-purple-300" } },
+  { id: "devnode", label: "/dev/urandom", sub: "char 1:9 → mem driver", x: KERNEL_X, yIdx: 1,
+    accent: { fill: "fill-amber-500/15", stroke: "stroke-amber-500/50", text: "fill-amber-700 dark:fill-amber-300" } },
+  { id: "driver", label: "urandom_read_iter()", sub: "urandom_fops dispatch", x: KERNEL_X, yIdx: 2,
+    accent: { fill: "fill-orange-500/15", stroke: "stroke-orange-500/50", text: "fill-orange-700 dark:fill-orange-300" } },
+  { id: "generate", label: "crng_make_state()", sub: "entropy → ChaCha20", x: KERNEL_X, yIdx: 3,
+    accent: { fill: "fill-red-500/15", stroke: "stroke-red-500/50", text: "fill-red-700 dark:fill-red-300" } },
+  { id: "copy", label: "copy_to_iter()", sub: "kernel buf → user buf", x: KERNEL_X, yIdx: 4,
+    accent: { fill: "fill-rose-500/15", stroke: "stroke-rose-500/50", text: "fill-rose-700 dark:fill-rose-300" } },
+  { id: "memzero", label: "memzero_explicit()", sub: "erase key material", x: KERNEL_X, yIdx: 5,
+    accent: { fill: "fill-slate-500/15", stroke: "stroke-slate-500/50", text: "fill-slate-700 dark:fill-slate-300" } },
+]
 
-function stepActiveSet(step: number): Set<string> {
-  return new Set(steps[step].active)
+function nodeY(idx: number): number {
+  return BOUNDARY_Y + 30 + idx * (NODE_H + NODE_GAP)
 }
 
 export function DeviceWalkthroughStepper({ className }: { className?: string }) {
   const [step, setStep] = useState(0)
   const s = steps[step]
-  const active = stepActiveSet(step)
+  const straceSet = new Set(s.straceHighlight)
+  const kernelSet = new Set(s.kernelHighlight)
 
   return (
     <div className={cn("my-6 border rounded-lg bg-card overflow-hidden", className)}>
@@ -140,81 +165,67 @@ export function DeviceWalkthroughStepper({ className }: { className?: string }) 
             <marker id="dw-arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
               <polygon points="0 0, 8 4, 0 8" className="fill-primary/60" />
             </marker>
-            <marker id="dw-dim" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-              <polygon points="0 0, 8 4, 0 8" className="fill-muted-foreground/10" />
-            </marker>
           </defs>
 
           {/* Boundary line */}
           <line x1={40} y1={BOUNDARY_Y} x2={VW - 40} y2={BOUNDARY_Y}
             className="stroke-muted-foreground/20 stroke-1" strokeDasharray="6 4" />
-          <text x={60} y={BOUNDARY_Y - 8}
-            className="fill-green-600/40 dark:fill-green-400/30 font-semibold" fontSize={9}>
+          <text x={STRACE_X + COL_W / 2} y={BOUNDARY_Y - 8} textAnchor="middle"
+            className="fill-green-600/40 dark:fill-green-400/30 font-semibold" fontSize={8}>
             User Space
           </text>
-          <text x={60} y={BOUNDARY_Y + 16}
-            className="fill-red-600/40 dark:fill-red-400/30 font-semibold" fontSize={9}>
+          <text x={KERNEL_X + COL_W / 2} y={BOUNDARY_Y - 8} textAnchor="middle"
+            className="fill-red-600/40 dark:fill-red-400/30 font-semibold" fontSize={8}>
             Kernel Space
           </text>
 
-          {/* Boundary crossing dots */}
-          {(active.has("read") || step === 0) && (
-            <circle cx={130} cy={BOUNDARY_Y} r={4}
-              className={cn("transition-all duration-300",
-                active.has("read") && step !== 0 ? "fill-yellow-500" : "fill-yellow-500/30"
-              )} />
-          )}
-          {(active.has("copy") || step === 0) && (
-            <circle cx={500} cy={BOUNDARY_Y} r={4}
-              className={cn("transition-all duration-300",
-                active.has("copy") && step !== 0 ? "fill-yellow-500" : "fill-yellow-500/30"
-              )} />
-          )}
+          {/* Column headers */}
+          <text x={STRACE_X + COL_W / 2} y={30} textAnchor="middle"
+            className={cn("font-bold transition-all duration-300",
+              s.straceHighlight.length > 0 || step === 0
+                ? "fill-blue-700 dark:fill-blue-300"
+                : "fill-muted-foreground/30"
+            )} fontSize={11}>
+            strace (observable)
+          </text>
+          <text x={KERNEL_X + COL_W / 2} y={30} textAnchor="middle"
+            className={cn("font-bold transition-all duration-300",
+              s.kernelHighlight.length > 0 || step === 0
+                ? "fill-orange-700 dark:fill-orange-300"
+                : "fill-muted-foreground/30"
+            )} fontSize={11}>
+            Inside the kernel
+          </text>
 
-          {/* Background U-path */}
-          <path
-            d="M 130 56 L 130 130 Q 130 170 250 210 L 250 290 L 390 290 L 390 210 Q 500 170 500 130 L 570 56"
-            fill="none" className="stroke-border/10 stroke-1" strokeDasharray="6 4"
-          />
+          {/* Subtitle under column headers */}
+          <text x={STRACE_X + COL_W / 2} y={44} textAnchor="middle"
+            className="fill-muted-foreground/30" fontSize={7}>
+            boundary crossings you can see
+          </text>
+          <text x={KERNEL_X + COL_W / 2} y={44} textAnchor="middle"
+            className="fill-muted-foreground/30" fontSize={7}>
+            real functions in drivers/char/random.c
+          </text>
 
-          {/* Edges */}
-          {edges.map((e, i) => {
-            const fromActive = active.has(e.from)
-            const toActive = active.has(e.to)
-            const lit = fromActive && toActive && step !== 0
+          {/* Strace nodes */}
+          {straceNodes.map((n) => {
+            const lit = straceSet.has(n.id)
+            const y = nodeY(n.yIdx)
             return (
-              <path key={i} d={edgePath(e)} fill="none"
-                className={cn("transition-all duration-300",
-                  lit ? "stroke-primary/60 stroke-[1.5]" :
-                  step === 0 ? "stroke-muted-foreground/15 stroke-1" :
-                  "stroke-border/10 stroke-1"
-                )}
-                markerEnd={lit ? "url(#dw-arr)" : "url(#dw-dim)"}
-              />
-            )
-          })}
-
-          {/* Nodes */}
-          {nodeIds.map((id) => {
-            const n = nodes[id]
-            const lit = active.has(id)
-            const rx = n.cx - n.w / 2
-            const ry = n.cy - n.h / 2
-            return (
-              <g key={id} className="transition-all duration-300">
-                <rect x={rx} y={ry} width={n.w} height={n.h} rx={6}
+              <g key={n.id} className="transition-all duration-300">
+                <rect x={n.x} y={y} width={COL_W} height={NODE_H} rx={5}
                   className={cn("stroke-[1.5] transition-all duration-300",
                     lit ? n.accent.fill : "fill-muted/20",
                     lit ? n.accent.stroke : "stroke-border/10",
                   )} />
-                <text x={n.cx} y={n.cy + (n.sub ? -3 : 3)} textAnchor="middle"
+                <text x={n.x + COL_W / 2} y={y + (n.sub ? NODE_H / 2 - 2 : NODE_H / 2 + 4)} textAnchor="middle"
                   className={cn("font-semibold transition-all duration-300",
                     lit ? n.accent.text : "fill-muted-foreground/15"
                   )} fontSize={9}>
                   {n.label}
                 </text>
                 {n.sub && (
-                  <text x={n.cx} y={n.cy + 10} textAnchor="middle"
+                  <text x={n.x + COL_W / 2} y={y + NODE_H / 2 + 9} textAnchor="middle"
                     className={cn("transition-all duration-300",
                       lit ? "fill-muted-foreground/50" : "fill-muted-foreground/10"
                     )} fontSize={7}>
@@ -224,13 +235,195 @@ export function DeviceWalkthroughStepper({ className }: { className?: string }) 
               </g>
             )
           })}
+
+          {/* Strace flow arrows */}
+          {straceNodes.slice(0, -1).map((n, i) => {
+            const fromLit = straceSet.has(n.id)
+            const toLit = straceSet.has(straceNodes[i + 1].id)
+            const lit = fromLit && toLit && step !== 0
+            const y1 = nodeY(n.yIdx) + NODE_H
+            const y2 = nodeY(n.yIdx + 1)
+            return (
+              <line key={`sa-${i}`} x1={n.x + COL_W / 2} y1={y1}
+                x2={n.x + COL_W / 2} y2={y2}
+                className={cn("stroke-1 transition-all duration-300",
+                  lit ? "stroke-primary/40" : "stroke-border/10"
+                )}
+                markerEnd={lit ? "url(#dw-arr)" : undefined}
+              />
+            )
+          })}
+
+          {/* Kernel nodes */}
+          {kernelNodes.map((n) => {
+            const lit = kernelSet.has(n.id)
+            const y = nodeY(n.yIdx)
+            return (
+              <g key={n.id} className="transition-all duration-300">
+                <rect x={n.x} y={y} width={COL_W} height={NODE_H} rx={5}
+                  className={cn("stroke-[1.5] transition-all duration-300",
+                    lit ? n.accent.fill : "fill-muted/20",
+                    lit ? n.accent.stroke : "stroke-border/10",
+                  )} />
+                <text x={n.x + COL_W / 2} y={y + (n.sub ? NODE_H / 2 - 2 : NODE_H / 2 + 4)} textAnchor="middle"
+                  className={cn("font-semibold transition-all duration-300",
+                    lit ? n.accent.text : "fill-muted-foreground/15"
+                  )} fontSize={9}>
+                  {n.label}
+                </text>
+                {n.sub && (
+                  <text x={n.x + COL_W / 2} y={y + NODE_H / 2 + 9} textAnchor="middle"
+                    className={cn("transition-all duration-300",
+                      lit ? "fill-muted-foreground/50" : "fill-muted-foreground/10"
+                    )} fontSize={7}>
+                    {n.sub}
+                  </text>
+                )}
+              </g>
+            )
+          })}
+
+          {/* Kernel flow arrows */}
+          {kernelNodes.slice(0, -1).map((n, i) => {
+            const fromLit = kernelSet.has(n.id)
+            const toLit = kernelSet.has(kernelNodes[i + 1].id)
+            const lit = fromLit && toLit && step !== 0
+            const y1 = nodeY(n.yIdx) + NODE_H
+            const y2 = nodeY(n.yIdx + 1)
+            return (
+              <line key={`ka-${i}`} x1={n.x + COL_W / 2} y1={y1}
+                x2={n.x + COL_W / 2} y2={y2}
+                className={cn("stroke-1 transition-all duration-300",
+                  lit ? "stroke-primary/40" : "stroke-border/10"
+                )}
+                markerEnd={lit ? "url(#dw-arr)" : undefined}
+              />
+            )
+          })}
+
+          {/* Cross-column dispatch arrows */}
+          {/* openat → VFS (step 1) */}
+          {(step === 1 || step === 0) && (() => {
+            const lit = step === 1
+            const y1 = nodeY(0) + NODE_H / 2
+            const y2 = nodeY(0) + NODE_H / 2
+            return (
+              <line x1={STRACE_X + COL_W} y1={y1} x2={KERNEL_X} y2={y2}
+                className={cn("transition-all duration-300",
+                  lit ? "stroke-purple-500/50 stroke-[2]" : "stroke-border/10 stroke-1"
+                )}
+                strokeDasharray={lit ? "6 4" : "4 3"}
+                markerEnd={lit ? "url(#dw-arr)" : undefined}
+              />
+            )
+          })()}
+
+          {/* read → driver (steps 2-3) */}
+          {(step === 2 || step === 3 || step === 0) && (() => {
+            const lit = step === 2 || step === 3
+            const y1 = nodeY(1) + NODE_H / 2
+            const y2 = nodeY(2) + NODE_H / 2
+            return (
+              <path
+                d={`M ${STRACE_X + COL_W} ${y1} Q ${(STRACE_X + COL_W + KERNEL_X) / 2} ${(y1 + y2) / 2}, ${KERNEL_X} ${y2}`}
+                fill="none"
+                className={cn("transition-all duration-300",
+                  lit ? "stroke-orange-500/50 stroke-[2]" : "stroke-border/10 stroke-1"
+                )}
+                strokeDasharray={lit ? "6 4" : "4 3"}
+                markerEnd={lit ? "url(#dw-arr)" : undefined}
+              />
+            )
+          })()}
+
+          {/* copy_to_iter → read returns (step 6) */}
+          {(step === 6 || step === 0) && (() => {
+            const lit = step === 6
+            const y1 = nodeY(4) + NODE_H / 2
+            const y2 = nodeY(1) + NODE_H / 2
+            return (
+              <path
+                d={`M ${KERNEL_X} ${y1} Q ${(STRACE_X + COL_W + KERNEL_X) / 2} ${(y1 + y2) / 2}, ${STRACE_X + COL_W} ${y2}`}
+                fill="none"
+                className={cn("transition-all duration-300",
+                  lit ? "stroke-emerald-500/50 stroke-[2]" : "stroke-border/10 stroke-1"
+                )}
+                strokeDasharray={lit ? "6 4" : "4 3"}
+                markerEnd={lit ? "url(#dw-arr)" : undefined}
+              />
+            )
+          })()}
+
+          {/* "invisible to strace" badge on steps 3-5 */}
+          {(step === 3 || step === 4 || step === 5) && (
+            <g>
+              <rect x={(STRACE_X + COL_W + KERNEL_X) / 2 - 60} y={nodeY(3) + 5} width={120} height={20} rx={4}
+                className="fill-red-500/10 stroke-red-500/20 stroke-1" />
+              <text x={(STRACE_X + COL_W + KERNEL_X) / 2} y={nodeY(3) + 19} textAnchor="middle"
+                className="fill-red-600/60 dark:fill-red-400/50 font-semibold" fontSize={7}>
+                invisible to strace
+              </text>
+            </g>
+          )}
+
+          {/* Boundary crossing dots */}
+          {(step === 1 || step === 2 || step === 0) && (
+            <circle cx={STRACE_X + COL_W / 2} cy={BOUNDARY_Y} r={4}
+              className={cn("transition-all duration-300",
+                step !== 0 ? "fill-yellow-500" : "fill-yellow-500/30"
+              )} />
+          )}
+          {(step === 6 || step === 0) && (
+            <circle cx={KERNEL_X + COL_W / 2} cy={BOUNDARY_Y} r={4}
+              className={cn("transition-all duration-300",
+                step !== 0 ? "fill-yellow-500" : "fill-yellow-500/30"
+              )} />
+          )}
+
+          {/* Boundary direction labels */}
+          {step === 2 && (
+            <text x={STRACE_X + COL_W / 2} y={BOUNDARY_Y + 14}
+              textAnchor="middle"
+              className="fill-yellow-600/50 dark:fill-yellow-400/40 font-semibold" fontSize={7}>
+              ↓ descending into kernel
+            </text>
+          )}
+          {step === 6 && (
+            <text x={KERNEL_X + COL_W / 2} y={BOUNDARY_Y + 14}
+              textAnchor="middle"
+              className="fill-yellow-600/50 dark:fill-yellow-400/40 font-semibold" fontSize={7}>
+              ↑ returning to user space
+            </text>
+          )}
         </svg>
 
         {/* strace callout */}
         {s.strace && (
-          <div className="mt-2 px-3 py-1.5 rounded bg-muted/50 border border-border/50 text-xs font-mono text-muted-foreground">
-            <span className="text-foreground/60 font-semibold mr-1.5">strace:</span>
-            {s.strace}
+          <div className={cn(
+            "mt-2 px-3 py-1.5 rounded border text-xs font-mono text-muted-foreground",
+            s.invisible
+              ? "bg-red-500/5 border-red-500/20"
+              : "bg-muted/50 border-border/50"
+          )}>
+            <span className={cn("font-semibold mr-1.5",
+              s.invisible
+                ? "text-red-600/60 dark:text-red-400/50"
+                : "text-foreground/60"
+            )}>
+              {s.invisible ? "no strace output:" : "strace:"}
+            </span>
+            {s.invisible
+              ? "this happens inside the kernel between read() entry and read() return"
+              : s.strace
+            }
+          </div>
+        )}
+
+        {/* Invisible step indicator (for steps without strace but still invisible) */}
+        {s.invisible && !s.strace && (
+          <div className="mt-2 px-3 py-1.5 rounded border border-red-500/20 bg-red-500/5 text-xs font-mono text-muted-foreground">
+            <span className="text-red-600/60 dark:text-red-400/50 font-semibold mr-1.5">no strace output:</span>
+            this happens inside the kernel between read() entry and read() return
           </div>
         )}
 
