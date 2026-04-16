@@ -109,6 +109,204 @@ Add an edge to a tree — a cycle appears:
 
 The red edge A–E creates the cycle A–B–C–D–E–A.
 
+### Why These Three Conditions Travel Together
+
+The definition says "any two imply the third," which is a strong claim. We'll see it through pictures: in each of the three pairings, the remaining condition is not a choice — it is *forced* by what the graph has to look like.
+
+#### Pairing A: connected + acyclic forces <InlineMath formula="n - 1" /> edges
+
+Start with <InlineMath formula="n" /> isolated vertices — that's <InlineMath formula="n" /> separate components. Now add edges one at a time, never closing a cycle (so we keep acyclic). Every such edge must **merge two different components into one**, because if an edge joined two vertices already in the same component, there'd already be a path between them — and the new edge would close a cycle.
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B", color: "#16a34a", width: 3 },
+    { from: "C", to: "D", color: "#16a34a", width: 3 },
+  ]}
+  interactive={true}
+  height="240px"
+/>
+
+After 2 safe edges: 5 vertices, 3 components. Each edge ate exactly one component. So we're running a simple counter:
+
+<DisplayMath formula="\text{components after } e \text{ edges} \;=\; n - e." />
+
+To become connected we need 1 component, i.e. <InlineMath formula="n - e = 1" />, i.e. <InlineMath formula="e = n - 1" />. There is no wiggle room — connecting without cycling *costs exactly* <InlineMath formula="n - 1" /> edges.
+
+#### Pairing B: connected + <InlineMath formula="n - 1" /> edges forces acyclic
+
+A connected graph on <InlineMath formula="n" /> vertices needs **at least** <InlineMath formula="n - 1" /> edges (same counter argument — each edge removes at most one component). Suppose we have connectivity with exactly <InlineMath formula="n - 1" /> edges, and imagine a cycle was hiding inside.
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "B", to: "C" },
+    { from: "C", to: "A", color: "#ef4444", width: 3 },
+    { from: "C", to: "D" }, { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="260px"
+/>
+
+The red edge C–A is part of the cycle A–B–C–A. Because cycles give *alternate routes*, we could delete C–A and the graph would stay connected — but now we'd have a connected graph on 5 vertices with only 3 edges. That's below the <InlineMath formula="n - 1" /> floor, which is impossible. So the cycle couldn't have been there in the first place. The edge budget <InlineMath formula="n - 1" /> is *so tight* that there's no room to waste an edge on redundancy.
+
+#### Pairing C: acyclic + <InlineMath formula="n - 1" /> edges forces connected
+
+Acyclic graphs are forests, and as we'll see in the next section a forest with <InlineMath formula="n" /> vertices and <InlineMath formula="k" /> components has exactly <InlineMath formula="n - k" /> edges.
+
+<GraphVisualization
+  nodes={[
+    { id: "A", label: "A", color: "#86efac" },
+    { id: "B", label: "B", color: "#86efac" },
+    { id: "C", label: "C", color: "#86efac" },
+    { id: "D", label: "D", color: "#93c5fd" },
+    { id: "E", label: "E", color: "#93c5fd" },
+  ]}
+  edges={[
+    { from: "A", to: "B" }, { from: "B", to: "C" },
+    { from: "D", to: "E" },
+  ]}
+  interactive={true}
+  height="240px"
+/>
+
+Two components, <InlineMath formula="n = 5" />, edges = <InlineMath formula="5 - 2 = 3" />. If we instead had <InlineMath formula="n - 1 = 4" /> edges, the equation <InlineMath formula="n - k = n - 1" /> leaves only one possible value: <InlineMath formula="k = 1" />. A forest with just one tree is connected.
+
+> **The takeaway:** these three conditions aren't a checklist of independent facts — they are three views of the same structure. Having any two is enough information to force the third, which is why computer scientists so often describe trees by whichever property is most convenient (a filesystem is "acyclic"; a spanning tree is "connected with <InlineMath formula="n - 1" /> edges"; a class hierarchy is "connected and acyclic").
+
+### Rooting a Tree: From Graph Object to Hierarchy
+
+Every tree we've drawn so far is "floating" — no vertex is privileged. But most real uses of trees in computer science pick a **root** and hang the tree from it. Once you root, the undirected tree becomes a hierarchy: each non-root vertex has exactly one **parent** (its neighbor on the path toward the root) and some number of **children** (its other neighbors).
+
+<GraphVisualization
+  nodes={[
+    { id: "R", label: "root", color: "#fde68a" },
+    { id: "A", label: "A" }, { id: "B", label: "B" },
+    { id: "C", label: "C" }, { id: "D", label: "D" },
+    { id: "E", label: "E" },
+  ]}
+  edges={[
+    { from: "R", to: "A" }, { from: "R", to: "B" },
+    { from: "A", to: "C" }, { from: "A", to: "D" },
+    { from: "B", to: "E" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+Some vocabulary follows immediately:
+
+- **Depth** of a vertex: length of the path from the root to it. The root has depth 0.
+- **Leaf**: a vertex with no children (equivalently, degree 1 in the underlying tree — unless the tree is a single isolated root).
+- **Subtree rooted at <InlineMath formula="v" />**: <InlineMath formula="v" /> together with all its descendants.
+- **Height** of the tree: the maximum depth of any vertex.
+
+Because there is **exactly one path** between any two vertices of a tree (a fact we prove visually next), the parent of every non-root vertex is unambiguous once a root is chosen. This is precisely why a filesystem path like `/home/alice/notes.txt` uniquely identifies a file: the filesystem is a tree rooted at `/`, and the path is just the unique sequence of edges from root to leaf.
+
+> **Python note:** When you call `os.walk("/some/dir")`, Python is performing a depth-first traversal of a rooted tree. Picking the starting directory *is* picking the root.
+
+### Unique Paths: The Defining Practical Property
+
+Trees have one property that every application leans on:
+
+> **Between any two vertices of a tree, there is exactly one path.**
+
+We can see why visually. If two different paths existed between vertices <InlineMath formula="u" /> and <InlineMath formula="v" />, walking out along one and back along the other traces a closed loop — a cycle. But trees are acyclic, so two different paths can't both fit inside one.
+
+<GraphVisualization
+  nodes={[
+    { id: "U", label: "u" }, { id: "X", label: "x" },
+    { id: "Y", label: "y" }, { id: "V", label: "v" },
+  ]}
+  edges={[
+    { from: "U", to: "X", color: "#2563eb", width: 3 },
+    { from: "X", to: "V", color: "#2563eb", width: 3 },
+    { from: "U", to: "Y", color: "#16a34a", width: 3 },
+    { from: "Y", to: "V", color: "#16a34a", width: 3 },
+  ]}
+  interactive={true}
+  height="240px"
+/>
+
+Two different <InlineMath formula="u \to v" /> paths (blue and green) would instantly form the cycle <InlineMath formula="u \to x \to v \to y \to u" />. So this picture cannot be a tree — any graph that *is* a tree has, for each pair of vertices, just one path between them.
+
+This "unique-path" property is what powers: URL routing (each route is one path in the routing tree), DOM traversal in HTML (each element has one path from `<html>`), git ancestry in a linear history, and lookups in every balanced search tree.
+
+### Every Tree Is 2-Colorable
+
+Once we've rooted a tree, there's a natural way to split its vertices into two groups: **even-depth** vertices and **odd-depth** vertices.
+
+<GraphVisualization
+  nodes={[
+    { id: "R", label: "root", color: "#93c5fd" },
+    { id: "A", label: "A", color: "#fca5a5" },
+    { id: "B", label: "B", color: "#fca5a5" },
+    { id: "C", label: "C", color: "#93c5fd" },
+    { id: "D", label: "D", color: "#93c5fd" },
+    { id: "E", label: "E", color: "#93c5fd" },
+  ]}
+  edges={[
+    { from: "R", to: "A" }, { from: "R", to: "B" },
+    { from: "A", to: "C" }, { from: "A", to: "D" },
+    { from: "B", to: "E" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+Every edge of a tree connects a parent to a child — vertices whose depths differ by 1, so always one even and one odd. No edge ever lives inside a single color class, so this is a proper 2-coloring. Since 2-colorable graphs are exactly the bipartite ones (from LN22):
+
+> **Every tree is bipartite.**
+
+When we reach graph coloring later in this lecture, this lets us immediately conclude <InlineMath formula="\chi(T) = 2" /> for any tree <InlineMath formula="T" /> with at least one edge — no case analysis needed.
+
+### Counting with Degrees in a Tree
+
+The handshake identity (from LN21) says that in any graph, the sum of degrees equals twice the number of edges. For a tree we know <InlineMath formula="|E| = n - 1" />, so:
+
+<DisplayMath formula="\sum_{v \in V} \deg(v) = 2(n - 1)." />
+
+One elegant consequence shows up in **proper binary trees** — rooted trees where every non-leaf has *exactly* two children. Let <InlineMath formula="n_0" /> count the leaves and <InlineMath formula="n_2" /> count the internal (two-child) nodes. Then:
+
+- <InlineMath formula="n = n_0 + n_2" /> (every node is either a leaf or a two-child internal node)
+- <InlineMath formula="|E| = n - 1" /> (it's a tree)
+- <InlineMath formula="|E| = 2 \, n_2" /> (every edge is a parent-to-child edge, and each internal node contributes exactly two such edges)
+
+Setting the two expressions for <InlineMath formula="|E|" /> equal: <InlineMath formula="2 \, n_2 = n_0 + n_2 - 1" />, which rearranges to:
+
+<DisplayMath formula="n_0 = n_2 + 1." />
+
+**In a proper binary tree, the number of leaves is always exactly one more than the number of internal nodes.**
+
+<GraphVisualization
+  nodes={[
+    { id: "R", label: "R", color: "#fde68a" },
+    { id: "A", label: "A", color: "#fde68a" },
+    { id: "B", label: "B", color: "#86efac" },
+    { id: "C", label: "C", color: "#86efac" },
+    { id: "D", label: "D", color: "#fde68a" },
+    { id: "E", label: "E", color: "#86efac" },
+    { id: "F", label: "F", color: "#86efac" },
+  ]}
+  edges={[
+    { from: "R", to: "A" }, { from: "R", to: "D" },
+    { from: "A", to: "B" }, { from: "A", to: "C" },
+    { from: "D", to: "E" }, { from: "D", to: "F" },
+  ]}
+  interactive={true}
+  height="280px"
+/>
+
+Yellow = internal nodes (<InlineMath formula="n_2 = 3" />), green = leaves (<InlineMath formula="n_0 = 4" />). Sure enough, <InlineMath formula="4 = 3 + 1" />. A surprising amount of predictable structure falls out of nothing more than edge counting — and this identity is why balanced binary heaps and BSTs have such regular shapes.
+
 ### Trees Everywhere in CS
 
 Trees are arguably the most important structure in all of computer science, and you've been using them without knowing it:
@@ -593,9 +791,9 @@ Assign colors to vertices so that **no two adjacent vertices share a color**. Th
   nodes={[
     { id: "A", label: "A", color: "#fca5a5" },
     { id: "B", label: "B", color: "#93c5fd" },
-    { id: "C", label: "C", color: "#86efac" },
+    { id: "C", label: "C", color: "#fca5a5" },
     { id: "D", label: "D", color: "#93c5fd" },
-    { id: "E", label: "E", color: "#fca5a5" },
+    { id: "E", label: "E", color: "#86efac" },
   ]}
   edges={[
     { from: "A", to: "B" }, { from: "B", to: "C" },
@@ -606,7 +804,7 @@ Assign colors to vertices so that **no two adjacent vertices share a color**. Th
   height="280px"
 />
 
-This <InlineMath formula="C_5" /> requires 3 colors (<InlineMath formula="\chi(C_5) = 3" />). The constraint placement puzzles from LN22 were secretly graph coloring problems — you were assigning "colors" (letters) to vertices subject to adjacency constraints. You solved a coloring problem without knowing it!
+Notice how we alternate red and blue around the cycle — then hit E, which is adjacent to both a blue (D) and a red (A), forcing a third color. That "parity break" is exactly why odd cycles resist 2-coloring. This <InlineMath formula="C_5" /> requires 3 colors (<InlineMath formula="\chi(C_5) = 3" />). The constraint placement puzzles from LN22 were secretly graph coloring problems — you were assigning "colors" (letters) to vertices subject to adjacency constraints. You solved a coloring problem without knowing it!
 
 #### Chromatic Numbers of Familiar Families
 
