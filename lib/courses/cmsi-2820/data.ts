@@ -760,7 +760,10 @@ const allEvents: CourseEvent[] = [
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln22",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/play/96eR25q1pqzdujYaMrpf3C7lc2GoW-vkkGsyH7Gz_AFZJ7ybhVNhLxg9Zh2uEBtC3lNCxkUAwzLoofUm.BISVQ830Q-vob4Wq?eagerLoadZvaPages=&accessLevel=meeting&canPlayFromShare=true&from=share_recording_detail&continueMode=true&oldStyle=true&componentName=rec-play&originRequestUrl=https%3A%2F%2Flmula.zoom.us%2Frec%2Fshare%2FTpbfo62Y8keGP1ba8X2iSP8Xb3nUF6-rEc5yoyCOhexrVMFoLNUixY0Nmqy12hOp.s_4GmbD1xKfl85m5"
+      }
     ],
   },
   {
@@ -774,7 +777,10 @@ const allEvents: CourseEvent[] = [
     standard: "Graph Theory",
     contentUrl: "/cmsi-2820/ln23",
     recordings: [
-      
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/NeQtXKaTz2XYdUbsIHS4etxPwahraD72NkzdCR5hMN5A5uImkdcSXG6w8aBirCJ3.2wqtk0V48S4SM1Ol"
+      }
     ],
   },
   {

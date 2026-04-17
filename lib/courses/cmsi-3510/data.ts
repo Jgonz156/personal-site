@@ -700,7 +700,12 @@ const allEvents: CourseEvent[] = [
       "Deferred Work",
     ],
     contentUrl: "/cmsi-3510/ln19",
-    recordings: [],
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/psCLztfD2o8RJD8ujbO-MFYU_wPQQWy84m-3z21JBl74AMmBSr56NQJgOsXZyGD-.EyTybHLQXExhrEEl"
+      }
+    ],
   },
   {
     id: "3510-ln20",
@@ -720,7 +725,12 @@ const allEvents: CourseEvent[] = [
       "Unix Domain Sockets",
     ],
     contentUrl: "/cmsi-3510/ln20",
-    recordings: [],
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/Mo71E3OvHrRPeNdXZmvEK12ucIpm0v2BZj3HbZyc7pKUhZzLiF8nJdYmovUjBoRk.3zt9y91NZ5ONcwPy"
+      }
+    ],
   },
   {
     id: "3510-ln21",
