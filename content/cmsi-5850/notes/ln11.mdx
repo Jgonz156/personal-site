@@ -8,6 +8,9 @@ import { OperationalSemanticsStepper } from "@/components/operational-semantics-
 import { StackMachineStepper } from "@/components/stack-machine-stepper"
 import { RegisterMachineStepper } from "@/components/register-machine-stepper"
 import { InferenceRuleReader } from "@/components/inference-rule-reader"
+import { ProofTreeReader } from "@/components/proof-tree-reader"
+import { ProofTreeConstructor } from "@/components/proof-tree-constructor"
+import { ProofTreeProgramSplit } from "@/components/proof-tree-program-split"
 
 ## Recap
 
@@ -382,6 +385,8 @@ This is the job of semantics: translate *every* syntactic entity into its corres
 
 > Many textbooks elide this distinction and write <InlineMath formula="\langle n, \sigma \rangle \to \langle n, \sigma \rangle" /> — treating numeral and number as identical. That works when the mapping is "obvious" (the numeral `42` maps to 42), but it hides the conceptual step. We keep the valuation function explicit because it reinforces the pattern: *every* rule is a syntax-to-semantics translation, and every leaf in the tree grammar must have its own bridge.
 
+> **A principle that follows from the bridge perspective:** whenever a *specific value* would appear in a syntactic position inside a rule, lift it to a metavariable with a side condition. For example, instead of writing <InlineMath formula="\langle \textbf{if}\; 0\; \textbf{then}\; \ldots \rangle" /> with the numeral `0` baked into the conclusion, write <InlineMath formula="\langle \textbf{if}\; v\; \textbf{then}\; \ldots \rangle" /> with the side condition <InlineMath formula="v = 0" /> above the bar. This keeps every rule honest about what is syntax (the `v` in the conclusion) and what is semantics (the value comparison in the premise). We will apply this principle consistently to the if-else and while rules below.
+
 **Identifiers** look up the environment:
 
 <DisplayMath formula="\frac{\sigma(x) = v}{\langle x, \sigma \rangle \to \langle v, \sigma \rangle}" />
@@ -552,6 +557,21 @@ The first rule says: if the first statement can take a step (but isn't done yet)
 
 > Notice the structural parallel: each big-step statement rule has a corresponding *pair* of SOS rules — one for "the sub-expression is still reducing" and one for "the sub-expression is done, perform the effect." Big-step merges these into a single rule with a recursive premise. This is the fundamental trade-off: big-step is more compact, small-step shows more detail.
 
+### Propagation vs. Completion: A Pattern for All SOS Rules
+
+If you look back at every small-step rule we've written, each one falls into exactly one of two categories. Recognizing them gives you a checklist for "which kind of rule am I writing?"
+
+**Propagation rules** have *another small-step judgment* (<InlineMath formula="\to" />) above the bar. They say: "if some sub-part can step, the whole construct steps along with it." Examples: the binary-op left/right operand rules, the assignment RHS rule, the print argument rule, the sequencing "step <InlineMath formula="s_1" />" rule, the if-else condition-stepping rule.
+
+**Completion rules** are **axioms** — the only thing above the bar (if anything) is a *bridge*: a side condition (like <InlineMath formula="v_1 \oplus v_2 = v" />), a valuation (<InlineMath formula="\mathcal{N}\llbracket \overline{n} \rrbracket = n" />), an environment lookup (<InlineMath formula="\sigma(x) = v" />), or a value comparison (<InlineMath formula="v = 0" />). They never reference the small-step relation recursively. Examples: the numeral and identifier rules, the operator-application rule, the assignment-completion axiom, the print-completion axiom, the skip rule, both if-else branch-selection rules, and the while unfolding rule.
+
+| Category | Above the bar | What it does | Examples |
+|---|---|---|---|
+| **Propagation** | A <InlineMath formula="\to" /> judgment | Steps a sub-part; the whole steps with it | binary-op left-stepping, assignment RHS-stepping, sequencing first-statement, if-condition-stepping |
+| **Completion** | Bridges only (or empty) | Performs the effect or selects the rule | numeral, identifier, operator-apply, assignment-bind, print-emit, skip, if-truthy, if-falsy, while-unfold |
+
+The pattern is universal for any SOS you write. **Propagation rules wire up the recursion; completion rules do the actual work.** When you derive rules from a tree grammar, ask of each child: does it need to be reduced first? If yes, write a propagation rule for it. Once all children are values, write one completion rule that performs the construct's effect. This is the same compositional discipline as the binary-op three-rule split — generalized to every construct in the language.
+
 ---
 
 ## Small-Step vs. Big-Step
@@ -560,14 +580,46 @@ The first rule says: if the first statement can take a step (but isn't done yet)
 |---|---|
 | Shows each tiny reduction | Shows final result directly |
 | One step at a time: $\to$ | One big evaluation: $\Downarrow$ |
-| Can express non-termination | Cannot directly express non-termination |
-| Can express interleaving/concurrency | Cannot express interleaving |
+| Describes non-terminating programs as infinite sequences | Cannot describe non-terminating programs at all |
+| Describes thread interleaving | Cannot express interleaving |
 | More rules, more detail | Fewer rules, more compact |
 | Gordon Plotkin, 1981 | Gilles Kahn, 1987 |
 
-Small-step is more powerful: it can describe programs that don't terminate (they just keep stepping forever) and concurrent programs (interleave steps from different threads). Big-step is more convenient: it's closer to how we think about evaluation, and it maps directly to a recursive evaluator.
+Small-step has *richer expressive granularity*: it can describe programs that don't terminate (as infinite step sequences) and concurrent programs (as interleavings of steps from different threads). Big-step is more convenient: it's closer to how we think about evaluation, and it maps directly to a recursive evaluator. We'll sharpen what "richer" means in a moment.
 
 > An important practical difference: when a program has a bug, small-step semantics lets you inspect the *exact step* where things went wrong. Big-step can only tell you that the entire evaluation failed. This is why debuggers (like `gdb` or Chrome DevTools) work in a small-step style — they let you "step through" one instruction at a time.
+
+### Equivalence — for Terminating Programs
+
+Before going further, we should pin down a question students always wonder about: when both semantics apply, do they *agree*? The answer is yes, and it's important enough to state as a theorem (we won't prove it, but the proof technique is induction on the proof tree for one direction and induction on the length of the transition sequence for the other).
+
+<DefinitionBox term="Equivalence Theorem (informal)">
+
+For any Petal program <InlineMath formula="P" /> and initial state <InlineMath formula="\langle \sigma, o \rangle" />, **if the program terminates**, then small-step and big-step produce the same final state:
+
+<DisplayMath formula="\langle P, \sigma, o \rangle \to^{*} \langle \sigma', o' \rangle \quad \iff \quad \langle P, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle" />
+
+where <InlineMath formula="\to^{*}" /> denotes the reflexive-transitive closure of the small-step relation (zero or more steps).
+
+</DefinitionBox>
+
+This is the formal justification for talking about "the meaning" of a Petal program — both semantics, *when they both have something to say*, say the same thing.
+
+#### Wait — if they're equivalent, why did I say small-step is more powerful?
+
+Good question. The equivalence theorem above has a critical qualifier: **if the program terminates**. That's the whole story. The two semantics agree everywhere they both define a result, but they *differ in what they can describe outside that domain*.
+
+Look closely at what each semantics actually *is*:
+
+- **Big-step is a relation between configurations and final values.** A judgment <InlineMath formula="\langle P, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle" /> exists in the relation iff there's a *finite* proof tree for it. If the program runs forever, no finite tree exists, so the pair is *not in the relation at all*. Big-step's <InlineMath formula="\Downarrow" /> literally contains no entries for non-terminating programs — they simply have no big-step meaning.
+
+- **Small-step is a transition relation between configurations.** Each step <InlineMath formula="\langle e, \sigma \rangle \to \langle e', \sigma' \rangle" /> is itself finite, but you can chain them into a sequence of any length — including an *infinite* sequence. A non-terminating program is described by an infinite sequence of finite steps, which is a perfectly well-defined mathematical object (it's a function <InlineMath formula="\mathbb{N} \to \text{Config}" />).
+
+So the asymmetry is **not** that small-step "computes more"; it's that small-step has a richer vocabulary for talking about *what kind of behavior a program has*. They agree on what terminating programs mean. They disagree on whether non-terminating programs have *any* meaning at all — big-step is silent, small-step describes them as infinite reduction sequences.
+
+The same explains the concurrency point: small-step lets you describe interleavings (sequences of steps from multiple threads in any order), while big-step compresses each thread to a single judgment with no room for interleaving. It's not extra computational power — it's extra *expressive granularity*.
+
+> This asymmetry will reappear in LN 12 with denotational semantics. There, non-terminating programs receive a denotation too — but only because we'll introduce a special "bottom" element <InlineMath formula="\bot" /> to give them a value. The denotational story is "let's give every program *some* meaning, even if it's the meaning of being undefined." Big-step's silence on non-termination is exactly the gap that fixed-point theory will fill. So the question of whether `while true {}` has meaning gets three different answers across the three approaches: *no* (big-step), *an infinite sequence* (small-step), *the value <InlineMath formula="\bot" />* (denotational).
 
 ### Stepping Through
 
@@ -706,11 +758,11 @@ The semantics of a conditional is defined by **two rules** — one for each bran
 
 <DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v \quad v \neq 0 \quad \langle s_1, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle}{\langle \textbf{if}\; e\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle \Downarrow \langle \sigma', o' \rangle}" />
 
-<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow 0 \quad \langle s_2, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle}{\langle \textbf{if}\; e\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle \Downarrow \langle \sigma', o' \rangle}" />
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v \quad v = 0 \quad \langle s_2, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle}{\langle \textbf{if}\; e\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle \Downarrow \langle \sigma', o' \rangle}" />
 
 </DefinitionBox>
 
-We use the C convention: any non-zero value is "truthy," zero is "falsy." This is a pragmatic choice (LN 6).
+We use the C convention: any non-zero value is "truthy," zero is "falsy." This is a pragmatic choice (LN 6). Notice that both rules have the same conclusion shape — only their premises differ. The dispatch between branches happens *above* the bar, not below it: the syntax of the conditional is identical in both cases; the value of <InlineMath formula="v" /> determines which rule fires.
 
 #### Small-Step (SOS) Rules
 
@@ -722,13 +774,13 @@ The big-step rules above collapse the entire conditional into one judgment. The 
 
 <DisplayMath formula="\frac{\langle e, \sigma \rangle \to \langle e', \sigma \rangle}{\langle \textbf{if}\; e\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle \to \langle \textbf{if}\; e'\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle}" />
 
-**Condition is truthy** — once `e` has reduced to a value $v \neq 0$, take the then-branch:
+**Condition is truthy** — once `e` has reduced to a value $v$ with $v \neq 0$, take the then-branch:
 
 <DisplayMath formula="\frac{v \neq 0}{\langle \textbf{if}\; v\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle \to \langle s_1,\; \sigma,\; o \rangle}" />
 
-**Condition is falsy** — if the value is $0$, take the else-branch:
+**Condition is falsy** — once `e` has reduced to a value $v$ with $v = 0$, take the else-branch:
 
-<DisplayMath formula="\frac{}{\langle \textbf{if}\; 0\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle \to \langle s_2,\; \sigma,\; o \rangle}" />
+<DisplayMath formula="\frac{v = 0}{\langle \textbf{if}\; v\; \textbf{then}\; s_1\; \textbf{else}\; s_2,\; \sigma,\; o \rangle \to \langle s_2,\; \sigma,\; o \rangle}" />
 
 </DefinitionBox>
 
@@ -738,31 +790,7 @@ Compare the two styles: big-step says "evaluate the condition to a value, then r
 
 Notice something important: the unused branch ($s_2$ in the truthy case, $s_1$ in the falsy case) is **never evaluated**. This is not just an optimization — it's a semantic decision. The meaning of the conditional depends on only one branch. If the other branch contains an error (like division by zero), it doesn't matter — it's never reached. This connects to LN 10's discussion of short-circuit evaluation: the language deliberately avoids evaluating expressions that aren't needed.
 
-### Comparison: Conditionals Across Languages
-
-Different languages express the same semantic pattern in syntactically distinct ways:
-
-```python
-# Python: conditional expression (ternary)
-y = x if x > 0 else 0
-```
-
-```javascript
-// JavaScript: ternary operator
-const y = x > 0 ? x : 0;
-```
-
-```haskell
--- Haskell: if-then-else is an expression (always returns a value)
-let y = if x > 0 then x else 0
-```
-
-```rust
-// Rust: if is also an expression
-let y = if x > 0 { x } else { 0 };
-```
-
-In Haskell and Rust, `if` is an *expression* — it returns a value. In Python and JavaScript, the ternary form is an expression, but the statement form (`if ... else ...`) is a statement. Petal's if-else is a statement (it doesn't return a value). This is a **semantic design decision** that shapes how programmers think about control flow.
+> **Aside: Conditionals across languages.** Different languages package the same underlying semantic pattern (evaluate condition, choose one of two branches, never evaluate the other) in syntactically distinct ways. Python's ternary `y = x if x > 0 else 0` and JavaScript's `const y = x > 0 ? x : 0` are conditional *expressions* — they produce a value. The statement form `if ... else ...` in those languages is a statement — it doesn't. Haskell's `let y = if x > 0 then x else 0` and Rust's `let y = if x > 0 { x } else { 0 }` collapse the distinction: `if` is *always* an expression. Petal follows the C/Java tradition: if-else is a statement, never an expression. The two big-step rules above would need to be rewritten with <InlineMath formula="\Downarrow v" /> conclusions (instead of <InlineMath formula="\Downarrow \langle \sigma', o' \rangle" />) to make Petal's `if` an expression — a small change in the rule shape, a large change in how the language *feels* to use.
 
 ### While Loops
 
@@ -783,15 +811,17 @@ The AST node:
 
 The semantics of a `while` loop requires **two rules** — one for termination and one for continuation:
 
-<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow 0}{\langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma,\; o \rangle \Downarrow \langle \sigma, o \rangle} \quad \text{(loop ends)}" />
+<DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v \quad v = 0}{\langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma,\; o \rangle \Downarrow \langle \sigma, o \rangle} \quad \text{(loop ends)}" />
 
 <DisplayMath formula="\frac{\langle e, \sigma \rangle \Downarrow v \quad v \neq 0 \quad \langle s, \sigma, o \rangle \Downarrow \langle \sigma', o' \rangle \quad \langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma',\; o' \rangle \Downarrow \langle \sigma'', o'' \rangle}{\langle \textbf{while}\; e\; \textbf{do}\; s,\; \sigma,\; o \rangle \Downarrow \langle \sigma'', o'' \rangle} \quad \text{(loop continues)}" />
 
 </DefinitionBox>
 
-Notice something remarkable about the "loop continues" rule: the conclusion mentions `while e do s`, and so does one of the premises. **The rule refers to itself.** This is allowed in operational semantics because we're defining a relation, not a function — the rule says "if the body produces a new state, and *then* the whole loop produces a final state, then the loop produces that final state." It unfolds naturally through recursion.
+Notice something remarkable about the "loop continues" rule: the conclusion mentions `while e do s`, and so does the last premise — with **the same syntactic construct**, not a structurally smaller one. This is *unlike* every other rule we've written. The big-step rule for binary operations had premises <InlineMath formula="\langle e_1, \sigma \rangle \Downarrow v_1" /> and <InlineMath formula="\langle e_2, \sigma \rangle \Downarrow v_2" /> — the same judgment form, but applied to *strictly smaller* sub-expressions. The while rule breaks that pattern: the recursive premise references the whole loop again.
 
-> This self-reference will cause problems when we try denotational semantics in LN 12, because there we need compositionality — the meaning of the whole must be *defined* from the meanings of the parts, with no circularity. That's where fixed points and the Y combinator (LN 4) will come back, solving the same problem at a different level of abstraction.
+This is allowed because we're defining a **relation**, not a **function**. The relation <InlineMath formula="\Downarrow" /> is the *smallest set of pairs* <InlineMath formula="\langle \text{config}, \text{result} \rangle" /> closed under the rules. Self-referential schemata are routine when defining relations this way — think of "the transitive closure of $R$ is the smallest relation containing $R$ and closed under composition." The relation symbol appears on both sides of the definition; nothing breaks because each *instance* of the rule, when the program terminates, unfolds to a finitely-deep proof tree.
+
+> Why mention "function vs. relation" here? Because in LN 12 we'll try to define the meaning of `while` as a **function** — and a function definition that calls itself with the same argument has no obvious base case and no "smallest set" escape hatch. That mismatch is the specific problem fixed points (and the Y combinator from LN 4) will resolve. The self-reference you see today is not the problem; it only becomes a problem when we change the kind of mathematical object we're defining. Operational semantics gets the relational version "for free."
 
 #### Small-Step (SOS) Rules
 
@@ -999,16 +1029,30 @@ const ast = parser.parse("const x = 3 + 5;");
 // — the same pattern as our evaluate() switch statement
 ```
 
-```rust
-// Rust: the rustc compiler walks the AST for type checking
-// and borrow checking — both are semantic analyses
-// that follow inference rules, just like our evaluator
+```scheme
+; Scheme: the source IS the AST. There is no parse step.
+; '(+ 3 5) is both source code and a list — a tree node
+; with operator '+ and operands 3, 5. Quoting just stops
+; evaluation; eval kicks it back on.
+
+(eval '(+ 3 5) (interaction-environment))   ; => 8
+
+; eval IS the tree-walking interpreter we just wrote.
+; It dispatches on the head of each list (the "node type")
+; and recursively evaluates the children — the same shape
+; as our evaluate() function, but with no parser at all,
+; because the syntax tree IS the input.
 ```
+
+This is the cleanest possible illustration of what we've spent the lecture building toward. **In every other language on this list, you parse text into an AST and then walk it. In Lisp, you skip the parse step — the source code is already a tree.** This property is called **homoiconicity** ("same representation"): a program's source and its data are written the same way. The consequence: the gap between *the inference rules* (what we mean) and *the running code* (what we execute) collapses to almost nothing — `eval` is essentially the rule schema written as a function. This is exactly the equivalence we made visible in the proof-tree split view: program ≡ AST ≡ proof tree ≡ execution. Lisp doesn't have to *demonstrate* the equivalence; it bakes it into the language design.
+
+> Homoiconicity is also what makes Lisp macros so powerful: a macro is just a function that takes an AST (a list) and returns a new AST (another list). No special metaprogramming machinery is needed — you write Lisp that operates on Lisp using the same syntax you use for everything else. We'll see in LN 12 that other languages need elaborate token-level or compile-time facilities (Rust's `macro_rules!`, C's preprocessor, Python's `ast` module) to recover a fraction of what Lisp gets for free.
 
 ### Historical Examples
 
 | Language | Interpreter Style | Notes |
 |----------|------------------|-------|
+| **Lisp / Scheme** | Tree-walking | The original tree-walker (1958). Source IS the AST — no parse step needed. `eval` directly traverses the s-expression. |
 | **Early Ruby (MRI)** | Tree-walking | Ruby 1.8 directly walked the AST; Ruby 1.9+ compiles to bytecode |
 | **R** | Tree-walking | R's interpreter still walks the AST today |
 | **Bash/Shell** | Tree-walking | Shell scripts are parsed and evaluated node by node |
@@ -1031,9 +1075,52 @@ A **proof tree** (or **derivation tree**) is a tree-shaped composition of infere
 
 For the program `x = 3 + 5; print x;`, the proof tree for the first statement looks like:
 
-<DisplayMath formula="\frac{\displaystyle\frac{}{\langle 3, \sigma \rangle \Downarrow 3} \quad \frac{}{\langle 5, \sigma \rangle \Downarrow 5} \quad 3 + 5 = 8}{\displaystyle\frac{\langle 3 + 5, \sigma \rangle \Downarrow 8}{\langle x = 3 + 5, \sigma, o \rangle \Downarrow \langle \sigma[x \mapsto 8], o \rangle}}" />
+<DisplayMath formula="\frac{\displaystyle\frac{}{\langle \overline{3}, \sigma \rangle \Downarrow 3} \quad \frac{}{\langle \overline{5}, \sigma \rangle \Downarrow 5} \quad 3 + 5 = 8}{\displaystyle\frac{\langle \overline{3} + \overline{5}, \sigma \rangle \Downarrow 8}{\langle x\text{=}\overline{3} + \overline{5}, \sigma, o \rangle \Downarrow \langle \sigma[x \mapsto 8], o \rangle}}" />
 
-The tree reads bottom-up: to prove that `x = 3 + 5` produces the binding $x \mapsto 8$, we need to prove that `3 + 5` evaluates to `8`, which requires proving that `3` evaluates to `3` and `5` evaluates to `5` (both are axioms — no premises needed).
+The tree reads bottom-up: to prove that `x = 3 + 5` produces the binding $x \mapsto 8$, we need to prove that `3 + 5` evaluates to `8`, which requires proving that `3` evaluates to `3` and `5` evaluates to `5` (both are axioms — they fire via the numeral bridge with no recursive premises needed).
+
+#### Reading a Proof Tree with the Ω Technique
+
+The Ω technique you learned for individual rules generalizes to whole proof trees. The walk is **post-order**: at each rule application, you trace its own Ω, but instead of jumping straight from premises to conclusion-right, you **recurse into each premise's proof first**. The reader below walks through the proof tree above, applying the Ω at every level and bubbling values back up to the parent rule.
+
+<ProofTreeReader
+  title="Reading the proof tree for x = 3 + 5"
+  tree={{
+    id: "assign",
+    ruleName: "Assignment (Big-Step)",
+    conclusion: {
+      left: "\\langle x\\text{=}\\overline{3}+\\overline{5},\\, \\sigma,\\, o \\rangle",
+      right: "\\Downarrow \\langle \\sigma[x \\mapsto 8],\\, o \\rangle"
+    },
+    premises: [
+      {
+        id: "add",
+        ruleName: "Binary Op (Big-Step)",
+        conclusion: {
+          left: "\\langle \\overline{3}+\\overline{5},\\, \\sigma \\rangle",
+          right: "\\Downarrow 8"
+        },
+        premises: [
+          {
+            id: "n3",
+            ruleName: "Numeral",
+            conclusion: { left: "\\langle \\overline{3},\\, \\sigma \\rangle", right: "\\Downarrow 3" },
+            sideConditions: [{ latex: "\\mathcal{N}\\llbracket \\overline{3} \\rrbracket = 3", description: "Numeral bridge: the syntactic numeral 3̄ maps to the value 3. This is an axiom — no recursive premise to discharge." }]
+          },
+          {
+            id: "n5",
+            ruleName: "Numeral",
+            conclusion: { left: "\\langle \\overline{5},\\, \\sigma \\rangle", right: "\\Downarrow 5" },
+            sideConditions: [{ latex: "\\mathcal{N}\\llbracket \\overline{5} \\rrbracket = 5", description: "Numeral bridge for 5̄. Each numeral leaf in the AST gets its own bridge step in the proof tree." }]
+          }
+        ],
+        sideConditions: [{ latex: "3 + 5 = 8", description: "Operator side condition: now that both operands are values (3 and 5), interpret the syntactic + as mathematical addition. This is the syntax-to-semantics bridge for the operator terminal." }]
+      }
+    ]
+  }}
+/>
+
+Notice what the walk reveals: the Ω at the root **pauses** at every premise, descends into a sub-proof, completes that Ω fully, then resumes the parent. This is why proof trees feel intimidating — you're tracking multiple recursion levels at once. The reader makes the bookkeeping mechanical: there's only ever *one active rule*, and within it only ever *one part* of the Ω being traversed.
 
 This connects directly to LN 2: inference rules ARE logical deduction. A proof tree for a program evaluation is structurally identical to a proof tree in predicate logic. The rules are the axioms and inference rules of a logical system; the proof tree is a derivation in that system.
 
@@ -1041,24 +1128,231 @@ This connects directly to LN 2: inference rules ARE logical deduction. A proof t
 
 Let's build the proof tree for `y = (2 + 3) * 4`:
 
-<DisplayMath formula="\frac{\displaystyle\frac{\displaystyle\frac{}{\langle 2, \sigma \rangle \Downarrow 2} \quad \frac{}{\langle 3, \sigma \rangle \Downarrow 3} \quad 2 + 3 = 5}{\langle 2 + 3, \sigma \rangle \Downarrow 5} \quad \frac{}{\langle 4, \sigma \rangle \Downarrow 4} \quad 5 \times 4 = 20}{\displaystyle\frac{\langle (2+3) \times 4, \sigma \rangle \Downarrow 20}{\langle y = (2+3) \times 4, \sigma, o \rangle \Downarrow \langle \sigma[y \mapsto 20], o \rangle}}" />
+<DisplayMath formula="\frac{\displaystyle\frac{\displaystyle\frac{}{\langle \overline{2}, \sigma \rangle \Downarrow 2} \quad \frac{}{\langle \overline{3}, \sigma \rangle \Downarrow 3} \quad 2 + 3 = 5}{\langle \overline{2} + \overline{3}, \sigma \rangle \Downarrow 5} \quad \frac{}{\langle \overline{4}, \sigma \rangle \Downarrow 4} \quad 5 \times 4 = 20}{\displaystyle\frac{\langle (\overline{2}+\overline{3}) \times \overline{4}, \sigma \rangle \Downarrow 20}{\langle y\text{=}(\overline{2}+\overline{3}) \times \overline{4}, \sigma, o \rangle \Downarrow \langle \sigma[y \mapsto 20], o \rangle}}" />
 
 The tree structure mirrors the AST structure — each AST node corresponds to one judgment in the proof tree. This is compositionality made visible: the proof of the whole is assembled from proofs of the parts.
 
 > Notice that proof trees and ASTs have a deep structural similarity. Both are trees. Both are defined by induction on their structure. Both decompose a complex entity into simpler parts. This is not a coincidence — it's a consequence of the fact that syntax (ASTs) and semantics (proof trees) are both defined by structural induction, which is itself grounded in the well-foundedness of the natural numbers (LN 3).
 
+### Building a Proof Tree Yourself
+
+Reading proofs is one skill — *constructing* them is another, and arguably more important. When a mathematician writes a proof, they reason **top-down and goal-directed**: start with what you want to prove, look at its syntactic shape, find the rule whose conclusion matches, and the rule's premises become your new sub-goals. Recurse until every leaf is an axiom.
+
+The constructor below mirrors this process. You start with the goal `⟨y = (2+3)*4, σ, o⟩ ⇓ ⟨σ[y↦20], o⟩` as the only "open goal." Each rule in the palette can be clicked — if it matches the conclusion shape of the currently focused goal, the rule expands and its premises become new open goals. Keep applying rules until every leaf is an axiom that has been *deliberately fired*. Even the numeral leaves require you to select the Numeral rule — the bridge `N⟦n̄⟧ = n` doesn't appear above the bar until you choose to apply it. This forces you to acknowledge every step in the proof, no matter how "obvious" it looks.
+
+<ProofTreeConstructor
+  title="Build the proof tree for y = (2 + 3) * 4"
+  goalDescription="Goal: prove that 'y = (2+3)*4' produces the binding y ↦ 20. Apply the right rule to each open goal — the focused goal is highlighted. Every rule application is your choice, including the axioms (numerals fire via the Numeral rule, which discharges them with the bridge N⟦n̄⟧ = n above the bar)."
+  target={{
+    id: "assign",
+    ruleName: "Assignment",
+    conclusion: {
+      left: "\\langle y\\text{=}(\\overline{2}+\\overline{3})\\times\\overline{4},\\, \\sigma,\\, o \\rangle",
+      right: "\\Downarrow \\langle \\sigma[y \\mapsto 20],\\, o \\rangle"
+    },
+    premises: [
+      {
+        id: "mul",
+        ruleName: "BinOp",
+        conclusion: {
+          left: "\\langle (\\overline{2}+\\overline{3})\\times\\overline{4},\\, \\sigma \\rangle",
+          right: "\\Downarrow 20"
+        },
+        premises: [
+          {
+            id: "add",
+            ruleName: "BinOp",
+            conclusion: {
+              left: "\\langle \\overline{2}+\\overline{3},\\, \\sigma \\rangle",
+              right: "\\Downarrow 5"
+            },
+            premises: [
+              {
+                id: "n2",
+                ruleName: "Numeral",
+                conclusion: { left: "\\langle \\overline{2},\\, \\sigma \\rangle", right: "\\Downarrow 2" },
+                sideConditions: [{ latex: "\\mathcal{N}\\llbracket \\overline{2} \\rrbracket = 2" }]
+              },
+              {
+                id: "n3",
+                ruleName: "Numeral",
+                conclusion: { left: "\\langle \\overline{3},\\, \\sigma \\rangle", right: "\\Downarrow 3" },
+                sideConditions: [{ latex: "\\mathcal{N}\\llbracket \\overline{3} \\rrbracket = 3" }]
+              }
+            ],
+            sideConditions: [{ latex: "2 + 3 = 5" }]
+          },
+          {
+            id: "n4",
+            ruleName: "Numeral",
+            conclusion: { left: "\\langle \\overline{4},\\, \\sigma \\rangle", right: "\\Downarrow 4" },
+            sideConditions: [{ latex: "\\mathcal{N}\\llbracket \\overline{4} \\rrbracket = 4" }]
+          }
+        ],
+        sideConditions: [{ latex: "5 \\times 4 = 20" }]
+      }
+    ]
+  }}
+  rules={[
+    {
+      ruleName: "Assignment",
+      label: "Assignment",
+      schema: "\\frac{\\langle e, \\sigma \\rangle \\Downarrow v}{\\langle x\\text{=}e, \\sigma, o \\rangle \\Downarrow \\langle \\sigma[x \\mapsto v], o \\rangle}",
+      hint: "Use when the goal has shape ⟨x = e, σ, o⟩ ⇓ ⟨σ', o'⟩."
+    },
+    {
+      ruleName: "BinOp",
+      label: "Binary Operation",
+      schema: "\\frac{\\langle e_1, \\sigma \\rangle \\Downarrow v_1 \\quad \\langle e_2, \\sigma \\rangle \\Downarrow v_2 \\quad v_1 \\oplus v_2 = v}{\\langle e_1 \\oplus e_2, \\sigma \\rangle \\Downarrow v}",
+      hint: "Use when the goal has shape ⟨e₁ ⊕ e₂, σ⟩ ⇓ v."
+    },
+    {
+      ruleName: "Numeral",
+      label: "Numeral",
+      schema: "\\frac{\\mathcal{N}\\llbracket \\overline{n} \\rrbracket = n}{\\langle \\overline{n}, \\sigma \\rangle \\Downarrow n}",
+      hint: "Axiom: applies to any numeral leaf."
+    },
+    {
+      ruleName: "Identifier",
+      label: "Identifier",
+      schema: "\\frac{\\sigma(x) = v}{\\langle x, \\sigma \\rangle \\Downarrow v}",
+      hint: "Use when the goal is ⟨x, σ⟩ ⇓ v for some identifier x. (Distractor here — not needed for this proof.)"
+    },
+    {
+      ruleName: "Print",
+      label: "Print",
+      schema: "\\frac{\\langle e, \\sigma \\rangle \\Downarrow v}{\\langle \\textbf{print}\\, e, \\sigma, o \\rangle \\Downarrow \\langle \\sigma, o \\cdot v \\rangle}",
+      hint: "Use when the goal involves print. (Distractor here.)"
+    }
+  ]}
+/>
+
+Notice the key insight from this exercise: **at every step, the syntactic shape of the goal told you which rule to use.** That's not a coincidence — it's compositionality. The rules are organized by AST node type, and the goal carries that AST shape in its left configuration. Building a proof is just walking down the AST and naming each node's rule.
+
+> The reading walk and the construction walk traverse the same tree in *opposite directions*. Reading is post-order (descend into premises, then resolve the conclusion). Construction is pre-order (apply a rule at the root, then expand each new sub-goal). They produce the same finished proof tree — but reading explains *what holds*, while construction explains *how you knew it would hold*. Mathematicians and interpreter writers both need both skills.
+
+### Proof Trees ARE Programs
+
+Here's the deepest connection in this lecture. The proof tree we just built isn't just a *certificate* that the program evaluates to a particular result — it **is** the program's evaluation. Every rule application corresponds to a piece of source code being evaluated. Every premise corresponds to a sub-piece. Every side condition corresponds to a primitive operation (looking up an identifier, applying a numeral bridge, computing an operator). The proof tree, read leaf-to-root, *reconstructs the program's runtime behavior*.
+
+The split view below makes this correspondence concrete. As you Ω-read the proof tree on the left, the matching source code on the right highlights — and the environment and output panels show the program's state at each judgment. Watch how the source highlight grows as you climb back up the tree, exactly tracking how a real interpreter would expand its frame of focus from sub-expressions to enclosing statements:
+
+<ProofTreeProgramSplit
+  title="Proof tree IS the program: x = 3 + 5; print x;"
+  programLabel="Petal source"
+  program={[
+    { id: "tx", text: "x" },
+    { id: "teq", text: " = " },
+    { id: "t3", text: "3" },
+    { id: "tplus", text: " + " },
+    { id: "t5", text: "5" },
+    { id: "tsemi1", text: ";" },
+    { id: "tprint", text: "print", newline: true },
+    { id: "tprintsp", text: " " },
+    { id: "tx2", text: "x" },
+    { id: "tsemi2", text: ";" },
+  ]}
+  tree={{
+    id: "seq",
+    ruleName: "Sequencing",
+    conclusion: {
+      left: "\\langle s_1;\\, s_2,\\, \\sigma,\\, o \\rangle",
+      right: "\\Downarrow \\langle \\sigma[x \\mapsto 8],\\, [8] \\rangle"
+    },
+    programLink: {
+      tokenIds: ["tx", "teq", "t3", "tplus", "t5", "tsemi1", "tprint", "tprintsp", "tx2", "tsemi2"],
+      environment: { x: 8 },
+      output: [8]
+    },
+    premises: [
+      {
+        id: "assign",
+        ruleName: "Assignment",
+        conclusion: {
+          left: "\\langle x\\text{=}\\overline{3}+\\overline{5},\\, \\sigma,\\, o \\rangle",
+          right: "\\Downarrow \\langle \\sigma[x \\mapsto 8],\\, o \\rangle"
+        },
+        programLink: {
+          tokenIds: ["tx", "teq", "t3", "tplus", "t5", "tsemi1"],
+          environment: { x: 8 }
+        },
+        premises: [
+          {
+            id: "add",
+            ruleName: "BinOp",
+            conclusion: {
+              left: "\\langle \\overline{3}+\\overline{5},\\, \\sigma \\rangle",
+              right: "\\Downarrow 8"
+            },
+            programLink: {
+              tokenIds: ["t3", "tplus", "t5"]
+            },
+            premises: [
+              {
+                id: "n3",
+                ruleName: "Numeral",
+                conclusion: { left: "\\langle \\overline{3},\\, \\sigma \\rangle", right: "\\Downarrow 3" },
+                programLink: { tokenIds: ["t3"] },
+                sideConditions: [{ latex: "\\mathcal{N}\\llbracket \\overline{3} \\rrbracket = 3", description: "The numeral 3̄ in the source corresponds to the value 3 in the semantic domain. The bridge fires." }]
+              },
+              {
+                id: "n5",
+                ruleName: "Numeral",
+                conclusion: { left: "\\langle \\overline{5},\\, \\sigma \\rangle", right: "\\Downarrow 5" },
+                programLink: { tokenIds: ["t5"] },
+                sideConditions: [{ latex: "\\mathcal{N}\\llbracket \\overline{5} \\rrbracket = 5" }]
+              }
+            ],
+            sideConditions: [{ latex: "3 + 5 = 8", description: "The + token in the source corresponds to mathematical addition; with both operands now values, the bridge produces 8." }]
+          }
+        ]
+      },
+      {
+        id: "print",
+        ruleName: "Print",
+        conclusion: {
+          left: "\\langle \\textbf{print}\\, x,\\, \\sigma',\\, o \\rangle",
+          right: "\\Downarrow \\langle \\sigma',\\, o \\cdot 8 \\rangle"
+        },
+        programLink: {
+          tokenIds: ["tprint", "tprintsp", "tx2", "tsemi2"],
+          environment: { x: 8 },
+          output: [8]
+        },
+        premises: [
+          {
+            id: "id",
+            ruleName: "Identifier",
+            conclusion: { left: "\\langle x,\\, \\sigma' \\rangle", right: "\\Downarrow 8" },
+            programLink: { tokenIds: ["tx2"], environment: { x: 8 } },
+            sideConditions: [{ latex: "\\sigma'(x) = 8", description: "The identifier x in the print statement looks up its binding in the environment threaded from the previous statement. σ' has x ↦ 8 because the assignment has already fired." }]
+          }
+        ]
+      }
+    ]
+  }}
+/>
+
+Take a moment to appreciate what's happening here. The proof tree on the left and the source program on the right are **two views of the same object**. The proof tree is *what the program means*, expressed as a derivation. The source code is *what the program looks like*, expressed as syntax. The Ω walk that proves the tree is *literally* the same thing as the execution trace of an interpreter running the program. This is the entire point of operational semantics in one picture: **meaning = derivation = execution**.
+
+> This three-way identification — syntax, derivation, execution — is the deepest payoff of the entire lecture. The tree-walking interpreter from earlier traverses the AST. The proof tree traverses the syntax via inference rules. The Ω walk traverses the proof tree. All three are the *same traversal* viewed at three levels of abstraction: the syntax tells you the shape, the rules tell you the semantics, the walk tells you the execution. Reading a proof tree is no different from running a program — it's just running the program in your head, formally.
+
 ### Non-Termination and Proof Trees
 
 What about `while 1 { print 0; }`? The proof tree for this program would require:
 
-1. Prove $\langle 1, \sigma \rangle \Downarrow 1$ (axiom — fine)
-2. $1 \neq 0$, so use the "loop continues" rule
-3. Execute the body: $\langle \text{print } 0, \sigma, o \rangle \Downarrow \langle \sigma, o \cdot 0 \rangle$
-4. Now prove the loop again from step 1, with $o' = o \cdot 0$
+1. Prove <InlineMath formula="\langle \overline{1}, \sigma \rangle \Downarrow 1" /> via the numeral bridge <InlineMath formula="\mathcal{N}\llbracket \overline{1} \rrbracket = 1" /> (axiom — fine)
+2. <InlineMath formula="1 \neq 0" />, so use the "loop continues" rule
+3. Execute the body: <InlineMath formula="\langle \textbf{print}\; \overline{0}, \sigma, o \rangle \Downarrow \langle \sigma, o \cdot 0 \rangle" /> (the numeral <InlineMath formula="\overline{0}" /> bridges to the value `0` before being appended to the output stream)
+4. Now prove the loop again from step 1, with <InlineMath formula="o' = o \cdot 0" />
 
 The proof tree is **infinitely deep** — it never reaches the base case because the condition never becomes 0. This is big-step semantics' limitation: infinite computation produces an infinitely large proof tree, which is not a valid finite proof. Big-step semantics simply cannot express non-termination.
 
-Small-step semantics handles this naturally: the transition sequence <InlineMath formula="$\langle \text{while} \ldots \rangle \to \langle \ldots \rangle \to \langle \text{while} \ldots \rangle \to \cdots$" /> continues forever. It's an infinite *sequence* of finite steps, which is perfectly well-defined mathematically.
+Small-step semantics handles this naturally — the transition sequence
+
+<DisplayMath formula="\langle \textbf{while}\; \overline{1}\; \textbf{do}\; \textbf{print}\; \overline{0},\; \sigma,\; o \rangle \to \cdots \to \langle \textbf{while}\; \overline{1}\; \textbf{do}\; \textbf{print}\; \overline{0},\; \sigma,\; o \cdot 0 \rangle \to \cdots" />
+
+continues forever. It's an infinite *sequence* of finite steps, which is perfectly well-defined mathematically.
 
 > This asymmetry between big-step and small-step semantics is why language specifications that need to describe non-terminating behavior (like the semantics of concurrent programming languages) almost always use small-step. The JavaScript specification (ECMAScript), for example, uses a small-step style that can describe both terminating and non-terminating programs.
 
@@ -1092,13 +1386,15 @@ Today we formalized the first approach to semantics: **operational semantics —
 
 **Big-step (Natural)**: Kahn's evaluation relation shows how an expression evaluates to its final value in one judgment. This is more compact and maps directly to a recursive evaluator.
 
-We extended Petal with **if-else** and **while** loops, writing operational rules for each. We noted the self-referential while rule — it works in operational semantics but will motivate the fixed-point construction in LN 12.
+We extended Petal with **if-else** and **while** loops, writing operational rules for each. We noted the self-referential while rule — it works in operational semantics because we're defining a *relation* (closed under the rules), but the same self-reference will require fixed points when LN 12 tries to define meaning as a *function*.
+
+We also distinguished propagation rules (which recursively step a sub-part) from completion rules (axioms whose only "premises" are bridges). And we proved (informally) that small-step and big-step are **equivalent on terminating programs** — they only diverge in how they describe non-terminating ones.
 
 The climax: we showed that the big-step rules map one-to-one to clauses in a JavaScript `evaluate()` function. **The inference rules are the specification; the interpreter is the implementation.** This is the first way to give Petal meaning: run it.
 
-We saw tree-walking interpreters in the wild — from early Ruby to R to shell scripts — and noted that the pattern is the same: recursively walk the AST, applying the semantic rules at each node.
+We saw tree-walking interpreters in the wild — from Lisp (where the source code IS the AST, thanks to **homoiconicity**) to early Ruby, R, and shell scripts. The pattern is the same everywhere: recursively walk the AST, applying the semantic rules at each node. Lisp's `eval` is the limit case — when source and tree are the same object, the gap between rules and implementation disappears entirely.
 
-We saw **proof trees** as the formal mechanism for proving specific evaluation results — composing inference rules bottom-up, just like logical derivations in LN 2. We also explored what happens when proof trees fail: **stuck configurations** represent runtime errors, and **infinite proof trees** represent non-termination (a limitation unique to big-step semantics).
+We saw **proof trees** as the formal mechanism for proving specific evaluation results — composing inference rules bottom-up, just like logical derivations in LN 2. We learned to **read** proof trees with the Ω technique generalized across the tree (post-order recursion into premises) and to **construct** them top-down by goal-directed rule selection. The split-view exercise made the deepest connection visible: **a proof tree IS a program's execution** — the same object viewed as syntax, as derivation, and as runtime behavior. We also explored what happens when proof trees fail: **stuck configurations** represent runtime errors, and **infinite proof trees** represent non-termination (something only big-step is silent on; small-step describes them as infinite step sequences).
 
 The key takeaway: **operational semantics is not just theory — it is engineering**. Every interpreter ever written follows this pattern. The gap between the mathematical specification (inference rules) and the running code (the `evaluate` function) is vanishingly small. When you understand the rules, you understand the interpreter, and vice versa.
 
@@ -1114,12 +1410,16 @@ Next lecture, we'll develop the second approach — **denotational semantics** �
 - **Axiom**: an inference rule with no premises — applies unconditionally
 - **Proof tree**: a composition of inference rules that proves a specific evaluation result
 - **Tree-walking interpreter**: evaluates by recursively traversing the AST
+- **Homoiconicity**: a language property where source code is represented as data in the language itself; in Lisp, the source IS the AST, so `eval` traverses program text directly
 - **Stack machine**: an abstract device using a LIFO stack for computation
 - **Register machine**: an abstract device using named registers for computation
-- **Omega (Ω) technique**: a reading strategy for inference rules — trace bottom-left → premises → bottom-right
+- **Omega (Ω) technique**: a reading strategy for inference rules — trace bottom-left → premises → bottom-right; generalizes to whole proof trees as a post-order recursion
 - **Stuck configuration**: a non-value configuration where no transition rule applies — represents a runtime error
-- **Conditional semantics**: two rules, one per branch, selected by the condition's value
-- **While loop semantics**: self-referential rules — terminates when condition is 0
+- **Conditional semantics**: two rules with the same conclusion shape, dispatched by a side-condition premise on the value
+- **While loop semantics**: self-referential rules — work because we're defining a relation, not a function
+- **Propagation rule**: an SOS rule whose premise is itself a small-step judgment; "step a sub-part, the whole steps along"
+- **Completion rule**: an SOS axiom whose only "premises" are bridges (side conditions, valuations, lookups)
+- **Equivalence theorem**: small-step and big-step agree on the meaning of every terminating program; they differ only in what they say about non-termination
 
 **Key Connections:**
 - Beta reduction (LN 4) IS small-step operational semantics
@@ -1127,11 +1427,13 @@ Next lecture, we'll develop the second approach — **denotational semantics** �
 - Evaluation strategies (LN 4) map to reduction strategies (CBV = reduce args first)
 - The tree grammar (LN 8, LN 10) is the API — each production maps to one or more inference rules
 - The big-step rules map one-to-one to clauses in a recursive interpreter
-- The self-referential while rule works here but will require fixed points in denotational semantics (LN 12)
+- The self-referential while rule works as a relation today; defining `while` as a *function* in LN 12 will require fixed points
 - Petal now has control flow (if-else, while), extending the language from LN 8-9
 - Proof trees mirror AST structure — both are defined by structural induction (LN 3)
+- Reading a proof tree = constructing a proof tree = executing the program — three views of one object
 - Stuck computations model runtime errors (connects to LN 10's error discussion)
 - Stack vs. register machines illustrate pragmatic design choices (connects to LN 6)
+- Numeral/number distinction: every syntactic value in a rule that "looks like a value" is really a metavariable plus a side condition that bridges to the value
 
 </LectureNotes>
 
