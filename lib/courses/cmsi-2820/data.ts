@@ -818,14 +818,6 @@ const allEvents: CourseEvent[] = [
     standard: "Set Theory",
     contentUrl: "/cmsi-2820/ln24",
     recordings: [
-      {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/l-GqR0KiC6gazJmmzXYfFuDZxnII2O4AuNdBwiqhH2i3oMHthZjLbfswzAac78lF.lAcYrljqUYS3qob7"
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/FxgRdibQQSF62ZB53elkmCpJdkfzOBebMwwq0TbaT2l6ILtwjEdutUMzeFPm7mrD.Pe6GceEI99SrCVVd"
-      },
     ],
   },
   {
@@ -840,13 +832,9 @@ const allEvents: CourseEvent[] = [
     contentUrl: "/cmsi-2820/ln25",
     recordings: [
       {
-        name: "Morning Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/7qTxu8eRbNFdhmirDqEFw2h9M_llGrmauk7HBvI7Fc7P4MoG0MWrBXYRRNbF8b8r.kNJRpvqeC5K-5t7J"
-      },
-      {
-        name: "Night Lecture Video",
-        url: "https://lmula.zoom.us/rec/share/mm95Snfd52As_02SHqACxmBmwgPdngRn4RMhYzVG3SuN_2wQJgZivqvKyIKKcrPs.Hp6Ke6UPRW-ixEDA"
-      },
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/QYaPSfWqV3lJL-rTyBIKRfWaAOaxXKtDv0XSYCih9wN7krMrFXLOxrNanBpruoUO.la8igmxN6tBh2Frx"
+      }
     ],
   },
   {
