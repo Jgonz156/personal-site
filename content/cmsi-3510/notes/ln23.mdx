@@ -441,19 +441,22 @@ nc -l 4000
 > **🖥️ Terminal 2 — Run the traced client:**
 
 ```bash
-strace -e socket,connect,write,close sh -c 'echo "GET_TEMP" | nc 127.0.0.1 4000'
+strace -f -e socket,connect,write,close sh -c 'echo "GET_TEMP" | nc 127.0.0.1 4000'
 ```
 
-> The `sh -c '...'` wraps the piped command so `strace` can trace the entire pipeline. We filter for the client-side syscalls: `socket`, `connect`, `write`, and `close`.
+> The `sh -c '...'` wraps the piped command so `strace` can trace the entire pipeline. The `-f` flag tells `strace` to **follow forks** — without it, we only see the parent shell's syscalls, not the `nc` child process where the actual networking happens. We filter for the client-side syscalls: `socket`, `connect`, `write`, and `close`.
 
-Look for these lines in the output:
+Look past the parent shell's bookkeeping (`SIGCHLD`, inherited `close` calls) for the lines coming from the child PID — that is `nc` itself:
 
 ```
-socket(AF_INET, SOCK_STREAM, 0)                 = 3
-connect(3, {sin_port=htons(4000), sin_addr="127.0.0.1"}, 16) = 0
+[pid 30105] socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, IPPROTO_TCP) = 3
+[pid 30105] connect(3, {sa_family=AF_INET, sin_port=htons(4000), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+[pid 30105] write(3, "GET_TEMP\n", 9)   = 9
 ```
 
-The client calls `socket()`, then `connect()` to initiate the TCP handshake with the server. Once connected, `write()` sends the data. The kernel handles the rest — packetization, transport headers, loopback delivery.
+The child process calls `socket()`, then `connect()` to initiate the TCP handshake with the server. The `EINPROGRESS` is normal — `nc` opens the socket non-blocking, so the kernel returns immediately while the handshake completes in the background. Once connected, `write()` sends the data. The kernel handles the rest — packetization, transport headers, loopback delivery.
+
+> **⚠️ Why `-f` matters:** Without `-f`, you'll only see the shell waiting on its child (`SIGCHLD`) and closing inherited file descriptors. The interesting calls happen in the forked `nc` process, which `strace` ignores by default. This is a common gotcha when tracing anything launched through `sh -c`, `bash -c`, or a pipeline.
 
 > **💡 Connection to LN22:** Every socket operation we defined — `socket()`, `bind()`, `listen()`, `accept()`, `connect()`, `read()`, `write()`, `close()` — appears directly in the `strace` output. The abstraction is not a simplification for the lecture; it is the actual API the program uses.
 
@@ -911,37 +914,108 @@ Run the following commands inside the VM to create the demo directory with all f
 mkdir -p ~/ln23-demo && cd ~/ln23-demo
 ```
 
-#### `device-read.sh` — Walkthrough 1 Device Read
+#### `device-read.sh` — Walkthrough 1 Driver Dispatch Tracer
+
+This script does more than reread the device — it walks the entire dispatch chain from device node to driver source code, automating the manual sleuthing we did in the lecture body. Pass any character device path (defaults to `/dev/urandom`).
 
 ```bash
 cat > ~/ln23-demo/device-read.sh << 'SCRIPT'
 #!/bin/bash
-echo "=== Reading 16 bytes from /dev/urandom ==="
-dd if=/dev/urandom bs=16 count=1 2>/dev/null | xxd
+# Driver dispatch tracer: device node -> major:minor -> driver name
+# -> sysfs entry -> file_operations -> read entry point -> kernel source URL
+DEVICE="${1:-/dev/urandom}"
+
+echo "============================================================"
+echo " DRIVER DISPATCH TRACER for $DEVICE"
+echo "============================================================"
 
 echo ""
-echo "=== Device node details ==="
-ls -la /dev/urandom
+echo "[1/7] Read 16 bytes from $DEVICE (the user-space view)"
+dd if="$DEVICE" bs=16 count=1 2>/dev/null | xxd
 
 echo ""
-echo "=== Major/minor number mapping (first 20 lines) ==="
-cat /proc/devices | head -20
+echo "[2/7] Inspect the device node — extract major:minor"
+LS_OUT=$(ls -la "$DEVICE")
+echo "      $LS_OUT"
+MAJOR=$(echo "$LS_OUT" | awk '{print $5}' | tr -d ',')
+MINOR=$(echo "$LS_OUT" | awk '{print $6}')
+echo "      -> major=$MAJOR  minor=$MINOR"
+
+echo ""
+echo "[3/7] Look up the driver name in /proc/devices (major -> name)"
+DRIVER=$(awk -v m="$MAJOR" '$1==m {print $2}' /proc/devices)
+echo "      major $MAJOR -> driver group: '$DRIVER'"
+
+echo ""
+echo "[4/7] Confirm via sysfs (/sys/dev/char/$MAJOR:$MINOR/uevent)"
+if [ -r "/sys/dev/char/$MAJOR:$MINOR/uevent" ]; then
+  sed 's/^/      /' "/sys/dev/char/$MAJOR:$MINOR/uevent"
+  DEVNAME=$(awk -F= '/^DEVNAME=/{print $2}' "/sys/dev/char/$MAJOR:$MINOR/uevent")
+else
+  echo "      (sysfs entry not present)"
+  DEVNAME=""
+fi
+
+echo ""
+echo "[5/7] Find the file_operations dispatch table in /proc/kallsyms"
+echo "      (requires sudo — kernel symbols are root-readable)"
+SYMS=$(sudo grep -E "(${DEVNAME}|${DRIVER})_fops" /proc/kallsyms 2>/dev/null | head -5)
+if [ -n "$SYMS" ]; then
+  echo "$SYMS" | sed 's/^/      /'
+else
+  echo "      (no matching *_fops symbol found)"
+fi
+
+echo ""
+echo "[6/7] Find the read entry point (the function strace cannot see)"
+READ_FN=$(sudo grep -E " ${DEVNAME}_read_iter| ${DRIVER}_read_iter" /proc/kallsyms 2>/dev/null | head -3)
+if [ -n "$READ_FN" ]; then
+  echo "$READ_FN" | sed 's/^/      /'
+else
+  echo "      (no matching *_read_iter symbol — driver may use .read instead)"
+fi
+
+echo ""
+echo "[7/7] Jump to the source code for THIS kernel"
+KVER=$(uname -r | cut -d- -f1 | sed 's/\.0$//')
+echo "      kernel: $(uname -r)  ->  upstream tag: v$KVER"
+echo "      drivers/char/random.c:"
+echo "      https://github.com/torvalds/linux/blob/v$KVER/drivers/char/random.c"
+echo ""
+echo "============================================================"
+echo " You have just traced the U-bend from device node to source."
+echo "============================================================"
 SCRIPT
 chmod +x ~/ln23-demo/device-read.sh
 ```
 
-#### `device-trace.sh` — Walkthrough 1 Syscall Trace
+> Running `./device-read.sh` (or `./device-read.sh /dev/random`) compresses the entire "Following the Dispatch to the Driver" section into a single labeled run. Every step is something you can do by hand — the script just chains them so the link from `1, 9` in `ls -la` all the way to a clickable kernel source URL is impossible to miss.
+
+#### `device-trace.sh` — Walkthrough 1 Annotated Syscall Trace
+
+This script runs the same `strace` from the lecture but annotates each surviving line with the U-bend stage it represents, so the trace reads as a narrative of one trip through the kernel.
 
 ```bash
 cat > ~/ln23-demo/device-trace.sh << 'SCRIPT'
 #!/bin/bash
 echo "=== Tracing syscalls for dd reading /dev/urandom ==="
-echo "(Showing only the interesting syscalls — startup noise filtered out)"
+echo "(Filtered to the interesting calls and annotated with U-bend stages)"
 echo ""
-strace -e openat,read,write,close -o /dev/stdout dd if=/dev/urandom bs=16 count=1 2>/dev/null | grep -aE 'urandom|read\(0|write\(1|write\(2|close\(0|close\(1|close\(2|exited'
+strace -e openat,read,write,close -o /dev/stdout dd if=/dev/urandom bs=16 count=1 2>/dev/null \
+  | grep -aE 'urandom|read\(0|write\(1|write\(2|close\(0|close\(1|close\(2|exited' \
+  | sed \
+    -e 's|^\(openat.*urandom.*\)|\1   <-- LEFT TIP: enter kernel via VFS, get fd|' \
+    -e 's|^\(read(0,.*\)|\1   <-- BOTTOM: urandom_read_iter() runs in kernel|' \
+    -e 's|^\(write(1,.*\)|\1   <-- RIGHT TIP: bytes delivered back to user space (stdout)|' \
+    -e 's|^\(write(2,.*\)|\1   <-- dd progress message (also a syscall to stderr)|' \
+    -e 's|^\(close(0).*\)|\1   <-- release stdin fd|' \
+    -e 's|^\(close(1).*\)|\1   <-- release stdout fd|' \
+    -e 's|^\(close(2).*\)|\1   <-- release stderr fd|'
 SCRIPT
 chmod +x ~/ln23-demo/device-trace.sh
 ```
+
+> The `sed` post-processing tags each surviving syscall with which part of the U-bend it occupies. After running, you can read the trace top to bottom as a guided tour: enter the kernel, run the driver, return, clean up.
 
 #### `inspect-proc.sh` — Exploring /proc
 

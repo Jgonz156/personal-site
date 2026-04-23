@@ -66,7 +66,7 @@ export function TranspilerOutput({
               Petal Source
             </span>
           </div>
-          <div className="font-mono text-sm py-2 overflow-x-auto bg-zinc-950 text-zinc-300 min-h-[120px]">
+          <div className="font-mono text-sm py-2 overflow-x-auto bg-muted/20 min-h-[120px]">
             {highlightLine(petalSource, step.petalHighlight)}
           </div>
         </div>
@@ -77,7 +77,7 @@ export function TranspilerOutput({
               Generated JavaScript
             </span>
           </div>
-          <div className="font-mono text-sm py-2 overflow-x-auto bg-zinc-950 text-zinc-300 min-h-[120px]">
+          <div className="font-mono text-sm py-2 overflow-x-auto bg-muted/20 min-h-[120px]">
             {highlightLine(step.jsCode, step.jsHighlight)}
           </div>
         </div>

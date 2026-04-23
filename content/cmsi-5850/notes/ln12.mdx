@@ -5,8 +5,11 @@ import {
 import { DefinitionBox } from "@/components/interactive-example"
 import { DisplayMath, InlineMath } from "@/components/math"
 import { TranspilerOutput } from "@/components/transpiler-output"
-import { FixedPointUnroller } from "@/components/fixed-point-unroller"
+import { ApproximationTower } from "@/components/approximation-tower"
 import { DenotationalStepper } from "@/components/denotational-stepper"
+import { ApproximationTable } from "@/components/approximation-table"
+import { SemanticEquationConstructor } from "@/components/semantic-equation-constructor"
+import { InterpreterVsTranspilerSplit } from "@/components/interpreter-vs-transpiler-split"
 
 ## Recap
 
@@ -22,10 +25,11 @@ Today we develop the second approach: **denotational semantics — meaning by tr
 
 - **The Denotational Intuition** — Meaning as function, not simulation
 - **The Blueprint** — From tree grammar to semantic functions
-- **The Machinery** — Semantic equations and compositionality
-- **The Challenge** — Loops, fixed points, and domain theory
+- **The Machinery** — Semantic equations, compositionality, and an interactive equation constructor
+- **The Challenge** — Loops, fixed points, towers of approximations, per-input behaviour, Gauss's formula as a fixed point, and when finite is enough
 - **The Payoff** — The transpiler reveal and denotational equivalence
-- **Two Lenses, One Language** — Comparing operational and denotational
+- **Denotational Semantics in the Wild** — Spreadsheets, GHC Core, proof assistants, SQL
+- **Two Lenses, One Language** — Adequacy, the apparent paradox, and a side-by-side adequacy demo
 
 ---
 
@@ -57,7 +61,7 @@ The tree grammar from LN 8 told us what AST shapes Petal programs can take. Now 
 
 In LN 8 we defined Petal's abstract syntax, and in LN 11 we extended it with control flow. Here is the current tree grammar:
 
-<DisplayMath formula="e : \text{Exp} = n \mid i \mid \text{-}e \mid e\text{+}e \mid e\text{-}e \mid e\text{*}e \mid e\text{/}e \mid e\text{\%}e \mid e\text{**}e" />
+<DisplayMath formula="e : \text{Exp} = \overline{n} \mid i \mid \text{-}e \mid e\text{+}e \mid e\text{-}e \mid e\text{*}e \mid e\text{/}e \mid e\text{\%}e \mid e\text{**}e" />
 
 <DisplayMath formula="s : \text{Stmt} = i\text{=}e \mid \textbf{print}\; e \mid \textbf{if}\; e\; \textbf{then}\; s^+\; \textbf{else}\; s^+ \mid \textbf{while}\; e\; \textbf{do}\; s^+" />
 
@@ -145,10 +149,12 @@ The rest of this lecture fills in these signatures — one equation per tree gra
 
 ### Expression Semantics
 
-<DisplayMath formula="E\llbracket n \rrbracket\, \sigma = n" />
+<DisplayMath formula="E\llbracket \overline{n} \rrbracket\, \sigma = \mathcal{N}\llbracket \overline{n} \rrbracket = n" />
 <DisplayMath formula="E\llbracket i \rrbracket\, \sigma = \sigma(i)" />
 <DisplayMath formula="E\llbracket e_1 + e_2 \rrbracket\, \sigma = E\llbracket e_1 \rrbracket\, \sigma + E\llbracket e_2 \rrbracket\, \sigma" />
 <DisplayMath formula="E\llbracket e_1 * e_2 \rrbracket\, \sigma = E\llbracket e_1 \rrbracket\, \sigma \times E\llbracket e_2 \rrbracket\, \sigma" />
+
+The <InlineMath formula="\overline{n}" /> on the left is a **numeral** — a syntactic object, a sequence of digit characters living in the AST. The <InlineMath formula="n" /> on the right is a **number** — a mathematical object living in the semantic domain $\text{Num}$. The valuation function <InlineMath formula="\mathcal{N}" /> bridges the two worlds. Every other expression equation builds on top of mathematical numbers; the <InlineMath formula="\mathcal{N}" /> bridge is the only place where syntax becomes semantics. Every subsequent <InlineMath formula="+" /> or <InlineMath formula="\times" /> on the right of an equation is the *mathematical* operation, not the syntactic operator that appears inside the brackets.
 
 Each equation defines the meaning of one syntactic form. The equations are **compositional**: the meaning of a compound expression uses only the meanings of its subexpressions, never their internal structure.
 
@@ -161,11 +167,13 @@ Notice the division equation: when the divisor is zero, the result is $\bot$. Th
 
 ### Comparison Operators
 
-For conditionals and loops, Petal needs comparison operators:
+For conditionals and loops, Petal needs comparison operators. These follow the same compositional template — evaluate both children, then return a numeric truth value:
 
 <DisplayMath formula="E\llbracket e_1 > e_2 \rrbracket\, \sigma = \begin{cases} 1 & \text{if } E\llbracket e_1 \rrbracket\, \sigma > E\llbracket e_2 \rrbracket\, \sigma \\ 0 & \text{otherwise} \end{cases}" />
+<DisplayMath formula="E\llbracket e_1 < e_2 \rrbracket\, \sigma = \begin{cases} 1 & \text{if } E\llbracket e_1 \rrbracket\, \sigma < E\llbracket e_2 \rrbracket\, \sigma \\ 0 & \text{otherwise} \end{cases}" />
+<DisplayMath formula="E\llbracket e_1 \mathrel{=\!=} e_2 \rrbracket\, \sigma = \begin{cases} 1 & \text{if } E\llbracket e_1 \rrbracket\, \sigma = E\llbracket e_2 \rrbracket\, \sigma \\ 0 & \text{otherwise} \end{cases}" />
 
-Comparisons produce integers (1 for true, 0 for false), matching the C convention we adopted in LN 11.
+The remaining operators ($\leq$, $\geq$, $\neq$) follow the identical pattern; we omit them only because the equations are mechanical at this point. Comparisons produce integers (1 for true, 0 for false), matching the C convention we adopted in LN 11. Note also the careful symbol use: the <InlineMath formula="=\!=" /> *inside* the Oxford brackets is the syntactic operator (the AST node), while the <InlineMath formula="=" /> on the right of the case condition is the mathematical equality on $\text{Num}$.
 
 ### Statement Semantics
 
@@ -227,13 +235,13 @@ The stepper below shows how the semantic equations unfold compositionally throug
     { from: "times", to: "two" },
   ]}
   steps={[
-    { astHighlight: ["plus"], equation: "E\\llbracket 3 + 5 \\times 2 \\rrbracket\\, \\sigma = E\\llbracket 3 \\rrbracket\\, \\sigma \\;+\\; E\\llbracket 5 \\times 2 \\rrbracket\\, \\sigma", environment: {}, output: [], description: "Start at the root. The addition equation decomposes the expression into its two children's meanings." },
-    { astHighlight: ["times"], equation: "E\\llbracket 5 \\times 2 \\rrbracket\\, \\sigma = E\\llbracket 5 \\rrbracket\\, \\sigma \\;\\times\\; E\\llbracket 2 \\rrbracket\\, \\sigma", environment: {}, output: [], description: "Recurse into the right subtree. The multiplication equation does the same decomposition." },
-    { astHighlight: ["five"], equation: "E\\llbracket 5 \\rrbracket\\, \\sigma = 5", environment: {}, output: [], description: "Leaf node: the numeral 5 denotes the number 5. No recursion needed." },
-    { astHighlight: ["two"], equation: "E\\llbracket 2 \\rrbracket\\, \\sigma = 2", environment: {}, output: [], description: "Leaf node: the numeral 2 denotes the number 2." },
-    { astHighlight: ["times"], equation: "E\\llbracket 5 \\times 2 \\rrbracket\\, \\sigma = 5 \\times 2 = 10", environment: {}, output: [], description: "Both children evaluated — combine: 5 × 2 = 10. The multiplication node's denotation is 10." },
-    { astHighlight: ["three"], equation: "E\\llbracket 3 \\rrbracket\\, \\sigma = 3", environment: {}, output: [], description: "Left child of the root: the numeral 3 denotes 3." },
-    { astHighlight: ["plus"], equation: "E\\llbracket 3 + 5 \\times 2 \\rrbracket\\, \\sigma = 3 + 10 = 13", environment: {}, output: [], description: "Both children of the root evaluated — combine: 3 + 10 = 13. The entire expression denotes 13." },
+    { astHighlight: ["plus"], equation: "E\\llbracket \\overline{3} + \\overline{5} \\times \\overline{2} \\rrbracket\\, \\sigma = E\\llbracket \\overline{3} \\rrbracket\\, \\sigma \\;+\\; E\\llbracket \\overline{5} \\times \\overline{2} \\rrbracket\\, \\sigma", environment: {}, output: [], description: "Start at the root. The addition equation decomposes the expression into its two children's meanings." },
+    { astHighlight: ["times"], equation: "E\\llbracket \\overline{5} \\times \\overline{2} \\rrbracket\\, \\sigma = E\\llbracket \\overline{5} \\rrbracket\\, \\sigma \\;\\times\\; E\\llbracket \\overline{2} \\rrbracket\\, \\sigma", environment: {}, output: [], description: "Recurse into the right subtree. The multiplication equation does the same decomposition." },
+    { astHighlight: ["five"], equation: "E\\llbracket \\overline{5} \\rrbracket\\, \\sigma = \\mathcal{N}\\llbracket \\overline{5} \\rrbracket = 5", environment: {}, output: [], description: "Leaf node: the numeral 5̄ (a syntactic digit string) is bridged to the number 5 by the valuation function 𝒩." },
+    { astHighlight: ["two"], equation: "E\\llbracket \\overline{2} \\rrbracket\\, \\sigma = \\mathcal{N}\\llbracket \\overline{2} \\rrbracket = 2", environment: {}, output: [], description: "Leaf node: the numeral 2̄ becomes the mathematical number 2 — same bridge, applied again." },
+    { astHighlight: ["times"], equation: "E\\llbracket \\overline{5} \\times \\overline{2} \\rrbracket\\, \\sigma = 5 \\times 2 = 10", environment: {}, output: [], description: "Both children evaluated — combine using mathematical multiplication: 5 × 2 = 10." },
+    { astHighlight: ["three"], equation: "E\\llbracket \\overline{3} \\rrbracket\\, \\sigma = \\mathcal{N}\\llbracket \\overline{3} \\rrbracket = 3", environment: {}, output: [], description: "Left child of the root: the numeral 3̄ denotes the number 3." },
+    { astHighlight: ["plus"], equation: "E\\llbracket \\overline{3} + \\overline{5} \\times \\overline{2} \\rrbracket\\, \\sigma = 3 + 10 = 13", environment: {}, output: [], description: "Both children of the root evaluated — combine: 3 + 10 = 13. The entire expression denotes 13." },
   ]}
 />
 
@@ -259,10 +267,10 @@ Now let's see how statement equations thread state through a program:
     { from: "plus", to: "five" },
   ]}
   steps={[
-    { astHighlight: ["prog"], equation: "P\\llbracket \\text{program} \\rrbracket = \\pi_2(S\\llbracket \\text{print } x \\rrbracket(S\\llbracket x = 3+5 \\rrbracket(\\sigma_0, \\epsilon)))", environment: {}, output: [], description: "The program's meaning is built by composing its statement meanings — right to left, just like function composition." },
-    { astHighlight: ["assign"], equation: "S\\llbracket x = 3 + 5 \\rrbracket\\, (\\sigma_0, \\epsilon) = (\\sigma_0[x \\mapsto E\\llbracket 3 + 5 \\rrbracket\\, \\sigma_0],\\; \\epsilon)", environment: {}, output: [], description: "The assignment equation expands: bind x to whatever E⟦3 + 5⟧ σ₀ evaluates to. But we don't know that value yet — we must evaluate the expression first." },
-    { astHighlight: ["plus", "three", "five"], equation: "E\\llbracket 3 + 5 \\rrbracket\\, \\sigma_0 = E\\llbracket 3 \\rrbracket\\, \\sigma_0 + E\\llbracket 5 \\rrbracket\\, \\sigma_0 = 3 + 5 = 8", environment: {}, output: [], description: "Compositional expression evaluation: decompose, evaluate leaves, combine. The expression denotes 8." },
-    { astHighlight: ["assign"], equation: "S\\llbracket x = 3 + 5 \\rrbracket\\, (\\sigma_0, \\epsilon) = (\\sigma_0[x \\mapsto 8],\\; \\epsilon) = (\\sigma_1, \\epsilon)", environment: { x: 8 }, output: [], description: "The assignment equation: update the state by binding x to 8. The output stream is unchanged." },
+    { astHighlight: ["prog"], equation: "P\\llbracket \\text{program} \\rrbracket = \\pi_2(S\\llbracket \\text{print } x \\rrbracket(S\\llbracket x = \\overline{3}+\\overline{5} \\rrbracket(\\sigma_0, \\epsilon)))", environment: {}, output: [], description: "The program's meaning is built by composing its statement meanings — right to left, just like function composition." },
+    { astHighlight: ["assign"], equation: "S\\llbracket x = \\overline{3} + \\overline{5} \\rrbracket\\, (\\sigma_0, \\epsilon) = (\\sigma_0[x \\mapsto E\\llbracket \\overline{3} + \\overline{5} \\rrbracket\\, \\sigma_0],\\; \\epsilon)", environment: {}, output: [], description: "The assignment equation expands: bind x to whatever E⟦3̄ + 5̄⟧ σ₀ evaluates to. But we don't know that value yet — we must evaluate the expression first." },
+    { astHighlight: ["plus", "three", "five"], equation: "E\\llbracket \\overline{3} + \\overline{5} \\rrbracket\\, \\sigma_0 = \\mathcal{N}\\llbracket \\overline{3} \\rrbracket + \\mathcal{N}\\llbracket \\overline{5} \\rrbracket = 3 + 5 = 8", environment: {}, output: [], description: "Compositional expression evaluation: decompose, bridge each numeral with 𝒩, then combine. The expression denotes the number 8." },
+    { astHighlight: ["assign"], equation: "S\\llbracket x = \\overline{3} + \\overline{5} \\rrbracket\\, (\\sigma_0, \\epsilon) = (\\sigma_0[x \\mapsto 8],\\; \\epsilon) = (\\sigma_1, \\epsilon)", environment: { x: 8 }, output: [], description: "The assignment equation: update the state by binding x to 8. The output stream is unchanged." },
     { astHighlight: ["print"], equation: "S\\llbracket \\text{print } x \\rrbracket\\, (\\sigma_1, \\epsilon)", environment: { x: 8 }, output: [], description: "Second statement: print. We evaluate the expression x in the current state σ₁." },
     { astHighlight: ["xref"], equation: "E\\llbracket x \\rrbracket\\, \\sigma_1 = \\sigma_1(x) = 8", environment: { x: 8 }, output: [], description: "Variable lookup: the identifier x denotes whatever σ₁ maps it to — which is 8." },
     { astHighlight: ["print"], equation: "S\\llbracket \\text{print } x \\rrbracket\\, (\\sigma_1, \\epsilon) = (\\sigma_1,\\; \\epsilon \\cdot 8) = (\\sigma_1, [8])", environment: { x: 8 }, output: [8], description: "The print equation: state unchanged, but 8 is appended to the output stream." },
@@ -282,15 +290,15 @@ print y;
 
 Starting with the initial state $(\sigma_0, \epsilon)$ where $\sigma_0$ is empty:
 
-**Step 1:** Evaluate $S\llbracket x = 3 + 5 \rrbracket\, (\sigma_0, \epsilon)$
+**Step 1:** Evaluate $S\llbracket x = \overline{3} + \overline{5} \rrbracket\, (\sigma_0, \epsilon)$
 
-<DisplayMath formula="E\llbracket 3 + 5 \rrbracket\, \sigma_0 = E\llbracket 3 \rrbracket\, \sigma_0 + E\llbracket 5 \rrbracket\, \sigma_0 = 3 + 5 = 8" />
-<DisplayMath formula="S\llbracket x = 3 + 5 \rrbracket\, (\sigma_0, \epsilon) = (\sigma_0[x \mapsto 8], \epsilon) = (\sigma_1, \epsilon)" />
+<DisplayMath formula="E\llbracket \overline{3} + \overline{5} \rrbracket\, \sigma_0 = E\llbracket \overline{3} \rrbracket\, \sigma_0 + E\llbracket \overline{5} \rrbracket\, \sigma_0 = 3 + 5 = 8" />
+<DisplayMath formula="S\llbracket x = \overline{3} + \overline{5} \rrbracket\, (\sigma_0, \epsilon) = (\sigma_0[x \mapsto 8], \epsilon) = (\sigma_1, \epsilon)" />
 
-**Step 2:** Evaluate $S\llbracket y = x * 2 \rrbracket\, (\sigma_1, \epsilon)$
+**Step 2:** Evaluate $S\llbracket y = x * \overline{2} \rrbracket\, (\sigma_1, \epsilon)$
 
-<DisplayMath formula="E\llbracket x * 2 \rrbracket\, \sigma_1 = E\llbracket x \rrbracket\, \sigma_1 \times E\llbracket 2 \rrbracket\, \sigma_1 = \sigma_1(x) \times 2 = 8 \times 2 = 16" />
-<DisplayMath formula="S\llbracket y = x * 2 \rrbracket\, (\sigma_1, \epsilon) = (\sigma_1[y \mapsto 16], \epsilon) = (\sigma_2, \epsilon)" />
+<DisplayMath formula="E\llbracket x * \overline{2} \rrbracket\, \sigma_1 = E\llbracket x \rrbracket\, \sigma_1 \times E\llbracket \overline{2} \rrbracket\, \sigma_1 = \sigma_1(x) \times 2 = 8 \times 2 = 16" />
+<DisplayMath formula="S\llbracket y = x * \overline{2} \rrbracket\, (\sigma_1, \epsilon) = (\sigma_1[y \mapsto 16], \epsilon) = (\sigma_2, \epsilon)" />
 
 **Step 3:** Evaluate $S\llbracket \text{print } y \rrbracket\, (\sigma_2, \epsilon)$
 
@@ -300,6 +308,89 @@ Starting with the initial state $(\sigma_0, \epsilon)$ where $\sigma_0$ is empty
 **Final result:** $P\llbracket \text{program} \rrbracket = \pi_2(\sigma_2, [16]) = [16]$
 
 The program's denotation is the output `[16]`. Notice how each step is purely mathematical — we're computing with functions and sets, not simulating a machine. There are no "states" or "transitions"; there are only function applications.
+
+### Build Your Own Substitution Chain
+
+Reading a denotational evaluation top-down is one thing; *constructing* one top-down is what makes the equations stick. The component below gives you a starting form and the full equation palette. Your job is to pick, at each step, which equation justifies the next rewrite — exactly the choice you would make if you were doing the derivation on paper. The chain is wrong unless every line is licensed by an equation we have already written down.
+
+<SemanticEquationConstructor
+  title="Build the substitution chain for: x = 3 + 5"
+  goalDescription="Goal: derive the final state-output pair for the assignment x = 3̄ + 5̄ starting in (σ₀, ε). Pick the equation that fires at each step."
+  initialFormula="S\llbracket x = \overline{3} + \overline{5} \rrbracket\, (\sigma_0, \epsilon)"
+  steps={[
+    {
+      equationKey: "assign",
+      formula: "(\\sigma_0[x \\mapsto E\\llbracket \\overline{3} + \\overline{5} \\rrbracket\\, \\sigma_0],\\; \\epsilon)",
+      description: "The assignment equation peels off the surrounding S⟦…⟧, leaving the right-hand expression to be evaluated.",
+    },
+    {
+      equationKey: "add",
+      formula: "(\\sigma_0[x \\mapsto E\\llbracket \\overline{3} \\rrbracket\\, \\sigma_0 + E\\llbracket \\overline{5} \\rrbracket\\, \\sigma_0],\\; \\epsilon)",
+      description: "Compositionality bites: the meaning of e₁ + e₂ uses only the meanings of its sub-expressions.",
+    },
+    {
+      equationKey: "numeral",
+      formula: "(\\sigma_0[x \\mapsto \\mathcal{N}\\llbracket \\overline{3} \\rrbracket + \\mathcal{N}\\llbracket \\overline{5} \\rrbracket],\\; \\epsilon)",
+      description: "Numeral equation fires twice — both leaves are bridged from syntactic numerals to mathematical numbers via 𝒩.",
+    },
+    {
+      equationKey: "valuation",
+      formula: "(\\sigma_0[x \\mapsto 3 + 5],\\; \\epsilon)",
+      description: "𝒩⟦3̄⟧ = 3 and 𝒩⟦5̄⟧ = 5: the bridge from syntax to arithmetic is the valuation function 𝒩.",
+    },
+    {
+      equationKey: "arithmetic",
+      formula: "(\\sigma_0[x \\mapsto 8],\\; \\epsilon)",
+      description: "Pure mathematical addition. No semantic equation is required for arithmetic on numbers — that's the host mathematics doing its job.",
+    },
+  ]}
+  palette={[
+    {
+      key: "assign",
+      label: "Assignment",
+      schema: "S\\llbracket i = e \\rrbracket\\, (\\sigma, o) = (\\sigma[i \\mapsto E\\llbracket e \\rrbracket\\, \\sigma],\\; o)",
+      hint: "Rewrites an outermost S⟦i = e⟧ form.",
+    },
+    {
+      key: "add",
+      label: "Addition",
+      schema: "E\\llbracket e_1 + e_2 \\rrbracket\\, \\sigma = E\\llbracket e_1 \\rrbracket\\, \\sigma + E\\llbracket e_2 \\rrbracket\\, \\sigma",
+      hint: "Decomposes any E⟦e₁ + e₂⟧ form into a sum of sub-meanings.",
+    },
+    {
+      key: "numeral",
+      label: "Numeral",
+      schema: "E\\llbracket \\overline{n} \\rrbracket\\, \\sigma = \\mathcal{N}\\llbracket \\overline{n} \\rrbracket = n",
+      hint: "Bridges a numeral leaf E⟦n̄⟧ to its mathematical value through 𝒩.",
+    },
+    {
+      key: "valuation",
+      label: "𝒩 valuation",
+      schema: "\\mathcal{N}\\llbracket \\overline{n} \\rrbracket = n",
+      hint: "Replaces 𝒩⟦n̄⟧ with the corresponding mathematical number n.",
+    },
+    {
+      key: "arithmetic",
+      label: "Arithmetic",
+      schema: "n_1 + n_2 \\;\\rightarrow\\; n_1 \\!+\\! n_2 \\;\\text{(in } \\mathbb{Z}\\text{)}",
+      hint: "Ordinary integer arithmetic — no semantic equation, just the host mathematics.",
+    },
+    {
+      key: "print",
+      label: "Print (distractor)",
+      schema: "S\\llbracket \\textbf{print}\\, e \\rrbracket\\, (\\sigma, o) = (\\sigma,\\; o \\cdot E\\llbracket e \\rrbracket\\, \\sigma)",
+      hint: "Only fires when the outermost form is a print statement.",
+    },
+    {
+      key: "while",
+      label: "While (distractor)",
+      schema: "S\\llbracket \\textbf{while}\\; e\\; \\textbf{do}\\; s \\rrbracket = \\text{fix}(F)",
+      hint: "Only fires for an outermost while form.",
+    },
+  ]}
+/>
+
+Notice what the palette buys you. The denotational machinery is so uniform that there is, fundamentally, *one* picking question at every step: "what is the outermost syntactic form on the highlighted line?" The equation for that form is the only one that fires. This is what compositionality looks like as an algorithm — every rewrite is locally determined by structure, never by global context.
 
 ---
 
@@ -311,7 +402,9 @@ Consider the semantic equation for `while`:
 
 <DisplayMath formula="S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket\, (\sigma, o) = \begin{cases} (\sigma, o) & \text{if } E\llbracket e \rrbracket\, \sigma = 0 \\ S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket\, (S\llbracket s \rrbracket\, (\sigma, o)) & \text{otherwise} \end{cases}" />
 
-This equation defines <InlineMath formula="S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket" /> **in terms of itself**. It's circular! In operational semantics (LN 11), self-reference in inference rules was fine — we were defining a relation, and the recursion unfolded naturally. But denotational semantics requires **compositionality**: the meaning of the whole must be defined from the meanings of the parts. A circular definition violates this.
+This equation defines <InlineMath formula="S\llbracket \textbf{while}\; e\; \textbf{do}\; s \rrbracket" /> **in terms of itself**. It's circular! In LN 11 we hinted that the while loop's self-referential rule would cause "trouble" in denotational semantics, and here it is: compositionality says the meaning of a compound construct must be defined from the meanings of its *parts*, and a `while` loop has no smaller `while` inside it to recurse into. Operational semantics escaped this trap because its inference rules were defining a **relation** — a set of triples — and "this triple is in the set if some other triple is in the set" is a perfectly good closure condition on a set. Denotational semantics cannot escape the same way. Our equation is supposed to *define a function* — a single mathematical object — and "<InlineMath formula="f" /> equals an expression containing <InlineMath formula="f" />" is satisfied by lots of different functions in general, so it does not, on its own, single out a unique meaning.
+
+So we are stuck: we have written down an equation that *constrains* the meaning of `while`, but we have not yet written down enough machinery to say *which* function satisfying that constraint is "the" meaning. The next two subsections fix that. We will give the equation a name (a **functional** $F$), build successive **approximations** to its solution, and then introduce the mathematical structure (a partial order on functions, with a least element) that lets us pick out exactly one solution as the official meaning.
 
 <DefinitionBox term="Fixed Point">
 
@@ -335,38 +428,339 @@ The $\text{fix}$ operator finds a function $w$ such that $w = F(w)$ — a functi
 
 ### The Approximation Sequence
 
-How does $\text{fix}(F)$ actually compute the meaning of a while loop? Through **approximation**. We start with $\bot$ (the function that diverges on all inputs) and repeatedly apply $F$:
+How does $\text{fix}(F)$ actually compute the meaning of a while loop? Through **approximation**. We start with $\bot$ (the function that diverges on all inputs) and repeatedly apply $F$. Rather than summarize each step with a sentence, let's *literally* watch the equation grow — each step appends one more conditional clause to the previous formula. The new clause is boxed so you can see exactly what one extra application of $F$ contributes:
 
-<FixedPointUnroller
-  title="Fixed-Point Approximation for: while x > 0 { x = x - 1; }"
+> **Pause and predict.** Before unrolling anything, ask yourself what this loop should *mean*. For any starting value of $x$, what should the final state be? Try to write it down — the body just decrements, so a closed-form answer should be within reach for the obvious cases. Hold that prediction in mind; the tower below will either confirm it or expose where your intuition glossed over a case.
+
+<ApproximationTower
+  title="Tower of Approximations: while x > 0 { x = x - 1; }"
   steps={[
-    { formula: "w_0 = \\bot", description: "Start with ⊥ — the function that diverges on every input. This is the 'zero-th approximation': it handles zero iterations of the loop (i.e., none)." },
-    { formula: "w_1 = F(\\bot) = \\lambda (\\sigma, o).\\; \\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\text{ else } \\bot", description: "First approximation: handles the case where the loop condition is immediately false (zero iterations). If x > 0, it diverges." },
-    { formula: "w_2 = F(w_1) = \\lambda (\\sigma, o).\\; \\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\text{ else if } \\sigma(x) - 1 = 0 \\text{ then } (\\sigma', o) \\text{ else } \\bot", description: "Second approximation: handles 0 or 1 iterations. If x = 1, the body executes once (x becomes 0), then the loop terminates. If x > 1, it diverges." },
-    { formula: "w_3 = F(w_2) = \\text{handles 0, 1, or 2 iterations}", description: "Third approximation: handles up to 2 iterations. Each application of F extends the function to handle one more iteration of the loop." },
-    { formula: "w_\\infty = \\text{fix}(F) = \\bigsqcup_{i=0}^{\\infty} w_i", description: "The fixed point is the limit of this sequence — it handles any finite number of iterations. For x ≥ 0, it terminates with x = 0. For x < 0 (if x can't reach 0), it diverges (⊥)." },
+    {
+      label: "w_0",
+      formula: "\\bot",
+      description: "Start with ⊥ — the function that diverges on every input. No clauses yet.",
+    },
+    {
+      label: "w_1 = F(w_0)",
+      formula: "\\lambda (\\sigma, o).\\; \\boxed{\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o)} \\;\\text{ else } \\bot",
+      description: "One application of F adds the base case: x = 0 terminates immediately. Anything else still falls through to ⊥.",
+    },
+    {
+      label: "w_2 = F(w_1)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\\\ &\\boxed{\\text{else if } \\sigma(x) = 1 \\text{ then } (\\sigma[x \\mapsto 0], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "A second application unfolds one more iteration. The new boxed clause fires when x = 1: the body decrements once, and we hit the previous base case.",
+    },
+    {
+      label: "w_3 = F(w_2)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(x) = 1 \\text{ then } (\\sigma[x \\mapsto 0], o) \\\\ &\\boxed{\\text{else if } \\sigma(x) = 2 \\text{ then } (\\sigma[x \\mapsto 0], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "Each unfolding adds exactly one new branch. x = 2 now terminates; everything else still hits ⊥.",
+    },
+    {
+      label: "w_4 = F(w_3)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(x) = 1 \\text{ then } (\\sigma[x \\mapsto 0], o) \\\\ &\\text{else if } \\sigma(x) = 2 \\text{ then } (\\sigma[x \\mapsto 0], o) \\\\ &\\boxed{\\text{else if } \\sigma(x) = 3 \\text{ then } (\\sigma[x \\mapsto 0], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "x = 3 joins the catch. The pattern is now obvious: w_k adds the clause for x = k − 1.",
+    },
+    {
+      label: "w_5 = F(w_4)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(x) = 1 \\text{ then } (\\sigma[x \\mapsto 0], o) \\\\ &\\text{else if } \\sigma(x) = 2 \\text{ then } (\\sigma[x \\mapsto 0], o) \\\\ &\\text{else if } \\sigma(x) = 3 \\text{ then } (\\sigma[x \\mapsto 0], o) \\\\ &\\boxed{\\text{else if } \\sigma(x) = 4 \\text{ then } (\\sigma[x \\mapsto 0], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "x = 4 is now handled. To handle every non-negative integer, we'd need to keep stacking forever — and that is exactly what fix(F) does in the limit.",
+    },
+    {
+      label: "w_\\infty = \\text{fix}(F)",
+      formula: "\\bigsqcup_{i=0}^{\\infty} w_i \\;=\\; \\lambda (\\sigma, o).\\; \\begin{cases} (\\sigma[x \\mapsto 0], o) & \\text{if } \\sigma(x) \\geq 0 \\\\ \\bot & \\text{otherwise} \\end{cases}",
+      description: "The least upper bound collapses the whole tower into a single closed-form function: every non-negative x lands at 0; anything that can't decrement to 0 stays ⊥.",
+    },
   ]}
 />
 
-Each approximation handles one more iteration than the last. The fixed point is the **least upper bound** of the entire sequence — the function that handles *all* finite numbers of iterations.
+Each application of $F$ adds one more clause to the formula, and that clause handles exactly one new input. Before we look at the table, one clarification is worth dwelling on — it prevents a very natural misreading of what the cells mean.
+
+Each $w_k$ is a **flat function**. When you call $w_4(\sigma, o)$ with $\sigma(x) = 3$, it runs *one* if/else-if cascade and returns $(\sigma[x \mapsto 0], o)$ — the *final* state — in a single mathematical step. There is no looping inside $w_4$; nothing decrements anything. The recursion you'd associate with iteration has been absorbed *into the construction of the tower*: $w_4 = F(F(F(F(\bot))))$ is four nested applications of $F$, each one bookkeeping "one more iteration the loop might still need." So the iteration lives in the *tower*, not in any single rung. This is exactly why a smart compiler can replace `while x > 0 { x = x - 1; }` with a closed-form assignment to $0$: the denotation was a one-step jump all along, and the loop was just an operational way of computing it.
+
+The table below shows what each $w_k$ *actually returns* when invoked. Each row is one $w_k$; each column is a particular initial $x$. A cell like `"3 → 0"` records the input/output behaviour: this $w_k$ maps $x = 3$ directly to its final state $0$, in one step. A cell like `"3 → ⊥"` means this $w_k$ has no clause for $x = 3$, so the function returns $\bot$. Green cells are inputs that just gained a non-$\bot$ result at this step.
+
+<ApproximationTable
+  title="Per-Input Behaviour: while x > 0 { x = x - 1; }"
+  inputHeader="initial x"
+  inputs={[0, 1, 2, 3, 4]}
+  rows={[
+    {
+      label: "w_0 = \\bot",
+      values: ["0 → ⊥", "1 → ⊥", "2 → ⊥", "3 → ⊥", "4 → ⊥"],
+      description: "w_0 is the constant-bottom function: every input maps to ⊥.",
+    },
+    {
+      label: "w_1 = F(w_0)",
+      values: ["0 → 0", "1 → ⊥", "2 → ⊥", "3 → ⊥", "4 → ⊥"],
+      description: "x = 0 lands at 0 in one step. There are no clauses yet for any other input, so they all return ⊥.",
+    },
+    {
+      label: "w_2 = F(w_1)",
+      values: ["0 → 0", "1 → 0", "2 → ⊥", "3 → ⊥", "4 → ⊥"],
+      description: "x = 1 now maps to 0. One new boxed clause, one new input handled.",
+    },
+    {
+      label: "w_3 = F(w_2)",
+      values: ["0 → 0", "1 → 0", "2 → 0", "3 → ⊥", "4 → ⊥"],
+      description: "x = 2 now maps to 0. Each step adds one more clause and handles exactly one more input.",
+    },
+    {
+      label: "w_4 = F(w_3)",
+      values: ["0 → 0", "1 → 0", "2 → 0", "3 → 0", "4 → ⊥"],
+      description: "x = 3 now maps to 0.",
+    },
+    {
+      label: "w_5 = F(w_4)",
+      values: ["0 → 0", "1 → 0", "2 → 0", "3 → 0", "4 → 0"],
+      description: "x = 4 now maps to 0. We've handled every input in our visible window — but x = 5, 6, … still need more clauses, which is why we have to continue all the way to fix(F).",
+    },
+  ]}
+  fixedPoint={{
+    label: "\\text{fix}(F) = \\bigsqcup_i w_i",
+    values: ["0 → 0", "1 → 0", "2 → 0", "3 → 0", "4 → 0"],
+    description: "The least upper bound: every non-negative x maps directly to 0 in one mathematical step. Only inputs that genuinely can't decrement to 0 (negative x) would remain ⊥.",
+  }}
+/>
+
+> The table makes the *meaning* of "least upper bound" tangible: each $w_k$ is a partial function (lots of cells still mapping to $\bot$), and stacking them all on top of each other produces the function that has a non-$\bot$ result on every reachable input. "Least" is what stops us from cheating by filling unreachable cells (like negative $x$) with arbitrary values — those cells stay $\bot$ in $w_\infty$ as well.
 
 ### A Second Approximation Example
 
-Let's see the approximation sequence for a different loop to reinforce the pattern:
+The subtraction loop is a useful warm-up because each new clause handles exactly one new input — the formula and the table of behaviours grow in lock-step. But that's not the only shape an approximation sequence can take. Watch what happens when the loop body shrinks the state *faster*:
 
-<FixedPointUnroller
-  title="Fixed-Point Approximation for: while n > 1 { n = n / 2; }"
+> **Pause and predict.** Same exercise before reading on: what does `while n > 1 { n = n / 2; }` compute? For any starting $n$, what does the final state look like? Be careful with the boundary — what if $n$ already fails the test? If your intuition gives you a clean answer here, the tower will confirm it the same way it did for the subtraction loop.
+
+<ApproximationTower
+  title="Tower of Approximations: while n > 1 { n = n / 2; }"
   steps={[
-    { formula: "w_0 = \\bot", description: "⊥: diverges on everything." },
-    { formula: "w_1 = F(\\bot) = \\lambda (\\sigma, o).\\; \\text{if } \\sigma(n) \\leq 1 \\text{ then } (\\sigma, o) \\text{ else } \\bot", description: "Handles n ≤ 1 (zero iterations). n = 1 or n = 0 terminates immediately." },
-    { formula: "w_2 = F(w_1) = \\text{handles } n \\leq 1 \\text{ or } \\lfloor n/2 \\rfloor \\leq 1 \\text{ (i.e., } n \\leq 3\\text{)}", description: "Handles up to 1 iteration. n = 2 → n = 1 → done. n = 3 → n = 1 → done." },
-    { formula: "w_3 = F(w_2) = \\text{handles } n \\leq 7 \\text{ (up to 2 iterations)}", description: "Handles up to 2 iterations. n = 4 → 2 → 1 → done. n = 7 → 3 → 1 → done." },
-    { formula: "w_k = F(w_{k-1}) = \\text{handles } n \\leq 2^k - 1", description: "Each approximation doubles the range of inputs handled. This is logarithmic convergence!" },
-    { formula: "w_\\infty = \\text{fix}(F) = \\text{handles all } n \\geq 1", description: "The fixed point handles all positive integers. For n ≤ 0, the loop doesn't execute (already ≤ 1). The meaning of this loop is the function that repeatedly halves n until it reaches 1." },
+    {
+      label: "w_0",
+      formula: "\\bot",
+      description: "No clauses yet.",
+    },
+    {
+      label: "w_1 = F(w_0)",
+      formula: "\\lambda (\\sigma, o).\\; \\boxed{\\text{if } \\sigma(n) \\leq 1 \\text{ then } (\\sigma, o)} \\;\\text{ else } \\bot",
+      description: "Base case only: n ≤ 1 means the loop is already done. Everything else falls to ⊥.",
+    },
+    {
+      label: "w_2 = F(w_1)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(n) \\leq 1 \\text{ then } (\\sigma, o) \\\\ &\\boxed{\\text{else if } \\sigma(n) \\leq 3 \\text{ then } (\\sigma[n \\mapsto 1], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "One body iteration halves n. The boxed clause now catches n ∈ {2, 3} — a single new clause, but it lands two new inputs at once.",
+    },
+    {
+      label: "w_3 = F(w_2)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(n) \\leq 1 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(n) \\leq 3 \\text{ then } (\\sigma[n \\mapsto 1], o) \\\\ &\\boxed{\\text{else if } \\sigma(n) \\leq 7 \\text{ then } (\\sigma[n \\mapsto 1], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "Two iterations now reachable. The new clause catches n ∈ {4, 5, 6, 7} — four new inputs from a single new clause.",
+    },
+    {
+      label: "w_4 = F(w_3)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(n) \\leq 1 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(n) \\leq 3 \\text{ then } (\\sigma[n \\mapsto 1], o) \\\\ &\\text{else if } \\sigma(n) \\leq 7 \\text{ then } (\\sigma[n \\mapsto 1], o) \\\\ &\\boxed{\\text{else if } \\sigma(n) \\leq 15 \\text{ then } (\\sigma[n \\mapsto 1], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "Three iterations: the new clause catches n ∈ {8, …, 15} — eight new inputs.",
+    },
+    {
+      label: "w_5 = F(w_4)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(n) \\leq 1 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(n) \\leq 3 \\text{ then } (\\sigma[n \\mapsto 1], o) \\\\ &\\text{else if } \\sigma(n) \\leq 7 \\text{ then } (\\sigma[n \\mapsto 1], o) \\\\ &\\text{else if } \\sigma(n) \\leq 15 \\text{ then } (\\sigma[n \\mapsto 1], o) \\\\ &\\boxed{\\text{else if } \\sigma(n) \\leq 31 \\text{ then } (\\sigma[n \\mapsto 1], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "Four iterations: the new clause handles n ≤ 31. The general pattern is now visible — w_k handles n ≤ 2^k − 1.",
+    },
+    {
+      label: "w_\\infty = \\text{fix}(F)",
+      formula: "\\bigsqcup_{i=0}^{\\infty} w_i \\;=\\; \\lambda (\\sigma, o).\\; \\begin{cases} (\\sigma, o) & \\text{if } \\sigma(n) \\leq 1 \\\\ (\\sigma[n \\mapsto 1], o) & \\text{if } \\sigma(n) \\geq 2 \\end{cases}",
+      description: "The least upper bound: every n ≥ 1 lands at 1, every n ≤ 1 stays put. (Negative n still terminates here, since the test is n ≤ 1, not n = 1 — a subtle reminder that the meaning is dictated by the equations, not our intuition.)",
+    },
   ]}
 />
 
-> The approximation sequence reveals a beautiful connection: each $w_k$ is like a **partial function** that "knows" how to handle inputs up to a certain complexity. As $k$ grows, the function handles more and more inputs. The fixed point is the function that handles *everything* — it's the "completed" version of the infinite process of approximation.
+This tower has the same shape as the subtraction tower — one new clause per step, the new clause boxed — but the *yield* per step is dramatically different. Each new clause now handles an entire *interval* of inputs at once, because halving covers twice as much ground per body-iteration as decrementing does. The behaviour table makes the difference vivid:
+
+<ApproximationTable
+  title="Per-Input Behaviour: while n > 1 { n = n / 2; }"
+  inputHeader="initial n"
+  inputs={[1, 2, 3, 4, 7, 8, 15, 16]}
+  rows={[
+    {
+      label: "w_0 = \\bot",
+      values: ["1 → ⊥", "2 → ⊥", "3 → ⊥", "4 → ⊥", "7 → ⊥", "8 → ⊥", "15 → ⊥", "16 → ⊥"],
+      description: "w_0 is total bottom: every input maps to ⊥.",
+    },
+    {
+      label: "w_1 = F(w_0)",
+      values: ["1 → 1", "2 → ⊥", "3 → ⊥", "4 → ⊥", "7 → ⊥", "8 → ⊥", "15 → ⊥", "16 → ⊥"],
+      description: "Only n = 1 is handled. Every other input still maps to ⊥ — no clauses for them yet.",
+    },
+    {
+      label: "w_2 = F(w_1)",
+      values: ["1 → 1", "2 → 1", "3 → 1", "4 → ⊥", "7 → ⊥", "8 → ⊥", "15 → ⊥", "16 → ⊥"],
+      description: "Two new inputs from one new clause: n = 2 and n = 3 both map directly to 1. The single boxed clause handles the entire interval [2, 3].",
+    },
+    {
+      label: "w_3 = F(w_2)",
+      values: ["1 → 1", "2 → 1", "3 → 1", "4 → 1", "7 → 1", "8 → ⊥", "15 → ⊥", "16 → ⊥"],
+      description: "Four new inputs from one new clause: every n ∈ [4, 7] now maps directly to 1. The reach of one clause just doubled.",
+    },
+    {
+      label: "w_4 = F(w_3)",
+      values: ["1 → 1", "2 → 1", "3 → 1", "4 → 1", "7 → 1", "8 → 1", "15 → 1", "16 → ⊥"],
+      description: "Eight new inputs: every n ∈ [8, 15] now maps to 1. One new clause; an interval of size 8 handled at once.",
+    },
+    {
+      label: "w_5 = F(w_4)",
+      values: ["1 → 1", "2 → 1", "3 → 1", "4 → 1", "7 → 1", "8 → 1", "15 → 1", "16 → 1"],
+      description: "Sixteen new inputs: [16, 31] now handled. Each step continues to double the range.",
+    },
+  ]}
+  fixedPoint={{
+    label: "\\text{fix}(F) = \\bigsqcup_i w_i",
+    values: ["1 → 1", "2 → 1", "3 → 1", "4 → 1", "7 → 1", "8 → 1", "15 → 1", "16 → 1"],
+    description: "The least upper bound: every positive n maps directly to 1 in one mathematical step. The number of clauses needed to handle an input is logarithmic in the input — but the function itself never iterates; it returns the answer in one cascade.",
+  }}
+/>
+
+> Look carefully at how many cells turn green between adjacent rows: 1, 2, 4, 8, 16, … Every step adds *one* clause to the formula, but the *number of inputs that clause catches* doubles. This is the same structural pattern as the subtraction loop — a tower of $w_k$'s converging to a least upper bound — but with wildly different convergence behavior. The formal construction doesn't care about the rate; it just guarantees the limit exists.
+
+### A Third Example: When the Result Depends on the Input
+
+The first two loops shared a curious property: every input that landed at all landed on the *same* final state ($x = 0$, or $n = 1$). It looks like the loop "does nothing" because the answer is constant. That's an artefact of the examples we picked, not the construction. Let's add one variable and watch the loop actually compute something interesting:
+
+```
+while x > 0 {
+  s = s + x;
+  x = x - 1;
+}
+```
+
+This is the classical accumulator: it sums $x + (x-1) + \cdots + 1$ into $s$. Each rung of the tower will now land a *different* concrete value of $s$ — not the same constant over and over. The structural pattern is identical to the subtraction loop (one new clause per step, the new clause boxed), but the *content* of each clause is what differs.
+
+> **Pause and predict.** Before working through the unfolding, try to describe what this loop computes. You can probably *say* what it does in words — "it sums something into $s$" — but try to write down a closed-form expression for the final value of $s$ in terms of the initial $x$. If you only get the words and not the formula, that's the point: that gap between *describing* and *deriving* is exactly what the tower below is going to close for you.
+
+<ApproximationTower
+  title="Tower of Approximations: while x > 0 { s = s + x; x = x - 1; }"
+  steps={[
+    {
+      label: "w_0",
+      formula: "\\bot",
+      description: "No clauses yet.",
+    },
+    {
+      label: "w_1 = F(w_0)",
+      formula: "\\lambda (\\sigma, o).\\; \\boxed{\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o)} \\;\\text{ else } \\bot",
+      description: "Base case: x = 0 means the loop is already done; nothing is added to s.",
+    },
+    {
+      label: "w_2 = F(w_1)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\\\ &\\boxed{\\text{else if } \\sigma(x) = 1 \\text{ then } (\\sigma[s \\mapsto \\sigma(s) + 1,\\, x \\mapsto 0], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "x = 1 lands: the body runs once, depositing 1 into s before x reaches 0.",
+    },
+    {
+      label: "w_3 = F(w_2)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(x) = 1 \\text{ then } (\\sigma[s \\mapsto \\sigma(s) + 1,\\, x \\mapsto 0], o) \\\\ &\\boxed{\\text{else if } \\sigma(x) = 2 \\text{ then } (\\sigma[s \\mapsto \\sigma(s) + 3,\\, x \\mapsto 0], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "x = 2 lands with s gaining 1 + 2 = 3.",
+    },
+    {
+      label: "w_4 = F(w_3)",
+      formula: "\\lambda (\\sigma, o).\\; \\begin{aligned}[t] &\\text{if } \\sigma(x) = 0 \\text{ then } (\\sigma, o) \\\\ &\\text{else if } \\sigma(x) = 1 \\text{ then } (\\sigma[s \\mapsto \\sigma(s) + 1,\\, x \\mapsto 0], o) \\\\ &\\text{else if } \\sigma(x) = 2 \\text{ then } (\\sigma[s \\mapsto \\sigma(s) + 3,\\, x \\mapsto 0], o) \\\\ &\\boxed{\\text{else if } \\sigma(x) = 3 \\text{ then } (\\sigma[s \\mapsto \\sigma(s) + 6,\\, x \\mapsto 0], o)} \\\\ &\\text{else } \\bot \\end{aligned}",
+      description: "x = 3 lands with s gaining 1 + 2 + 3 = 6. The amounts (1, 3, 6, …) are the triangular numbers.",
+    },
+    {
+      label: "w_\\infty = \\text{fix}(F)",
+      formula: "\\bigsqcup_{i=0}^{\\infty} w_i \\;=\\; \\lambda (\\sigma, o).\\; \\begin{cases} (\\sigma[s \\mapsto \\sigma(s) + \\tfrac{\\sigma(x)(\\sigma(x)+1)}{2},\\, x \\mapsto 0], o) & \\text{if } \\sigma(x) \\geq 0 \\\\ \\bot & \\text{otherwise} \\end{cases}",
+      description: "The least upper bound is Gauss's formula: every non-negative x deposits the triangular number T_x = x(x+1)/2 into s, in a single step.",
+    },
+  ]}
+/>
+
+The behaviour table makes the same point with concrete numbers. We fix the initial $s = 0$ and let each cell show the resulting value of $s$ (since $x$ always lands at $0$):
+
+<ApproximationTable
+  title="Per-Input Behaviour: while x > 0 { s = s + x; x = x - 1; } (initial s = 0)"
+  inputHeader="initial x"
+  inputs={[0, 1, 2, 3, 4]}
+  rows={[
+    {
+      label: "w_0 = \\bot",
+      values: ["0 → ⊥", "1 → ⊥", "2 → ⊥", "3 → ⊥", "4 → ⊥"],
+      description: "w_0 is total bottom: every input maps to ⊥.",
+    },
+    {
+      label: "w_1 = F(w_0)",
+      values: ["0 → 0", "1 → ⊥", "2 → ⊥", "3 → ⊥", "4 → ⊥"],
+      description: "x = 0 lands with s = 0 (the body never runs).",
+    },
+    {
+      label: "w_2 = F(w_1)",
+      values: ["0 → 0", "1 → 1", "2 → ⊥", "3 → ⊥", "4 → ⊥"],
+      description: "x = 1 lands with s = 1.",
+    },
+    {
+      label: "w_3 = F(w_2)",
+      values: ["0 → 0", "1 → 1", "2 → 3", "3 → ⊥", "4 → ⊥"],
+      description: "x = 2 lands with s = 3.",
+    },
+    {
+      label: "w_4 = F(w_3)",
+      values: ["0 → 0", "1 → 1", "2 → 3", "3 → 6", "4 → ⊥"],
+      description: "x = 3 lands with s = 6. The sequence 0, 1, 3, 6, 10, … is the famous triangular numbers — and it's emerging one rung at a time.",
+    },
+  ]}
+  fixedPoint={{
+    label: "\\text{fix}(F) = \\bigsqcup_i w_i",
+    values: ["0 → 0", "1 → 1", "2 → 3", "3 → 6", "4 → 10"],
+    description: "The least upper bound: every non-negative x lands at the triangular number T_x = x(x+1)/2 in one mathematical step. The function is Gauss's formula.",
+  }}
+/>
+
+This is the deepest payoff of the denotational view. The loop's *meaning* is a closed-form mathematical function — Gauss's formula — and the iteration is just one operational way of computing it. Read the equation for $w_\infty$ above carefully: a smart compiler that recognises this denotation can replace the entire loop with the equivalent assignment
+
+```
+s = s + x * (x + 1) / 2;
+x = 0;
+```
+
+— a strength-reduction at the *loop level*, justified by denotational equivalence. Production compilers genuinely do this kind of rewrite for definite loops with known closed forms (LLVM's `LoopIdiomRecognize`, GCC's `tree-scev`, and Polly all hunt for triangular and arithmetic-sum patterns). Where the operational view sees a loop running step by step, the denotational view sees Gauss's formula — and we'll see, in the *Denotational Equivalence and Optimization* section below, that this is exactly the principle that licences such rewrites in general.
+
+### When You Don't Need Infinity
+
+Reading the towers, it's tempting to think we have to "wait until infinity" to get a usable function. We don't. The infinite tower is what we need to give the loop a meaning *for every input at once*. For any *single* input, only a finite prefix of the tower matters — and we can often compute exactly which $w_k$ first catches it.
+
+This is the difference between **definite** and **indefinite** iteration. A definite loop is one where the number of body iterations is determined by the input. Both of our examples are definite:
+
+- For `while x > 0 { x = x - 1; }`, the body runs exactly $x$ times when $x \geq 0$. The smallest $w_k$ that handles input $x$ is <InlineMath formula="w_{x + 1}" />.
+- For `while n > 1 { n = n / 2; }`, the body runs <InlineMath formula="\lfloor \log_2 n \rfloor" /> times when $n \geq 1$. The smallest $w_k$ that handles input $n$ is <InlineMath formula="w_{\lfloor \log_2 n \rfloor + 1}" />.
+- For the accumulator `while x > 0 { s = s + x; x = x - 1; }`, the body runs exactly $x$ times — same closed form as the subtraction loop, <InlineMath formula="w_{x + 1}" />. The number of unfoldings is the same; the *content* of each unfolding is what changed, producing a non-trivial closed-form result.
+
+The tables below isolate the **minimum** $k$ each input needs — the exact rung of the tower at which that input first lands. For a definite loop, this number is computable in closed form, no fixed-point machinery required.
+
+<ApproximationTable
+  title="Minimum k Required: while x > 0 { x = x - 1; }"
+  inputHeader="initial x"
+  inputs={[0, 1, 2, 3, 4, 5]}
+  rows={[
+    {
+      label: "\\text{minimum } k \\text{ such that } w_k(x) \\neq \\bot",
+      values: ["k = 1", "k = 2", "k = 3", "k = 4", "k = 5", "k = 6"],
+      description: "Closed form: k(x) = x + 1. We never have to invoke the limit for a specific x — we know exactly how many unfoldings it needs.",
+    },
+  ]}
+/>
+
+<ApproximationTable
+  title="Minimum k Required: while n > 1 { n = n / 2; }"
+  inputHeader="initial n"
+  inputs={[1, 2, 3, 4, 7, 8, 15, 16]}
+  rows={[
+    {
+      label: "\\text{minimum } k \\text{ such that } w_k(n) \\neq \\bot",
+      values: ["k = 1", "k = 2", "k = 2", "k = 3", "k = 3", "k = 4", "k = 4", "k = 5"],
+      description: "Closed form: k(n) = ⌊log₂ n⌋ + 1 for n ≥ 1. The required height of the tower grows with the logarithm of the input — exponentially better than the subtraction loop.",
+    },
+  ]}
+/>
+
+Why bother with $w_\infty$ at all if every concrete input only needs a finite $w_k$? Because the *definition* of the loop's meaning has to work uniformly across every possible input — including inputs we haven't seen, or inputs whose required $k$ depends on runtime data. The fixed point packages "for every input, eventually" into a single mathematical object. For an *individual* input, that infinity is bookkeeping; for the *function as a whole*, it's the only honest answer.
+
+> This is the same distinction we'll see in axiomatic semantics next lecture, where total correctness requires a **variant** — an explicit, finite measure of how many iterations remain. The variant is exactly the closed-form $k(x)$ from above; finding it is what proves termination. Domain theory and Hoare logic agree on the answer: definite loops have a meaning that requires only finite information per input.
+
+> The approximation sequence reveals a beautiful connection: each $w_k$ is a **partial function** that "knows" how to handle inputs up to a certain complexity. As $k$ grows, the function handles more inputs. The fixed point is the function that handles *every* input — it's the "completed" version of the infinite process of approximation.
 
 ### Domain Theory (Intuition)
 
@@ -428,6 +822,8 @@ The denotation of `factorial` is $\text{fix}(F)$ where:
 The approximation sequence builds `factorial` incrementally: $w_0$ handles no inputs, $w_1$ handles $n = 0$, $w_2$ handles $n = 0, 1$, and so on. The fixed point handles all $n \geq 0$.
 
 This is the same Y combinator from LN 4, applied to a different problem. The mathematical structure is identical — only the specific functional $F$ changes.
+
+**What this whole arc earned us.** The same fixed-point machinery did two different jobs across these examples. For the subtraction and halving loops, the approximation sequence *confirmed* what your intuition probably already gave you: the final state collapses to a single value, edge cases aside. For the accumulator loop, your intuition almost certainly told you "it sums things into $s$" — but it did not hand you $s + \tfrac{x(x+1)}{2}$. For `factorial`, you may have already known the closed form $n!$, but the construction *built* it for you the same way it built Gauss's formula — incrementally, one input at a time, with no appeal to prior knowledge. That is the difference between a formalism that bookkeeps what you already know and a formalism that *discovers* what you don't. Denotational semantics does both, and the second is where it earns its keep — and where the next section's transpiler turns those discoveries into running code.
 
 ---
 
@@ -619,6 +1015,47 @@ The same pattern applies everywhere. A `sample` expression drawing from probabil
 
 ---
 
+## Denotational Semantics in the Wild
+
+LN 11 had its "Interpreters in the Wild" section: real systems whose entire architecture is recognisably an operational semantics walking an AST. Denotational semantics has the same kind of presence in production systems — but you have to know what you're looking at. The pattern to look for is *programs are functions, edits to programs are edits to those functions, evaluation is just function application*. Here are the four cleanest examples:
+
+### Spreadsheets — the most successful denotational language ever shipped
+
+If you have ever written `=A1 + B1 * 2` in a cell, you have written a denotational semantic equation. A spreadsheet is a denotational language to its bones:
+
+- Each cell denotes a **value in a semantic domain** (a number, a string, a boolean, an error like `#DIV/0!` — exactly the spreadsheet's $\bot$).
+- Each formula is a **compositional definition**: the meaning of `=A1 + B1` is *defined* in terms of the meanings of `A1` and `B1`. There is no "step" in spreadsheet evaluation, only the static dependency graph and the values it produces.
+- The spreadsheet engine is a **transpiler-equivalent**: it does not "execute" your formula step by step the way an interpreter would; it *recomputes the function* whenever any input changes. Excel's recalculation engine is a fixed-point solver in disguise — it propagates updates until the entire grid is consistent with the equations you wrote.
+- Recursion / circular references are handled by — surprise — **least fixed points**, with the option to enable iterative calculation (a Kleene approximation sequence in everything but name).
+
+Spreadsheets are denotational semantics that won. Every accountant and operations analyst on Earth is, technically, writing denotational semantic equations every day. Most of them have never heard the word "denotational."
+
+> The intellectual lineage is direct: in the late 1990s, Microsoft Research's *Lambda Excel* project (which evolved into LAMBDA, shipped in Excel 365 in 2021) was an explicit attempt to make Excel a Turing-complete *functional* language. Simon Peyton Jones — one of the architects of GHC and a long-time denotational semantics advocate — was on that team. Excel didn't accidentally become denotational; it got that way because that's what spreadsheets *are*.
+
+### GHC Core — a real denotational compiler
+
+The Glasgow Haskell Compiler (GHC) compiles Haskell down to a small intermediate language called **Core**, which is essentially typed lambda calculus. Every Core program *is* its own denotational semantic equation: a Haskell function literally translates to a lambda expression whose meaning, in the standard set-theoretic semantics for typed lambda calculus, is the function the original Haskell defined.
+
+GHC's optimisation passes (inlining, common-subexpression elimination, strictness analysis, deforestation) are all rewrites *on Core*. They are sound *because* the rewriting is denotation-preserving — the Core program before and after the optimisation has the same mathematical meaning. This is the proof structure from the constant-folding example above, scaled up to a production compiler. When you read a GHC paper on a new optimisation pass, the proof of correctness is almost always "this rewrite preserves the denotation," verbatim.
+
+### Proof assistants — Coq, Lean, Agda
+
+Coq's `Gallina`, Lean 4's term language, and Agda are all dependently typed lambda calculi where:
+
+- The **terms** are programs *and* proofs simultaneously (Curry–Howard).
+- The **type** of a term is its specification — the denotation it must satisfy.
+- The **kernel** decides equality of terms by reducing them to normal form: it computes denotations and compares them.
+
+When you write a definition `fact : Nat -> Nat` in Lean 4, you are writing a denotational equation. When the kernel checks `fact 5 = 120`, it is verifying *denotational equivalence* — the two terms reduce to the same mathematical object. Theorems about your program are proven against its denotation, not against any execution trace.
+
+### SQL (and relational query optimisers)
+
+A SQL query like `SELECT name FROM users WHERE age > 30` *denotes* a set of rows — a mathematical object. The query planner is allowed to rewrite the query in arbitrarily wild ways (push down predicates, choose hash joins over merge joins, materialise sub-queries, exploit indices) because every legal rewrite is **denotation-preserving on the relational algebra**. The planner is, structurally, a constant-folder for relations. The reason `EXPLAIN` can show you fifteen different physical plans for the same SQL is that they all share a denotation.
+
+> Across these four examples, the same picture keeps appearing: a program is a mathematical object, the runtime is "evaluate the object," and the optimiser's whole licence to reshape the program comes from preserving the object. The implementation differs wildly — Excel's recalc loop, GHC's Core simplifier, Lean's reducer, Postgres's planner — but the *theory* underneath is the lecture you're reading.
+
+---
+
 ## Comparing Operational and Denotational
 
 We now have two complete semantic frameworks for Petal, and two corresponding implementations:
@@ -638,15 +1075,30 @@ For the same Petal program `x = 3 + 5; print x;`:
 
 Both produce `8`. The **equivalence theorem** says they always agree on terminating programs: if the operational semantics says a program produces output $o$, then the denotational semantics maps that program to a function whose value is $o$, and vice versa.
 
+### The Adequacy Theorem (and an Apparent Paradox)
+
 <DefinitionBox term="Adequacy Theorem">
 
 The **adequacy theorem** states that operational and denotational semantics agree: a program terminates with output $o$ under operational semantics if and only if its denotation maps the initial state to a result containing $o$. This theorem is the formal guarantee that interpreters and compilers produce the same results.
 
 </DefinitionBox>
 
+This statement is more surprising than it looks. We just spent a lecture insisting that operational and denotational semantics are *fundamentally different perspectives*: one is about how programs run, the other about what mathematical functions they compute. Loops in operational semantics are unproblematic; loops in denotational semantics demanded fixed points and a whole detour through domain theory. So how can the two perspectives agree on every input?
+
+> **The apparent paradox.** If the two formalisms are *that* different — different machinery, different problems with `while`, different implementation strategies — how can they yield exactly the same answer on every program? Wouldn't *any* daylight between them produce a counterexample? It feels like the equivalence ought to be too good to be true.
+
+The resolution is in two halves of the theorem, each with its own subtlety:
+
+- **Soundness** (operational <InlineMath formula="\Rightarrow" /> denotational): if the operational rules say <InlineMath formula="\langle p, \sigma_0\rangle \Downarrow o" />, then <InlineMath formula="P\llbracket p \rrbracket = o" />. This direction is roughly an induction on the height of the operational derivation. The propagation/completion classification from LN 11 makes this clean: every propagation rule corresponds to an *equation that already holds* among the semantic functions, and every completion rule corresponds to a *base case* of one of those equations. The proof tree just *reuses* the equations.
+- **Adequacy** (denotational <InlineMath formula="\Rightarrow" /> operational): if <InlineMath formula="P\llbracket p \rrbracket = o" /> for some non-<InlineMath formula="\bot" /> output <InlineMath formula="o" />, then the operational rules can derive <InlineMath formula="\langle p, \sigma_0\rangle \Downarrow o" />. This direction is harder, and it is the one that really uses the *least* fixed point. The denotational meaning of a `while` loop is built as the least upper bound <InlineMath formula="\bigsqcup_i w_i" /> of approximations; if <InlineMath formula="\bigsqcup_i w_i(\sigma) \neq \bot" />, then *some* finite <InlineMath formula="w_k(\sigma) \neq \bot" />, and that <InlineMath formula="k" /> tells us how many unfoldings of the operational `while` rule are needed.
+
+What does the apparent disagreement on `while` *actually* mean, then? It is a disagreement about *what was hard to define*, not about *what gets computed*. The operational rules give a defining condition that any reasonable formalism would accept; the denotational equations give one that would be ambiguous without the least-fixed-point convention. The two formalisms reach the same destination by different routes, and that is the entire content of the theorem. Everything in this lecture — domains, <InlineMath formula="\bot" />, CPOs, Kleene's theorem — is the price of admission to a perspective in which programs are mathematical objects rather than processes; once paid, you get back exactly the same answer the operational semantics already gives.
+
+> **Why care about a theorem that "just" reproduces what we already had?** Because the *new* perspective lets you do things the old one couldn't: you can compare programs by comparing functions ("are these two loops the same?"), prove optimizations sound by manipulating equations, and reason about *all* inputs at once instead of one execution at a time. The adequacy theorem is what licences trusting those denotational arguments back in the operational world your interpreter actually inhabits.
+
 ### The Implementation Duality
 
-Throughout this course, we've mapped the three semantic approaches to three implementation strategies: operational → interpreter, denotational → transpiler, axiomatic → verifier. This is a useful *pedagogical* framing — but it's a simplification.
+So far this course has paired each semantic approach with one implementation strategy: operational semantics with the tree-walking interpreter (LN 11), and now denotational semantics with the transpiler (LN 12). It is tempting to read those pairings as a strict one-to-one — "this kind of semantics produces that kind of implementation, full stop." That reading is a useful *pedagogical* framing, but it is a simplification.
 
 The adequacy theorem proves that operational and denotational semantics are mathematically equivalent. This means either formalism can derive *either* implementation:
 
@@ -685,6 +1137,56 @@ case "BinaryOp": {
 ```
 
 The *structure* is identical: recurse into children, combine results. The *type* is different: the interpreter works with numbers, the transpiler works with strings. This isomorphism is a direct consequence of the adequacy theorem — the operational and denotational approaches are structurally the same computation viewed through different lenses.
+
+### Adequacy in Action: Both Lanes, Same Result
+
+Adequacy is easy to *state* and harder to *feel*. The component below runs the same Petal program through both implementations one statement at a time — the LN 11 interpreter walking the AST on the left, the LN 12 transpiler's emitted JavaScript executing inside JavaScript's own runtime on the right. After each step, both lanes report their environment $\sigma$ and accumulated output $o$. The green banner confirms agreement; if anything ever disagreed, the green banner would turn red and adequacy would be a lie. (It never does — that's the point.)
+
+<InterpreterVsTranspilerSplit
+  title="Adequacy demo: x = 3 + 5; y = x * 2; print y;"
+  petalSource={"x = 3 + 5;\ny = x * 2;\nprint y;"}
+  jsSource={"let x = (3 + 5);\nlet y = (x * 2);\nconsole.log(y);"}
+  steps={[
+    {
+      petalHighlight: "",
+      jsHighlight: "",
+      interpreterEnv: {},
+      interpreterOutput: [],
+      transpilerEnv: {},
+      transpilerOutput: [],
+      description: "Both lanes start with an empty environment and no output.",
+    },
+    {
+      petalHighlight: "x = 3 + 5;",
+      jsHighlight: "let x = (3 + 5);",
+      interpreterEnv: { x: 8 },
+      interpreterOutput: [],
+      transpilerEnv: { x: 8 },
+      transpilerOutput: [],
+      description: "Interpreter: walks the AST, computes 3 + 5 = 8, binds σ[x ↦ 8]. Transpiler: JavaScript engine runs `let x = (3 + 5)`, binds x = 8. Same σ.",
+    },
+    {
+      petalHighlight: "y = x * 2;",
+      jsHighlight: "let y = (x * 2);",
+      interpreterEnv: { x: 8, y: 16 },
+      interpreterOutput: [],
+      transpilerEnv: { x: 8, y: 16 },
+      transpilerOutput: [],
+      description: "Both lanes look up x (= 8), multiply by 2, and bind y ↦ 16.",
+    },
+    {
+      petalHighlight: "print y;",
+      jsHighlight: "console.log(y);",
+      interpreterEnv: { x: 8, y: 16 },
+      interpreterOutput: [16],
+      transpilerEnv: { x: 8, y: 16 },
+      transpilerOutput: [16],
+      description: "Interpreter appends 16 to its output stream; transpiled JavaScript calls console.log(16). Outputs agree.",
+    },
+  ]}
+/>
+
+The trace above is just three statements long, but it carries the entire weight of the adequacy theorem in miniature: every observable column matches, at every step. The mathematical guarantee that this *must* happen — for *every* program, not just this one — is what made the long detour through domains, $\bot$, and fixed points worth the trouble.
 
 ### When Denotations Diverge
 
@@ -728,17 +1230,17 @@ def inc():
 
 ## Summary
 
-Today we developed the second approach to semantics: **denotational semantics — meaning by translating**. We began with the **blueprint**: recalling the tree grammar and identifying the syntactic domains (Exp, Stmt, Program), semantic domains (Num, State, Output with $\bot$), and function signatures ($E$, $S$, $P$) that bridge them. The tree grammar serves as an API contract — each production demands one semantic equation.
+Today we developed the second approach to semantics: **denotational semantics — meaning by translating**. We began with the **blueprint**: recalling the tree grammar and identifying the syntactic domains (Exp, Stmt, Program), semantic domains (Num, State, Output with $\bot$), and function signatures ($E$, $S$, $P$) that bridge them. The tree grammar serves as an API contract — each production demands one semantic equation. We carried the LN 11 numeral/number discipline forward: every semantic equation distinguishes the syntactic numeral $\overline{n}$ from the mathematical number $n$, with the valuation function $\mathcal{N}$ as the explicit bridge between worlds.
 
-We wrote the equations and demonstrated **compositionality** — the defining principle — through the `DenotationalStepper`, watching semantic functions unfold through ASTs from leaves to root. We saw that imperative sequencing is just function composition, and that Church encodings from LN 4 were denotational semantics all along.
+We wrote the equations and demonstrated **compositionality** — the defining principle — through the `DenotationalStepper`, watching semantic functions unfold through ASTs from leaves to root, and through the `SemanticEquationConstructor`, where every rewrite in a derivation chain has to be justified by a deliberately chosen equation from the palette. We saw that imperative sequencing is just function composition, and that Church encodings from LN 4 were denotational semantics all along.
 
-We confronted the fixed-point challenge: `while` loops can't be defined compositionally without the $\text{fix}$ operator — the same Y combinator from LN 4 that gave us recursion. The approximation sequence ($\bot$, $F(\bot)$, $F(F(\bot))$, ...) builds the loop's meaning one iteration at a time, justified by Kleene's fixed-point theorem and domain theory.
+We closed the LN 11 cliffhanger about why self-referential rules were fine for $\Downarrow$ (a relation) but problematic for $S\llbracket \cdot \rrbracket$ (a function). The fix is fixed points: `while` loops can't be defined compositionally without the $\text{fix}$ operator — the same Y combinator from LN 4 that gave us recursion. We watched the approximation sequence ($\bot$, $F(\bot)$, $F(F(\bot))$, ...) build the loop's meaning two ways at once: the `ApproximationTower` literally stacks each new equation atop the previous, with the freshly added clause boxed inside the formula, while the `ApproximationTable` records each $w_k$'s actual input-to-output behaviour, with cells either showing the direct one-step jump from input to result or a trailing $\bot$ when the function has no clause for that input. Three loops illustrated the range: the subtraction loop handles one new input per clause (collapsing every input to $0$); the halving loop handles an exponentially growing interval per clause (collapsing every input to $1$); and the accumulator loop adds one new input per clause but lands a *different* value each time, with $w_\infty$ turning out to be Gauss's formula $T_x = x(x+1)/2$. Same construction, three very different shapes of meaning. Crucially, every $w_k$ returns its answer in a *single* if/else-if cascade — the iteration lives in the *tower of approximations*, not in any single rung, which is precisely what allows a compiler to replace a loop with a closed-form assignment. We then made an honest distinction: the infinity in $w_\infty$ is for *generality*, not necessity. Definite loops have a closed-form $k(x)$, so any specific input is handled at a finite rung — a preview of next lecture's variant-based termination proofs. Kleene's theorem and CPO structure were what turned the ascending chain into a single, well-defined function.
 
-We revealed the transpiler: each semantic equation maps to a clause in a `compile()` function that produces JavaScript. We proved that **denotational equivalence** justifies compiler optimizations like constant folding and strength reduction — safety at the mathematical level.
+We revealed the transpiler: each semantic equation maps to a clause in a `compile()` function that produces JavaScript. We proved that **denotational equivalence** justifies compiler optimizations like constant folding and strength reduction — safety at the mathematical level. We then surveyed denotational semantics **in the wild** — spreadsheets (the most successful denotational language ever shipped), GHC Core, proof assistants like Coq/Lean, and SQL query optimisers — all of which treat programs as mathematical objects whose meaning *is* their justification for any rewrite.
 
 We explored what happens when Petal gains new features: an `integrate` keyword's semantic equation IS a literal integral, a `sample` keyword demands expanding semantic domains to probability distributions. This is the deepest insight — **denotational equations don't describe mathematics, they ARE mathematics**.
 
-Finally, we compared the two frameworks and explored the **adequacy theorem**, noting that the operational/denotational distinction is about *mathematical perspective*, not implementation strategy. Both formalisms can derive interpreters or compilers — the interpreter/transpiler mapping is a pedagogical convenience, not a rigid dichotomy.
+Finally, we compared the two frameworks and unpacked the **adequacy theorem** as its own subsection. The apparent paradox — "if the perspectives are this different, how can they ever agree?" — resolved into the soundness/adequacy split: every operational derivation reuses some sub-equation, and every non-$\bot$ denotation comes from a *finite* approximation $w_k$ that the operational rules can unfold $k$ times. The `InterpreterVsTranspilerSplit` made adequacy tactile: both lanes report the same $\sigma$ and $o$ at every step. The interpreter/transpiler mapping is a pedagogical convenience, not a rigid dichotomy — both formalisms can derive either implementation.
 
 Next lecture, we complete the trio: **axiomatic semantics — meaning by proving**. We'll see that Hoare Logic lets us guarantee properties of programs without ever running them, and that this third perspective doesn't need an interpreter or a transpiler. It needs only logic.
 
@@ -749,20 +1251,26 @@ Next lecture, we complete the trio: **axiomatic semantics — meaning by proving
 - **Syntactic Domain**: a set of ASTs belonging to a grammatical category (Exp, Stmt, Program)
 - **Semantic Domain**: a mathematical set with a partial order and a bottom element $\bot$
 - **Bottom ($\bot$)**: represents divergence, error, or undefined — the denotational $\Omega$
+- **Numeral vs. Number**: $\overline{n}$ is a syntactic digit string in the AST; $n$ is the mathematical number it denotes; $\mathcal{N}\llbracket \overline{n} \rrbracket = n$ is the explicit bridge
 - **Semantic Function**: $E\llbracket e \rrbracket : \text{State} \to \text{Num}$ — maps syntax to meaning
 - **Compositionality**: the meaning of a compound = function of meanings of its parts
 - **Strictness**: $f(\bot) = \bot$ — divergent inputs produce divergent outputs
 - **Transpiler**: source-to-source compiler; the implementation of semantic equations
 - **Fixed Point**: a function $w$ such that $w = F(w)$ — the meaning of recursive constructs
+- **Least Fixed Point**: the *unique* fixed point selected by Kleene's theorem; the convention that turns a recursive equation from a constraint into a definition
+- **Approximation Sequence**: $\bot, F(\bot), F(F(\bot)), \ldots$ — each $w_k$ adds one more clause to the formula (the `ApproximationTower`) and gains a non-$\bot$ result on more inputs in the behaviour table (the `ApproximationTable`); each $w_k$ is itself a flat function that returns its answer in one if/else-if cascade
+- **Definite Iteration**: a loop whose body executes a number of times determined by the input; the minimum $k$ such that $w_k$ catches a given input is computable in closed form, no fixed point required for that single input
 - **CPO**: a partially ordered set where every ascending chain has a least upper bound
 - **Kleene's Theorem**: the least fixed point exists and equals the limit of the approximation sequence
-- **Adequacy Theorem**: operational and denotational semantics agree on terminating programs
+- **Adequacy Theorem**: operational and denotational semantics agree — split into *soundness* (operational $\Rightarrow$ denotational) and *adequacy* (denotational $\Rightarrow$ operational)
 - **Denotational Equivalence**: two programs with the same meaning function — foundation of optimization
 - **Referential Transparency**: an expression replaceable by its value without changing meaning
+- **Function vs. Relation**: an inference rule may refer to its own relation (a set may be defined by closure); a denotational equation cannot refer to its own function without a least-fixed-point convention
 
 **Key Connections:**
 - The tree grammar (LN 8) is the API contract: each production demands one semantic equation
 - Semantic functions are lambda abstractions (LN 4): $E\llbracket e \rrbracket = \lambda \sigma.\, \ldots$
+- The numeral/number distinction and the valuation $\mathcal{N}$ (LN 11) carry over verbatim — every semantic equation respects the bridge
 - Domains are sets (LN 3) with additional structure (partial order, completeness)
 - $\bot$ is the denotational name for $\Omega$ (LN 4) — divergent computation
 - The Y combinator (LN 4) IS the fixed-point operator for loop semantics
@@ -771,6 +1279,7 @@ Next lecture, we complete the trio: **axiomatic semantics — meaning by proving
 - The transpiler is structurally identical to the interpreter (LN 11), but produces code instead of values
 - New language features map directly to their underlying mathematics: `integrate` → $\int$, `sample` → distributions
 - Both formalisms can derive either implementation (interpreter or compiler) — the adequacy theorem bridges them
+- Spreadsheets, GHC Core, Coq/Lean, and SQL planners are all *production* denotational systems — the theory ships in real software, just under different vocabulary
 
 </LectureNotes>
 
