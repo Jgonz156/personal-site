@@ -93,37 +93,58 @@ You can find the GitHub Classroom assignment link and the Brightspace turn in li
 
 <OptionalSection
   points={20}
-  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/dropbox.d2l?ou=295604&db=382919"
-  githubClassroomUrl="https://classroom.github.com/a/p_d5xwGj"
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=382926&grpid=0&isprv=0&bp=0&ou=295604"
 >
 
 ## Optional Section For Concurrent Programming
 
-In this optional section you will be working on a small beginner Rust project of your choosing! After looking around for some fun project ideas, I found this great article from ZTM.io's Jayson Lennon!
+In this optional section you will pick a small async/concurrent Rust project of your choosing and ship it from scratch! HW2 only scratches the surface of what Tokio, channels, and Rust's synchronization primitives can do. This optional gives you the chance to take that toolkit out for a real spin.
 
-[Jayson Lennon's Rust Practice Projects](https://zerotomastery.io/blog/rust-practice-projects/)
+Pick **one** of the project ideas below (or pitch your own!), follow its starter article to get oriented, and then build it out in your own empty repo.
 
-Whilst the intermediate and advanced projects are certainly "out of our league" at the moment, the beginner projects Jayson lays out are insightful, simple, and fun!
+### Project Ideas (pick one)
 
-For this optional I want you to read that article and pick one of the beginner projects that Jayson recommends! Complete the basic implementation of the project and then provide at least 5 to 10 unit tests that display your implementations working as expected.
+- **Mini-Redis server.** Build a tiny in-memory key-value server that speaks a subset of the Redis protocol over TCP. Tokio's official tutorial walks through exactly this, end-to-end.
+  - Starter: [Tokio Tutorial — Mini-Redis](https://tokio.rs/tokio/tutorial)
 
-I have made an empty Github assignment for you to pull and create your Rust project from scratch (This is out of convenience so that I can use Github classroom to collate all your projects rather than go through being added to all the repos). Feel free to architect your project as you choose, however at a minimum you must have at least 5 unit tests that are run and pass with the cargo test command.
+- **Concurrent web crawler.** Given a starting URL, crawl pages in parallel up to a depth limit and save the titles. Great practice with `tokio::spawn`, `JoinSet`, and bounded channels.
+  - Starter: [Async Rust — `reqwest` Async Examples](https://docs.rs/reqwest/latest/reqwest/#making-get-requests)
 
-Additionally, provide a brief README.md file that explains what project you chose and how to interact with it. If you are doing anything "non-standard" that is Ok, just document that in the README.md.
+- **Parallel file processor.** A CLI that walks a directory and runs some operation (image resize, hash, word-count, etc.) over many files in parallel. A great place to compare Tokio's task model against Rayon's data-parallel `par_iter`.
+  - Starter: [Rayon — Data Parallelism in Rust](https://github.com/rayon-rs/rayon#readme)
+
+- **Actor-style chat server.** A TCP chat server where each connected client is its own task and messages are broadcast to other clients via channels.
+  - Starter: [Tokio docs — `broadcast` channel example](https://docs.rs/tokio/latest/tokio/sync/broadcast/index.html)
+
+- **Bring your own.** If something else excites you (a job scheduler, a port scanner, a parallel log tailer, etc.), pitch it in your README. The only requirements are that it is meaningfully concurrent and that it uses Tokio (or Rayon, or both).
+
+### What to Build
+
+Whichever idea you pick, your repo must include:
+
+- A working implementation that demonstrates real concurrency (multiple tasks/threads doing useful work in parallel).
+- At least 5 unit tests that pass with `cargo test`. At least one of those tests should exercise the concurrent behavior (e.g., spawn multiple tasks against your server/queue and check the result).
+- A short `README.md` explaining what you built, which starter article you used, and how to run and test it.
+
+I have made an empty Github assignment for you to pull and create your Rust project from scratch (This is out of convenience so that I can use Github classroom to collate all your projects rather than go through being added to all the repos). Feel free to architect your project as you choose.
 
 Since the repository is private, feel free after you are done to copy it over into a public repository to show off on your Github!
 
 ### Grading Criteria
 
-Earning points in this optional is not as rigid since you may pick your own project. With that said, to earn full points you must fully implement one of the beginner projects as stated by Jayson, have a README.md, and have at a minimum 5 unit tests pass with the cargo test command. You do not have to do any of the add-ons or extensions that Jayson recommends.
+Earning points in this optional is not as rigid since you may pick your own project. With that said, to earn full points you must:
 
-As an example, if you did the beginner project about remaking core terminal utilities than I would expect to be able to run your version of echo, cat, ls, find, and grep, that I could figure out where to start by looking at your project README (Your commands don't need to be terminal integrated or anything, but there functionality should be intact through whatever medium you choose), and that I could clone the repository to run cargo test and see at least 5 passes (In this case one for each command).
+- Fully implement one of the project ideas above (or your approved alternative) such that it actually works when I clone and run it.
+- Have a `README.md` that names your starter article, describes what you built, and explains how to run and test it.
+- Have at least 5 unit tests that pass with `cargo test`, at least one of which exercises the concurrent behavior.
+
+You do not have to implement every "stretch" idea suggested by the starter article — the basic working version is enough.
 
 ### Submission Links
 
-Below are buttons that link to the Github Optional Assignment repository. The Brightspace submission link is at the top of this section.
+Below is the button that links to the Github Optional Assignment repository. The Brightspace submission link is at the top of this section.
 
-[Github Optional Assignment](https://classroom.github.com/a/FdC7qfhp)
+[Github Optional Assignment](#)
 
 </OptionalSection>
 

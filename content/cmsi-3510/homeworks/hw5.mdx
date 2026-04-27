@@ -1,6 +1,7 @@
 import {
   ReadingSection,
   ProgrammingSection,
+  OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
 
@@ -980,3 +981,59 @@ Your repo should have:
 Nothing else is required. Anything else is up to you.
 
 </ProgrammingSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/le/calendar/295604/event/863515/detailsview#863515"
+>
+
+## Optional Section For I/O and Networking
+
+Unlike the other optionals in this course, this one is **not a coding project** — you've already built one of those for HW5 itself! Instead, this is a small *research and write-up* exercise: read someone else's real-world Rust kernel code, then tell me what you learned.
+
+The point is to see how the patterns you used in your own module — `module!`, `kernel::Module`, `file::Operations`, `Mutex`, atomics — show up (or don't) in modules written by people who actually ship Rust into the kernel for a living. After spending a week being the author, spend an afternoon being the reader.
+
+### What to Read (pick at least two)
+
+- **The in-tree Rust samples.** The canonical "this is the Rust-for-Linux API surface" reference — same crate, same patterns, same APIs you used.
+  - [`samples/rust/` in the Linux kernel tree](https://github.com/torvalds/linux/tree/master/samples/rust)
+  - Particularly worth reading: `rust_minimal.rs`, `rust_print.rs`, and `rust_misc_device.rs`.
+
+- **PuzzleFS — a Rust filesystem.** A real out-of-tree Rust kernel module from the container/storage world. Much bigger than yours, but the entry points should look familiar.
+  - Repo: [PuzzleFS on GitHub](https://github.com/project-machine/puzzlefs)
+  - Background: [Project Machine — "PuzzleFS: A New Container-Native Filesystem"](https://github.com/project-machine/puzzlefs/blob/main/doc/dev/README.md)
+
+- **Asahi Linux's Apple GPU driver.** The most ambitious Rust-in-kernel project to date — Asahi Lina's GPU driver for Apple Silicon. The blog post below is a beautiful read about *why* she chose Rust over C for a complex driver.
+  - Article: [Asahi Linux — "Tales of the M1 GPU"](https://asahilinux.org/2022/11/tales-of-the-m1-gpu/)
+
+- **Nova — the new NVIDIA GPU driver.** The next major in-tree Rust driver effort. Worth skimming the LKML discussion to see how Rust kernel code gets reviewed by the broader kernel community.
+  - LWN coverage: [LWN — "The Nova driver"](https://lwn.net/Articles/963248/)
+
+### What to Write Up
+
+Pick **at least two** of the modules above (the in-tree samples count as one collective pick). Read enough of the source — and any linked write-ups — to be able to answer the prompts below. Then submit a single **2–4 page** Markdown or PDF write-up to Brightspace covering:
+
+1. **For each module you read:** a one-paragraph summary of what it does, followed by a short list of the kernel APIs / Rust patterns you recognized from your HW5 work (e.g., "they use `module!` the same way I did, but their `init` returns a `Pin<Box<...>>` of three different registrations rather than one"). Quoting a few lines of source is fine and encouraged.
+
+2. **Comparison to your HW5 module.** What did the professionals do that you didn't? Synchronization choices? Error handling style? Module-level state ownership? Pick two or three concrete patterns and compare honestly.
+
+3. **One thing you would steal.** If you were to do HW5 over again with what you learned, what one design decision from these modules would you pull into your own?
+
+4. **One thing you found confusing.** Pick a snippet you couldn't fully follow — quote it and write a paragraph about what you *think* it's doing and what specifically tripped you up. ("I don't know" is a totally acceptable conclusion; the goal is to surface a real question, not to fake an answer.)
+
+There is no GitHub Classroom repo for this optional — just submit your write-up directly to Brightspace.
+
+### Grading Criteria
+
+Earning points in this optional is not as rigid since it's a write-up. To earn full points your submission must:
+
+- Cover at least two of the modules listed above (or an approved alternative).
+- Address all four prompts above with specific references to the source code (line numbers, function names, or quoted snippets).
+- Be honest about what you didn't understand. A confident "here's what confused me and why" is worth more than a hand-wavy fake-it.
+- Be 2–4 pages of actual content (not padded with screenshots or boilerplate).
+
+### Submission
+
+Submit your write-up as a `.md` or `.pdf` to the Brightspace dropbox linked at the top of this section. There is no associated GitHub repo for this optional.
+
+</OptionalSection>

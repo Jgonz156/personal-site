@@ -1,6 +1,7 @@
 import {
   ReadingSection,
   ProgrammingSection,
+  OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
 
@@ -88,3 +89,61 @@ Need a refresher on how to interact with the HW for this course? Watch the helpe
 You can find the GitHub Classroom assignment link and the Brightspace turn in link using the buttons at the top of this section.
 
 </ProgrammingSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=382929&grpid=0&isprv=0&bp=0&ou=295604"
+>
+
+## Optional Section For Memory
+
+In this optional section you'll go further with the memory-management ideas from HW4 by building a real allocator, a real garbage collector, or a real virtual-memory simulator from scratch. Memory management is one of the richest sub-fields of systems programming with a thriving "build your own" tutorial scene — this optional plugs you straight into it.
+
+Pick **one** of the project ideas below (or pitch your own!), follow its starter article to get oriented, and then build it out in your own empty repo.
+
+### Project Ideas (pick one)
+
+- **Bump (arena) allocator.** The simplest non-trivial allocator: hand out memory by incrementing a pointer, free everything at once. A great way to internalize what `#[global_allocator]` actually plugs into.
+  - Starter: [Phil Opp — Allocator Designs (Bump Allocator)](https://os.phil-opp.com/allocator-designs/#bump-allocator)
+
+- **Slab / fixed-size pool allocator.** Allocate fixed-size objects from a pre-carved pool. The same idea backs Linux's `kmem_cache_alloc`. Compare its fragmentation behavior to your bump allocator and to first-fit/best-fit from HW4.
+  - Starter: [Phil Opp — Allocator Designs (Fixed-Size Block Allocator)](https://os.phil-opp.com/allocator-designs/#fixed-size-block-allocator)
+
+- **Mark-and-sweep garbage collector.** Build a tiny GC for a toy interpreter (or for a stand-alone object graph). The classic "build your own GC" project — short, deep, and a great interview talking point.
+  - Starter: [Crafting Interpreters — Garbage Collection chapter](https://craftinginterpreters.com/garbage-collection.html)
+
+- **Virtual memory simulator with page replacement.** Extend HW4's page-table abstraction with a finite frame pool and implement at least two page-replacement algorithms (e.g., FIFO, LRU, Clock, Aging). Run the same access trace through each and compare hit rates.
+  - Starter: [OSTEP Ch. 22 — Beyond Physical Memory: Policies (free PDF)](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-beyondphys-policy.pdf)
+
+- **Memory profiler / leak detector.** Wrap the system allocator with a `#[global_allocator]` shim that records every allocation and deallocation, then dump a report on program exit showing leaks and the largest live allocations.
+  - Starter: [Rust API Guidelines — Custom Allocators (`std::alloc::GlobalAlloc`)](https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html)
+
+- **Bring your own.** Anything where the central question is "how do we hand out, track, or reclaim memory?" works. Pitch it in your README.
+
+### What to Build
+
+Whichever idea you pick, your repo must include:
+
+- A working implementation that does real memory management work (not just a wrapper around `Vec`).
+- At least 5 unit tests that pass with `cargo test`. At least one of those tests should exercise an interesting edge case (out-of-memory, fragmentation, double-free detection, page eviction under pressure, etc.).
+- A short `README.md` explaining what you built, which starter article you used, and a brief write-up of the design tradeoffs you made.
+
+I have made an empty Github assignment for you to pull and create your Rust project from scratch (This is out of convenience so that I can use Github classroom to collate all your projects rather than go through being added to all the repos). Feel free to architect your project as you choose.
+
+Since the repository is private, feel free after you are done to copy it over into a public repository to show off on your Github!
+
+### Grading Criteria
+
+Earning points in this optional is not as rigid since you may pick your own project. With that said, to earn full points you must:
+
+- Fully implement one of the project ideas above (or your approved alternative) such that it actually runs when I clone it.
+- Have a `README.md` that names your starter article, describes what you built, and includes a short write-up of the design tradeoffs (why this allocator/algorithm, what it's good and bad at).
+- Have at least 5 unit tests that pass with `cargo test`, at least one of which exercises an interesting edge case.
+
+### Submission Links
+
+Below is the button that links to the Github Optional Assignment repository. The Brightspace submission link is at the top of this section.
+
+[Github Optional Assignment](#)
+
+</OptionalSection>

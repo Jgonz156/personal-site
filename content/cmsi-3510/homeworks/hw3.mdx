@@ -1,6 +1,7 @@
 import {
   ReadingSection,
   ProgrammingSection,
+  OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
 
@@ -76,3 +77,59 @@ Need a refresher on how to interact with the HW for this course? Watch the helpe
 You can find the GitHub Classroom assignment link and the Brightspace turn in link using the buttons at the top of this section.
 
 </ProgrammingSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/user/folder_submit_files.d2l?db=382927&grpid=0&isprv=0&bp=0&ou=295604"
+>
+
+## Optional Section For CPU
+
+In this optional section you'll take what you learned about scheduling in HW3 and apply it somewhere new! "Scheduling" doesn't only show up in operating systems — the priority queues, event loops, and fairness questions you wrestled with for `hot_pie_tato` show up in elevator dispatchers, build systems, container orchestrators, ride-share apps, and beyond.
+
+Pick **one** of the project ideas below (or pitch your own!), follow its starter article to get oriented, and then build it out in your own empty repo.
+
+### Project Ideas (pick one)
+
+- **Discrete-event simulator for a new domain.** Reuse the priority-queue / event-loop muscle from HW3 to model something other than a kitchen — an elevator dispatcher serving a multi-floor building, a hospital triage queue, a ride-share dispatcher matching drivers to riders. Implement at least two scheduling policies and compare.
+  - Starter: [Discrete-Event Simulation in Rust — `desim` crate docs](https://docs.rs/desim/latest/desim/)
+
+- **`cron`-style job runner.** Build a CLI that reads a list of jobs (each with a schedule and a shell command), parses cron-style expressions, and runs them at the right times. A small but very real systems tool.
+  - Starter: [`cron` crate docs (cron expression parser)](https://docs.rs/cron/latest/cron/)
+
+- **Toy Kubernetes-style pod scheduler.** Given a list of "pods" (each with CPU and memory requests) and a list of "nodes" (with capacities), implement a scheduler that places pods onto nodes. Try at least two strategies (e.g., first-fit vs. best-fit) and a constraint like anti-affinity.
+  - Starter: [Kubernetes Scheduler — Concept Overview](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)
+
+- **Add new algorithms to your HW3 framework.** Implement Multi-Level Feedback Queue (MLFQ) and/or the Completely Fair Scheduler (CFS) on top of `hot_pie_tato`'s scheduler trait. Run them against the same workloads as the built-in algorithms and write up the differences.
+  - Starter: [OSTEP Ch. 8 — The Multi-Level Feedback Queue (free PDF)](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-mlfq.pdf)
+
+- **Bring your own.** Anything where the central interesting question is "in what order should we do these things, and why?" works. Pitch it in your README.
+
+### What to Build
+
+Whichever idea you pick, your repo must include:
+
+- A working implementation that exercises real scheduling logic (not just a single-policy simulation — make policies swappable so you can compare them).
+- At least 5 unit tests that pass with `cargo test`. At least one of those tests should compare the behavior of two different scheduling policies on the same workload.
+- A short `README.md` explaining what you built, which starter article you used, and a brief write-up (a few paragraphs) of what you observed when comparing policies.
+
+I have made an empty Github assignment for you to pull and create your Rust project from scratch (This is out of convenience so that I can use Github classroom to collate all your projects rather than go through being added to all the repos). Feel free to architect your project as you choose.
+
+Since the repository is private, feel free after you are done to copy it over into a public repository to show off on your Github!
+
+### Grading Criteria
+
+Earning points in this optional is not as rigid since you may pick your own project. With that said, to earn full points you must:
+
+- Fully implement one of the project ideas above (or your approved alternative) such that it actually runs when I clone it.
+- Implement at least two distinct scheduling/dispatching policies that share a common interface so the comparison is meaningful.
+- Have a `README.md` that names your starter article, describes what you built, and includes a short write-up comparing the policies you implemented.
+- Have at least 5 unit tests that pass with `cargo test`.
+
+### Submission Links
+
+Below is the button that links to the Github Optional Assignment repository. The Brightspace submission link is at the top of this section.
+
+[Github Optional Assignment](#)
+
+</OptionalSection>

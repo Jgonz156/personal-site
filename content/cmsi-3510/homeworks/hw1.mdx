@@ -1,6 +1,7 @@
 import {
   ReadingSection,
   ProgrammingSection,
+  OptionalSection,
 } from "@/components/homework-sections"
 import { QuestionBox } from "@/components/question-box"
 
@@ -87,4 +88,39 @@ Need a refresher on how to interact with the HW for this course? Watch the helpe
 You can find the GitHub Classroom assignment link and the Brightspace turn in link using the buttons at the top of this section.
 
 </ProgrammingSection>
+
+<OptionalSection
+  points={20}
+  brightspaceUrl="https://brightspace.lmu.edu/d2l/lms/dropbox/dropbox.d2l?ou=295604&db=382919"
+>
+
+## Optional Section For Foundational Rust
+
+In this optional section you will be working on a small beginner Rust project of your choosing! After looking around for some fun project ideas, I found this great article from ZTM.io's Jayson Lennon!
+
+[Jayson Lennon's Rust Practice Projects](https://zerotomastery.io/blog/rust-practice-projects/)
+
+Whilst the intermediate and advanced projects are certainly "out of our league" at the moment, the beginner projects Jayson lays out are insightful, simple, and fun!
+
+For this optional I want you to read that article and pick one of the beginner projects that Jayson recommends! Complete the basic implementation of the project and then provide at least 5 to 10 unit tests that display your implementations working as expected.
+
+I have made an empty Github assignment for you to pull and create your Rust project from scratch (This is out of convenience so that I can use Github classroom to collate all your projects rather than go through being added to all the repos). Feel free to architect your project as you choose, however at a minimum you must have at least 5 unit tests that are run and pass with the cargo test command.
+
+Additionally, provide a brief README.md file that explains what project you chose and how to interact with it. If you are doing anything "non-standard" that is Ok, just document that in the README.md.
+
+Since the repository is private, feel free after you are done to copy it over into a public repository to show off on your Github!
+
+### Grading Criteria
+
+Earning points in this optional is not as rigid since you may pick your own project. With that said, to earn full points you must fully implement one of the beginner projects as stated by Jayson, have a README.md, and have at a minimum 5 unit tests pass with the cargo test command. You do not have to do any of the add-ons or extensions that Jayson recommends.
+
+As an example, if you did the beginner project about remaking core terminal utilities than I would expect to be able to run your version of echo, cat, ls, find, and grep, that I could figure out where to start by looking at your project README (Your commands don't need to be terminal integrated or anything, but there functionality should be intact through whatever medium you choose), and that I could clone the repository to run cargo test and see at least 5 passes (In this case one for each command).
+
+### Submission Links
+
+Below are buttons that link to the Github Optional Assignment repository. The Brightspace submission link is at the top of this section.
+
+[Github Optional Assignment](https://classroom.github.com/a/FdC7qfhp)
+
+</OptionalSection>
 
