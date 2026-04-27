@@ -24,12 +24,11 @@ That legibility raises the question this lecture addresses. If Linux is built fr
 ## Today's Agenda
 
 1. **Why Kernel and Driver Code Is Dangerous** — Privilege, asynchrony, and system-wide consequences
-2. **The Bug Classes That Matter** — Memory-safety failures and why they dominate systems software vulnerability reports
-3. **What Rust Prevents, and What It Does Not** — Honest boundaries around Rust's safety guarantees
-4. **Why Rust Fits Linux** — Connecting the semester's Rust lens to a real operating-system context
-5. **Small Contributions, Not Heroics** — Modules, pseudo-devices, and realistic contribution scope
-6. **Safe Experimentation Workflow — Building `rustecho`** — A staged demo: C skeleton, Rust character device, and what Rust structurally prevents
-7. **Looking Beyond the Course** — What you should now believe about entering systems work
+2. **The Bug Classes That Matter — and Rust's Response** — Memory-safety failures, how Rust eliminates them, and the honest boundaries of those guarantees
+3. **Why Rust Fits Linux** — Connecting the semester's Rust lens to a real operating-system context
+4. **Small Contributions, Not Heroics** — Modules, pseudo-devices, and realistic contribution scope
+5. **Safe Experimentation Workflow — Building `rustecho`** — A live demo: a Rust character device and a side-by-side comparison with the C version
+6. **Looking Beyond the Course** — What you should now believe about entering systems work
 
 ---
 
@@ -66,9 +65,9 @@ This asymmetry is why the language you use in kernel space matters far more than
 
 ---
 
-## The Bug Classes That Matter
+## The Bug Classes That Matter — and Rust's Response
 
-Not all bugs are equally dangerous in systems software. Some categories of failure have caused disproportionate damage over decades of operating-system and driver development. Understanding which bug classes matter most is essential context for understanding why Rust was designed the way it was and why the Linux kernel community eventually decided to allow a second language into their codebase.
+Not all bugs are equally dangerous in systems software. Some categories of failure have caused disproportionate damage over decades of operating-system and driver development. Understanding which bug classes matter most — and which of them a memory-safe language like Rust can actually eliminate — is the bridge between the danger we just established and the Linux community's eventual decision to allow a second language into their codebase.
 
 ### Use-After-Free
 
@@ -142,31 +141,30 @@ The same story plays out in the kernel. The Linux kernel's own security team, al
 
 > **📌 Key Point:** The Linux kernel has been written in C for over 30 years. C trusts the programmer to manage memory correctly. When that trust is misplaced — and in millions of lines of code maintained by thousands of contributors, it inevitably is — the result is one of the bug classes above.
 
----
+### How Rust Responds — and Where Its Boundaries Are
 
-## What Rust Prevents, and What It Does Not
+The Rust features you have been using all semester — ownership, borrowing, lifetimes, and the type system — were designed to eliminate the exact bug classes catalogued above at compile time, before the code ever runs. But Rust's safety guarantees have clear boundaries. It is important to understand both halves honestly rather than treating Rust as a panacea.
 
-Rust was not designed as a general-purpose replacement for every language. It was designed to solve a specific engineering problem: how to write systems software that is as fast and low-level as C, but that eliminates the memory-safety bug classes we just cataloged — at compile time, before the code ever runs.
+| Concern | Rust's Answer | Mechanism |
+| :--- | :--- | :--- |
+| **Use-after-free** | Prevented at compile time | Ownership + lifetimes — references cannot outlive the data they point to |
+| **Double free** | Prevented at compile time | Single ownership; exactly one `Drop` per value |
+| **Buffer overrun** | Prevented in safe code | Bounds-checked slice access; iterators replace manual index arithmetic |
+| **Data races** | Prevented at compile time | Exclusive `&mut`; `Send`/`Sync` traits gate cross-thread sharing; `Mutex`/`RwLock`/atomics required for shared mutable state |
+| **Invalid dereference** | Prevented at compile time | References are non-null by construction; `Option<T>` makes absence explicit |
+| Logic bugs | Not prevented | The compiler cannot know your intent |
+| Deadlocks | Not prevented | Lock ordering is engineering discipline |
+| Resource leaks | Partially prevented | `Drop` covers memory; non-memory resources still need explicit handling |
+| `unsafe` misuse | Not prevented | The programmer's promise replaces the compiler's proof |
+| Bad architecture | Not prevented | Language cannot substitute for design judgment |
 
-### What the Compiler Enforces
-
-The Rust features you have been using all semester — ownership, borrowing, lifetimes, and the type system — are not academic abstractions. They are the compiler's mechanism for preventing the exact bug classes that dominate systems software vulnerabilities.
-
-| Bug Class | How Rust Prevents It |
-| :--- | :--- |
-| Use-after-free | Ownership ensures exactly one owner. When the owner goes out of scope, the memory is freed. Borrowing rules prevent any reference from outliving the data it points to. |
-| Double free | Single ownership means there is exactly one `drop`. You cannot free what you do not own. |
-| Buffer overrun | Slice and array access is bounds-checked at runtime. Iterators eliminate the need for manual index arithmetic in most cases. |
-| Data races | The type system enforces that mutable references are exclusive (`&mut T`). `Send` and `Sync` traits gate which types can cross thread boundaries. Sharing mutable state requires explicit synchronization types (`Mutex`, `RwLock`, atomics). |
-| Invalid dereference | References are always valid by construction. `Option<T>` replaces null pointers. |
-
-This is not magic. The compiler is performing a static analysis of your program's memory-access patterns. It rejects programs that it cannot prove are memory-safe. The cost is that some programs that would be correct are also rejected — the compiler is conservative. The benefit is that every program that passes the compiler's checks is free of the bug classes above (outside of `unsafe` blocks).
+This is not magic. The compiler is performing a static analysis of your program's memory-access patterns and rejecting programs it cannot prove are memory-safe. The cost is conservatism — some programs that would be correct are also rejected. The benefit is that every program that passes the compiler's checks is free of the memory-safety bug classes above, outside of `unsafe` blocks.
 
 > **💡 Connection to LN2–LN4:** This is why ownership, borrowing, and lifetimes felt so strict when you first learned them. They are not stylistic preferences. They are the mechanism that eliminates the bug classes that have historically made kernel and driver development so hazardous.
 
-### What Rust Does Not Prevent
+### What "Not Prevented" Actually Means
 
-Rust's safety guarantees have clear boundaries. It is important to understand them honestly rather than treating Rust as a panacea.
+The bottom half of the table deserves elaboration. These are the failure modes that Rust does not eliminate, and confusing them with the memory-safety guarantees would be a mistake.
 
 **Logic bugs.** Rust will not stop you from implementing the wrong algorithm, using the wrong formula, or making an incorrect architectural decision. If your driver reads from the wrong register offset, the compiler cannot catch that — the code is memory-safe, just semantically wrong.
 
@@ -183,16 +181,6 @@ An **`unsafe` block** in Rust is a region where the compiler's safety checks are
 </DefinitionBox>
 
 **Bad system design.** No language prevents you from building a poorly designed system. Rust gives you stronger mechanical guarantees about memory, but architecture, modularity, error handling strategy, and operational discipline remain human responsibilities.
-
-| Category | Rust helps? | Why or why not |
-| :--- | :--- | :--- |
-| Memory-safety bugs | Yes — eliminated or sharply reduced at compile time | Ownership, borrowing, and lifetimes are checked statically |
-| Data races | Yes — prevented by the type system | `Send`/`Sync` and exclusive `&mut` |
-| Logic bugs | No | The compiler cannot know your intent |
-| Deadlocks | No | Lock ordering is an engineering discipline |
-| Resource leaks | Partially — `Drop` helps, but not for everything | Non-memory resources need explicit management |
-| `unsafe` misuse | No — `unsafe` means you opted out | The programmer's promise replaces the compiler's proof |
-| Bad architecture | No | Language cannot substitute for design judgment |
 
 > **🤔 Key Framing:** Rust does not make systems programming easy. It makes one specific, historically devastating class of failure significantly harder to introduce. That is a meaningful change, but it is not a complete solution. Safe systems work still requires engineering discipline, careful design, and deep understanding of the system you are modifying.
 
@@ -356,73 +344,13 @@ Safe kernel development follows a tight, observable loop:
 edit → build → load → observe → interact → observe → unload → verify
 ```
 
-We will follow this loop for each stage of `rustecho`. The full source for every stage is in the **Addendum** at the bottom of this page — the lecture walks through the concepts and the key code, while the Addendum provides everything needed to reproduce the demo.
+We will follow this loop end to end for `rustecho`. The full source — including a tiny C "skeleton" module you can build first to validate that your toolchain and `insmod`/`rmmod`/`dmesg` workflow are wired up correctly — is in the **Addendum** at the bottom of this page. The lecture walks through the concepts and the key code; the Addendum provides everything needed to reproduce the demo.
 
 <DevLoopStepper />
 
-### Stage 1: The Skeleton — Load, Log, Unload
+### Building `rustecho` in Rust
 
-The first version of `rustecho` does nothing useful. It loads, prints a message to the kernel log, and unloads. The entire point is to verify the workflow before adding any real functionality.
-
-```c
-#include <linux/init.h>
-#include <linux/module.h>
-
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("rustecho — a character device that echoes data back");
-
-static int __init rustecho_init(void) {
-    pr_info("rustecho: module loaded\n");
-    return 0;
-}
-
-static void __exit rustecho_exit(void) {
-    pr_info("rustecho: module unloaded\n");
-}
-
-module_init(rustecho_init);
-module_exit(rustecho_exit);
-```
-
-> We start in C because the kernel's build system and module infrastructure are better documented for C, and it makes the translation to Rust more meaningful when we see both. A Rust equivalent using the kernel's Rust abstractions would use `module!` and `impl kernel::Module` instead of `module_init`/`module_exit`.
-
-After building, we follow the loop:
-
-```bash
-sudo insmod rustecho.ko
-```
-
-> `insmod` inserts a compiled kernel module (`.ko` file) into the running kernel. The kernel calls the module's `init` function immediately.
-
-```bash
-dmesg | tail -5
-```
-
-> Check the last 5 lines of the kernel ring buffer. You should see `rustecho: module loaded`.
-
-```bash
-lsmod | grep rustecho
-```
-
-> Verify the module appears in the loaded module list.
-
-```bash
-sudo rmmod rustecho
-```
-
-> `rmmod` removes a loaded module. The kernel calls the module's `exit` function.
-
-```bash
-dmesg | tail -5
-```
-
-> Confirm `rustecho: module unloaded` appears. The system is clean.
-
-That is the complete loop for Stage 1. Nothing interesting happened — and that is the point. The workflow works. The module loads and unloads cleanly. We can now add functionality with confidence that the infrastructure is sound.
-
-### Stage 2: The Character Device — Creating `/dev/rustecho` in Rust
-
-The second stage is where the course's Rust investment pays off. We are going to register a character device so that a node appears in `/dev`, and we are going to do it in Rust.
+This is where the course's Rust investment pays off. We are going to register a character device so that a node appears in `/dev`, and we are going to do it in Rust.
 
 Before we write the Rust version, it helps to see what the kernel expects at the C level, since C is the kernel's native language and the interface Rust must ultimately connect to. In C, a character device wires up its handlers through a `file_operations` struct — the same dispatch table from LN19:
 
@@ -552,7 +480,7 @@ sudo rmmod rustecho && dmesg | tail -5
 
 > **💡 Connection to LN19 and LN23:** You are now on the inside of the U-bend. In LN23, you watched `strace` reveal the syscall boundary from the process's perspective. Now you have written the code that runs on the kernel side of that boundary — in the same language you have been using all semester. The same `openat()`, `read()`, `write()`, and `close()` syscalls are dispatching to *your* Rust handlers.
 
-### Stage 3: What Rust Structurally Prevents
+### C vs. Rust: What the Rust Version Structurally Prevents
 
 Now that we have seen both the C interface and the Rust implementation, we can make the comparison concrete. This is not a matter of style or preference. The two versions have structurally different failure modes.
 
@@ -637,7 +565,7 @@ After this course, these claims should feel earned rather than aspirational:
 - **Rust is rewriting the Unix toolbox**: `ripgrep`, `fd`, `bat`, `eza`, and the full GNU coreutils (adopted by Ubuntu) demonstrate that the same language works from kernel modules to everyday CLI tools
 - The Rust/C boundary in the kernel uses **`unsafe` wrappers** to mediate the crossing — the same U-bend principle applied to the language boundary
 - Realistic kernel contributions are **small, well-scoped modules** — the `dd` stdout fix (27 lines, by a beginner) and the kernel `scull` sample show what this looks like in practice
-- We built **`rustecho`** — a character device module — through three stages: a C skeleton to validate the workflow, a Rust character device as the primary demo, and a C-vs-Rust comparison showing what the Rust version structurally prevents — all following a disciplined **workflow** inside a disposable VM
+- We built **`rustecho`** — a character device module — in Rust, then compared it side-by-side with the equivalent C implementation to show what the Rust version structurally prevents — all following a disciplined **workflow** inside a disposable VM (with an optional C skeleton in the addendum for validating the toolchain first)
 - The course's abstractions — processes, syscalls, drivers, IPC, networking, transport, modules — are the **actual vocabulary** of real systems
 - You now have the foundation to **understand, observe, and begin contributing** to systems at the kernel level
 
@@ -669,13 +597,13 @@ After this course, these claims should feel earned rather than aspirational:
 | Deadlocks | No | — |
 | `unsafe` misuse | No | Programmer's responsibility |
 
-**`rustecho` Demo Stages:**
+**`rustecho` Demo Pieces:**
 
-| Stage | Language | What It Does | Key Insight |
-| :--- | :--- | :--- | :--- |
-| 1 — Skeleton | C | Loads and prints to `dmesg` | Validates the workflow before adding functionality |
-| 2 — Character Device | Rust | Creates `/dev/rustecho`; stores and echoes data via safe Rust handlers | Ownership handles cleanup; `Mutex<T>` enforces locking; `Result` handles errors |
-| 3 — Comparison | C vs Rust | Side-by-side analysis of the same module | Identifies which bug classes become structurally impossible in the Rust version |
+| Piece | Language | Where It Lives | What It Does | Key Insight |
+| :--- | :--- | :--- | :--- | :--- |
+| Skeleton | C | Addendum (optional pre-flight) | Loads and prints to `dmesg` | Validates the build/load/unload workflow before adding functionality |
+| Character Device | Rust | Lecture body (primary demo) | Creates `/dev/rustecho`; stores and echoes data via safe Rust handlers | Ownership handles cleanup; `Mutex<T>` enforces locking; `Result` handles errors |
+| Comparison | C vs Rust | Lecture body | Side-by-side analysis of the same module | Identifies which bug classes become structurally impossible in the Rust version |
 
 **Safe Experimentation Workflow:**
 
