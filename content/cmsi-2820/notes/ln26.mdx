@@ -9,26 +9,74 @@ import { SQLSetVisualizer } from "@/components/sql-set-visualizer"
 import { TraversalExplorer } from "@/components/traversal-explorer"
 import { GateExplorer } from "@/components/gate-explorer"
 import { RSAStepper } from "@/components/rsa-stepper"
+import { CaesarPlayground } from "@/components/caesar-playground"
+import { RSAPlayground } from "@/components/rsa-playground"
+import { HashTableVisualizer } from "@/components/hash-table-visualizer"
+import { TwosComplementExplorer } from "@/components/twos-complement-explorer"
+import { TuringMachineRunner } from "@/components/turing-machine-runner"
+import { OperationalSemanticsStepper } from "@/components/operational-semantics-stepper"
+import { ComplexityZooMap } from "@/components/complexity-zoo-map"
 
 ## Recap
 
 Last lecture we completed our proof technique toolkit by adding **proof by contradiction** (assume the opposite, derive impossibility), **mathematical induction** (base case plus domino step), and **reducibility** (translate a problem into another domain). Combined with direct proofs, exhaustion, double counting, bijective proofs, and the pigeonhole principle, we now have eight proof techniques that cover virtually every mathematical argument in CS.
 
-Today begins a two-lecture tour of where all this material shows up in your future. We connect discrete mathematics directly to the courses in the [LMU CS curriculum](https://sites.google.com/view/lmucs/curriculum) — showing you that the toolkit you just built IS the foundation of nearly every course you will take next.
+Today begins a two-lecture tour of where all this material shows up in your future. We connect discrete mathematics directly to the courses in the [LMU CS curriculum](https://sites.google.com/view/lmucs/courses) — showing you that the toolkit you just built IS the foundation of nearly every course you will take next.
+
+This is **preview, not curriculum**. Each section is a vignette: one course, one big idea, one interactive widget that gestures at how the formal machinery from this semester powers something real. Don't try to absorb everything — try to notice the *pattern* of recognition. "Oh, this is just LN10." "Oh, this is just LN7 with new clothes."
 
 ## Today's Agenda
 
-- **Algorithms and Data Structures** — CMSI 2130 and graph algorithms from LN20–23
+- **Data Structures** — CMSI 2120 and the LN9–11 + LN14–15 collections-and-functions toolkit
+- **Algorithms and Analysis** — CMSI 2130 and graph algorithms from LN20–23
+- **Computer Systems Organization** — CMSI 2210 and bit-level encodings from LN5–7
 - **Languages and Automata** — CMSI 3801/3802 and the lambda calculus from LN12–14
 - **Databases** — CMSI 3520 and set operations from LN9–10
 - **Digital Systems** — EECE 2242 and Boolean algebra from LN5
-- **Cryptography** — modular arithmetic from LN7 in the wild
+- **Cryptography and Cryptanalysis** — CMSI 2464 and modular arithmetic from LN7
+- **Programming Languages Foundations (Graduate)** — CMSI 5850 and the lambda + types thread from LN12–14
 
 ---
 
-## Algorithms and Data Structures — CMSI 2130
+## Data Structures — CMSI 2120
 
-**CMSI 2130 (Algorithms and Analysis)** is part of Computing Foundations — every CS major takes it. You will likely take it concurrently with or right after this course.
+**CMSI 2120 (Data Structures and Applications)** is the prerequisite to nearly every other CS course. It is where the *collections* of LN9–11 and the *functions* of LN14–15 grow up into engineered software components.
+
+### Abstract Data Types ARE the LN24 Pattern
+
+In LN24 we revealed that every topic in this course follows **Type → Instances → Operators**. CMSI 2120 takes that pattern and turns it into the central organizing principle of software engineering: an **Abstract Data Type (ADT)** is *literally* a type, a population of instances, and a contract of operators.
+
+| ADT | Type | Instances | Operators |
+| :--- | :--- | :--- | :--- |
+| Stack | Sequence with LIFO discipline | `[]`, `[1, 2, 3]` | `push`, `pop`, `peek` |
+| Queue | Sequence with FIFO discipline | `[]`, `[1, 2, 3]` | `enqueue`, `dequeue` |
+| Set | Unordered, no duplicates | <InlineMath formula="\emptyset" />, <InlineMath formula="\{1, 2, 3\}" /> | <InlineMath formula="\cup, \cap, \setminus, \in" /> |
+| Map | Function with finite domain | <InlineMath formula="\{a \mapsto 1, b \mapsto 2\}" /> | `get`, `put`, `delete` |
+| Heap | Tree with heap-order property | min-heaps, max-heaps | `insert`, `extract-min` |
+
+The right column of *every* row is set theory (LN9–10), function theory (LN14–15), or graph theory (LN23) wearing a software-engineering hat.
+
+### Hash Tables: A Function That Tries to Be Injective
+
+A hash table implements the Map ADT. Underneath, it is a function
+
+<DisplayMath formula="h : \text{Keys} \longrightarrow \{0, 1, \ldots, B - 1\}" />
+
+into a fixed set of <InlineMath formula="B" /> buckets. From LN15 we know functions need not be injective — and from the **pigeonhole principle (LN19)**, if there are more keys than buckets, *some* bucket must hold at least two keys. That is a **collision**, and it is mathematically unavoidable. Hash table design is the engineering art of making collisions *rare* in practice while accepting that they cannot be eliminated.
+
+Insert keys one at a time. The "Normal Keys" mode shows a well-distributed hash function (insertions are amortized <InlineMath formula="O(1)" />); the "Adversarial Keys" mode shows what happens when an attacker chooses keys that *all* collide:
+
+<HashTableVisualizer />
+
+> **Key Insight:** When the hash function distributes well, the table behaves as a Map ADT with <InlineMath formula="O(n)" /> total work for <InlineMath formula="n" /> insertions. When all keys collide, the table degenerates into a linked list and the total cost rises to <InlineMath formula="O(n^2)" /> — exactly the combinatorial counting argument from LN17. The pigeonhole principle from LN19 guarantees this can happen; the *probabilistic* analysis (a future course's territory) bounds how often it does.
+
+> **Side Note:** Tree-shaped data structures — binary search trees, AVL trees, red-black trees, B-trees — are the same trees from LN23, with extra invariants (balance, ordering) maintained by the operators. Heaps are trees with the heap-order property. The *graph-theoretic* fact that an <InlineMath formula="n" />-node tree has exactly <InlineMath formula="n - 1" /> edges (LN23) is what guarantees these structures use linear space.
+
+---
+
+## Algorithms and Analysis — CMSI 2130
+
+**CMSI 2130 (Algorithms and Analysis)** is part of Computing Foundations — every CS major takes it. You will likely take it concurrently with or right after this course (CMSI 2120 is the formal prerequisite).
 
 The connection is direct: the graph algorithms from LN20–23 are literally the content of an algorithms course. Breadth-first search, depth-first search, Dijkstra's shortest path, Kruskal's and Prim's MST algorithms — you have already seen them.
 
@@ -87,6 +135,42 @@ def dfs(graph, start):
 
 Sorting algorithm analysis uses the same "decaying options" pattern from LN17. Merge sort divides $n$ elements into halves, recursing <InlineMath formula="\log_2 n" /> times — its <InlineMath formula="O(n \log n)" /> complexity is proved by induction. The lower bound (no comparison sort can do better) is proved by contradiction — exactly the technique from LN25.
 
+### Complexity Itself Follows the LN24 Pattern
+
+Asymptotic analysis is its own little algebra — and it follows the LN24 *Type → Instances → Operators* pattern that has appeared in every block of this course:
+
+- **Type:** asymptotic complexity classes
+- **Instances:** <InlineMath formula="O(1),\ O(\log n),\ O(n),\ O(n \log n),\ O(n^2),\ O(n^3),\ O(2^n),\ O(n!)" />
+- **Operators:** <InlineMath formula="O(f) + O(g) = O(\max(f, g))" />, <InlineMath formula="O(f) \cdot O(g) = O(f \cdot g)" />, <InlineMath formula="c \cdot O(f) = O(f)" />
+
+The whole machinery of CMSI 2130 — recurrences, the Master Theorem, amortized analysis — is the algebra of this type.
+
+---
+
+## Computer Systems Organization — CMSI 2210
+
+**CMSI 2210 (Computer Systems Organization)** is required for all CS majors and serves as the prerequisite to operating systems, databases, and networks. It is where the *abstract* number theory of LN5–7 collides with the *physical* reality of bytes, registers, and memory.
+
+### Two's Complement IS Modular Arithmetic from LN7
+
+How does a computer represent <InlineMath formula="-1" /> in 8 bits? It does *not* set aside one bit for the sign — that would be wasteful and would create two zeros (<InlineMath formula="+0" /> and <InlineMath formula="-0" />). Instead, it uses **two's complement**: the <InlineMath formula="2^k" /> bit patterns form the cyclic group <InlineMath formula="\mathbb{Z}/2^k\mathbb{Z}" /> from LN7, and the upper half is *relabeled* as the negative numbers.
+
+Toggle between **4-bit, 8-bit, and 16-bit** to see how the trick scales. Drag the slider to sweep through every bit pattern, and watch the *same bits* get two different decimal interpretations — unsigned (just read the bits) and signed (the same bits with the sign bit flipped on means "subtract <InlineMath formula="2^k" />"):
+
+<TwosComplementExplorer />
+
+Why is this beautiful? Because **addition just works**. To compute <InlineMath formula="5 + (-3)" />, the hardware adds the unsigned bit patterns and lets the result wrap modulo <InlineMath formula="2^k" />. The same circuitry handles signed and unsigned arithmetic — there is no special "negative" hardware. **Subtraction is just modular negation** (LN7).
+
+### Memory IS a Function
+
+The next time you write `arr[i]` or dereference a pointer in C, remember that you are evaluating a function from LN15. Memory is literally a function:
+
+<DisplayMath formula="\text{mem} : \text{Address} \longrightarrow \text{Byte}" />
+
+with <InlineMath formula="\text{Address} = \mathbb{Z}/2^{64}\mathbb{Z}" /> on a 64-bit machine. Pointers are the *arguments*, dereferencing is *application*. Pointer arithmetic is arithmetic in the address space — modular when it overflows, just like LN7. Hexadecimal addresses (`0x7fff_ffff_e8a0`) are positional notation in base 16 from LN6.
+
+> **Side Note:** Floating-point representation (IEEE 754) splits the 64 bits of a `double` into a sign bit, an 11-bit exponent (biased — modular arithmetic again), and a 52-bit mantissa. The whole format is a structured *encoding* — a function from real numbers (approximately) to bit patterns, designed so that arithmetic operators on the *bits* approximate arithmetic operators on the *reals*. Every numerical bug in scientific computing traces back to a place where this approximation leaks.
+
 ---
 
 ## Languages and Automata — CMSI 3801 / 3802
@@ -97,12 +181,27 @@ Sorting algorithm analysis uses the same "decaying options" pattern from LN17. M
 
 A finite automaton is a directed graph where nodes are **states**, edges are **transitions** labeled with input characters, and certain states are marked as **accepting**. The machine reads an input string character by character, following transitions. If it ends in an accept state, the string is accepted.
 
+<DefinitionBox term="Deterministic Finite Automaton (DFA)">
+
+A **DFA** is a 5-tuple <InlineMath formula="M = (Q, \Sigma, \delta, q_0, F)" /> where:
+
+- <InlineMath formula="Q" /> is a finite set of **states** (LN9: sets)
+- <InlineMath formula="\Sigma" /> is a finite **alphabet** (LN9: sets)
+- <InlineMath formula="\delta : Q \times \Sigma \to Q" /> is the **transition function** (LN10: Cartesian product, LN15: functions)
+- <InlineMath formula="q_0 \in Q" /> is the **start state** (LN9: element-of)
+- <InlineMath formula="F \subseteq Q" /> is the set of **accepting states** (LN10: subset)
+
+Every concept on the right comes from this course. **A DFA is just sets, products, and functions wired together.**
+
+</DefinitionBox>
+
+
 <FiniteAutomatonRunner
   title="DFA: Accepts strings ending in '01'"
   states={[
-    { id: "q0", label: "q₀", isStart: true, x: 80, y: 100 },
-    { id: "q1", label: "q₁", x: 250, y: 100 },
-    { id: "q2", label: "q₂", isAccept: true, x: 420, y: 100 }
+    { id: "q0", label: "q₀", isStart: true, x: 120, y: 50 },
+    { id: "q1", label: "q₁", x: 380, y: 50 },
+    { id: "q2", label: "q₂", isAccept: true, x: 250, y: 160 }
   ]}
   transitions={[
     { from: "q0", to: "q0", label: "1" },
@@ -136,11 +235,52 @@ Try `0`, `1`, `11`, `101`, `110`, `1001`. This two-state machine tracks the pari
 
 ### Lambda Calculus → Computability
 
-In LN12–14, we learned the lambda calculus. In CMSI 3801/3802, you will learn that Alonzo Church proved that lambda calculus can compute *everything* that is computable. Alan Turing independently proved the same thing for his Turing machines. The **Church–Turing thesis** states these are equivalent — what lambdas can compute, machines can compute, and vice versa.
+In LN12–14, we learned the lambda calculus. In CMSI 3801/3802, you will learn that Alonzo Church proved that lambda calculus can compute *everything* that is computable. Alan Turing independently proved the same thing for his **Turing machines** — DFAs from above, but with an *infinite tape* that the machine can both read and write to.
 
-The halting problem (LN25's contradiction proof) is proved in this course: no program can decide whether arbitrary programs terminate. This impossibility result is the cornerstone of theoretical CS.
+A Turing machine is a DFA (top diagram) coupled with an infinite tape that the head can both **read and write** (bottom strip). Each transition is labeled `read / write, move` — for instance, `0,1 / same, R` means "if you read either 0 or 1, write back the same symbol and move right." Step through the doubling machine below: in the **Scan** state the head walks rightward across the input, copying each digit; when it hits a blank it writes a 0 and enters **Halt**. The whole construction is just a directed graph from LN20 with a memory tape attached:
 
-> **Side Note:** For graduate students, **CMSI 583 (Computability and Complexity)** goes deeper — studying which problems are efficiently solvable and which are inherently hard. **CMSI 585 (Programming Language Foundations)** continues the type theory and lambda calculus thread from LN4–5 and LN12–14, formalizing type systems and proving programming languages correct.
+<TuringMachineRunner
+  title="Doubling: 5 (binary 101) → 10 (binary 1010)"
+  states={[
+    { id: "scan", label: "Scan", isStart: true, x: 180, y: 80 },
+    { id: "halt", label: "Halt", isAccept: true, x: 380, y: 80 }
+  ]}
+  transitions={[
+    { from: "scan", to: "scan", read: "0,1", write: "same", move: "R" },
+    { from: "scan", to: "halt", read: "#", write: "0", move: "R" }
+  ]}
+  steps={[
+    { tape: ["1","0","1","#","#","#"], head: 0, state: "scan", description: "Start at the leftmost cell, in the Scan state. The input 101 represents 5 in binary." },
+    { tape: ["1","0","1","#","#","#"], head: 1, state: "scan", description: "Read 1 → write 1 (keep it), move right. The Scan self-loop fires." },
+    { tape: ["1","0","1","#","#","#"], head: 2, state: "scan", description: "Read 0 → write 0 (keep it), move right. Self-loop again." },
+    { tape: ["1","0","1","#","#","#"], head: 3, state: "scan", description: "Read 1 → write 1 (keep it), move right. Now at the first blank ␣." },
+    { tape: ["1","0","1","0","#","#"], head: 4, state: "halt", description: "Read ␣ → write 0, move right, transition to Halt. Doubling a binary number = appending a 0 (just like ×10 in decimal appends a 0). The tape now reads 1010 = 10. ✓" }
+  ]}
+/>
+
+The **Church–Turing thesis** states that lambda calculus and Turing machines are equivalent: what one can compute, the other can — and *both* match every reasonable definition of computation that anyone has ever proposed. This thesis is the bedrock of theoretical CS.
+
+The **halting problem** (LN25's contradiction proof) is proved in CMSI 3801/3802: no program can decide whether arbitrary programs terminate. The proof is exactly the contradiction argument from LN25 — assume such a program exists, construct a paradoxical input, derive a contradiction.
+
+### Computability and Complexity — CMSI 5830 (Graduate)
+
+For students who want to go deeper, **CMSI 5830 (Computability and Complexity)** is one of the required graduate courses. It extends the Turing machine above into the **complexity zoo**: classes like P (problems solvable in polynomial time), NP (verifiable in polynomial time), PSPACE, EXPTIME. The most famous open problem in CS — **does P = NP?** — lives here.
+
+The map below is a tiny corner of that zoo. Each box is a *problem*; each region is a *complexity class*; each indigo arrow is a **polynomial-time reduction** (the LN25 technique). Click any problem to see what it means and how it connects to the others — then flip the toggle to imagine a world where someone proves **P = NP** and watch the orange region collapse into the green one:
+
+<ComplexityZooMap />
+
+A few things worth absorbing from the map:
+
+- **Reductions form a directed graph (LN20).** The arrows from `3-SAT` to the other NP-complete problems are not metaphor — they are literal subroutine reductions. *If* you had a polynomial-time algorithm for `Vertex Cover`, you could *automatically* solve `3-SAT` in polynomial time by translating one input into the other. That is why the entire orange region rises and falls together.
+- **Tiny syntactic changes can cross the P/NP-complete boundary.** `2-SAT` is in P, `3-SAT` is NP-complete. `Euler Cycle` (LN20) is in P, `Hamilton Cycle` is NP-complete. The boundary is razor-thin and not at all where intuition would predict — that is exactly the kind of result CMSI 5830 trains you to prove.
+- **Some problems live in nobody's neighborhood.** `Graph Isomorphism` and `Integer Factoring` are in NP but neither known to be in P nor known to be NP-complete. RSA is built entirely on the bet that factoring stays in that limbo forever.
+
+The whole field is built on:
+
+- **Set theory (LN10)** — complexity classes are sets of languages, and inclusions like <InlineMath formula="\text{P} \subseteq \text{NP}" /> are subset relations
+- **Combinatorial counting (LN17)** — running times are functions <InlineMath formula="f : \mathbb{N} \to \mathbb{N}" /> compared asymptotically
+- **Reductions (LN25)** — the proof technique we used to show "if I can solve A, I can solve B" is the *exact* mechanism that defines NP-completeness
 
 ---
 
@@ -150,15 +290,31 @@ The halting problem (LN25's contradiction proof) is proved in this course: no pr
 
 ### Relational Algebra IS Set Operations
 
-A relational database stores data in **tables** (also called **relations** — the same term from LN11). SQL queries are syntactic sugar for set operations:
+A relational database stores data in **tables** (also called **relations** — the same term from LN11). SQL queries are syntactic sugar for set operations.
 
-| SQL | Set Operation | LN Reference |
-| :--- | :--- | :--- |
-| `SELECT ... WHERE` | Set comprehension / filter | LN10: set-builder notation |
-| `UNION` | <InlineMath formula="A \cup B" /> | LN10: set union |
-| `INTERSECT` | <InlineMath formula="A \cap B" /> | LN10: set intersection |
-| `EXCEPT` | <InlineMath formula="A \setminus B" /> | LN10: set difference |
-| `JOIN` | <InlineMath formula="A \times B" /> followed by filter | LN10: Cartesian product |
+<DefinitionBox term="Relational Schema and Relation">
+
+Given attribute domains <InlineMath formula="A_1, A_2, \ldots, A_n" /> (each a set, LN9), a **relation** over this schema is a subset
+
+<DisplayMath formula="R \subseteq A_1 \times A_2 \times \cdots \times A_n" />
+
+of their Cartesian product (LN10). Each element of <InlineMath formula="R" /> is an <InlineMath formula="n" />-tuple — a *row*. Each <InlineMath formula="A_i" /> is a *column*.
+
+This is the **exact** definition of a relation from LN11. Edgar Codd's 1970 invention of the relational model was the act of saying *"let's store all our data as LN11-style relations and query them with LN10 set operations."* That insight became Oracle, MySQL, PostgreSQL, and a multi-trillion-dollar industry.
+
+</DefinitionBox>
+
+The translation table from SQL to set theory:
+
+Every row below is a direct translation from SQL syntax to LN10 set operations:
+
+| SQL | Set Operation |
+| :--- | :--- |
+| `SELECT ... WHERE` | Set comprehension / filter (set-builder notation) |
+| `UNION` | <InlineMath formula="A \cup B" /> |
+| `INTERSECT` | <InlineMath formula="A \cap B" /> |
+| `EXCEPT` | <InlineMath formula="A \setminus B" /> |
+| `JOIN` | <InlineMath formula="A \times B" /> followed by filter |
 
 <SQLSetVisualizer
   tableA={{
@@ -234,6 +390,14 @@ Python's set comprehension IS the WHERE clause. The curly braces, the `for ... i
 
 In LN5, we investigated the Booleans algebraically: <InlineMath formula="\mathbb{B} = \{0, 1\}" /> with addition (+), multiplication (×), and negation. In LN24's grand recap, we highlighted the isomorphism between Boolean algebra and classical logic.
 
+<DefinitionBox term="Boolean Algebra (as a Structure)">
+
+A **Boolean algebra** is a structure <InlineMath formula="(B, +, \cdot, \overline{\;\cdot\;}, 0, 1)" /> satisfying axioms — commutativity, associativity, distributivity, identity (<InlineMath formula="x + 0 = x" />, <InlineMath formula="x \cdot 1 = x" />), and complementation (<InlineMath formula="x + \overline{x} = 1" />, <InlineMath formula="x \cdot \overline{x} = 0" />).
+
+This is the same *axiomatic* framing we used for ZFC in LN24: pick your axioms, derive everything else. Drop the law of excluded middle (<InlineMath formula="x + \overline{x} = 1" />) and you get a **Heyting algebra** — the algebraic semantics of intuitionistic logic from LN1. Different axioms, different algebra, different logic.
+
+</DefinitionBox>
+
 In EECE 2242, that isomorphism becomes *physical*:
 
 | Boolean Algebra (LN5) | Logic Gate | Physical Implementation |
@@ -253,27 +417,130 @@ Explore each gate and its truth table below. The DeMorgan tab demonstrates that 
 
 ---
 
-## Cryptography — A Preview
+## Cryptography and Cryptanalysis — CMSI 2464
 
-While LMU does not have a dedicated cryptography course, these ideas appear in **CMSI 3550 (Networks and Internets)** and in graduate electives.
+**CMSI 2464 (Cryptography and Cryptanalysis)** surveys both the classical and modern history of secret communication. The entire field is built on number theory from LN7 — modular arithmetic, prime factorization, modular inverses, and the Euclidean algorithm.
 
-### RSA and Modular Arithmetic
+### Caesar Ciphers Are LN7 in Disguise
 
-The RSA encryption algorithm — the foundation of secure internet communication — is built entirely on modular arithmetic from LN7.
+The simplest possible cipher — used by Julius Caesar himself — is the **shift cipher**. Encryption is *literally* a function of the form
 
-Step through the algorithm with small numbers to see every piece of modular arithmetic in action. Then try encrypting your own message:
+<DisplayMath formula="E_k(x) = (x + k) \bmod 26" />
+
+where each letter <InlineMath formula="x \in \{0, 1, \ldots, 25\}" /> is shifted by a key <InlineMath formula="k" />, wrapping around modulo 26. Decryption is just <InlineMath formula="D_k(y) = (y - k) \bmod 26" />. The set of valid keys is exactly the cyclic group <InlineMath formula="\mathbb{Z}/26\mathbb{Z}" /> from LN7.
+
+Try it. Move the shift slider to change the key, type a plaintext into the encrypt slot to see its ciphertext, then type a ciphertext into the decrypt slot to recover its plaintext:
+
+<CaesarPlayground />
+
+Caesar ciphers are trivially broken (just try all 26 keys — that is the **brute force** attack from CMSI 2464). But the *structure* — encrypt by applying a function in <InlineMath formula="(\mathbb{Z}/n\mathbb{Z})" />, decrypt by applying its inverse — is the same structure that powers RSA below, AES, and every modern cipher. Bigger groups, harder to invert. That is the entire game.
+
+### Hash Functions Are Deliberately Non-Injective
+
+A **cryptographic hash function** like SHA-256 is a function
+
+<DisplayMath formula="h : \{0, 1\}^* \longrightarrow \{0, 1\}^{256}" />
+
+from arbitrary-length inputs to fixed-length outputs. From LN15 we know functions need not be injective — and from the **pigeonhole principle (LN19)**, a function with infinite domain and finite codomain *must* have collisions. Hash collisions are mathematically guaranteed to exist.
+
+The cryptographic art is making them **computationally infeasible to find**. SHA-256 has <InlineMath formula="2^{256}" /> possible outputs — the *birthday paradox* (LN17 combinatorics) tells us a collision should be findable in roughly <InlineMath formula="2^{128}" /> attempts, which is more operations than every computer ever built has performed combined.
+
+### RSA: The Crown Jewel
+
+The RSA encryption algorithm — the foundation of secure internet communication — is built entirely on modular arithmetic from LN7. Step through the algorithm to see every piece in action:
 
 <RSAStepper />
 
-The security relies on the computational difficulty of **factoring** $n$ back into $p$ and $q$. For small numbers, factoring is easy. For 2048-bit numbers (the current standard), factoring is computationally intractable — a combinatorial explosion argument from LN17.
+Now play with it. Pick any message <InlineMath formula="m" /> and watch it pass through the *actual* hard math: <InlineMath formula="m^e" /> grows fast (try <InlineMath formula="m = 32" /> to see <InlineMath formula="m^7" /> hit 34 billion), then collapses to a small number under <InlineMath formula="\bmod\, n" />. Send the ciphertext down to the decrypt panel and watch the inverse operation recover the original. Both directions are *easy when you know the right exponent* — the security comes from the fact that learning the secret exponent <InlineMath formula="d" /> requires factoring <InlineMath formula="n" />:
 
-> Every time you visit a website with `https://`, RSA (or its successor, elliptic curve cryptography) is protecting your data using the modular arithmetic you learned in LN7.
+<RSAPlayground />
+
+The security relies on the computational difficulty of **factoring** <InlineMath formula="n" /> back into its primes <InlineMath formula="p" /> and <InlineMath formula="q" />. For small numbers, factoring is easy. For 2048-bit numbers (the current standard), factoring is computationally intractable — a combinatorial explosion argument from LN17.
+
+> Every time you visit a website with `https://`, RSA (or its successor, elliptic curve cryptography) is protecting your data using the modular arithmetic you learned in LN7. Sister courses **CMSI 5560 (Cybersecurity)** and **CMSI 5586 (Blockchain Technologies)** apply these primitives at scale.
+
+---
+
+## Programming Languages Foundations — CMSI 5850 (Graduate)
+
+For students drawn to the *theoretical* side of CS, LMU's graduate program (accessible via the 4+1 program — earn both B.S. and M.S. in five years) is where the formal-theory thread from this course goes the deepest. The flagship course on that thread is one I personally teach: **CMSI 5850 (Programming Languages Foundations)**. It continues the lambda calculus thread from LN12–14 and the type theory thread from LN4. Where LN12–14 showed *what* lambdas can do, CMSI 5850 asks *how do we formally specify what a program means?* — and gives three answers (operational, denotational, axiomatic semantics).
+
+The course's core machinery is the **operational semantics rule tree** — for every node in a program's AST, an inference rule explains what that node *does* by reducing it. The rules look intimidating because they have to be *unambiguous*. Step through evaluating `y = (2 + 3) * 4; print y;` and watch the same program get evaluated two different ways — **big-step** (collapses the whole subtree at once) on one tab, **small-step** (every reduction shown) on the other:
+
+<OperationalSemanticsStepper
+  title="Petal: y = (2 + 3) * 4; print y;"
+  astNodes={[
+    { id: "prog", label: "Program", level: 0 },
+    { id: "a1", label: "y = ...", level: 1 },
+    { id: "mul", label: "*", level: 2 },
+    { id: "add", label: "+", level: 3 },
+    { id: "n2", label: "2", isTerminal: true, level: 4 },
+    { id: "n3", label: "3", isTerminal: true, level: 4 },
+    { id: "n4", label: "4", isTerminal: true, level: 3 },
+    { id: "pr", label: "print", level: 1 },
+    { id: "idy", label: "y", isTerminal: true, level: 2 },
+  ]}
+  astEdges={[
+    { from: "prog", to: "a1" },
+    { from: "prog", to: "pr" },
+    { from: "a1", to: "mul" },
+    { from: "mul", to: "add" },
+    { from: "mul", to: "n4" },
+    { from: "add", to: "n2" },
+    { from: "add", to: "n3" },
+    { from: "pr", to: "idy" },
+  ]}
+  bigSteps={[
+    { highlightNodes: ["prog"], rule: "\\frac{\\langle s_1, \\sigma, o \\rangle \\Downarrow \\langle \\sigma', o' \\rangle \\quad \\langle s_2, \\sigma', o' \\rangle \\Downarrow \\langle \\sigma'', o'' \\rangle}{\\langle s_1;\\, s_2, \\sigma, o \\rangle \\Downarrow \\langle \\sigma'', o'' \\rangle}", environment: {}, output: [], description: "The program is s₁; s₂. Apply the sequencing rule: evaluate s₁, then s₂ with the resulting state." },
+    { highlightNodes: ["a1", "mul", "add", "n2", "n3", "n4"], rule: "\\frac{\\langle 2 + 3, \\sigma \\rangle \\Downarrow 5 \\quad \\langle 4, \\sigma \\rangle \\Downarrow 4 \\quad 5 \\times 4 = 20}{\\langle (2+3)*4, \\sigma \\rangle \\Downarrow 20}", environment: {}, output: [], description: "First premise: evaluate s₁ = 'y = (2+3)*4'. The nested expression uses numeral valuation (N⟦2⟧ = 2, N⟦3⟧ = 3 → 2+3 = 5), then N⟦4⟧ = 4, then 5 × 4 = 20." },
+    { highlightNodes: ["a1"], rule: "\\frac{\\langle (2+3)*4, \\sigma \\rangle \\Downarrow 20}{\\langle y = (2+3)*4, \\sigma, o \\rangle \\Downarrow \\langle \\sigma[y \\mapsto 20], o \\rangle}", environment: { y: 20 }, output: [], description: "Assignment: bind y to 20. First premise of sequencing complete — state threads to s₂." },
+    { highlightNodes: ["pr", "idy"], rule: "\\frac{\\sigma(y) = 20}{\\langle \\text{print } y, \\sigma, o \\rangle \\Downarrow \\langle \\sigma, o \\cdot 20 \\rangle}", environment: { y: 20 }, output: [20], description: "Second premise: evaluate s₂ = 'print y' in the new state. Look up y = 20, append to output." },
+  ]}
+  smallSteps={[
+    { highlightNodes: ["prog"], rule: "\\frac{\\langle s_1, \\sigma, o \\rangle \\to \\langle s_1', \\sigma', o' \\rangle}{\\langle s_1;\\, s_2, \\sigma, o \\rangle \\to \\langle s_1';\\, s_2, \\sigma', o' \\rangle}", environment: {}, output: [], description: "The program is s₁; s₂. The sequencing 'stepping' rule: while s₁ is still reducing, each step inside s₁ becomes a step of the whole program." },
+    { highlightNodes: ["n2"], rule: "\\frac{\\mathcal{N}\\llbracket 2 \\rrbracket = 2}{\\langle 2, \\sigma \\rangle \\to \\langle 2, \\sigma \\rangle}", environment: {}, output: [], description: "Inside s₁ = 'y = (2+3)*4': the left operand of * is (2+3). Inside that, the numeral 2 evaluates via N⟦2⟧ = 2. Sequencing propagates this step up." },
+    { highlightNodes: ["n3"], rule: "\\frac{\\mathcal{N}\\llbracket 3 \\rrbracket = 3}{\\langle 3, \\sigma \\rangle \\to \\langle 3, \\sigma \\rangle}", environment: {}, output: [], description: "The numeral 3 evaluates via N⟦3⟧ = 3. Both operands of + are now values." },
+    { highlightNodes: ["add"], rule: "\\frac{2 + 3 = 5}{\\langle 2+3, \\sigma \\rangle \\to \\langle 5, \\sigma \\rangle}", environment: {}, output: [], description: "Apply the operator side condition: 2 + 3 = 5. Now the expression is 5 * 4." },
+    { highlightNodes: ["n4"], rule: "\\frac{\\mathcal{N}\\llbracket 4 \\rrbracket = 4}{\\langle 4, \\sigma \\rangle \\to \\langle 4, \\sigma \\rangle}", environment: {}, output: [], description: "The right operand of * is the numeral 4. Apply N⟦4⟧ = 4." },
+    { highlightNodes: ["mul"], rule: "\\frac{5 \\times 4 = 20}{\\langle 5 \\times 4, \\sigma \\rangle \\to \\langle 20, \\sigma \\rangle}", environment: {}, output: [], description: "Apply multiplication: 5 × 4 = 20." },
+    { highlightNodes: ["a1"], rule: "\\langle y\\text{=}20, \\sigma, o \\rangle \\to \\langle \\sigma[y \\mapsto 20], o \\rangle", environment: { y: 20 }, output: [], description: "RHS is a value. Assignment completes: y ↦ 20." },
+    { highlightNodes: ["prog"], rule: "\\frac{\\langle s_1, \\sigma, o \\rangle \\to \\langle \\sigma', o' \\rangle}{\\langle s_1;\\, s_2, \\sigma, o \\rangle \\to \\langle s_2, \\sigma', o' \\rangle}", environment: { y: 20 }, output: [], description: "s₁ has completed. The sequencing 'completion' rule fires: discard s₁, move to s₂ = 'print y' with state σ' = {y: 20}." },
+    { highlightNodes: ["idy"], rule: "\\frac{\\sigma(y) = 20}{\\langle y, \\sigma \\rangle \\to \\langle 20, \\sigma \\rangle}", environment: { y: 20 }, output: [], description: "Now reducing s₂. Look up y in σ → 20." },
+    { highlightNodes: ["pr"], rule: "\\langle \\text{print } 20, \\sigma, o \\rangle \\to \\langle \\sigma, o \\cdot 20 \\rangle", environment: { y: 20 }, output: [20], description: "Print completes: append 20 to output. Small-step took more steps but showed every detail — including the sequencing handoff." },
+  ]}
+/>
+
+If that looks like a wall of greek letters and inference bars — *good*. That is exactly what an operational semantics rule tree looks like, and it is exactly what a graduate-level PL course teaches you to read fluently. Each rule above is a tiny version of the proof trees from LN23, the inference rules from LN1–3, and the function applications from LN15 — stacked on top of each other and applied with mathematical rigor to the syntax of an actual programming language. Once you can read these trees, you can specify a language so precisely that *no two implementers can disagree about what a program means*.
+
+Want to see this lecture in full, with all the rules derived from scratch and a working interpreter built from them? See [LN 11: Operational Semantics](/cmsi-5850/ln11) in the CMSI 5850 lecture series.
+
+> **The Curry–Howard Correspondence:** The deepest result in PL foundations says **propositions ARE types** and **proofs ARE programs**. The implication <InlineMath formula="P \to Q" /> from LN1 *is* the function type <InlineMath formula="P \to Q" /> from LN15. Conjunction <InlineMath formula="P \land Q" /> *is* the pair type <InlineMath formula="P \times Q" /> from LN10. This is not analogy — it is literal isomorphism. It is the reason why a sufficiently expressive type system can encode any mathematical theorem, and why writing a program in such a system is *the same activity* as writing a proof.
+
+---
+
+## The Formal-Foundations Pattern
+
+Eight courses, one pattern. Every section above followed the same Type → Instances → Operators decomposition from LN24:
+
+| Course | Type | Instances | Operators |
+| :--- | :--- | :--- | :--- |
+| CMSI 2120 — Data Structures | Abstract Data Types | Stack, Queue, Set, Map, Heap | push, pop, insert, lookup, ∪, ∩ |
+| CMSI 2130 — Algorithms | Complexity classes | <InlineMath formula="O(1), O(\log n), O(n^2), O(2^n)" /> | <InlineMath formula="+, \cdot, \max" /> on big-O |
+| CMSI 2210 — Systems Org | <InlineMath formula="\mathbb{Z}/2^k\mathbb{Z}" /> bytes / words | <InlineMath formula="0\text{x}\text{ff}, -3, 3.14" /> | <InlineMath formula="+, -, \times, \text{AND}, \text{OR}, \text{XOR}, \ll" /> |
+| CMSI 3801/2 — Automata | <InlineMath formula="(Q, \Sigma, \delta, q_0, F)" /> | DFAs, NFAs, PDAs, Turing machines | run, minimize, complement |
+| CMSI 3520 — Databases | Relations <InlineMath formula="R \subseteq A_1 \times \cdots \times A_n" /> | Specific tables | <InlineMath formula="\sigma, \pi, \bowtie, \cup, \cap, \setminus" /> |
+| EECE 2242 — Digital Logic | Boolean functions | AND, OR, NOT, XOR, MUX | composition, minimization |
+| CMSI 2464 — Cryptography | Cyclic groups <InlineMath formula="(\mathbb{Z}/n\mathbb{Z})^*" /> | Keypairs <InlineMath formula="(n, e, d)" /> | encrypt, decrypt, sign, hash |
+| CMSI 5830 — Computability | Languages <InlineMath formula="L \subseteq \Sigma^*" /> | Specific decision problems | reductions, complexity classes |
+| CMSI 5850 — PL Foundations | Configurations <InlineMath formula="\langle e, \sigma, o \rangle" /> | Programs in a language | reduction <InlineMath formula="\to" />, evaluation <InlineMath formula="\Downarrow" /> |
+
+**The pattern is the punchline.** You aren't learning ten unrelated courses — you are learning ten different *populations* of the same skeleton. Once you can spot Type → Instances → Operators in any new domain, you can orient yourself instantly.
 
 ---
 
 ## Coming Up Next
 
-Next lecture we complete our tour by connecting discrete mathematics to the exciting **application domains** of computer science — artificial intelligence, game development, and systems architecture. We will explore how graph search powers AI, how pathfinding uses Dijkstra, and how the three elective groups in the LMU curriculum all rest on the discrete math foundation you have built.
+Next lecture we complete our tour by connecting discrete mathematics to the exciting **application domains** of computer science — artificial intelligence, game development, and systems architecture. Where today was about *foundational and theoretical* courses (the ones that explicitly formalize the math), next time is about *application* courses (the ones that wield this math to build things). We will explore how graph search powers AI, how pathfinding uses Dijkstra, and how the three elective groups in the LMU curriculum all rest on the discrete math foundation you have built.
 
 ---
 
@@ -281,53 +548,87 @@ Next lecture we complete our tour by connecting discrete mathematics to the exci
 
 <LectureNotes>
 
+**Data Structures — CMSI 2120:**
+
+- Abstract Data Types ARE the LN24 *Type → Instances → Operators* pattern
+- Hash tables are functions <InlineMath formula="h : \text{Keys} \to \{0, \ldots, B-1\}" /> from LN15
+- Pigeonhole principle (LN19) guarantees collisions are unavoidable
+- Trees, heaps, and BSTs are LN23 trees with extra invariants
+
 **Algorithms — CMSI 2130:**
 
 - BFS and DFS are graph traversals from LN20, differing only in queue vs stack
 - Both run in <InlineMath formula="O(|V| + |E|)" /> — analyzed with combinatorics and induction
 - Dijkstra's correctness is proved by induction on settled vertices
 - Sorting lower bounds are proved by contradiction
+- Asymptotic complexity is its own algebra: <InlineMath formula="(O\text{-classes}, +, \cdot, \max)" />
+
+**Computer Systems Organization — CMSI 2210:**
+
+- Two's complement IS modular arithmetic from LN7 (in <InlineMath formula="\mathbb{Z}/2^k\mathbb{Z}" />)
+- Memory is a function <InlineMath formula="\text{mem} : \text{Address} \to \text{Byte}" /> (LN15)
+- Pointer arithmetic is arithmetic in the address space; hex addresses are LN6 base-16 notation
 
 **Languages and Automata — CMSI 3801/3802:**
 
-- Finite automata are directed graphs with labeled edges (LN20)
-- Lambda calculus (LN12–14) is the foundation of computability theory
-- Church–Turing thesis: lambdas and machines compute the same things
+- DFAs are 5-tuples <InlineMath formula="(Q, \Sigma, \delta, q_0, F)" /> — pure sets, products, and functions
+- Lambda calculus (LN12–14) and Turing machines compute the same things (Church–Turing)
 - The halting problem (LN25) is proved by contradiction
 
 **Databases — CMSI 3520:**
 
-- Relational algebra IS set operations from LN9–10
-- SELECT/WHERE = set comprehension, UNION = ∪, INTERSECT = ∩, EXCEPT = ∖
-- JOIN = Cartesian product + filter
+- A relation is formally <InlineMath formula="R \subseteq A_1 \times \cdots \times A_n" /> (LN10–11)
+- SELECT/WHERE = set comprehension, UNION = ∪, INTERSECT = ∩, EXCEPT = ∖, JOIN = × + filter
 - Python set comprehensions mirror SQL semantics exactly
 
 **Digital Systems — EECE 2242:**
 
-- Boolean algebra (LN5) is physically implemented as logic gates
+- Boolean algebra is the structure <InlineMath formula="(B, +, \cdot, \overline{\;\cdot\;}, 0, 1)" /> with axioms (LN5, LN24)
 - AND = multiplication, OR = addition, NOT = negation
-- Truth tables from LN2 become circuit specifications
-- Shannon (1937) bridged abstract algebra and electrical engineering
+- Drop the law of excluded middle and you get a Heyting algebra (LN1's intuitionistic logic)
 
-**Cryptography:**
+**Cryptography — CMSI 2464:**
 
-- RSA encryption uses modular arithmetic from LN7
-- Security relies on computational difficulty of factoring (combinatorial explosion, LN17)
-- Every HTTPS connection uses these ideas
+- Caesar ciphers: <InlineMath formula="E_k(x) = (x + k) \bmod 26" /> — pure modular arithmetic from LN7
+- Hash functions are deliberately non-injective; pigeonhole (LN19) guarantees collisions
+- RSA uses modular arithmetic and prime factorization from LN7
+- Birthday paradox (LN17) governs collision-finding cost
+
+**Computability and Complexity — CMSI 5830 (Graduate):**
+
+- Complexity classes are *sets of languages* (LN10), and inclusions like <InlineMath formula="\text{P} \subseteq \text{NP}" /> are subset relations
+- Polynomial-time **reductions** (LN25) form a directed graph (LN20) over problems — the orange region in the Complexity Zoo rises and falls together
+- `Euler` vs `Hamilton` and `2-SAT` vs `3-SAT` show the boundary between P and NP-complete is razor-thin and counterintuitive
+- **P = NP?** is the open question that decides whether RSA (and most modern cryptography) survives
+
+**Programming Languages Foundations — CMSI 5850 (Graduate):**
+
+- The graduate flagship of the formal-theory thread; continues lambda + types from LN12–14
+- Three semantic styles: **operational** (rule trees, what we showed), **denotational** (functions in math), **axiomatic** (Hoare triples)
+- Operational rules are inference trees over AST nodes — a configuration <InlineMath formula="\langle e, \sigma, o \rangle" /> reduces step by step
+- Curry–Howard: propositions ARE types, proofs ARE programs (literal isomorphism)
 
 **Callbacks Across the Course:**
 
 | This Lecture | Previous Lecture |
 | :--- | :--- |
+| Hash tables as functions | LN14–15: functions, injectivity |
+| Hash collisions guaranteed | LN19: pigeonhole principle |
 | BFS/DFS graph traversal | LN20: walks, paths, adjacency |
 | Dijkstra's algorithm | LN23: shortest paths |
-| Finite automata as directed graphs | LN20: directed graphs |
-| Lambda calculus → computability | LN12–14: lambda calculus |
-| Halting problem (contradiction) | LN25: proof by contradiction |
-| SQL = set operations | LN9–10: set operations |
-| JOIN = Cartesian product + filter | LN10: Cartesian product |
-| Logic gates = Boolean algebra | LN5: Boolean algebra |
-| RSA = modular arithmetic | LN7: mod, congruence |
+| Asymptotic complexity algebra | LN24: Type → Instances → Operators |
+| Two's complement = mod arithmetic | LN7: mod, congruence |
+| Memory as function | LN15: domain, codomain |
+| DFA = 5-tuple of sets/products/functions | LN9–10, LN15 |
+| Turing machine + halting problem | LN12–14, LN25: contradiction |
+| Relation as <InlineMath formula="R \subseteq A_1 \times \cdots \times A_n" /> | LN10–11: Cartesian product, relations |
+| Boolean algebra as axiomatic structure | LN5, LN24: ZFC-style axioms |
+| Heyting algebra ↔ intuitionistic logic | LN1: rejecting LEM |
+| Caesar cipher | LN7: modular arithmetic |
+| Hash collision birthday paradox | LN17: combinatorics |
+| Curry–Howard: propositions = types | LN1–3 + LN12–15: logic + lambda |
+| Reductions as a graph over problems | LN20 + LN25: directed graphs + reducibility |
+| Complexity classes as nested sets | LN9–10: subset relations |
 
 </LectureNotes>
 
@@ -337,27 +638,40 @@ Next lecture we complete our tour by connecting discrete mathematics to the exci
 
 - [Computerphile: "Turing Machines Explained"](https://www.youtube.com/watch?v=dNRDvLACg5Q) — The connection between automata and computation
 - [Computerphile: "SQL Injection"](https://www.youtube.com/watch?v=ciNHn38EyRc) — When set operations go wrong in databases
+- [Computerphile: "Hashing Algorithms and Security"](https://www.youtube.com/watch?v=b4b8ktEV4Bg) — Why collisions matter
+- [Computerphile: "Floating Point Numbers"](https://www.youtube.com/watch?v=PZRI1IfStY0) — IEEE 754 demystified
+- [Numberphile: "P vs. NP"](https://www.youtube.com/watch?v=YX40hbAHx3s) — The biggest open problem in CS
 
 ### Further Reading
 
-- [LMU CS Curriculum Guide](https://sites.google.com/view/lmucs/curriculum) — The full B.S. degree requirements
+- [LMU CS Course Catalog](https://sites.google.com/view/lmucs/courses) — The full course descriptions
 - [Wikipedia: Finite Automaton](https://en.wikipedia.org/wiki/Deterministic_finite_automaton) — Formal definition and examples
+- [Wikipedia: Two's Complement](https://en.wikipedia.org/wiki/Two%27s_complement) — Modular arithmetic in hardware
 - [Wikipedia: Relational Algebra](https://en.wikipedia.org/wiki/Relational_algebra) — The mathematical foundation of SQL
 - [Wikipedia: RSA Cryptosystem](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) — Full mathematical details
-
+- [Wikipedia: Curry–Howard Correspondence](https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence) — Propositions as types
 ### Historical Context
 
-- **Alonzo Church (1903–1995)** — Proved lambda calculus captures all computable functions (1936), independently of Turing
+- **George Boole (1815–1864)** — Invented Boolean algebra (1854) to formalize logic; foundation of digital computing
+- **Alonzo Church (1903–1995)** — Proved lambda calculus captures all computable functions (1936)
 - **Alan Turing (1912–1954)** — Invented Turing machines and proved the halting problem undecidable (1936)
-- **Claude Shannon (1916–2001)** — Connected Boolean algebra to circuit design in his 1937 master's thesis, founding digital electronics
-- **Edgar Codd (1923–2003)** — Invented the relational model for databases (1970), directly applying set theory to data management
-- **George Boole (1815–1864)** — Invented Boolean algebra (1854) to formalize logic; it became the foundation of digital computing a century later
+- **Claude Shannon (1916–2001)** — Connected Boolean algebra to circuit design in his 1937 master's thesis
+- **John Backus (1924–2007)** — Designed the first high-level language (FORTRAN) and the BNF grammar notation used in CMSI 3802
+- **Edgar Codd (1923–2003)** — Invented the relational model for databases (1970), applying set theory to data
+- **Donald Knuth (b. 1938)** — Wrote *The Art of Computer Programming* — the canonical reference for CMSI 2120/2130
+- **Gordon Plotkin (b. 1946)** — Invented Structural Operational Semantics (SOS) in 1981, the formalism behind the small-step rules in the CMSI 5850 stepper above
+- **Robin Milner (1934–2010)** — Co-invented Hindley–Milner type inference, the ML language family, and the Calculus of Communicating Systems (CMSI 5850 territory)
+- **Whitfield Diffie (b. 1944) and Martin Hellman (b. 1945)** — Invented public-key cryptography (1976), enabling everything in CMSI 2464
+- **Stephen Cook (b. 1939) and Leonid Levin (b. 1948)** — Independently formulated NP-completeness (1971/1973), launching CMSI 5830 as a field
 
 ### Connection to Programming
 
+- Python's `dict` and `set` use hash tables — collision behavior is exactly the LN19 pigeonhole story
+- Python's `int` is arbitrary-precision; C's `int` is 32-bit two's complement — the wraparound surprises trace to LN7
 - Python's `collections.deque` implements the queue for BFS; the call stack implements DFS naturally via recursion
 - Python's `set` type with comprehensions mirrors SQL semantics: `{s for s in students if s.major == "CS"}` IS a WHERE clause
 - Python's `re` module implements regular expressions, which are equivalent to finite automata (CMSI 3801 formalizes this equivalence)
 - `hashlib` in Python implements cryptographic hash functions built on the same modular arithmetic principles as RSA
+- Python's `mypy` type checker uses Hindley–Milner-style inference behind the scenes — the same algorithm as CMSI 5850
 
 </LectureResources>

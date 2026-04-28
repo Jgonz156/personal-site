@@ -134,10 +134,20 @@ export function FiniteAutomatonRunner({
             const isActive = activeTransition === key
 
             if (t.from === t.to) {
+              // Auto-flip the self-loop below the node when drawing it above
+              // would clip the top edge of the SVG. Symmetrically, if drawing
+              // below would clip the bottom, keep it above.
+              const wouldClipTop = from.y - 55 < 5
+              const wouldClipBottom = from.y + 55 > svgHeight - 5
+              const loopBelow = wouldClipTop && !wouldClipBottom
+              const loopArc = loopBelow
+                ? `M${from.x - 12},${from.y + 25} C${from.x - 30},${from.y + 55} ${from.x + 30},${from.y + 55} ${from.x + 12},${from.y + 25}`
+                : `M${from.x - 12},${from.y - 25} C${from.x - 30},${from.y - 55} ${from.x + 30},${from.y - 55} ${from.x + 12},${from.y - 25}`
+              const labelY = loopBelow ? from.y + 62 : from.y - 50
               return (
                 <g key={key}>
                   <path
-                    d={`M${from.x - 12},${from.y - 25} C${from.x - 30},${from.y - 55} ${from.x + 30},${from.y - 55} ${from.x + 12},${from.y - 25}`}
+                    d={loopArc}
                     fill="none"
                     stroke={isActive ? "#3b82f6" : "currentColor"}
                     strokeWidth={isActive ? 2 : 1}
@@ -146,7 +156,7 @@ export function FiniteAutomatonRunner({
                   />
                   <text
                     x={from.x}
-                    y={from.y - 50}
+                    y={labelY}
                     textAnchor="middle"
                     className={`text-[11px] ${isActive ? "fill-blue-500 font-bold" : "fill-muted-foreground"}`}
                   >
