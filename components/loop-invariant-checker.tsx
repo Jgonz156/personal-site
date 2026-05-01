@@ -1,29 +1,81 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
 import { waitForMathJax, MathShimmer } from "@/components/math"
 
-interface InvariantCheck {
-  passes: boolean
-  explanation: string
-}
-
-interface InvariantCandidate {
+export interface InvariantCandidate {
+  /** Human-friendly label, e.g. "Candidate 1 (too weak)". */
   label: string
-  latex: string
-  initialization: InvariantCheck
-  preservation: InvariantCheck
-  termination: InvariantCheck
+  /** LaTeX of the invariant itself, without surrounding $...$. */
+  invariantLatex: string
+  /** Whether this candidate ultimately succeeds — drives the verdict pill. */
+  succeeds: boolean
 }
 
-interface LoopInvariantCheckerProps {
+export type InvariantStage =
+  | "setup"
+  | "init"
+  | "preservation"
+  | "termination"
+  | "verdict"
+
+export interface InvariantStep {
+  /** Index into the candidates array — anchors the step to a specific attempt. */
+  candidateIdx: number
+  /** Which check we're inside. */
+  stage: InvariantStage
+  /** Optional sub-label like "Preservation (b)" or "Algebra". */
+  substageLabel?: string
+  /** Optional centered LaTeX claim shown above the explanation. */
+  claimLatex?: string
+  /** Plain text with optional inline $...$ math segments. */
+  explanation: string
+  /** Status badge for this step. */
+  status?: "pass" | "fail" | "running"
+}
+
+export interface LoopInvariantCheckerProps {
   title?: string
   loopCode: string
+  /** LaTeX of the postcondition, without surrounding $...$. */
   postcondition: string
   candidates: InvariantCandidate[]
+  steps: InvariantStep[]
 }
 
-function MathBlock({ latex }: { latex: string }) {
+const STAGE_LABEL: Record<InvariantStage, string> = {
+  setup: "Setup",
+  init: "Initialization",
+  preservation: "Preservation",
+  termination: "Termination",
+  verdict: "Verdict",
+}
+
+const STAGE_TINT: Record<InvariantStage, string> = {
+  setup: "bg-muted/30 text-muted-foreground",
+  init: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  preservation: "bg-purple-500/10 text-purple-700 dark:text-purple-300",
+  termination: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  verdict: "bg-primary/10 text-primary",
+}
+
+/**
+ * Renders the active step's body — claim LaTeX (if any) and explanation prose
+ * with inline `$...$` segments — inside a single ref'd container that gets one
+ * MathJax typeset pass per step transition. This avoids the multi-region race
+ * that the previous version of this component suffered from when two checkers
+ * mounted on the same page.
+ */
+function StepBody({
+  stepKey,
+  claimLatex,
+  explanation,
+}: {
+  stepKey: number
+  claimLatex?: string
+  explanation: string
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [rendered, setRendered] = useState(false)
 
@@ -42,47 +94,10 @@ function MathBlock({ latex }: { latex: string }) {
     return () => {
       mounted = false
     }
-  }, [latex])
+  }, [stepKey])
 
   return (
-    <span className="relative">
-      {!rendered && <MathShimmer />}
-      <span
-        ref={ref}
-        style={{
-          visibility: rendered ? "visible" : "hidden",
-          position: rendered ? "static" : "absolute",
-        }}
-      >
-        {`$${latex}$`}
-      </span>
-    </span>
-  )
-}
-
-function ExplanationBlock({ text }: { text: string }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [rendered, setRendered] = useState(false)
-
-  useEffect(() => {
-    let mounted = true
-    setRendered(false)
-
-    waitForMathJax().then(() => {
-      if (mounted && ref.current && window.MathJax?.typesetPromise) {
-        window.MathJax.typesetPromise([ref.current]).then(() => {
-          if (mounted) setRendered(true)
-        })
-      }
-    })
-
-    return () => {
-      mounted = false
-    }
-  }, [text])
-
-  return (
-    <div className="relative text-sm text-muted-foreground">
+    <div className="relative min-h-[120px]">
       {!rendered && <MathShimmer block />}
       <div
         ref={ref}
@@ -90,36 +105,93 @@ function ExplanationBlock({ text }: { text: string }) {
           visibility: rendered ? "visible" : "hidden",
           position: rendered ? "static" : "absolute",
         }}
-        dangerouslySetInnerHTML={{ __html: text }}
-      />
+      >
+        {claimLatex && (
+          <div className="my-2 text-center overflow-x-auto">
+            {`$$${claimLatex}$$`}
+          </div>
+        )}
+        <p className="text-sm leading-relaxed">{explanation}</p>
+      </div>
     </div>
   )
 }
 
-function CheckPanel({
-  label,
-  check,
+/**
+ * Renders the standing invariant + postcondition + loop code in the left
+ * column. Re-typesets only when the active candidate changes (since the
+ * invariant LaTeX is the only math that flips here).
+ */
+function ContextPanel({
+  loopCode,
+  postcondition,
+  candidate,
+  candidateNumber,
+  candidateTotal,
 }: {
-  label: string
-  check: InvariantCheck
+  loopCode: string
+  postcondition: string
+  candidate: InvariantCandidate
+  candidateNumber: number
+  candidateTotal: number
 }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [rendered, setRendered] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    setRendered(false)
+
+    waitForMathJax().then(() => {
+      if (mounted && ref.current && window.MathJax?.typesetPromise) {
+        window.MathJax.typesetPromise([ref.current]).then(() => {
+          if (mounted) setRendered(true)
+        })
+      }
+    })
+
+    return () => {
+      mounted = false
+    }
+  }, [candidate.invariantLatex, postcondition])
+
   return (
-    <div
-      className={`rounded-lg border-2 p-3 ${
-        check.passes
-          ? "border-green-500/40 bg-green-500/5"
-          : "border-red-500/40 bg-red-500/5"
-      }`}
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <span
-          className={`text-lg ${check.passes ? "text-green-600" : "text-red-600"}`}
+    <div className="p-3 space-y-3">
+      <pre className="bg-muted/30 rounded px-3 py-2 font-mono text-xs overflow-x-auto leading-5">
+        {loopCode}
+      </pre>
+      <div className="relative">
+        {!rendered && <MathShimmer block />}
+        <div
+          ref={ref}
+          style={{
+            visibility: rendered ? "visible" : "hidden",
+            position: rendered ? "static" : "absolute",
+          }}
+          className="space-y-2 text-xs"
         >
-          {check.passes ? "✓" : "✗"}
-        </span>
-        <span className="font-semibold text-sm">{label}</span>
+          <div>
+            <div className="font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Postcondition
+            </div>
+            <div className="overflow-x-auto">{`$${postcondition}$`}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Attempting{" "}
+              <span className="text-foreground/70 normal-case">
+                ({candidateNumber} of {candidateTotal})
+              </span>
+            </div>
+            <div className="font-medium text-foreground mb-1">
+              {candidate.label}
+            </div>
+            <div className="overflow-x-auto">
+              {`$I = ${candidate.invariantLatex}$`}
+            </div>
+          </div>
+        </div>
       </div>
-      <ExplanationBlock text={check.explanation} />
     </div>
   )
 }
@@ -129,33 +201,23 @@ export function LoopInvariantChecker({
   loopCode,
   postcondition,
   candidates,
+  steps,
 }: LoopInvariantCheckerProps) {
-  const [selectedIdx, setSelectedIdx] = useState(0)
-  const postcondRef = useRef<HTMLSpanElement>(null)
-  const [postcondRendered, setPostcondRendered] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
+  const step = steps[currentStep]
+  const candidate = candidates[step.candidateIdx]
+  const isFirst = currentStep === 0
+  const isLast = currentStep === steps.length - 1
 
-  useEffect(() => {
-    let mounted = true
-    setPostcondRendered(false)
+  const stageBadge = STAGE_LABEL[step.stage]
+  const stageTint = STAGE_TINT[step.stage]
 
-    waitForMathJax().then(() => {
-      if (mounted && postcondRef.current && window.MathJax?.typesetPromise) {
-        window.MathJax.typesetPromise([postcondRef.current]).then(() => {
-          if (mounted) setPostcondRendered(true)
-        })
-      }
-    })
-
-    return () => {
-      mounted = false
-    }
-  }, [postcondition])
-
-  const candidate = candidates[selectedIdx]
-  const allPass =
-    candidate.initialization.passes &&
-    candidate.preservation.passes &&
-    candidate.termination.passes
+  const statusBadge =
+    step.status === "pass"
+      ? { text: "✓ Pass", cls: "bg-green-500/20 text-green-700 dark:text-green-400" }
+      : step.status === "fail"
+      ? { text: "✗ Fail", cls: "bg-red-500/20 text-red-700 dark:text-red-400" }
+      : null
 
   return (
     <div className="my-6 border rounded-lg overflow-hidden">
@@ -163,89 +225,84 @@ export function LoopInvariantChecker({
         <span className="font-semibold text-sm">
           {title ? `🔍 ${title}` : "🔍 Loop Invariant Checker"}
         </span>
-        <span
-          className={`text-xs font-semibold px-2 py-0.5 rounded ${
-            allPass
-              ? "bg-green-500/20 text-green-700 dark:text-green-400"
-              : "bg-red-500/20 text-red-700 dark:text-red-400"
-          }`}
-        >
-          {allPass ? "Valid Invariant ✓" : "Invalid Invariant ✗"}
+        <span className="text-xs text-muted-foreground">
+          Step {currentStep + 1} of {steps.length}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 border-b">
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,260px)_1fr] border-b">
         <div className="border-b md:border-b-0 md:border-r">
           <div className="px-3 py-1.5 bg-muted/30 border-b">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Loop Program
+              Loop &amp; Current Attempt
             </span>
           </div>
-          <div className="p-3">
-            <pre className="bg-zinc-900 text-green-400 rounded px-3 py-2 font-mono text-sm overflow-x-auto">
-              {loopCode}
-            </pre>
-            <div className="mt-2 text-xs text-muted-foreground">
-              Postcondition:{" "}
-              <span className="relative">
-                {!postcondRendered && <MathShimmer />}
-                <span
-                  ref={postcondRef}
-                  style={{
-                    visibility: postcondRendered ? "visible" : "hidden",
-                    position: postcondRendered ? "static" : "absolute",
-                  }}
-                >
-                  {`$${postcondition}$`}
-                </span>
-              </span>
-            </div>
-          </div>
+          <ContextPanel
+            loopCode={loopCode}
+            postcondition={postcondition}
+            candidate={candidate}
+            candidateNumber={step.candidateIdx + 1}
+            candidateTotal={candidates.length}
+          />
         </div>
 
-        <div>
-          <div className="px-3 py-1.5 bg-muted/30 border-b">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Candidate Invariant
-            </span>
+        <div className="flex flex-col">
+          <div className="px-3 py-1.5 bg-muted/30 border-b flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${stageTint}`}
+              >
+                {stageBadge}
+              </span>
+              {step.substageLabel && (
+                <span className="text-xs text-muted-foreground">
+                  {step.substageLabel}
+                </span>
+              )}
+            </div>
+            {statusBadge && (
+              <span
+                className={`text-xs font-semibold px-2 py-0.5 rounded ${statusBadge.cls}`}
+              >
+                {statusBadge.text}
+              </span>
+            )}
           </div>
-          <div className="p-3">
-            <div className="flex flex-wrap gap-2 mb-3">
-              {candidates.map((c, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedIdx(i)}
-                  className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
-                    selectedIdx === i
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted/50 hover:bg-muted border-border"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">$I$ = </span>
-              <MathBlock key={selectedIdx} latex={candidate.latex} />
-            </div>
+          <div className="px-4 py-3">
+            <StepBody
+              stepKey={currentStep}
+              claimLatex={step.claimLatex}
+              explanation={step.explanation}
+            />
           </div>
         </div>
       </div>
 
-      <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <CheckPanel
-          label="1. Initialization"
-          check={candidate.initialization}
-        />
-        <CheckPanel
-          label="2. Preservation"
-          check={candidate.preservation}
-        />
-        <CheckPanel
-          label="3. Termination"
-          check={candidate.termination}
-        />
+      <div className="px-4 py-3 bg-muted/20 flex items-center justify-between gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+          disabled={isFirst}
+        >
+          ← Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentStep(0)}
+          disabled={isFirst}
+        >
+          ↺ Reset
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => setCurrentStep((s) => Math.min(steps.length - 1, s + 1))}
+          disabled={isLast}
+        >
+          Next →
+        </Button>
       </div>
     </div>
   )

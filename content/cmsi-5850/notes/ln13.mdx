@@ -7,6 +7,9 @@ import { DisplayMath, InlineMath } from "@/components/math"
 import { HoareTripleStepper } from "@/components/hoare-triple-stepper"
 import { WPStepper } from "@/components/wp-stepper"
 import { LoopInvariantChecker } from "@/components/loop-invariant-checker"
+import { GameSemanticsTrace } from "@/components/game-semantics-trace"
+import { ThreeLensesStepper } from "@/components/three-lenses-stepper"
+import { LanguageExplorer } from "@/components/language-explorer"
 
 ## Recap
 
@@ -29,13 +32,16 @@ Today we ask a different question entirely: **can we know things about a program
 - **Hoare Logic** — Programs as logical propositions
 - **The Assignment Axiom** — Working backward from postconditions
 - **Sequencing, Conditional, and Loop Rules** — Building proofs compositionally
-- **Weakest Preconditions** — Mechanical proof construction via AST traversal
-- **Loop Invariants** — The creative challenge of axiomatic reasoning
+- **Weakest Preconditions** — Mechanical proof construction, with both successful proofs and counter-examples (refutations and partial-correctness conditions)
+- **Loop Invariants** — Walking the algebraic micro-steps for both a failed weak guess and a correct attempt
 - **The Blueprint** — From tree grammar to verification conditions
 - **Partial vs. Total Correctness** — The limits of proof
-- **Extending Petal** — Total correctness by design
+- **Loops at the Limit of Every Framework** — Why operational, denotational, and axiomatic semantics all stumble on loops, and Rice's Theorem as the common cause
+- **Extending Petal** — Total correctness by design via bounded loops
 - **Real-World Static Verification** — Type checkers, borrow checkers, and verified compilers
-- **The Broader Landscape** — Algebraic, action, and modern semantic approaches
+- **The Broader Landscape** — Algebraic semantics as the math of interfaces, plus game / categorical / probabilistic / algebraic-effect semantics
+- **Three Lenses on One Program** — A side-by-side synthesis showing the three approaches as complementary, not competing
+- **Languages Have a Centre of Gravity** — Which lens each language idiomatically rewards
 
 ---
 
@@ -244,6 +250,56 @@ The `HoareTripleStepper` below shows weakest-precondition propagation on a Petal
 
 We just **proved** that `y = 6` after execution — without running a single line. The proof was constructed mechanically by applying rules backward. This is the power of axiomatic semantics.
 
+### What If We Picked the Wrong Postcondition?
+
+Every example so far ended with the precondition simplifying to `true` — the program achieves the postcondition for *every* input. But wp doesn't only confirm successful proofs. It is a logical reasoner that produces three shapes of result, and we've only seen the first one. Let's run the *same program* against a *wrong* postcondition $\{y = 7\}$ and watch wp catch the lie:
+
+<HoareTripleStepper
+  title="Counter-Example: x = 5; y = x + 1; {y = 7}"
+  steps={[
+    {
+      programLines: [
+        { code: "x = 5;", precondition: "?" },
+        { code: "y = x + 1;", postcondition: "y = 7" },
+      ],
+      rule: "",
+      description: "Same program — but suppose we falsely claim the postcondition is y = 7. Watch wp expose the contradiction."
+    },
+    {
+      programLines: [
+        { code: "x = 5;", precondition: "?" },
+        { code: "y = x + 1;", isActive: true, precondition: "x + 1 = 7", postcondition: "y = 7" },
+      ],
+      rule: "\\text{wp}(y = x + 1,\\; y = 7) = (x + 1 = 7)",
+      description: "Apply the assignment axiom: substitute (x + 1) for y in the postcondition. To establish y = 7, the previous statement must leave x + 1 = 7 — i.e., x = 6."
+    },
+    {
+      programLines: [
+        { code: "x = 5;", isActive: true, precondition: "5 + 1 = 7", postcondition: "x + 1 = 7" },
+        { code: "y = x + 1;", precondition: "x + 1 = 7", postcondition: "y = 7" },
+      ],
+      rule: "\\text{wp}(x = 5,\\; x + 1 = 7) = (5 + 1 = 7)",
+      description: "Apply the assignment axiom to x = 5: substitute 5 for x. The required precondition is 5 + 1 = 7."
+    },
+    {
+      programLines: [
+        { code: "x = 5;", precondition: "false  (since 5 + 1 ≠ 7)", postcondition: "x + 1 = 7" },
+        { code: "y = x + 1;", precondition: "x + 1 = 7", postcondition: "y = 7" },
+      ],
+      rule: "5 + 1 = 7 \\equiv \\text{false} \\quad \\times",
+      description: "5 + 1 = 7 simplifies to false. Reading: the precondition required is 'false' — meaning NO initial state makes this program achieve y = 7. Our entry assumption was the implicit 'true', and true does not imply false. The postcondition is REFUTED. wp didn't fail; it succeeded at proving the program cannot do what we claimed."
+    },
+  ]}
+/>
+
+This counter-example exposes the second of three result shapes wp can produce:
+
+- **Precondition simplifies to `true`** → the program is correct for *all* inputs. (The first proof above.)
+- **Precondition simplifies to `false`** → the postcondition is *impossible*; no input makes the program satisfy it. (The counter-example you just walked through.)
+- **Precondition simplifies to a non-trivial formula** → the program is correct *only* on the inputs satisfying that formula. (You'll see this shape next, in the malformed-swap example.)
+
+In all three cases wp succeeds at its job; what differs is the verdict. Mechanical backward reasoning gives you a precise answer no matter which shape applies.
+
 ### The Same Proof on the AST
 
 The `HoareTripleStepper` shows the proof from the code perspective. But wp is really just another recursive AST traversal — just like the interpreter (LN 11) and transpiler (LN 12). The `WPStepper` below shows the *same* proof from the AST perspective — watch the highlighting move backward through the tree as the precondition propagates:
@@ -321,32 +377,60 @@ Let's prove something more interesting — a variable swap using a temporary:
   ]}
 />
 
-Now the same swap proof on the AST:
+> The swap proof is elegant because it proves correctness for **all** possible values of A and B simultaneously. Testing could only check specific values (e.g., A = 3, B = 7). The proof covers infinitely many cases in four mechanical steps.
 
-<WPStepper
-  title="wp Traversal: swap x and y"
-  astNodes={[
-    { id: "seq1", label: ";", level: 0 },
-    { id: "a1", label: "tmp = x", level: 1 },
-    { id: "seq2", label: ";", level: 1 },
-    { id: "a2", label: "x = y", level: 2 },
-    { id: "a3", label: "y = tmp", level: 2 },
-  ]}
-  astEdges={[
-    { from: "seq1", to: "a1" },
-    { from: "seq1", to: "seq2" },
-    { from: "seq2", to: "a2" },
-    { from: "seq2", to: "a3" },
-  ]}
+### A Malformed Swap: wp Catches the Bug
+
+Now the third result shape from earlier — the *non-trivial precondition*. A classic novice mistake is to "swap" without a temporary, like this:
+
+```
+x = y;
+y = x;
+```
+
+Operationally this looks plausible — two assignments, two variables. But it does not actually swap. Let's let wp show us exactly when it fails:
+
+<HoareTripleStepper
+  title="Counter-Example: malformed swap (no temp)"
   steps={[
-    { astHighlight: ["seq1"], equation: "", currentPrecondition: "Q = \\{x = B \\wedge y = A\\}", description: "Goal: prove the swap is correct for all values A, B. The VCG traverses the sequencing tree backward." },
-    { astHighlight: ["a3"], equation: "\\text{wp}(y = \\text{tmp},\\; x = B \\wedge y = A) = (x = B \\wedge \\text{tmp} = A)", currentPrecondition: "x = B \\wedge \\text{tmp} = A", description: "Visit the rightmost leaf: y = tmp. Substitute tmp for y in the postcondition." },
-    { astHighlight: ["a2"], equation: "\\text{wp}(x = y,\\; x = B \\wedge \\text{tmp} = A) = (y = B \\wedge \\text{tmp} = A)", currentPrecondition: "y = B \\wedge \\text{tmp} = A", description: "Move backward: x = y. Substitute y for x." },
-    { astHighlight: ["a1"], equation: "\\text{wp}(\\text{tmp} = x,\\; y = B \\wedge \\text{tmp} = A) = (y = B \\wedge x = A)", currentPrecondition: "y = B \\wedge x = A", description: "Final assignment: tmp = x. Substitute x for tmp. Result: x = A ∧ y = B — exactly our assumption. ✓" },
+    {
+      programLines: [
+        { code: "x = y;", precondition: "?" },
+        { code: "y = x;", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "",
+      description: "Same goal as before — start with x = A, y = B and swap to x = B, y = A. But this version skips the temporary. Watch what wp says about it."
+    },
+    {
+      programLines: [
+        { code: "x = y;", precondition: "?" },
+        { code: "y = x;", isActive: true, precondition: "x = B ∧ x = A", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "\\text{wp}(y = x,\\; x = B \\wedge y = A) = (x = B \\wedge x = A)",
+      description: "Apply the assignment axiom to 'y = x': substitute x for y in the postcondition. y = A becomes x = A, so the required precondition is x = B ∧ x = A."
+    },
+    {
+      programLines: [
+        { code: "x = y;", isActive: true, precondition: "y = B ∧ y = A", postcondition: "x = B ∧ x = A" },
+        { code: "y = x;", precondition: "x = B ∧ x = A", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "\\text{wp}(x = y,\\; x = B \\wedge x = A) = (y = B \\wedge y = A)",
+      description: "Apply the assignment axiom to 'x = y': substitute y for x. x = B ∧ x = A becomes y = B ∧ y = A."
+    },
+    {
+      programLines: [
+        { code: "x = y;", precondition: "y = B ∧ y = A   ⇒   A = B", postcondition: "x = B ∧ x = A" },
+        { code: "y = x;", precondition: "x = B ∧ x = A", postcondition: "x = B ∧ y = A" },
+      ],
+      rule: "y = B \\wedge y = A \\;\\Longleftrightarrow\\; A = B",
+      description: "The wp simplifies to 'y is both A and B,' which forces A = B. Verdict: this program correctly 'swaps' x and y ONLY when the two values were already equal — i.e., when there is nothing to swap. For any A ≠ B, the program is wrong. wp did not just say yes/no; it told us the EXACT input space where the program meets its spec."
+    },
   ]}
 />
 
-> The swap proof is elegant because it proves correctness for **all** possible values of A and B simultaneously. Testing could only check specific values (e.g., A = 3, B = 7). The proof covers infinitely many cases in four mechanical steps.
+This is the third and most useful diagnostic shape. wp returned neither `true` (correct everywhere) nor `false` (impossible everywhere) — it returned a *condition* on the inputs. That condition is precisely the subset of inputs for which the program meets its spec. Testing might catch the bug if you happened to try A = 3, B = 7, but might miss it if your test inputs included A = B = 0. wp does not guess; it produces the bug's *exact* domain in one mechanical traversal.
+
+> Compare this to the original three-line swap above. Both programs read the same number of lines; both look like swaps. The wp traversal is the same backward walk in both cases — but the *result* is dramatically different. Code review with wp in mind is review with a logical X-ray on.
 
 ---
 
@@ -375,45 +459,35 @@ while i <= n do
 
 We want to prove: $\{n \geq 0\} \; \text{program} \; \{s = n(n+1)/2\}$.
 
-What invariant should we use? The `LoopInvariantChecker` below lets you explore two candidates — one too weak, one just right. Select each candidate and observe which of the three checks pass:
+What invariant should we use? The `LoopInvariantChecker` below walks both attempts in sequence — first the obvious-looking guess (which fails), then the correct one. Each attempt is broken into the algebraic micro-steps for Initialization, Preservation, and Termination so you can see exactly *why* one falls apart and the other lands:
 
 <LoopInvariantChecker
   title="Summation Loop: Finding the Right Invariant"
   loopCode={"s = 0;\ni = 1;\nwhile i <= n do\n  s = s + i;\n  i = i + 1;"}
   postcondition="s = n(n+1)/2"
   candidates={[
-    {
-      label: "Candidate 1 (too weak)",
-      latex: "s \\geq 0",
-      initialization: {
-        passes: true,
-        explanation: "Before the loop, $s = 0 \\geq 0$. The invariant holds. ✓"
-      },
-      preservation: {
-        passes: true,
-        explanation: "If $s \\geq 0$ and $i \\leq n$, then $s' = s + i \\geq 0$ (since $i \\geq 1$). The invariant is preserved. ✓"
-      },
-      termination: {
-        passes: false,
-        explanation: "When $i > n$, we know $s \\geq 0$ and $i > n$, but we <em>cannot</em> conclude $s = n(n+1)/2$. The invariant is too weak — it says nothing about the <em>relationship</em> between $s$, $i$, and $n$. ✗"
-      }
-    },
-    {
-      label: "Candidate 2 (correct)",
-      latex: "s = \\frac{i(i-1)}{2} \\wedge 1 \\leq i \\leq n + 1",
-      initialization: {
-        passes: true,
-        explanation: "Before the loop, $s = 0 = \\frac{1 \\cdot 0}{2}$ and $i = 1$, so $1 \\leq 1 \\leq n + 1$. ✓"
-      },
-      preservation: {
-        passes: true,
-        explanation: "If $s = \\frac{i(i-1)}{2}$ and $i \\leq n$, then $s' = s + i = \\frac{i(i-1)}{2} + i = \\frac{i(i+1)}{2} = \\frac{i'(i'-1)}{2}$ where $i' = i + 1$. Bounds: $1 \\leq i' \\leq n + 1$. ✓"
-      },
-      termination: {
-        passes: true,
-        explanation: "When $i > n$, combined with $i \\leq n + 1$, we get $i = n + 1$. Then $s = \\frac{(n+1)n}{2} = \\frac{n(n+1)}{2}$, which is exactly the postcondition. ✓"
-      }
-    },
+    { label: "Attempt 1 (too weak)", invariantLatex: "s \\geq 0", succeeds: false },
+    { label: "Attempt 2 (correct)", invariantLatex: "s = \\tfrac{i(i-1)}{2} \\wedge 1 \\leq i \\leq n + 1", succeeds: true },
+  ]}
+  steps={[
+    { candidateIdx: 0, stage: "setup", explanation: "Try the obvious-looking guess first: \"s is non-negative.\" It is certainly true throughout the loop, so it should be a fine invariant — right? Let's run it through the three checks." },
+    { candidateIdx: 0, stage: "init", substageLabel: "Substitute initial values", claimLatex: "s = 0 \\;\\Rightarrow\\; 0 \\geq 0", explanation: "Before the loop, s = 0. Plug 0 into the invariant: 0 ≥ 0 holds.", status: "pass" },
+    { candidateIdx: 0, stage: "preservation", substageLabel: "Assume I and B", claimLatex: "s \\geq 0 \\;\\wedge\\; i \\leq n", explanation: "Going into an iteration we may assume the invariant AND the loop guard. Now we need to show the invariant still holds after the body runs." },
+    { candidateIdx: 0, stage: "preservation", substageLabel: "Body executes", claimLatex: "s' = s + i \\quad (\\text{and } i' = i + 1)", explanation: "The body adds i to s and increments i. Since i ≥ 1 (the loop has only run for positive i so far) and s ≥ 0, the new s' = s + i is at least 0 too.", status: "pass" },
+    { candidateIdx: 0, stage: "termination", substageLabel: "Exit conditions", claimLatex: "s \\geq 0 \\;\\wedge\\; i > n", explanation: "When the loop exits, the invariant still holds (s ≥ 0) and the guard is now false (i > n). Combine these and try to reach the postcondition s = n(n+1)/2..." },
+    { candidateIdx: 0, stage: "termination", substageLabel: "Try to derive the postcondition", explanation: "We know s ≥ 0 and i > n. There is NO algebraic path from these two facts alone to s = n(n+1)/2. The invariant tracks the SIGN of s but never the VALUE of s. Without a relationship between s, i, and n, the postcondition is unreachable.", status: "fail" },
+    { candidateIdx: 0, stage: "verdict", explanation: "Verdict: too weak. The invariant is a TRUE statement about the loop, but it is not USEFUL — it discards exactly the information we need at exit. A correct invariant must EQUATE s with a function of i, so that pinning i down at exit also pins s down.", status: "fail" },
+    { candidateIdx: 1, stage: "setup", explanation: "Second attempt with the relationship made explicit: s equals the partial triangular number i(i-1)/2, and i is bounded between 1 and n+1. The bounds matter — they are what lets termination land cleanly." },
+    { candidateIdx: 1, stage: "init", substageLabel: "Substitute initial values", claimLatex: "s = 0,\\; i = 1 \\;\\Rightarrow\\; 0 = \\tfrac{1 \\cdot 0}{2} \\;\\wedge\\; 1 \\leq 1 \\leq n+1", explanation: "Plug s = 0 and i = 1 into the invariant. The equation 0 = 1·0/2 holds, and the bounds 1 ≤ 1 ≤ n+1 hold (assuming n ≥ 0).", status: "pass" },
+    { candidateIdx: 1, stage: "preservation", substageLabel: "Assume I and B", claimLatex: "s = \\tfrac{i(i-1)}{2} \\;\\wedge\\; 1 \\leq i \\leq n + 1 \\;\\wedge\\; i \\leq n", explanation: "At the top of an iteration we may assume the invariant and the loop guard. Note the guard tightens the upper bound: 1 ≤ i ≤ n." },
+    { candidateIdx: 1, stage: "preservation", substageLabel: "Body executes (line 1)", claimLatex: "s' = s + i = \\tfrac{i(i-1)}{2} + i", explanation: "The first line of the body sets s := s + i. Substitute the assumed value of s." },
+    { candidateIdx: 1, stage: "preservation", substageLabel: "Algebra", claimLatex: "\\tfrac{i(i-1)}{2} + i \\;=\\; \\tfrac{i^2 - i + 2i}{2} \\;=\\; \\tfrac{i^2 + i}{2} \\;=\\; \\tfrac{i(i+1)}{2}", explanation: "Combine the fractions over a common denominator and simplify. The right-hand side is i(i+1)/2." },
+    { candidateIdx: 1, stage: "preservation", substageLabel: "Body executes (line 2) and rename", claimLatex: "i' = i + 1 \\;\\Rightarrow\\; s' = \\tfrac{i'(i'-1)}{2}", explanation: "The second line increments i, so the new index is i' = i + 1. Substituting i' into i(i+1)/2 gives s' = i'(i'-1)/2 — the SAME shape as the original invariant, with i' in place of i.", status: "pass" },
+    { candidateIdx: 1, stage: "preservation", substageLabel: "Bounds preserved", claimLatex: "i \\leq n \\;\\Rightarrow\\; 2 \\leq i + 1 \\leq n + 1", explanation: "Finally, the bounds on i' follow from the bounds on i: since i ≥ 1 we get i' ≥ 2 ≥ 1, and since i ≤ n we get i' ≤ n + 1. The invariant survives intact.", status: "pass" },
+    { candidateIdx: 1, stage: "termination", substageLabel: "Exit conditions", claimLatex: "s = \\tfrac{i(i-1)}{2} \\;\\wedge\\; 1 \\leq i \\leq n + 1 \\;\\wedge\\; i > n", explanation: "When the loop exits we still have the invariant, plus the negated guard i > n. The bounds combined with i > n force the integer i to take exactly one value." },
+    { candidateIdx: 1, stage: "termination", substageLabel: "Pin i down", claimLatex: "i \\leq n + 1 \\;\\wedge\\; i > n \\;\\Rightarrow\\; i = n + 1", explanation: "From i ≤ n + 1 (invariant) and i > n (negated guard), the only integer satisfying both is i = n + 1." },
+    { candidateIdx: 1, stage: "termination", substageLabel: "Substitute and conclude", claimLatex: "s = \\tfrac{(n+1)\\,n}{2} = \\tfrac{n(n+1)}{2}", explanation: "Plug i = n + 1 into s = i(i-1)/2 and simplify. The result is exactly the postcondition.", status: "pass" },
+    { candidateIdx: 1, stage: "verdict", explanation: "Verdict: valid. The invariant captured the algebraic relationship between s, i, and n that the weak guess discarded. At exit, pinning i down to n + 1 also pinned s down to n(n+1)/2.", status: "pass" },
   ]}
 />
 
@@ -449,22 +523,20 @@ We want to prove: <InlineMath formula="$\{base \geq 0 \wedge exp \geq 0\} \; \te
   loopCode={"result = 1;\ncount = 0;\nwhile count < exp do\n  result = result * base;\n  count = count + 1;"}
   postcondition="result = base^{exp}"
   candidates={[
-    {
-      label: "Invariant",
-      latex: "result = base^{count} \\wedge 0 \\leq count \\leq exp",
-      initialization: {
-        passes: true,
-        explanation: "Before the loop, $result = 1 = base^0$ and $count = 0$, so $0 \\leq 0 \\leq exp$. ✓"
-      },
-      preservation: {
-        passes: true,
-        explanation: "If $result = base^{count}$ and $count < exp$, then $result' = result \\times base = base^{count} \\times base = base^{count+1}$. After $count' = count + 1$: $result' = base^{count'}$ and $0 \\leq count' \\leq exp$. ✓"
-      },
-      termination: {
-        passes: true,
-        explanation: "When $count \\geq exp$, combined with $count \\leq exp$, we get $count = exp$. Then $result = base^{exp}$, which is exactly the postcondition. ✓"
-      }
-    },
+    { label: "Invariant", invariantLatex: "result = base^{count} \\wedge 0 \\leq count \\leq exp", succeeds: true },
+  ]}
+  steps={[
+    { candidateIdx: 0, stage: "setup", explanation: "The summation loop's invariant captured a SUM-so-far relationship. The exponentiation loop captures a POWER-so-far relationship: at every iteration, result equals base raised to the count we have processed. The bounds on count keep us honest at the edges." },
+    { candidateIdx: 0, stage: "init", substageLabel: "Substitute initial values", claimLatex: "result = 1,\\; count = 0 \\;\\Rightarrow\\; 1 = base^{0} \\;\\wedge\\; 0 \\leq 0 \\leq exp", explanation: "Before the loop, result = 1 and count = 0. Plug them in: 1 = base^0 holds for any base (including 0, by the standard convention 0^0 = 1 used here), and 0 ≤ 0 ≤ exp holds whenever exp ≥ 0.", status: "pass" },
+    { candidateIdx: 0, stage: "preservation", substageLabel: "Assume I and B", claimLatex: "result = base^{count} \\;\\wedge\\; 0 \\leq count \\leq exp \\;\\wedge\\; count < exp", explanation: "Going into an iteration we may assume the invariant and the loop guard. The guard tightens the upper bound: 0 ≤ count < exp, so count < exp." },
+    { candidateIdx: 0, stage: "preservation", substageLabel: "Body executes (line 1)", claimLatex: "result' = result \\times base = base^{count} \\times base", explanation: "The first line of the body multiplies result by base. Substitute the assumed value of result." },
+    { candidateIdx: 0, stage: "preservation", substageLabel: "Algebra of exponents", claimLatex: "base^{count} \\times base = base^{count + 1}", explanation: "Combining like bases adds the exponents. The right-hand side is base^(count+1)." },
+    { candidateIdx: 0, stage: "preservation", substageLabel: "Body executes (line 2) and rename", claimLatex: "count' = count + 1 \\;\\Rightarrow\\; result' = base^{count'}", explanation: "The second line increments count, so count' = count + 1. Substituting into base^(count+1) gives base^(count') — the SAME shape as the invariant, with count' in place of count.", status: "pass" },
+    { candidateIdx: 0, stage: "preservation", substageLabel: "Bounds preserved", claimLatex: "count < exp \\;\\Rightarrow\\; 0 \\leq count + 1 \\leq exp", explanation: "From count ≥ 0 we get count' = count + 1 ≥ 1 ≥ 0, and from count < exp we get count' ≤ exp. The bounds survive.", status: "pass" },
+    { candidateIdx: 0, stage: "termination", substageLabel: "Exit conditions", claimLatex: "result = base^{count} \\;\\wedge\\; 0 \\leq count \\leq exp \\;\\wedge\\; count \\geq exp", explanation: "When the loop exits, the invariant still holds and the negated guard count ≥ exp now holds. The bounds combined with this force count to take exactly one value." },
+    { candidateIdx: 0, stage: "termination", substageLabel: "Pin count down", claimLatex: "count \\leq exp \\;\\wedge\\; count \\geq exp \\;\\Rightarrow\\; count = exp", explanation: "From count ≤ exp (invariant) and count ≥ exp (negated guard), count must equal exp." },
+    { candidateIdx: 0, stage: "termination", substageLabel: "Substitute and conclude", claimLatex: "result = base^{exp}", explanation: "Plug count = exp into result = base^count. The result is exactly the postcondition.", status: "pass" },
+    { candidateIdx: 0, stage: "verdict", explanation: "Verdict: valid. The invariant linked result to a function of count, and the bounds let exit pin count down to exp. The same recipe — equate the accumulator to a function of the index, then bound the index — works for both loops.", status: "pass" },
   ]}
 />
 
@@ -575,7 +647,49 @@ For our summation loop, the variant is $V = n + 1 - i$. It starts at $n$ and dec
 
 For the exponentiation loop, the variant is $V = exp - count$.
 
-> This connects to LN 5. Rice's Theorem tells us that many program properties are **undecidable** — no algorithm can determine them for all programs. Total correctness is one such property. We can prove termination for specific programs (using variants), but there is no general procedure that works for all programs. The Halting Problem is the most famous example: no algorithm can determine, for all programs and inputs, whether the program terminates.
+---
+
+## Loops at the Limit of Every Framework
+
+Step back across the last three lectures and notice something striking: **loops were the rough patch in every single framework we built.** It is not that each framework happened to be awkward in a different place; it is the same wall, hit from three different directions.
+
+| Framework | Loop in the easy case | Loop in the general case |
+|-----------|-----------------------|---------------------------|
+| Operational (LN 11) | Repeated unfolding via `while-true` and `while-false` rules | Non-termination = "no derivation tree exists" — you cannot read termination off the rules; you have to actually try and wait |
+| Denotational (LN 12) | Straight-line code: one semantic equation per construct | Loops require a *fixed point* (Kleene's theorem). The meaning is the LIMIT of an infinite approximation tower, which in general you cannot compute in finite time |
+| Axiomatic (LN 13) | Assignment, sequencing, conditional all run mechanically | Loops require a *human-supplied* invariant. The loop rule is the only Hoare rule the VCG cannot apply on its own |
+
+Each framework reveals a different facet of the same difficulty, but the underlying cause is one thing.
+
+### The Common Cause: Rice's Theorem
+
+<DefinitionBox term="Rice's Theorem (LN 5)">
+
+For any **non-trivial semantic property** of programs in a Turing-complete language, the question "does program $P$ have property $X$?" is **undecidable**. There is no algorithm that always halts and gives the correct yes/no answer for every program $P$.
+
+</DefinitionBox>
+
+"Non-trivial" means the property is true for some programs and false for others (i.e., not the always-true or always-false properties). "Semantic" means the property depends on what the program *does*, not on syntactic features like its length. Concrete examples of properties Rice's Theorem rules out:
+
+- **Termination:** "Does $P$ halt on all inputs?" — undecidable.
+- **Equivalence:** "Do $P_1$ and $P_2$ compute the same function?" — undecidable.
+- **Output range:** "Does $P$ ever return a negative number?" — undecidable.
+- **Dead code:** "Does line 17 of $P$ ever execute?" — undecidable.
+- **Loop bounds:** "Does this loop always finish in fewer than $N$ steps?" — undecidable in general.
+
+The Halting Problem is the canonical instance, but Rice's Theorem says the trouble is much wider than just halting: *almost any* interesting question about Turing-complete programs is undecidable.
+
+Loops are the bridge to Turing-completeness. A language with only assignment, sequencing, and conditionals is **not** Turing-complete and avoids Rice's Theorem entirely — but it cannot express algorithms that need an unknown number of iterations. The moment you add unbounded `while`, you cross the line, and from that moment on every framework that wants to *automate* its analysis hits a wall on loops specifically.
+
+### The Same Escape Hatch Three Times
+
+Each framework has the same way out, just expressed in its own dialect: **restrict the syntax so the loop's iteration count is statically bounded.** Then every framework's loop problem becomes solvable:
+
+- **Operational:** evaluation is guaranteed to terminate, so "no derivation" cannot happen for syntactic reasons.
+- **Denotational:** the approximation tower's least upper bound is reached in finitely many steps, so the meaning is computable.
+- **Axiomatic:** the VCG can derive the invariant and variant automatically from the loop bound.
+
+The `bounded_loop` extension you are about to see is exactly this trick. It is not a convenience feature; it is the only known general escape from the loop wall, repackaged for the axiomatic setting. The same trick recurs every time a real language wants decidable properties: SQL refuses unbounded loops to keep query optimisation tractable, GLSL bounds shader loops to avoid GPU hangs, Coq enforces structural recursion to keep proof checking decidable. Different languages, same trade.
 
 ---
 
@@ -772,7 +886,42 @@ For example, a stack is specified by:
 
 These equations define the meaning of stack operations without describing any implementation. Any data structure that satisfies these axioms IS a stack — whether it's an array, a linked list, or a cons cell. This connects to LN 3: algebras generalize set-theoretic structures by adding operations and equations.
 
-> This is the mathematical foundation for interface/trait/protocol design in modern languages. When you define a `Stack` interface in Java or a `Stack` trait in Rust, you're specifying an algebra. Any type that implements the interface satisfies the axioms.
+### Algebras You've Already Been Writing
+
+You may not have realised it, but you have been writing partial algebraic specifications for years — every time you declared an interface, trait, type class, or protocol. Compare the same `Stack` algebra rendered in three popular languages:
+
+```typescript
+// TypeScript — interface
+interface Stack<T> {
+  push(value: T): void;
+  pop(): T | undefined;
+  top(): T | undefined;
+  isEmpty(): boolean;
+}
+```
+
+```rust
+// Rust — trait
+trait Stack<T> {
+    fn push(&mut self, value: T);
+    fn pop(&mut self) -> Option<T>;
+    fn top(&self) -> Option<&T>;
+    fn is_empty(&self) -> bool;
+}
+```
+
+```haskell
+-- Haskell — type class
+class Stack s where
+  push    :: a -> s a -> s a
+  pop     :: s a -> Maybe (s a)
+  top     :: s a -> Maybe a
+  isEmpty :: s a -> Bool
+```
+
+Each declaration is the **signature** half of an algebra: the operations available. The four equations from the table above are the **axioms**: the semantic content. Most production type systems let you specify the signature but not the axioms, so the axioms get encoded out-of-band — in documentation, in unit tests, or in property-based testing libraries (QuickCheck, Hypothesis, fast-check) that *generate* values exercising the axioms. When the axioms ARE encoded in the type system itself — Liquid Haskell's refinement types, Idris's dependent types, Lean's tactic proofs — you have full algebraic semantics available at compile time.
+
+Either way, every interface you have ever shipped was an algebraic specification with the equations sitting outside the type system. The instinct that "an interface is a contract" is not a metaphor; it is a literal statement about which operations and which equations the implementor must satisfy.
 
 ### Action Semantics
 
@@ -792,10 +941,43 @@ Compare this to the denotational equation <InlineMath formula="$S\llbracket i = 
 
 ### Modern Directions
 
-- **Game semantics**: meaning as strategies in a game between the program and its environment. Captures interaction patterns that denotational semantics struggles with.
-- **Categorical semantics**: meaning in terms of category theory (functors, monads). Provides deep structural insights but requires significant mathematical background.
-- **Probabilistic semantics**: meaning for programs that use randomness. Essential for machine learning and cryptography.
-- **Algebraic effects**: a modern approach to tracking side effects in types. Gaining traction as a replacement for monads in languages like OCaml 5 and Koka:
+The frontier of semantics keeps growing. Each of the four directions below addresses something the "big three" handle awkwardly or not at all — and each has at least one concrete language or library carrying it into practice today.
+
+#### Game Semantics
+
+The intuition: a program's meaning is a **strategy** in a back-and-forth game between two players. **Player P** is the program; **Opponent O** is the environment that calls into the program. A function call is opened by O ("here is an input"), and P must reply ("here is the output"). Composition of programs is composition of strategies; type-correctness is the rule that strategies stay legal moves in the game's protocol. Game semantics excels at describing **interactive** computation — input/output, networking, GUIs, message passing — that denotational semantics struggles to model with plain functions.
+
+The smallest example: the function `f(x) = x + 1`, viewed as a play of the game.
+
+<GameSemanticsTrace
+  title="Game Trace: f(x) = x + 1"
+  program="f(x) = x + 1"
+  outcome="The number f returns when O asks for an answer"
+  moves={[
+    { player: "O", label: "?value", note: "Opponent opens the play by asking what f's value will be." },
+    { player: "P", label: "?x", note: "Player can't answer until it knows the input — it asks O for x." },
+    { player: "O", label: "x = 5", note: "Opponent provides the input." },
+    { player: "P", label: "6", note: "Player applies the function and returns 5 + 1." },
+  ]}
+/>
+
+The whole interaction is a *strategy*: a recipe telling P how to respond to whatever O does. Two programs have the same meaning in game semantics iff they describe the same strategy. This sounds abstract, but it has been the foundation of important results in concurrency theory and full abstraction proofs for languages like PCF and Idealised Algol — places where denotational semantics couldn't quite line up with operational behaviour, and game semantics did.
+
+> A natural question to ask is whether game semantics has any connection to the **minimax** algorithm you may have seen in AI or game-playing courses. The honest answer is: only a loose family resemblance. Both involve two alternating "players," and both compute outcomes recursively over a tree of moves, but they answer different questions. Minimax assumes the two players are adversarial and computes the optimal play under that assumption. Game semantics treats P and O as *protocol participants* whose moves are constrained by types and by the program's strategy, not by any maximisation. The kinship is structural, not algorithmic — which is worth knowing if you ever try to read a game-semantics paper after a course on adversarial search.
+
+#### Categorical Semantics
+
+Meaning is given in terms of **category theory** — objects, morphisms, functors, natural transformations, monads. A program's type is an object; a program is a morphism. Side effects are captured by monads (`Maybe`, `State`, `IO`); composition is morphism composition. The pay-off is structural: equivalences between languages become functors between categories, and many otherwise-mysterious correspondences (continuations and double negation, dependent types and locally cartesian closed categories) drop out as theorems.
+
+The cost is steep mathematical background. Most students will encounter categorical semantics indirectly: the `IO` monad in Haskell, the `Promise` monad in JavaScript, the `do`-notation in F# — each of these IS a categorical construction made usable by language sugar. You have already programmed in categorical semantics; you just have not yet seen the diagrams.
+
+#### Probabilistic Semantics
+
+A program with `x := flip(0.5)` does not have a single meaning — it has a **distribution** over meanings. Probabilistic semantics formalises this: the denotation of a program is a probability measure over output states (or, in continuous settings, a measure-theoretic kernel). It is the mathematical foundation for everything from machine learning training loops (gradient descent on log-likelihoods) to MCMC samplers, Bayesian inference engines, and differential privacy guarantees. Languages that take this seriously — Stan, Pyro, Edward, Gen, Anglican — let you write a generative model as a program and ask the language to *invert* it via inference. The semantics has to know what "invert" means, which is exactly what probabilistic semantics provides.
+
+#### Algebraic Effects
+
+A modern approach to tracking side effects in the **type system itself**. Gaining traction as a replacement for monads in OCaml 5, Koka, Eff, and recent research lines for Haskell. The idea: declare effect operations as a kind of "interface for side effects," and let call sites *handle* them with arbitrary interpretations.
 
 ```
 // Koka: algebraic effects (2024)
@@ -832,6 +1014,35 @@ The reverse directions are also important:
 
 > This triangle of relationships shows that the three approaches are consistent with each other. They define the same "meaning" — just described in different ways. This consistency is not accidental; it's a deep mathematical fact about the nature of computation.
 
+### Three Lenses on One Program
+
+The relationship table tells you the three approaches *agree*; the stepper below makes the agreement tangible. Pick a program we've used as a thread throughout these lectures — `x = 5; y = x + 1;` — and view it through each lens in turn, then all three at once.
+
+<ThreeLensesStepper
+  title="Three Lenses on x = 5; y = x + 1;"
+  program="x = 5; y = x + 1;"
+  lenses={[
+    {
+      lensId: "operational",
+      body: "\\langle x = 5;\\, y = x + 1,\\, \\emptyset \\rangle \\;\\to\\; \\langle y = x + 1,\\, [x \\mapsto 5] \\rangle \\;\\to\\; \\langle \\text{skip},\\, [x \\mapsto 5,\\, y \\mapsto 6] \\rangle",
+      gloss: "Two SOS reduction steps walk the configuration to a final state.",
+    },
+    {
+      lensId: "denotational",
+      body: "S\\llbracket x = 5;\\, y = x + 1 \\rrbracket\\, \\sigma \\;=\\; \\sigma[x \\mapsto 5][y \\mapsto 6]",
+      gloss: "One semantic equation names the state transformer the program denotes.",
+    },
+    {
+      lensId: "axiomatic",
+      body: "\\{\\text{true}\\} \\;\\; x = 5;\\, y = x + 1 \\;\\; \\{y = 6\\}",
+      gloss: "One Hoare triple states the property the program satisfies.",
+    },
+  ]}
+  finaleNote="Operational shows what happens. Denotational names the function computed. Axiomatic guarantees a property. Same program, three answers, all consistent."
+/>
+
+These are not three competing descriptions; they are three views of one mathematical object. **Real toolchains use all three at once.** A debugger thinks operationally — show me the next step. A compiler optimiser thinks denotationally — what function does this code compute, and what other code computes the same function? A type checker thinks axiomatically — what property must hold? CompCert is the proof-by-existence: it uses operational semantics to define what source and target each *do*, denotational reasoning to argue they compute the same function, and axiomatic specifications to structure the correctness theorem in Coq. None of these layers is optional. You do not pick one lens and discard the others; you pick the right lens for the question you are asking.
+
 ---
 
 ## Choosing the Right Tool
@@ -849,19 +1060,126 @@ No single semantic approach is "best." Each illuminates different aspects of mea
 
 The three lectures (LN 11-13) gave you three lenses on the same programs. The interpreter shows what *happens*. The transpiler shows what *function* is computed. The verifier shows what *must be true*. Together, they form a complete toolkit for understanding and implementing programming languages.
 
+### Languages Have a Centre of Gravity
+
+A different but related question: not "which lens fits the *task* best" but "which lens fits the *language* best." Languages do not pick exclusively — every Turing-complete language admits all three semantics, in principle — but their idioms, type systems, error messages, and debugger features lean heavily toward one. The lens a language *wants* you to use is its **semantic centre of gravity**.
+
+<LanguageExplorer
+  title="Where Does Each Language Live?"
+  languages={[
+    {
+      id: "python",
+      name: "Python",
+      family: "Imperative, dynamic",
+      snippet: "x = 5\ny = x + 1\nprint(y)",
+      intensities: { operational: 4, denotational: 1, axiomatic: 1 },
+      readings: {
+        operational: "Walk the lines top-to-bottom; the interpreter mutates state and prints.",
+        denotational: "You CAN reason about the value of y, but the language doesn't push you there — mutation makes equational reasoning fragile.",
+        axiomatic: "Type hints + mypy gives a thin axiomatic layer; the rest is documentation.",
+      },
+      defaultReading: "Step through the execution in your head — that's how every Pythonista debugs.",
+    },
+    {
+      id: "haskell",
+      name: "Haskell",
+      family: "Pure functional",
+      snippet: "let x = 5\n    y = x + 1\nin print y",
+      intensities: { operational: 1, denotational: 4, axiomatic: 2 },
+      readings: {
+        operational: "Lazy evaluation makes step-by-step reasoning genuinely confusing — even experts find it hard to predict order.",
+        denotational: "Referential transparency is denotational semantics free of charge: every expression denotes a value, period.",
+        axiomatic: "The type system + type classes carry partial axiomatic content; the IO monad localises effects.",
+      },
+      defaultReading: "Ask 'what does this expression denote?' — the language is built so that's a meaningful question.",
+    },
+    {
+      id: "rust",
+      name: "Rust",
+      family: "Imperative + ownership",
+      snippet: "let x: i32 = 5;\nlet y: i32 = x + 1;\nprintln!(\"{}\", y);",
+      intensities: { operational: 3, denotational: 1, axiomatic: 4 },
+      readings: {
+        operational: "Imperative steps; you can trace execution like in C.",
+        denotational: "Mutation makes pure denotational reasoning hard, the same as in Python.",
+        axiomatic: "The borrow checker is a real axiomatic verifier — ownership rules are statically enforced before code runs.",
+      },
+      defaultReading: "Imperative execution with strong static guarantees — operational AND axiomatic, simultaneously.",
+    },
+    {
+      id: "coq",
+      name: "Coq / Lean / Agda",
+      family: "Proof assistant",
+      snippet: "Definition example : nat :=\n  let x := 5 in\n  let y := x + 1 in y.\nLemma y_is_6 : example = 6.\nProof. reflexivity. Qed.",
+      intensities: { operational: 1, denotational: 3, axiomatic: 4 },
+      readings: {
+        operational: "Programs reduce by structural recursion; tactics manipulate proof states.",
+        denotational: "Every program denotes a mathematical object — terms inhabit types under the Curry-Howard correspondence.",
+        axiomatic: "The whole point: writing the program IS proving the proposition.",
+      },
+      defaultReading: "What proposition am I proving? — the program and the proof are literally the same object.",
+    },
+    {
+      id: "sql",
+      name: "SQL",
+      family: "Relational, declarative",
+      snippet: "SELECT id, total\nFROM orders\nWHERE total > 100;",
+      intensities: { operational: 1, denotational: 4, axiomatic: 2 },
+      readings: {
+        operational: "Query planners run wildly different physical plans for the same query — operational reading is unstable.",
+        denotational: "A query denotes a SET. Two queries are equivalent iff they denote the same set, regardless of plan.",
+        axiomatic: "Constraints (NOT NULL, UNIQUE, CHECK, foreign keys) are axiomatic invariants the engine enforces.",
+      },
+      defaultReading: "What set does this query describe? — that's the only stable reading.",
+    },
+    {
+      id: "c",
+      name: "C",
+      family: "Imperative, low-level",
+      snippet: "int x = 5;\nint y = x + 1;\nprintf(\"%d\\n\", y);",
+      intensities: { operational: 4, denotational: 1, axiomatic: 1 },
+      readings: {
+        operational: "Memory cells, stack frames, instruction order — the language was designed for this reading.",
+        denotational: "Undefined behaviour and pointer aliasing make pure equational reasoning unsafe.",
+        axiomatic: "Frama-C and similar tools bolt on axiomatics, but the language proper has none.",
+      },
+      defaultReading: "Step through every instruction and watch the bytes — operational in its bones.",
+    },
+    {
+      id: "prolog",
+      name: "Prolog",
+      family: "Logic programming",
+      snippet: "parent(alice, bob).\nparent(bob, carol).\ngrandparent(X, Z) :- parent(X, Y), parent(Y, Z).",
+      intensities: { operational: 2, denotational: 3, axiomatic: 4 },
+      readings: {
+        operational: "SLD resolution is a real evaluation strategy, but most programmers ignore it until something loops.",
+        denotational: "A program denotes the least Herbrand model — the set of facts derivable from the rules.",
+        axiomatic: "Clauses are axioms; queries are theorems to prove. The whole language is axiomatic in form.",
+      },
+      defaultReading: "What facts am I declaring? What follows from them? — the language reads like a logic textbook.",
+    },
+  ]}
+/>
+
+Pick a language. Find the darkest bar in its centre-of-gravity chart. That tells you which mode of reasoning the language *wants* you to do, and which one its idioms, errors, and tools will reward. When learning a new language, the first question to ask is which lens its designers committed to — that decision shapes everything else.
+
 ---
 
 ## Summary
 
 Today we completed the trio of semantic approaches with **axiomatic semantics — meaning by proving**. Hoare Logic lets us annotate programs with preconditions and postconditions, then use inference rules to prove properties without execution.
 
-We saw the **blueprint** pattern continue: the tree grammar is the same API contract it was for operational and denotational semantics — each production demands one wp definition. We showed that the Verification Condition Generator is just another AST traversal, parallel to the interpreter and the transpiler, producing *logical formulas* instead of values or code. The `WPStepper` made this visible by showing backward propagation directly on the AST.
+We saw the **blueprint** pattern continue: the tree grammar is the same API contract it was for operational and denotational semantics — each production demands one wp definition. The Verification Condition Generator is just another AST traversal, parallel to the interpreter and the transpiler, producing *logical formulas* instead of values or code. The `WPStepper` made this visible on the simple two-statement example, where the AST view shines.
 
-We learned the assignment axiom (the foundation, running backward), the sequencing rule (chaining proofs), the conditional rule (branching with brace-free `then`/`else`), the consequence rule (adapting proofs), and the loop rule (requiring an invariant with `do`). The `LoopInvariantChecker` let us explore why weak invariants fail and strong invariants succeed across the three required checks.
+We learned the assignment axiom (the foundation, running backward), the sequencing rule (chaining proofs), the conditional rule (branching with brace-free `then`/`else`), the consequence rule (adapting proofs), and the loop rule (requiring an invariant with `do`). Crucially, we saw wp produce **all three of its result shapes**: simplifying to `true` (the program is correct for all inputs), simplifying to `false` (the postcondition is impossible — a counter-example refutation, demonstrated on `x = 5; y = x + 1; {y = 7}`), and simplifying to a non-trivial formula (the program is correct only on a specific subset of inputs — demonstrated by the malformed temp-less swap, which only works when its two inputs were already equal).
 
-We confronted **partial vs. total correctness** and explored how language design can guarantee termination: bounded loops, structural recursion, and restricted grammars trade expressiveness for free proofs. We connected this to the Chomsky Hierarchy (LN 7) and the Halting Problem (LN 5).
+The redesigned `LoopInvariantChecker` walks both attempts at the summation invariant in sequence — first the obvious-but-too-weak guess `s ≥ 0`, then the correct algebraic invariant — exposing every micro-step of the Initialization, Preservation, and Termination derivations so you can see exactly why one falls apart and the other lands. The same machinery walks the exponentiation invariant under a single attempt.
 
-We saw axiomatic reasoning at work in industry: TypeScript's type checker, Rust's borrow checker, Dafny's built-in Hoare triples, SPARK Ada's prover, CompCert's verified compiler, and the seL4 verified microkernel. We surveyed the broader landscape — algebraic semantics, action semantics with its readable English-like notation, and algebraic effects in Koka.
+We pulled together a thread that ran across all three lectures: **loops are the rough patch in every semantic framework**. Operational semantics stumbles on non-termination, denotational semantics needs an infinite fixed-point construction, and axiomatic semantics requires a human-supplied invariant. The common cause is Rice's Theorem: any non-trivial semantic property of Turing-complete programs is undecidable. The same escape hatch — bounding the loop's iteration count statically — fixes the problem in all three frameworks at once. The `bounded_loop` extension, SQL's refusal of unbounded loops, GLSL's bounded shader loops, and Coq's structural recursion are all instances of the same trade.
+
+We saw axiomatic reasoning at work in industry: TypeScript's type checker, Rust's borrow checker, Dafny's built-in Hoare triples, SPARK Ada's prover, CompCert's verified compiler, and the seL4 verified microkernel. We surveyed the broader landscape — algebraic semantics as the math behind every interface, trait, and type class you have ever written; action semantics with its readable English-like notation; game semantics as interactive strategy (with a brief note distinguishing it from minimax); categorical semantics as the structural backbone of monadic effects; probabilistic semantics for randomised computation; and algebraic effects in Koka.
+
+Finally, the `ThreeLensesStepper` showed the same Petal program through operational, denotational, and axiomatic eyes in turn, then all three at once — making the "they agree" claim concrete instead of abstract. The `LanguageExplorer` then turned the lens on languages themselves, plotting Python, Haskell, Rust, Coq/Lean/Agda, SQL, C, and Prolog along the operational/denotational/axiomatic axes to show that real languages have a **semantic centre of gravity** which shapes how their idioms read.
 
 Next lecture, we bring everything together: the **full compilation pipeline**, mapping every stage to the lecture that taught it. Petal completes its journey from design to execution to verification.
 
@@ -871,14 +1189,17 @@ Next lecture, we bring everything together: the **full compilation pipeline**, m
 - **Axiomatic Semantics**: meaning by proving — programs are characterized by logical assertions
 - **Hoare Triple**: $\{P\} \; C \; \{Q\}$ — if $P$ holds before $C$, then $Q$ holds after (if $C$ terminates)
 - **Assignment Axiom**: $\{Q[x/e]\} \; x = e \; \{Q\}$ — substitute backward
-- **Weakest Precondition**: $\text{wp}(C, Q)$ — the least restrictive precondition guaranteeing $Q$
+- **Weakest Precondition**: $\text{wp}(C, Q)$ — the least restrictive precondition guaranteeing $Q$. Returns one of three result shapes: `true` (correct everywhere), `false` (postcondition impossible — refutation), or a non-trivial formula (the exact subset of inputs on which the program meets its spec)
 - **Verification Condition Generator (VCG)**: a recursive AST traversal that computes wp — the axiomatic analog of the interpreter and transpiler
 - **Loop Invariant**: a property $I$ preserved by every iteration of a loop
 - **Variant (Ranking Function)**: a decreasing quantity that guarantees termination
 - **Partial Correctness**: IF the program terminates, THEN the postcondition holds
 - **Total Correctness**: the program terminates AND the postcondition holds
+- **Rice's Theorem**: any non-trivial semantic property of Turing-complete programs is undecidable; the common cause of loops being hard in all three semantic frameworks
 - **Design by Contract**: functions specify pre/postconditions as part of their interface
-- **Algebraic Semantics**: meaning through equational axioms on operations
+- **Algebraic Semantics**: meaning through equational axioms on operations — the math behind interfaces, traits, type classes, and protocols
+- **Game Semantics**: meaning as a strategy in a back-and-forth game between Player (program) and Opponent (environment)
+- **Semantic Centre of Gravity**: the operational/denotational/axiomatic lens a language's idioms and tools most reward
 
 **Key Connections:**
 - The tree grammar (LN 8) is the API contract: each production demands one wp definition
@@ -886,12 +1207,16 @@ Next lecture, we bring everything together: the **full compilation pipeline**, m
 - Hoare rules ARE inference rules (LN 2, LN 11) — same logical framework
 - Proper substitution in Hoare Logic IS the same $[x/e]$ operation from LN 4
 - Loop invariants ARE fixed-point approximation properties (LN 12)
+- Loops are the rough patch in operational, denotational, AND axiomatic semantics — the same wall hit from three sides, with Rice's Theorem (LN 5) as the common cause
+- The bounded-loop trick fixes the loop wall in all three frameworks simultaneously, and shows up in SQL, GLSL, and proof assistants
 - Total correctness is undecidable (LN 5, Rice's Theorem, Halting Problem)
 - Restricting the grammar (LN 7, Chomsky Hierarchy) trades expressiveness for decidable proofs
 - Type checkers are restricted Hoare Logics (decidable fragment)
 - Axiomatic semantics completes the triad: run (LN 11) / translate (LN 12) / prove (LN 13)
-- Algebraic semantics IS the foundation for interfaces and traits in modern languages
-- CompCert synthesizes parsing (LN 9), operational semantics (LN 11), and verification (LN 13)
+- Algebraic semantics IS the foundation for interfaces, traits, type classes, and protocols — every interface you have shipped was a partial algebraic specification
+- Game semantics resembles minimax structurally but is not the same algorithm (different question being answered)
+- Real languages have a semantic centre of gravity — operational (Python, C), denotational (Haskell, SQL), axiomatic (Coq/Lean/Agda, Rust's borrow checker), or hybrids like Prolog (axiomatic-leaning) and Rust (operational + axiomatic)
+- CompCert synthesizes parsing (LN 9), operational semantics (LN 11), denotational equivalence (LN 12), and verification (LN 13)
 
 </LectureNotes>
 
