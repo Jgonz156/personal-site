@@ -847,6 +847,12 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Set Theory",
     contentUrl: "/cmsi-2820/ln26",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/ZHmjA9Gj14Qpqaq2Ec-_b8mwNo0aLhTQLPw7QrlSG_ROVbdxDpgwjU3mn7HygWdb.c9Uuk_h-6sQ-KOpz"
+      }
+    ],
   },
   {
     id: "2820-ln27",
@@ -858,6 +864,12 @@ const allEvents: CourseEvent[] = [
     courseId: "cmsi-2820",
     standard: "Set Theory",
     contentUrl: "/cmsi-2820/ln27",
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/Vh7DIOrZkLzHnV8rCxZTXKnTP2qLGfLyLDP3cpdwv7kBnbMank14Z4vuTfdSKSgS.L-xZlPxe-1nf_lsi"
+      }
+    ],
   },
   {
     id: "2820-ex4-release",

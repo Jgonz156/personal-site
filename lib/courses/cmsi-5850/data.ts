@@ -596,6 +596,10 @@ const allEvents: CourseEvent[] = [
     ],
     contentUrl: "/cmsi-5850/ln13",
     recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/-N-QXLiaUdxmUiz-xqrTfx6uIg0pvFufFsK9qH-7GwwboF2soks2ejBjW6I2Dmwx.5p2yV3tr8rwv4QPY"
+      }
     ],
   },
   {
