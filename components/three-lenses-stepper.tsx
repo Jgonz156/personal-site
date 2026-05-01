@@ -142,7 +142,7 @@ export function ThreeLensesStepper({
         <pre className="font-mono text-sm">{program}</pre>
       </div>
 
-      <div className="px-4 py-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="px-4 py-4 flex flex-col gap-3">
         {lenses.map((l, i) => {
           const isFocused = !isFinale && currentStep === i
           const showFull = isFinale || isFocused
