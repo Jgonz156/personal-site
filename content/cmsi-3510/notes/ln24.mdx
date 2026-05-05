@@ -369,111 +369,121 @@ static struct file_operations rustecho_fops = {
 The Rust version replaces that manual ceremony with the language features you have been learning all semester. Here is the core of the Rust `rustecho` module:
 
 ```rust
-use kernel::prelude::*;
-use kernel::sync::Mutex;
-use kernel::{file, miscdev};
+use kernel::{
+    fs::{File, Kiocb},
+    iov::{IovIterDest, IovIterSource},
+    miscdevice::{MiscDevice, MiscDeviceOptions, MiscDeviceRegistration},
+    prelude::*,
+};
 
 module! {
     type: RustEcho,
     name: "rustecho",
-    author: "LN24 Demo",
-    description: "A character device that echoes data back",
+    description: "rustecho — a character device that echoes data back",
     license: "GPL",
 }
 
-struct RustEchoDevice {
-    buffer: Mutex<Vec<u8>>,
+kernel::sync::global_lock! {
+    // SAFETY: Initialized in module initializer before first use.
+    unsafe(uninit) static BUFFER: Mutex<KVec<u8>> = KVec::new();
 }
 
+#[pin_data]
 struct RustEcho {
-    _dev: Pin<Box<miscdev::Registration<RustEchoDevice>>>,
+    #[pin]
+    _miscdev: MiscDeviceRegistration<RustEchoDevice>,
 }
 
-impl kernel::Module for RustEcho {
-    fn init(_module: &'static ThisModule) -> Result<Self> {
-        pr_info!("rustecho: module loaded\n");
-        let dev = RustEchoDevice {
-            buffer: Mutex::new(Vec::new()),
-        };
-        let reg = miscdev::Registration::new_pinned(fmt!("rustecho"), dev)?;
-        Ok(Self { _dev: reg })
+impl kernel::InPlaceModule for RustEcho {
+    fn init(_module: &'static ThisModule) -> impl PinInit<Self, Error> {
+        pr_info!("module loaded\n");
+        // SAFETY: Called exactly once during module init.
+        unsafe { BUFFER.init() };
+        let opts = MiscDeviceOptions { name: c"rustecho" };
+        try_pin_init!(Self {
+            _miscdev <- MiscDeviceRegistration::register(opts),
+        })
     }
 }
 
-impl Drop for RustEcho {
-    fn drop(&mut self) {
-        pr_info!("rustecho: module unloaded\n");
-    }
-}
+struct RustEchoDevice;
 
 #[vtable]
-impl file::Operations for RustEchoDevice {
-    fn write(this: &Self, _file: &file::File, data: &mut impl IoBufferReader) -> Result<usize> {
-        let mut buf = this.buffer.lock();
-        buf.clear();
-        let len = data.len();
-        buf.try_reserve(len)?;
-        data.read_all(&mut *buf)?;
-        pr_info!("rustecho: wrote {} bytes\n", len);
-        Ok(len)
+impl MiscDevice for RustEchoDevice {
+    type Ptr = Pin<KBox<Self>>;
+
+    fn open(_file: &File, _misc: &MiscDeviceRegistration<Self>) -> Result<Pin<KBox<Self>>> {
+        Ok(KBox::new(RustEchoDevice, GFP_KERNEL).map(KBox::into_pin)?)
     }
 
-    fn read(this: &Self, _file: &file::File, data: &mut impl IoBufferWriter) -> Result<usize> {
-        let buf = this.buffer.lock();
-        let len = core::cmp::min(data.len(), buf.len());
-        data.write_slice(&buf[..len])?;
-        pr_info!("rustecho: read {} bytes\n", len);
-        Ok(len)
+    fn write_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterSource<'_>) -> Result<usize> {
+        let mut buf = BUFFER.lock();
+        buf.clear();
+        let n = iov.copy_from_iter_vec(&mut buf, GFP_KERNEL)?;
+        *kiocb.ki_pos_mut() = 0;
+        pr_info!("wrote {n} bytes\n");
+        Ok(n)
+    }
+
+    fn read_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterDest<'_>) -> Result<usize> {
+        let buf = BUFFER.lock();
+        let n = iov.simple_read_from_buffer(kiocb.ki_pos_mut(), &buf)?;
+        pr_info!("read {n} bytes\n");
+        Ok(n)
     }
 }
 ```
 
 Read through this carefully — every major design choice maps onto something you learned earlier in the course:
 
-- **`module!` macro + `impl kernel::Module`** replaces C's `module_init`/`module_exit`. The `init` function returns `Result<Self>`, so initialization failures are handled through the same `Result` pattern you have used all semester. `Drop` replaces the cleanup function — when the module is unloaded, the Rust runtime calls `drop()` automatically.
+- **`module!` macro + `impl kernel::InPlaceModule`** replaces C's `module_init`/`module_exit`. The `init` function returns an `impl PinInit<Self, Error>` — a *pin-initializer* that the kernel runtime drives in place. Initialization failures propagate through the same `Result`/`?` pattern you have used all semester. There is no `cleanup` function to write — when the module is unloaded, the kernel runs `Drop` for every field of `RustEcho` (in this case, the `MiscDeviceRegistration`), which deregisters the device automatically.
 
-- **`Mutex<Vec<u8>>`** is the buffer. You cannot access it without calling `.lock()`, and the lock guard auto-releases when it goes out of scope. The compiler prevents data races at compile time — there is no way to forget to lock or to hold the lock too long and forget to release it.
+- **`global_lock! { static BUFFER: Mutex<KVec<u8>> = KVec::new(); }`** declares a kernel-wide shared buffer protected by a mutex. The macro emits both the static and a marker type so the compiler can verify that every access goes through `.lock()`. You cannot read or write `BUFFER` without holding the guard, and the guard auto-releases when it leaves scope. Multiple processes calling `read()`/`write()` on `/dev/rustecho` all serialize through this single lock — exactly the behavior we want for an echo buffer that "remembers" the last write across opens.
 
-- **`IoBufferReader` and `IoBufferWriter`** replace C's raw `copy_from_user`/`copy_to_user`. These safe wrappers handle the user/kernel memory boundary without exposing raw pointers.
+- **`#[vtable] impl MiscDevice for RustEchoDevice`** is the modern Rust-for-Linux equivalent of C's `struct file_operations`. Each method is a syscall handler. `open` runs when a process opens the device. `write_iter` runs on `write()`. `read_iter` runs on `read()`. The `_iter` suffix reflects that the kernel passes the user-space buffer as an *iovec* (a vector of memory ranges) — a more efficient interface than the raw `(buf, len)` pair used in older C drivers.
 
-- **Ownership handles cleanup.** The buffer is a field of `RustEchoDevice`. When the module struct is dropped, the buffer is dropped. There is no `kfree` call to forget. There is exactly one owner and exactly one `Drop`. Use-after-free and double-free are structurally impossible.
+- **`IovIterSource` / `IovIterDest` + `copy_from_iter_vec` / `simple_read_from_buffer`** replace C's raw `copy_from_user`/`copy_to_user`. These safe wrappers handle the user/kernel memory boundary without exposing raw pointers. Bounds, partial reads, and the user-space/kernel-space split are all enforced by the type system.
+
+- **Ownership handles cleanup.** The `MiscDeviceRegistration` is a field of `RustEcho`. When the module struct is dropped, the registration's own `Drop` runs and tears down the device node. The `BUFFER` static is freed when the module's memory is reclaimed. There is no `kfree` call to forget. There is exactly one owner and exactly one `Drop` per resource. Use-after-free and double-free are structurally impossible.
 
 > **📌 Note:** Building Rust kernel modules requires a kernel configured with `CONFIG_RUST=y` and the appropriate Rust toolchain. This is more setup than C modules require — the Addendum at the bottom of this page walks through the full toolchain provisioning. That extra setup is the current cost of being early to Rust in the kernel. The safety guarantees you get in return are the reason the Linux community accepted that cost.
+
+> **🔄 Aside — this very lecture has already been wrong about the API once.** Earlier drafts of this page used `kernel::miscdev::Registration` and `file::Operations`, which is what most pre-2024 Rust-for-Linux tutorials still document. Those names come from the *out-of-tree* fork that was used to prototype Rust kernel support before merging — and the merged upstream API is `kernel::miscdevice::MiscDeviceRegistration` plus the `MiscDevice` trait, with `read_iter`/`write_iter` instead of `read`/`write`. I discovered the mismatch the first time I tried to demo `rustecho` in class and the module refused to load. The fix was a 30-line code-shape change; the *lesson* is bigger. When in doubt, do not trust a blog post — open `samples/rust/` in the kernel tree on your target version. That directory is the source of truth for whatever Rust-for-Linux dialect your kernel actually ships, and it is what every example in the rest of this lecture and the homework was rebuilt against. This is what "early to a language in the kernel" actually feels like in practice: the safety story is real, and the API surface is still moving fast enough that documentation goes stale before the ink dries. Both things are true at once.
 
 After building and loading the Rust module, the workflow is identical to what we would do with a C module:
 
 ```bash
-sudo insmod rustecho.ko && dmesg | tail -5
+sudo insmod rustecho.ko && sudo dmesg | tail -5
 ```
 
-> Load the Rust module and check for initialization messages. You should see `rustecho: module loaded`.
+> Load the Rust module and check for initialization messages. You should see `rustecho: module loaded`. `dmesg` needs `sudo` because modern Ubuntu sets `kernel.dmesg_restrict=1`, gating the kernel ring buffer behind root.
 
 ```bash
 ls -la /dev/rustecho
 ```
 
-> Verify the device node exists. It should show as a character device.
+> Verify the device node exists. It should show as a character device with mode `crw------- root:root` — the default for `MiscDevice`-registered nodes.
 
 ```bash
-echo "hello from user space" > /dev/rustecho
+echo "hello from user space" | sudo tee /dev/rustecho > /dev/null
 ```
 
-> Write a string to the device. This triggers a `write()` syscall that crosses into kernel space, dispatches through VFS to the Rust `write` handler, and stores the data in the `Mutex`-protected buffer.
+> Write a string to the device. The `sudo tee` idiom is required because `/dev/rustecho` is `0600 root:root`, and a plain `sudo echo "..." > /dev/rustecho` would still fail — the shell evaluates `>` *before* `sudo` runs, so the redirect targets the device as your unprivileged user. This `write()` syscall crosses into kernel space, dispatches through VFS to the Rust `write` handler, and stores the data in the `Mutex`-protected buffer.
 
 ```bash
-cat /dev/rustecho
+sudo cat /dev/rustecho
 ```
 
 > Read from the device. The Rust `read` handler locks the buffer, copies the stored data back to user space, and releases the lock when the guard goes out of scope. You should see `hello from user space`.
 
 ```bash
-strace -e openat,read,write,close cat /dev/rustecho
+sudo strace -e openat,read,write,close cat /dev/rustecho
 ```
 
 > Trace the syscalls to see the U-bend in action. The `strace` output is identical whether the module is written in C or Rust — the kernel dispatches through the same VFS path. The difference is entirely in what happens on the kernel side of that boundary.
 
 ```bash
-sudo rmmod rustecho && dmesg | tail -5
+sudo rmmod rustecho && sudo dmesg | tail -5
 ```
 
 > Unload and verify cleanup. `Drop` runs, the buffer is freed, the device node disappears.
@@ -487,8 +497,8 @@ Now that we have seen both the C interface and the Rust implementation, we can m
 | Concern | C Version | Rust Version |
 | :--- | :--- | :--- |
 | **Buffer lifetime** | Developer must call `kfree` in the cleanup function. Forgetting it leaks memory. Calling it twice is a double free. | Buffer is owned by the module struct. `Drop` frees it exactly once. The compiler enforces single ownership. |
-| **Lock discipline** | Developer must call `mutex_lock` before access and `mutex_unlock` after. Forgetting to unlock deadlocks. Forgetting to lock creates a data race. | `Mutex<T>` wraps the data. You cannot access it without `.lock()`. The guard auto-releases on scope exit. The compiler prevents unguarded access. |
-| **User/kernel copy** | `copy_to_user` and `copy_from_user` take raw pointers and lengths. A wrong length is a buffer overrun. | `IoBufferReader`/`IoBufferWriter` are safe abstractions. Bounds are checked at the API level. |
+| **Lock discipline** | Developer must call `mutex_lock` before access and `mutex_unlock` after. Forgetting to unlock deadlocks. Forgetting to lock creates a data race. | `global_lock! { static BUFFER: Mutex<...> }` wraps the data. You cannot access it without `.lock()`. The guard auto-releases on scope exit. The compiler prevents unguarded access. |
+| **User/kernel copy** | `copy_to_user` and `copy_from_user` take raw pointers and lengths. A wrong length is a buffer overrun. | `IovIterSource`/`IovIterDest` are safe abstractions. Bounds are checked at the API level; you never see a raw pointer or length. |
 | **Error propagation** | Functions return negative integers for errors. The caller must check every return value manually. Missing a check silently continues with corrupt state. | Functions return `Result<T>`. The `?` operator propagates errors automatically. The compiler warns about unused `Result` values. |
 | **Null pointers** | Pointers can be `NULL`. Dereferencing a null pointer in kernel space can panic the kernel. | References are non-null by construction. `Option<T>` makes the absence of a value explicit and checked. |
 
@@ -507,7 +517,7 @@ static void __exit rustecho_exit(void)
 
 > Four cleanup calls, in a specific order that reverses the initialization order. If the developer forgets one, resources leak. If they get the order wrong, the kernel may access freed memory. If a future contributor adds a new resource to `init` but forgets to add the corresponding cleanup to `exit`, the module silently leaks every time it is unloaded.
 
-In the Rust version, there is no `exit` function to write. `Drop` runs automatically when the module struct goes out of scope. Every field is dropped in reverse declaration order. Resources owned by the struct are freed by their own `Drop` implementations. The developer cannot forget a cleanup step because there are no cleanup steps to write — ownership handles it.
+In the Rust version, there is no `exit` function to write. When the module is unloaded, `Drop` runs automatically on every field of `RustEcho`. The `MiscDeviceRegistration` field has its own `Drop` implementation that calls the C `misc_deregister` for us — we do not have to remember to do it, and we cannot do it in the wrong order, because there is no order to choose. The developer cannot forget a cleanup step because there are no cleanup steps to write — ownership handles it.
 
 This is the payoff of the entire semester's work with Rust. The strictness of ownership, borrowing, and lifetimes — the rules that felt constraining in LN2 through LN4 — is precisely what makes kernel code safer. The compiler does not trust you with memory, and in kernel space, that distrust is exactly what you want.
 
@@ -602,7 +612,7 @@ After this course, these claims should feel earned rather than aspirational:
 | Piece | Language | Where It Lives | What It Does | Key Insight |
 | :--- | :--- | :--- | :--- | :--- |
 | Skeleton | C | Addendum (optional pre-flight) | Loads and prints to `dmesg` | Validates the build/load/unload workflow before adding functionality |
-| Character Device | Rust | Lecture body (primary demo) | Creates `/dev/rustecho`; stores and echoes data via safe Rust handlers | Ownership handles cleanup; `Mutex<T>` enforces locking; `Result` handles errors |
+| Character Device | Rust | Lecture body (primary demo) | Creates `/dev/rustecho` via `MiscDevice`; stores and echoes data through a `global_lock!`-protected buffer | Ownership handles cleanup; the global mutex enforces locking; `Result` handles errors |
 | Comparison | C vs Rust | Lecture body | Side-by-side analysis of the same module | Identifies which bug classes become structurally impossible in the Rust version |
 
 **Safe Experimentation Workflow:**
@@ -702,20 +712,17 @@ sudo apt update && sudo apt install -y build-essential linux-headers-$(uname -r)
 
 ### Rust Kernel Toolchain Setup
 
-Building Rust kernel modules requires additional toolchain configuration beyond what the C modules need. The kernel must be configured with `CONFIG_RUST=y`, and you need a specific Rust toolchain version that matches the kernel's expectations.
+Building Rust kernel modules requires additional toolchain configuration beyond what the C modules need. The kernel must be configured with `CONFIG_RUST=y` (Ubuntu 26.04 LTS already does this), and you need the `rustc` version that matches the kernel's expectations. For the Ubuntu 26.04 kernel `7.0.0-x-generic`, that is `rustc 1.93`.
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source "$HOME/.cargo/env"
-rustup override set $(scripts/min-tool-version.sh rustc)
-rustup component add rust-src
+sudo apt install -y rustc-1.93 rust-1.93-src bindgen
+sudo update-alternatives --install /usr/bin/rustc rustc /usr/bin/rustc-1.93 100
+rustc --version
 ```
 
-> `rustup` installs the Rust toolchain. The kernel specifies a minimum Rust compiler version — `scripts/min-tool-version.sh` (in the kernel source tree) tells you which one. `rust-src` provides the Rust standard library source, which the kernel build system needs to compile `core` and `alloc` for the kernel's `no_std` environment.
+> `rustc-1.93` is the kernel-blessed Rust compiler for this Ubuntu series. `rust-1.93-src` provides the Rust standard library source, which the kernel build system needs to compile `core` and `alloc` for the kernel's `no_std` environment. `bindgen` is what generates Rust bindings for the kernel's C headers. `update-alternatives` makes the versioned binary the default `rustc` so the Makefile picks it up automatically.
 
-The kernel source tree with Rust support enabled is required to build Rust modules. Follow the [Rust for Linux documentation](https://www.kernel.org/doc/html/latest/rust/index.html) for full instructions on configuring and building a Rust-enabled kernel. For the lecture demo, the VM is pre-configured with this setup so the audience sees the results without waiting for compilation.
-
-> **📌 Note:** This is more setup than C modules require. That is the current cost of being early to Rust in the kernel — the toolchain is newer and less integrated into distribution packages. The safety guarantees you get in return are the reason the Linux community accepted that cost. As Rust support matures in the kernel, distribution kernels will increasingly ship with `CONFIG_RUST=y` enabled by default.
+> **📌 Note:** This is more setup than C modules require. That is the current cost of being early to Rust in the kernel — the toolchain is newer and less integrated into distribution packages. The safety guarantees you get in return are the reason the Linux community accepted that cost. As Rust support matures in the kernel, distribution kernels will increasingly ship the right `rustc` and bindings as part of `linux-headers` automatically.
 
 Create the project directory:
 
@@ -784,10 +791,10 @@ SRC
 cp rustecho_stage1.c rustecho.c
 make
 sudo insmod rustecho.ko
-dmesg | tail -3
+sudo dmesg | tail -3
 lsmod | grep rustecho
 sudo rmmod rustecho
-dmesg | tail -3
+sudo dmesg | tail -3
 ```
 
 You should see `rustecho: module loaded` and `rustecho: module unloaded` in `dmesg`, and the module should appear and disappear from `lsmod`.
@@ -803,62 +810,72 @@ This is the version demonstrated in the lecture. It implements the full characte
 ```bash
 cat > ~/rustecho/rustecho.rs << 'SRC'
 // SPDX-License-Identifier: GPL-2.0
+//! rustecho: a Rust character device that echoes data back via /dev/rustecho.
+//!
+//! Writes replace the shared kernel buffer; reads stream it back to user space.
+//! All opens share the same buffer through a global mutex.
 
-use kernel::prelude::*;
-use kernel::sync::Mutex;
-use kernel::{file, miscdev};
+use kernel::{
+    fs::{File, Kiocb},
+    iov::{IovIterDest, IovIterSource},
+    miscdevice::{MiscDevice, MiscDeviceOptions, MiscDeviceRegistration},
+    prelude::*,
+};
 
 module! {
     type: RustEcho,
     name: "rustecho",
-    author: "LN24 Demo",
-    description: "A character device that echoes data back",
+    description: "rustecho — a character device that echoes data back",
     license: "GPL",
 }
 
-struct RustEchoDevice {
-    buffer: Mutex<Vec<u8>>,
+kernel::sync::global_lock! {
+    // SAFETY: Initialized in module initializer before first use.
+    unsafe(uninit) static BUFFER: Mutex<KVec<u8>> = KVec::new();
 }
 
+#[pin_data]
 struct RustEcho {
-    _dev: Pin<Box<miscdev::Registration<RustEchoDevice>>>,
+    #[pin]
+    _miscdev: MiscDeviceRegistration<RustEchoDevice>,
 }
 
-impl kernel::Module for RustEcho {
-    fn init(_module: &'static ThisModule) -> Result<Self> {
-        pr_info!("rustecho: module loaded\n");
-        let dev = RustEchoDevice {
-            buffer: Mutex::new(Vec::new()),
-        };
-        let reg = miscdev::Registration::new_pinned(fmt!("rustecho"), dev)?;
-        Ok(Self { _dev: reg })
+impl kernel::InPlaceModule for RustEcho {
+    fn init(_module: &'static ThisModule) -> impl PinInit<Self, Error> {
+        pr_info!("module loaded\n");
+        // SAFETY: Called exactly once during module init.
+        unsafe { BUFFER.init() };
+        let opts = MiscDeviceOptions { name: c"rustecho" };
+        try_pin_init!(Self {
+            _miscdev <- MiscDeviceRegistration::register(opts),
+        })
     }
 }
 
-impl Drop for RustEcho {
-    fn drop(&mut self) {
-        pr_info!("rustecho: module unloaded\n");
-    }
-}
+struct RustEchoDevice;
 
 #[vtable]
-impl file::Operations for RustEchoDevice {
-    fn write(this: &Self, _file: &file::File, data: &mut impl IoBufferReader) -> Result<usize> {
-        let mut buf = this.buffer.lock();
-        buf.clear();
-        let len = data.len();
-        buf.try_reserve(len)?;
-        data.read_all(&mut *buf)?;
-        pr_info!("rustecho: wrote {} bytes\n", len);
-        Ok(len)
+impl MiscDevice for RustEchoDevice {
+    type Ptr = Pin<KBox<Self>>;
+
+    fn open(_file: &File, _misc: &MiscDeviceRegistration<Self>) -> Result<Pin<KBox<Self>>> {
+        Ok(KBox::new(RustEchoDevice, GFP_KERNEL).map(KBox::into_pin)?)
     }
 
-    fn read(this: &Self, _file: &file::File, data: &mut impl IoBufferWriter) -> Result<usize> {
-        let buf = this.buffer.lock();
-        let len = core::cmp::min(data.len(), buf.len());
-        data.write_slice(&buf[..len])?;
-        pr_info!("rustecho: read {} bytes\n", len);
-        Ok(len)
+    fn write_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterSource<'_>) -> Result<usize> {
+        let mut buf = BUFFER.lock();
+        buf.clear();
+        let n = iov.copy_from_iter_vec(&mut buf, GFP_KERNEL)?;
+        *kiocb.ki_pos_mut() = 0;
+        pr_info!("wrote {n} bytes\n");
+        Ok(n)
+    }
+
+    fn read_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterDest<'_>) -> Result<usize> {
+        let buf = BUFFER.lock();
+        let n = iov.simple_read_from_buffer(kiocb.ki_pos_mut(), &buf)?;
+        pr_info!("read {n} bytes\n");
+        Ok(n)
     }
 }
 SRC
@@ -866,26 +883,32 @@ SRC
 
 #### Build and Test Stage 2 (Rust)
 
+> **📌 Important:** Stage 1 left a `rustecho.c` in the directory. KBuild's `obj-m += rustecho.o` rule resolves to that `.c` file when both a `.c` and a `.rs` of the same basename are present, which would silently rebuild the C skeleton instead of the Rust module. Remove `rustecho.c` first so the build picks up `rustecho.rs`. Look for `RUSTC [M] rustecho.o` in the build output to confirm — if you see `CC [M] rustecho.o`, you are still building the C version.
+
 ```bash
+rm -f rustecho.c
 make clean && make
 sudo insmod rustecho.ko
-dmesg | tail -5
+sudo dmesg | tail -5
 ls -la /dev/rustecho
-echo "hello from user space" > /dev/rustecho
-cat /dev/rustecho
-strace -e openat,read,write,close cat /dev/rustecho
-dmesg | tail -10
+echo "hello from user space" | sudo tee /dev/rustecho > /dev/null
+sudo cat /dev/rustecho
+sudo strace -e openat,read,write,close cat /dev/rustecho
+sudo dmesg | tail -10
 sudo rmmod rustecho
-dmesg | tail -3
-ls /dev/rustecho 2>&1
+sudo dmesg | tail -3
+ls /dev/rustecho 2>&1 || echo "/dev/rustecho removed — clean."
 ```
 
 You should see:
+- `RUSTC [M] rustecho.o` in the build output (proof you compiled the Rust source)
 - `rustecho: module loaded` in `dmesg`
 - The device node appear in `/dev` after loading
 - `"hello from user space"` echoed back when reading
 - `strace` showing the syscall dispatch to your module's Rust handlers
 - Clean removal with `Drop` running automatically
+
+> **📌 Why `sudo` everywhere.** The `MiscDevice` node defaults to mode `0600 root:root`, so an unprivileged shell redirect (`echo "..." > /dev/rustecho`) cannot open it. And modern Ubuntu sets `kernel.dmesg_restrict=1`, so non-root users cannot read the kernel ring buffer. Every line above that touches `/dev/rustecho` or `dmesg` therefore needs `sudo`. The `sudo tee ... > /dev/null` idiom is what lets a redirect target a root-owned file — `>` is interpreted by your shell, *before* `sudo` runs, so `sudo echo ... > /dev/rustecho` would still fail.
 
 ---
 
@@ -1041,9 +1064,12 @@ To test the C version instead of the Rust version:
 cp rustecho_c_reference.c rustecho.c
 make clean && make
 sudo insmod rustecho.ko
-echo "hello" > /dev/rustecho && cat /dev/rustecho
+echo "hello" | sudo tee /dev/rustecho > /dev/null && sudo cat /dev/rustecho
 sudo rmmod rustecho
+rm -f rustecho.c
 ```
+
+> The C version's `device_create()` also produces a `0600 root:root` node, so the same `sudo tee` / `sudo cat` rules apply. Removing `rustecho.c` afterwards keeps the directory in the Rust-only state the rest of the addendum assumes.
 
 The behavior from user space is identical. The differences are entirely in the kernel-side safety properties.
 
@@ -1056,15 +1082,31 @@ A convenience script to test the Rust module through the full workflow:
 ```bash
 cat > ~/rustecho/test_rustecho.sh << 'SCRIPT'
 #!/bin/bash
+# Best-effort cleanup so a partial run never leaves the module loaded.
+cleanup() {
+    if lsmod | grep -q '^rustecho '; then
+        sudo rmmod rustecho 2>/dev/null || true
+    fi
+}
+trap cleanup EXIT
+
 set -e
 
 echo "=== Building Rust module ==="
+# Stage 1 leaves rustecho.c in place; remove it so KBuild picks up rustecho.rs.
+rm -f rustecho.c
 make clean && make
+
+# Sanity-check that the build was actually Rust, not the leftover C skeleton.
+if [ ! -f rustecho.rs ]; then
+    echo "ERROR: rustecho.rs is missing. Re-create it from the addendum." >&2
+    exit 1
+fi
 
 echo ""
 echo "=== Loading module ==="
 sudo insmod rustecho.ko
-dmesg | tail -3
+sudo dmesg | tail -3
 
 echo ""
 echo "=== Checking device node ==="
@@ -1072,24 +1114,24 @@ ls -la /dev/rustecho
 
 echo ""
 echo "=== Writing to device ==="
-echo "hello from user space" > /dev/rustecho
+echo "hello from user space" | sudo tee /dev/rustecho > /dev/null
 
 echo ""
 echo "=== Reading from device ==="
-cat /dev/rustecho
+sudo cat /dev/rustecho
 
 echo ""
 echo "=== Tracing syscalls ==="
-strace -e openat,read,write,close cat /dev/rustecho 2>&1 | head -15
+sudo strace -e openat,read,write,close cat /dev/rustecho 2>&1 | head -15
 
 echo ""
 echo "=== Kernel log ==="
-dmesg | tail -10
+sudo dmesg | tail -10
 
 echo ""
 echo "=== Unloading module ==="
 sudo rmmod rustecho
-dmesg | tail -3
+sudo dmesg | tail -3
 
 echo ""
 echo "=== Verifying cleanup ==="
@@ -1102,13 +1144,17 @@ SCRIPT
 chmod +x ~/rustecho/test_rustecho.sh
 ```
 
+> The script needs `sudo` for `dmesg` (because of `kernel.dmesg_restrict=1` on modern Ubuntu) and for every operation on `/dev/rustecho` (because the device node defaults to `0600 root:root`). The `trap cleanup EXIT` guarantees that an interrupted run never leaves the module loaded — without it, `set -e` would abort before the `rmmod` line and the next run would fail with "module already loaded."
+
 ---
 
 ### Verifying the Project
 
 ```bash
-tree ~/rustecho/
+cd ~/rustecho && make clean && tree ~/rustecho/
 ```
+
+> `make clean` removes the `.ko`, `.o`, `.mod*`, and dot-`.cmd` build artifacts so `tree` shows only the source files you wrote.
 
 You should see:
 

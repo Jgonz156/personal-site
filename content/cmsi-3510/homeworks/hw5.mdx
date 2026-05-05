@@ -17,7 +17,7 @@ The amount of *new* material for this homework is small. The lectures in [LN23](
 
 **Re-read [LN24](/cmsi-3510/ln24).**
 
-Specifically the *Building rustecho in Rust* and *C vs. Rust* subsections, plus the addendum's Rust toolchain setup. The starting skeleton in this homework is the same shape as the lecture's `rustecho` — you'll re-type its `module!`, `kernel::Module`, `file::Operations`, and `miscdev::Registration` patterns from memory and reference, then adapt them to your own module idea.
+Specifically the *Building rustecho in Rust* and *C vs. Rust* subsections, plus the addendum's Rust toolchain setup. The starting skeleton in this homework is the same shape as the lecture's `rustecho` — you'll re-type its `module!`, `kernel::InPlaceModule`, `MiscDevice`, and `MiscDeviceRegistration` patterns from memory and reference, then adapt them to your own module idea. Pay particular attention to the `global_lock!` idiom used to share state across `open()` calls — every path in this homework uses it.
 
 </QuestionBox>
 
@@ -78,6 +78,7 @@ multipass shell hw5
 Everything from here on runs *inside* the VM. Any time you see a shell command in this homework, assume that's where it belongs. If your VM ever becomes unresponsive (most likely after a kernel panic), nuke it and recreate from scratch:
 
 ```bash
+multipass stop hw5
 multipass delete hw5 && multipass purge
 multipass launch --name hw5 lts
 ```
@@ -86,25 +87,24 @@ multipass launch --name hw5 lts
 
 ### 1.2 Install the Toolchain
 
-You need three things: kernel headers (the C-side build infrastructure), a recent Rust toolchain (for compiling your `.rs` source as a kernel module), and the standard `kmod` utilities (for `insmod`/`rmmod`/`lsmod`):
+You need four things: kernel headers (the C-side build infrastructure), the kernel-blessed Rust compiler (`rustc-1.93` for Ubuntu 26.04 LTS), the matching Rust standard library source plus `bindgen` (for compiling `core`/`alloc` and generating Rust bindings to the kernel's C headers), and the standard `kmod` utilities (for `insmod`/`rmmod`/`lsmod`):
 
 ```bash
 sudo apt update
 sudo apt install -y build-essential linux-headers-$(uname -r) kmod tree
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source "$HOME/.cargo/env"
-rustup component add rust-src
+sudo apt install -y rustc-1.93 rust-1.93-src bindgen
+sudo update-alternatives --install /usr/bin/rustc rustc /usr/bin/rustc-1.93 100
 ```
 
 Verify everything is in place:
 
 ```bash
 uname -r              # which kernel you're running
-rustc --version       # which Rust compiler you have
-ls /lib/modules/$(uname -r)/build  # kernel build directory exists
+rustc --version       # should report 1.93.x
+ls /lib/modules/$(uname -r)/build/rust  # Rust support files for this kernel exist
 ```
 
-> **⚠️ Rust-enabled kernel required.** Building a Rust kernel module needs a kernel built with `CONFIG_RUST=y`. Recent Ubuntu LTS images have this enabled by default; if your VM doesn't, the LN24 addendum walks through the full custom-kernel path. In most cases your default Ubuntu kernel will work and you can skip the custom build.
+> **⚠️ Rust-enabled kernel required.** Building a Rust kernel module needs a kernel built with `CONFIG_RUST=y`. Ubuntu 26.04 LTS already does this. If you are on an older series, the simplest fix is to recreate your VM with `multipass launch --name hw5 lts` (which today maps to 26.04). The exact `rustc` version matters — using a different one will fail with "the compiler differs from the one used to build the kernel" errors.
 
 ### 1.3 Project Layout
 
@@ -142,14 +142,15 @@ Create your `<PROJECT>.rs` with this skeleton, replacing the `PROJECT` placehold
 
 ```rust
 // SPDX-License-Identifier: GPL-2.0
+//! PROJECT: minimal Rust kernel module smoke test.
 
 use kernel::prelude::*;
 
 module! {
     type: HelloModule,
     name: "PROJECT",
-    author: "Your Name",
-    description: "PROJECT — describe your module here",
+    authors: ["Your Name"],
+    description: "PROJECT — short tagline for the module",
     license: "GPL",
 }
 
@@ -157,17 +158,21 @@ struct HelloModule;
 
 impl kernel::Module for HelloModule {
     fn init(_module: &'static ThisModule) -> Result<Self> {
-        pr_info!("PROJECT: module loaded\n");
+        pr_info!("module loaded\n");
         Ok(HelloModule)
     }
 }
 
 impl Drop for HelloModule {
     fn drop(&mut self) {
-        pr_info!("PROJECT: module unloaded\n");
+        pr_info!("module unloaded\n");
     }
 }
 ```
+
+> **📌 About the `module!` fields.** The Ubuntu 26.04 kernel's `module!` macro accepts five fields, and **they must appear in this exact order**: `type`, `name`, `authors`, `description`, `license`. Reordering them produces an `error: keys are not ordered as expected` from the macro itself. `authors` and `description` are both optional, but including `description` silences the otherwise-noisy `WARNING: modpost: missing MODULE_DESCRIPTION()` you'll see at link time, and including `authors` lets you record yourself in the resulting `.ko` file's metadata (`modinfo PROJECT.ko` will show it). The crate-level `//!` line silences Rust's own `missing documentation for the crate` warning. If you've seen older Rust-for-Linux tutorials use `author:` (singular), note that the upstream API since merge is `authors:` (plural, an array of strings).
+
+> **📌 About `pr_info!`.** The kernel log automatically prefixes Rust module messages with the module name. If your module is named `PROJECT`, `pr_info!("module loaded\n")` appears in `dmesg` as `PROJECT: module loaded`. Do not include `PROJECT:` inside the string unless you want `PROJECT: PROJECT: ...`.
 
 Build it:
 
@@ -179,7 +184,7 @@ If the build succeeds, you'll have a `<PROJECT>.ko` file next to your source. Lo
 
 ```bash
 sudo insmod <PROJECT>.ko
-dmesg | tail -3
+sudo dmesg | tail -3
 ```
 
 You should see `<PROJECT>: module loaded` in the kernel log. Verify it appears in the loaded module list:
@@ -192,16 +197,18 @@ Unload it:
 
 ```bash
 sudo rmmod <PROJECT>
-dmesg | tail -3
+sudo dmesg | tail -3
 ```
 
 You should now see `<PROJECT>: module unloaded`.
+
+> **🔐 Why `sudo dmesg`?** Modern Ubuntu sets `kernel.dmesg_restrict=1`, which gates the kernel ring buffer behind root. `dmesg` without `sudo` will fail silently (or with `Operation not permitted`) for an unprivileged user. Every `dmesg`, `insmod`, and `rmmod` invocation in this homework therefore wants `sudo`. You can also flip `sudo sysctl kernel.dmesg_restrict=0` if you really want to drop the prefix everywhere, but per-command `sudo` is the cleaner habit.
 
 > **🩺 Sanity check.** If those four commands all worked, your toolchain is healthy and the rest of this homework is purely Rust. Common failure modes:
 >
 > - `make` fails with "No rule to make target" → the Makefile's `obj-m` line doesn't match your `.rs` filename.
 > - `insmod` fails with `Operation not permitted` → you may need to disable Secure Boot in your VM, or the kernel doesn't have `CONFIG_RUST=y` (see the LN24 addendum for the custom-kernel path).
-> - `dmesg` shows nothing new → check that your `pr_info!` strings have a trailing `\n`. This is a real common rookie mistake — the kernel's log buffer is line-buffered.
+> - `dmesg` shows nothing new → first make sure you're running it with `sudo` (see above). If you still see nothing, check that your `pr_info!` strings have a trailing `\n` — the kernel's log buffer is line-buffered, so a missing newline is a common rookie mistake.
 
 You're now ready to build something actually interesting.
 
@@ -237,155 +244,189 @@ Conceptually it's a tiny in-kernel reimplementation of a System V message queue 
 
 #### Data model
 
-The queue lives behind a `Mutex` so concurrent processes can write and read safely:
+The queue lives in a kernel-wide `global_lock!` static so that all opens of the device — every `echo` and every `cat` — see the same FIFO:
 
 ```rust
 const MAX_MESSAGES: usize = 16;
 const MAX_MSG_SIZE: usize = 4096;
 
-struct RustQueueDevice {
-    queue: Mutex<VecDeque<Vec<u8>>>,
+kernel::sync::global_lock! {
+    // SAFETY: Initialized in module initializer before first use.
+    unsafe(uninit) static QUEUE: Mutex<KVec<KVec<u8>>> = KVec::new();
 }
 ```
 
-`VecDeque` is the standard double-ended queue from `alloc`. Each element is a `Vec<u8>` — the bytes of one message. `Mutex<VecDeque<...>>` means: *to touch the queue, you must hold the lock; the lock is automatically released when its guard goes out of scope.* You cannot accidentally read from the queue without locking it; the type system forbids it.
+`KVec<KVec<u8>>` is the kernel-side equivalent of `Vec<Vec<u8>>` — the outer vector is the FIFO, each inner `KVec<u8>` is the bytes of one message. (We use a plain `KVec` plus `pop_front()`-by-`remove(0)` rather than `VecDeque` because the kernel `alloc` crate's `VecDeque` is not exported by the Ubuntu 26.04 kernel; for `MAX_MESSAGES = 16` the difference is irrelevant.) `global_lock! { static QUEUE: Mutex<...> }` means: *to touch the queue, you must call `QUEUE.lock()`; the lock is automatically released when its guard goes out of scope.* You cannot accidentally touch the queue without locking it — the macro only exposes the data behind the guard.
 
 #### Module shell
 
-The module itself wraps the device in a `miscdev::Registration` and handles init / drop, mirroring the rustecho pattern from LN24:
+The module itself wraps the device in a `MiscDeviceRegistration` and initializes the global lock at load, mirroring the rustecho pattern from LN24:
 
 ```rust
 // SPDX-License-Identifier: GPL-2.0
+//! rustqueue: a bounded FIFO message queue character device.
 
-use kernel::prelude::*;
-use kernel::sync::Mutex;
-use kernel::{file, miscdev};
-use alloc::collections::VecDeque;
+use kernel::{
+    fs::{File, Kiocb},
+    iov::{IovIterDest, IovIterSource},
+    miscdevice::{MiscDevice, MiscDeviceOptions, MiscDeviceRegistration},
+    new_mutex,
+    prelude::*,
+    sync::Mutex,
+};
 
 module! {
     type: RustQueue,
     name: "rustqueue",
-    author: "Your Name",
-    description: "A bounded FIFO message queue as a character device",
+    description: "rustqueue — a bounded FIFO message queue",
     license: "GPL",
 }
 
 const MAX_MESSAGES: usize = 16;
 const MAX_MSG_SIZE: usize = 4096;
 
-struct RustQueueDevice {
-    queue: Mutex<VecDeque<Vec<u8>>>,
+kernel::sync::global_lock! {
+    unsafe(uninit) static QUEUE: Mutex<KVec<KVec<u8>>> = KVec::new();
 }
 
+#[pin_data]
 struct RustQueue {
-    _dev: Pin<Box<miscdev::Registration<RustQueueDevice>>>,
+    #[pin]
+    _miscdev: MiscDeviceRegistration<RustQueueDevice>,
 }
 
-impl kernel::Module for RustQueue {
-    fn init(_module: &'static ThisModule) -> Result<Self> {
-        pr_info!("rustqueue: module loaded (capacity {} messages)\n", MAX_MESSAGES);
-        let dev = RustQueueDevice {
-            queue: Mutex::new(VecDeque::new()),
-        };
-        let reg = miscdev::Registration::new_pinned(fmt!("rustqueue"), dev)?;
-        Ok(Self { _dev: reg })
+impl kernel::InPlaceModule for RustQueue {
+    fn init(_module: &'static ThisModule) -> impl PinInit<Self, Error> {
+        pr_info!("module loaded (capacity {} messages)\n", MAX_MESSAGES);
+        // SAFETY: Called exactly once during module init.
+        unsafe { QUEUE.init() };
+        let opts = MiscDeviceOptions { name: c"rustqueue" };
+        try_pin_init!(Self {
+            _miscdev <- MiscDeviceRegistration::register(opts),
+        })
     }
 }
 
-impl Drop for RustQueue {
-    fn drop(&mut self) {
-        pr_info!("rustqueue: module unloaded\n");
-    }
+#[pin_data]
+struct RustQueueDevice {
+    // Per-open: the message we dequeued for this `cat` invocation, if any.
+    #[pin]
+    pending: Mutex<Option<KVec<u8>>>,
 }
 ```
 
-Nothing here needs explanation that LN24 didn't already cover. The interesting work happens in `file::Operations`.
+Nothing here needs explanation that LN24 didn't already cover. The interesting work happens in `MiscDevice`.
 
-#### `write()` — enqueue one message
+#### `open()` — fresh per-open state
+
+Each `open()` creates a fresh `RustQueueDevice` whose `pending` slot starts empty. The first `read()` on this open will lazily pull one message off the global queue.
 
 ```rust
 #[vtable]
-impl file::Operations for RustQueueDevice {
-    fn write(this: &Self, _file: &file::File, data: &mut impl IoBufferReader) -> Result<usize> {
-        let len = data.len();
+impl MiscDevice for RustQueueDevice {
+    type Ptr = Pin<KBox<Self>>;
 
-        if len > MAX_MSG_SIZE {
-            return Err(EINVAL);
-        }
-
-        let mut q = this.queue.lock();
-
-        if q.len() >= MAX_MESSAGES {
-            pr_info!("rustqueue: queue full, rejecting write\n");
-            return Err(ENOSPC);
-        }
-
-        let mut msg = Vec::new();
-        msg.try_reserve(len)?;
-        data.read_all(&mut msg)?;
-        q.push_back(msg);
-
-        pr_info!("rustqueue: enqueued {} bytes ({} in queue)\n", len, q.len());
-        Ok(len)
+    fn open(_file: &File, _misc: &MiscDeviceRegistration<Self>) -> Result<Pin<KBox<Self>>> {
+        KBox::try_pin_init(
+            try_pin_init! {
+                RustQueueDevice {
+                    pending <- new_mutex!(None),
+                }
+            },
+            GFP_KERNEL,
+        )
     }
-    // read() below
+    // write_iter() and read_iter() below
 }
 ```
 
-Walk through it:
-
-1. **`data.len()`** is how many bytes the user is trying to write in this single syscall.
-2. **`MAX_MSG_SIZE` check** rejects oversized messages with `EINVAL` (invalid argument). This is your first guard against denial-of-service: a user can't make the kernel allocate arbitrary memory.
-3. **`this.queue.lock()`** acquires the mutex. The returned guard is a smart pointer that auto-releases when it goes out of scope. You cannot forget to unlock.
-4. **Capacity check** rejects writes when the queue is full with `ENOSPC` (no space left on device). This is the standard error code for a full buffer.
-5. **`Vec::new()` + `try_reserve(len)?`** allocates a new buffer for the message. `try_reserve` is fallible — if allocation fails, the `?` propagates the error up rather than panicking the kernel.
-6. **`data.read_all(&mut msg)?`** copies the user's bytes into the kernel-side buffer. This is the safe wrapper around the C `copy_from_user` we discussed in LN24.
-7. **`q.push_back(msg)`** moves ownership of the message buffer into the queue. After this line, the local `msg` variable can no longer be used — Rust's ownership model has transferred it.
-8. The lock guard `q` is dropped at end of scope, automatically releasing the mutex.
-
-#### `read()` — dequeue one message
+#### `write_iter()` — enqueue one message
 
 ```rust
-fn read(this: &Self, _file: &file::File, data: &mut impl IoBufferWriter) -> Result<usize> {
-    let mut q = this.queue.lock();
+fn write_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterSource<'_>) -> Result<usize> {
+    let mut q = QUEUE.lock();
 
-    let Some(msg) = q.pop_front() else {
-        return Ok(0);  // empty queue → EOF
-    };
+    if q.len() >= MAX_MESSAGES {
+        pr_info!("queue full, rejecting write\n");
+        return Err(ENOSPC);
+    }
 
-    let to_write = core::cmp::min(data.len(), msg.len());
-    data.write_slice(&msg[..to_write])?;
+    let mut msg: KVec<u8> = KVec::new();
+    let len = iov.copy_from_iter_vec(&mut msg, GFP_KERNEL)?;
 
-    pr_info!("rustqueue: dequeued {} bytes ({} remaining)\n", to_write, q.len());
-    Ok(to_write)
+    if len > MAX_MSG_SIZE {
+        return Err(EINVAL);
+    }
+
+    q.push(msg, GFP_KERNEL)?;
+    *kiocb.ki_pos_mut() = 0;
+
+    pr_info!("enqueued {} bytes ({} in queue)\n", len, q.len());
+    Ok(len)
 }
 ```
 
 Walk through it:
 
-1. Lock the mutex.
-2. **`q.pop_front()`** returns `Some(msg)` if there's a message, or `None` if the queue is empty. The `let Some(...) else { ... }` syntax is Rust's "destructure or take a default branch" — if there's nothing to read, we return `Ok(0)` which the VFS layer converts into EOF for the user.
-3. **`min(data.len(), msg.len())`** handles the case where the user's read buffer is smaller than the message. We truncate to fit; the rest of the message is *lost*. This is a known limitation — your README's "future work" section can list "support partial reads where the rest of the message stays in the queue" as an extension.
-4. **`data.write_slice(...)`** is the safe wrapper around `copy_to_user`.
-5. The lock auto-releases on scope exit.
+1. **`QUEUE.lock()`** acquires the global mutex. The returned guard is a smart pointer that auto-releases when it goes out of scope. You cannot forget to unlock.
+2. **Capacity check** rejects writes when the queue is full with `ENOSPC` (no space left on device). This is the standard error code for a full buffer.
+3. **`KVec::new()` + `iov.copy_from_iter_vec(&mut msg, GFP_KERNEL)`** allocates a fresh message buffer and copies the user's bytes into it. `copy_from_iter_vec` is the safe wrapper around the C `copy_from_user` we discussed in LN24 — the bounds and partial-read accounting are handled inside the iov machinery. `GFP_KERNEL` tells the allocator that this is a sleepable allocation context, which is true for a syscall handler.
+4. **`MAX_MSG_SIZE` check** rejects oversized messages with `EINVAL` (invalid argument). This is your guard against denial-of-service: a user can't make the kernel allocate arbitrary memory.
+5. **`q.push(msg, GFP_KERNEL)?`** moves ownership of the message buffer into the queue. After this line, the local `msg` variable can no longer be used — Rust's ownership model has transferred it. The fallible push (`?`) propagates an allocation failure rather than panicking the kernel.
+6. **`*kiocb.ki_pos_mut() = 0`** resets the per-open file position so subsequent writes through the same descriptor start fresh.
+7. The lock guard `q` is dropped at end of scope, automatically releasing the mutex.
+
+#### `read_iter()` — lazily dequeue, then stream the message
+
+```rust
+fn read_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterDest<'_>) -> Result<usize> {
+    let me = kiocb.file();
+    let mut pending = me.pending.lock();
+
+    // First read of this open: pull one message off the queue and remember it.
+    if pending.is_none() && *kiocb.ki_pos_mut() == 0 {
+        let mut q = QUEUE.lock();
+        if !q.is_empty() {
+            *pending = Some(q.remove(0)?);
+            pr_info!("dequeued ({} remaining)\n", q.len());
+        }
+    }
+
+    match pending.as_ref() {
+        None => Ok(0),
+        Some(msg) => iov.simple_read_from_buffer(kiocb.ki_pos_mut(), msg),
+    }
+}
+```
+
+Walk through it:
+
+1. **`kiocb.file()`** gives you a `&Self` for the per-open `RustQueueDevice` — the same `pending` slot lives across multiple `read()` calls on the same file descriptor.
+2. **First-read check** — `cat` typically calls `read()` repeatedly until it returns 0. The very first call enters with `ki_pos == 0` and `pending == None`. We take that opportunity to dequeue exactly one message off the global queue and stash it in `pending`. Subsequent reads on the same descriptor see `pending == Some(msg)` and just stream more bytes out of it.
+3. **`iov.simple_read_from_buffer(...)`** is the safe wrapper around `copy_to_user`. It advances `kiocb.ki_pos_mut()` for us, so multi-call reads work correctly. Once `ki_pos` reaches `msg.len()`, this returns 0 and `cat` sees EOF.
+4. **Empty-queue case** — if `pending` is still `None` after the dequeue attempt, the queue was empty. We return `Ok(0)`, which the VFS layer reports as EOF.
+
+> **📝 Trade-off note.** This design returns exactly one message per `cat` invocation. List "support reading multiple messages in one open" or "let `read()` return *part* of a message and leave the tail in the per-open `pending`" in your README's future-work section.
 
 #### Test session
+
+`/dev/rustqueue` is created with mode `0600 root:root` (the default for `MiscDevice` nodes), so every read or write needs `sudo`. The `sudo tee ... > /dev/null` idiom is required because plain `sudo echo "..." > /dev/rustqueue` fails — the redirect is evaluated by your shell *before* `sudo` runs.
 
 ```bash
 make clean && make
 sudo insmod rustqueue.ko
 ls -la /dev/rustqueue
 
-echo "first message"  > /dev/rustqueue
-echo "second message" > /dev/rustqueue
-echo "third message"  > /dev/rustqueue
+echo "first message"  | sudo tee /dev/rustqueue > /dev/null
+echo "second message" | sudo tee /dev/rustqueue > /dev/null
+echo "third message"  | sudo tee /dev/rustqueue > /dev/null
 
-cat /dev/rustqueue   # → "first message"
-cat /dev/rustqueue   # → "second message"
-cat /dev/rustqueue   # → "third message"
-cat /dev/rustqueue   # → (empty, EOF — no output)
+sudo cat /dev/rustqueue   # → "first message"
+sudo cat /dev/rustqueue   # → "second message"
+sudo cat /dev/rustqueue   # → "third message"
+sudo cat /dev/rustqueue   # → (empty, EOF — no output)
 
-dmesg | tail -10
+sudo dmesg | tail -10
 sudo rmmod rustqueue
 ```
 
@@ -400,11 +441,12 @@ Try the full-queue path too:
 
 ```bash
 sudo insmod rustqueue.ko
-for i in {1..20}; do echo "message $i" > /dev/rustqueue; done
-dmesg | tail -20
+for i in {1..20}; do echo "message $i" | sudo tee /dev/rustqueue > /dev/null || echo "write $i FAILED"; done
+sudo dmesg | tail -20
+sudo rmmod rustqueue
 ```
 
-After 16 successful enqueues, the next four should see `rustqueue: queue full, rejecting write` in `dmesg` and the shell will report a write error.
+After 16 successful enqueues, the next four should see `rustqueue: queue full, rejecting write` in `dmesg`, `tee` will report a `No space left on device` error, and the loop will print `write 17 FAILED` through `write 20 FAILED`.
 
 #### Future work to mention in your README
 
@@ -437,135 +479,137 @@ The interesting twist: the counter is an **atomic**, not a mutex-protected integ
 ```rust
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-struct RustCounterDevice {
-    count: AtomicU64,
-    consumed: AtomicBool,
-}
+static COUNT: AtomicU64 = AtomicU64::new(0);
+static CONSUMED: AtomicBool = AtomicBool::new(false);
 ```
 
-Two atomics, no mutex.
+Two atomics in static storage, no mutex.
 
-- **`count`** is the actual counter. `AtomicU64` provides hardware-supported atomic read-modify-write — on x86 this is `LOCK XADD`, on ARM64 it's `ldaddal`. One CPU instruction, no scheduler involvement.
-- **`consumed`** is a small trick to make `cat` work nicely. The first `read()` after a write returns the value and marks the buffer "consumed." Subsequent reads return 0 (EOF) until the next write resets the flag. Without this, `cat` would see the same bytes forever and loop endlessly.
+- **`COUNT`** is the actual counter. `AtomicU64` provides hardware-supported atomic read-modify-write — on x86 this is `LOCK XADD`, on ARM64 it's `ldaddal`. One CPU instruction, no scheduler involvement.
+- **`CONSUMED`** is a small trick to make `cat` work nicely. The first `read()` after a write returns the value and marks the buffer "consumed." Subsequent reads return 0 (EOF) until the next write resets the flag. Without this, `cat` would see the same bytes forever and loop endlessly.
 
-#### Why no `Mutex`?
+Because `core::sync::atomic` types are `Sync` and have `const fn new`, you can put them straight into `static` slots — there is no need for `global_lock!` or any pin-init dance. This is the simplest of the three paths.
 
-A `Mutex<u64>` would also be correct, but it would be wasteful. The only operation we need on the counter is "fetch current value and add 1." The CPU has a single instruction for this; you don't need a kernel-level mutex (which adds two memory fences plus potentially a scheduler interaction on contention) to do it. **This is the moment in your Rust learning where the choice between a `Mutex` and an `Atomic` becomes load-bearing.** Pick the cheapest synchronization that's correct.
+#### Why no `Mutex` and no `global_lock!`?
+
+A `global_lock! { static COUNT: Mutex<u64> = 0; }` would also be correct, but it would be wasteful. The only operation we need on the counter is "fetch current value and add 1." The CPU has a single instruction for this; you don't need a kernel-level mutex (which adds two memory fences plus potentially a scheduler interaction on contention) to do it. **This is the moment in your Rust learning where the choice between a `Mutex` and an `Atomic` becomes load-bearing.** Pick the cheapest synchronization that's correct.
 
 #### Module shell
 
 ```rust
 // SPDX-License-Identifier: GPL-2.0
+//! rustcounter: an atomic counter character device.
 
-use kernel::prelude::*;
-use kernel::str::CString;
-use kernel::{file, miscdev};
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use kernel::{
+    fs::{File, Kiocb},
+    iov::{IovIterDest, IovIterSource},
+    miscdevice::{MiscDevice, MiscDeviceOptions, MiscDeviceRegistration},
+    prelude::*,
+    str::CString,
+};
 
 module! {
     type: RustCounter,
     name: "rustcounter",
-    author: "Your Name",
-    description: "An atomic counter character device",
+    description: "rustcounter — an atomic counter character device",
     license: "GPL",
 }
 
-struct RustCounterDevice {
-    count: AtomicU64,
-    consumed: AtomicBool,
-}
+static COUNT: AtomicU64 = AtomicU64::new(0);
+static CONSUMED: AtomicBool = AtomicBool::new(false);
 
+#[pin_data]
 struct RustCounter {
-    _dev: Pin<Box<miscdev::Registration<RustCounterDevice>>>,
+    #[pin]
+    _miscdev: MiscDeviceRegistration<RustCounterDevice>,
 }
 
-impl kernel::Module for RustCounter {
-    fn init(_module: &'static ThisModule) -> Result<Self> {
-        pr_info!("rustcounter: module loaded\n");
-        let dev = RustCounterDevice {
-            count: AtomicU64::new(0),
-            consumed: AtomicBool::new(false),
-        };
-        let reg = miscdev::Registration::new_pinned(fmt!("rustcounter"), dev)?;
-        Ok(Self { _dev: reg })
+impl kernel::InPlaceModule for RustCounter {
+    fn init(_module: &'static ThisModule) -> impl PinInit<Self, Error> {
+        pr_info!("module loaded\n");
+        let opts = MiscDeviceOptions { name: c"rustcounter" };
+        try_pin_init!(Self {
+            _miscdev <- MiscDeviceRegistration::register(opts),
+        })
     }
 }
 
-impl Drop for RustCounter {
-    fn drop(&mut self) {
-        pr_info!("rustcounter: module unloaded\n");
-    }
-}
+struct RustCounterDevice;
 ```
 
-#### `write()` — increment
+#### `write_iter()` — increment
 
 ```rust
 #[vtable]
-impl file::Operations for RustCounterDevice {
-    fn write(this: &Self, _file: &file::File, data: &mut impl IoBufferReader) -> Result<usize> {
-        let len = data.len();
+impl MiscDevice for RustCounterDevice {
+    type Ptr = Pin<KBox<Self>>;
 
+    fn open(_file: &File, _misc: &MiscDeviceRegistration<Self>) -> Result<Pin<KBox<Self>>> {
+        Ok(KBox::new(RustCounterDevice, GFP_KERNEL).map(KBox::into_pin)?)
+    }
+
+    fn write_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterSource<'_>) -> Result<usize> {
         // We don't care WHAT was written — every write counts as one increment.
         // Drain the user's bytes so the syscall completes cleanly.
-        let mut sink = Vec::new();
-        sink.try_reserve(len)?;
-        data.read_all(&mut sink)?;
+        let mut sink: KVec<u8> = KVec::new();
+        let n = iov.copy_from_iter_vec(&mut sink, GFP_KERNEL)?;
 
-        let new_count = this.count.fetch_add(1, Ordering::SeqCst) + 1;
-        this.consumed.store(false, Ordering::SeqCst);
+        let new_count = COUNT.fetch_add(1, Ordering::SeqCst) + 1;
+        CONSUMED.store(false, Ordering::SeqCst);
+        *kiocb.ki_pos_mut() = 0;
 
-        pr_info!("rustcounter: incremented to {}\n", new_count);
-        Ok(len)
+        pr_info!("incremented to {new_count}\n");
+        Ok(n)
     }
-    // read() below
+    // read_iter() below
 }
 ```
 
-The interesting line is **`this.count.fetch_add(1, Ordering::SeqCst) + 1`**:
+The interesting line is **`COUNT.fetch_add(1, Ordering::SeqCst) + 1`**:
 
 - `fetch_add` returns the *previous* value and atomically adds 1. We add 1 ourselves to log the new value.
 - `Ordering::SeqCst` ("sequentially consistent") is the strongest memory ordering. For a simple counter you could probably use `Relaxed`, but `SeqCst` is the safe default — pick it unless you can articulate why a weaker ordering is correct.
 
-Drainage of the input is needed because the syscall's contract says the kernel consumed `len` bytes. We use `Vec::new()` + `try_reserve()` to drain into a heap buffer that's immediately dropped.
+Drainage of the input is needed because the syscall's contract says the kernel consumed `n` bytes — even though we ignore them. `copy_from_iter_vec` allocates and copies into a `KVec` that goes out of scope (and is freed) at end of function.
 
-#### `read()` — return current value as ASCII
+#### `read_iter()` — return current value as ASCII
 
 ```rust
-fn read(this: &Self, _file: &file::File, data: &mut impl IoBufferWriter) -> Result<usize> {
-    if this.consumed.swap(true, Ordering::SeqCst) {
+fn read_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterDest<'_>) -> Result<usize> {
+    if CONSUMED.swap(true, Ordering::SeqCst) {
         return Ok(0);
     }
-
-    let n = this.count.load(Ordering::SeqCst);
-    let formatted = CString::try_from_fmt(fmt!("{}\n", n))?;
-    let bytes = formatted.as_bytes();
-
-    let to_write = core::cmp::min(data.len(), bytes.len());
-    data.write_slice(&bytes[..to_write])?;
-    Ok(to_write)
+    let n = COUNT.load(Ordering::SeqCst);
+    let formatted = CString::try_from_fmt(fmt!("{n}\n"))?;
+    let bytes = formatted.to_bytes();
+    let written = iov.simple_read_from_buffer(kiocb.ki_pos_mut(), bytes)?;
+    Ok(written)
 }
 ```
 
 Walk through it:
 
-1. **`consumed.swap(true, ...)`** atomically sets the flag to `true` and returns the *previous* value. If it was already `true` (we've already returned the value since the last write), return `Ok(0)` to signal EOF.
-2. **`count.load(...)`** reads the current count atomically.
-3. **`CString::try_from_fmt(fmt!("{}\n", n))`** is the kernel-safe equivalent of `format!` — it formats into a kernel-allocated C-string. The `?` propagates any allocation error.
-4. We copy the formatted bytes back to user space.
+1. **`CONSUMED.swap(true, ...)`** atomically sets the flag to `true` and returns the *previous* value. If it was already `true` (we've already returned the value since the last write), return `Ok(0)` to signal EOF.
+2. **`COUNT.load(...)`** reads the current count atomically.
+3. **`CString::try_from_fmt(fmt!("{n}\n"))`** is the kernel-safe equivalent of `format!` — it formats into a kernel-allocated C-string. The `?` propagates any allocation error.
+4. **`iov.simple_read_from_buffer(...)`** copies the formatted bytes back to user space, advancing `kiocb.ki_pos_mut()` so multi-call reads complete the message cleanly.
 
 #### Test session — the basic story
+
+Same as `rustqueue`: `/dev/rustcounter` is `0600 root:root`, so every interaction needs `sudo`.
 
 ```bash
 make clean && make
 sudo insmod rustcounter.ko
+ls -la /dev/rustcounter
 
-cat /dev/rustcounter           # → "0"
-echo bump > /dev/rustcounter
-cat /dev/rustcounter           # → "1"
-echo bump > /dev/rustcounter
-echo bump > /dev/rustcounter
-cat /dev/rustcounter           # → "3"
+sudo cat /dev/rustcounter                       # → "0"
+echo bump | sudo tee /dev/rustcounter > /dev/null
+sudo cat /dev/rustcounter                       # → "1"
+echo bump | sudo tee /dev/rustcounter > /dev/null
+echo bump | sudo tee /dev/rustcounter > /dev/null
+sudo cat /dev/rustcounter                       # → "3"
 
 sudo rmmod rustcounter
 ```
@@ -578,20 +622,22 @@ In **terminal 1**:
 
 ```bash
 sudo insmod rustcounter.ko
-cat /dev/rustcounter           # → "0"
-for i in {1..1000}; do echo bump > /dev/rustcounter; done
+ls -la /dev/rustcounter
+sudo cat /dev/rustcounter                       # → "0"
+for i in {1..1000}; do echo bump | sudo tee /dev/rustcounter > /dev/null; done
 ```
 
 While terminal 1 is running its loop, in **terminal 2**:
 
 ```bash
-for i in {1..1000}; do echo bump > /dev/rustcounter; done
+for i in {1..1000}; do echo bump | sudo tee /dev/rustcounter > /dev/null; done
 ```
 
 After both finish:
 
 ```bash
-cat /dev/rustcounter           # → "2000"
+sudo cat /dev/rustcounter                       # → "2000"
+sudo rmmod rustcounter
 ```
 
 The count is **exactly 2,000**, every time, without locks, without contention, without lost increments. That number is the proof.
@@ -632,34 +678,44 @@ const SECRET: u64 = 42;     // hardcoded for simplicity
 const MAX_GUESS: u64 = 100;
 
 struct GameState {
-    last_message: Vec<u8>,
+    last_message: KVec<u8>,
     consumed: bool,
     tries: u64,
     won: bool,
 }
 
-struct RustGuessDevice {
-    state: Mutex<GameState>,
+kernel::sync::global_lock! {
+    unsafe(uninit) static GAME: Mutex<GameState> = GameState {
+        last_message: KVec::new(),
+        consumed: true,
+        tries: 0,
+        won: false,
+    };
 }
 ```
 
-The `last_message` is the bytes the next `read()` will return. The `consumed` flag is the same EOF trick as in `rustcounter`. The `tries` and `won` fields make the game's "you got it in N tries" message possible.
+The `last_message` is the bytes the next `read()` will return. The `consumed` flag is the same EOF trick as in `rustcounter`. The `tries` and `won` fields make the game's "you got it in N tries" message possible. The whole game lives behind one `global_lock!` so every open of the device sees the same in-progress game.
 
 #### Module shell
 
 ```rust
 // SPDX-License-Identifier: GPL-2.0
+//! rustguess: a number-guessing game character device.
 
-use kernel::prelude::*;
-use kernel::str::CString;
-use kernel::sync::Mutex;
-use kernel::{file, miscdev};
+use kernel::{
+    fs::{File, Kiocb},
+    iov::{IovIterDest, IovIterSource},
+    miscdevice::{MiscDevice, MiscDeviceOptions, MiscDeviceRegistration},
+    new_mutex,
+    prelude::*,
+    str::CString,
+    sync::Mutex,
+};
 
 module! {
     type: RustGuess,
     name: "rustguess",
-    author: "Your Name",
-    description: "A number-guessing game in the kernel",
+    description: "rustguess — a number-guessing game character device",
     license: "GPL",
 }
 
@@ -667,113 +723,137 @@ const SECRET: u64 = 42;
 const MAX_GUESS: u64 = 100;
 
 struct GameState {
-    last_message: Vec<u8>,
+    last_message: KVec<u8>,
     consumed: bool,
     tries: u64,
     won: bool,
 }
 
-struct RustGuessDevice {
-    state: Mutex<GameState>,
+kernel::sync::global_lock! {
+    unsafe(uninit) static GAME: Mutex<GameState> = GameState {
+        last_message: KVec::new(),
+        consumed: true,
+        tries: 0,
+        won: false,
+    };
 }
 
-struct RustGuess {
-    _dev: Pin<Box<miscdev::Registration<RustGuessDevice>>>,
-}
-
-fn build_message(bytes: &[u8]) -> Result<Vec<u8>> {
-    let mut v = Vec::new();
-    v.try_extend_from_slice(bytes)?;
+fn build_message(bytes: &[u8]) -> Result<KVec<u8>> {
+    let mut v: KVec<u8> = KVec::new();
+    v.extend_from_slice(bytes, GFP_KERNEL)?;
     Ok(v)
 }
 
-impl kernel::Module for RustGuess {
-    fn init(_module: &'static ThisModule) -> Result<Self> {
-        pr_info!("rustguess: module loaded (secret picked, get guessing!)\n");
-        let initial = build_message(
-            b"Welcome! Guess a number between 1 and 100. `echo N > /dev/rustguess`, then `cat /dev/rustguess`.\n"
-        )?;
-        let dev = RustGuessDevice {
-            state: Mutex::new(GameState {
-                last_message: initial,
-                consumed: false,
-                tries: 0,
-                won: false,
-            }),
-        };
-        let reg = miscdev::Registration::new_pinned(fmt!("rustguess"), dev)?;
-        Ok(Self { _dev: reg })
-    }
+#[pin_data]
+struct RustGuess {
+    #[pin]
+    _miscdev: MiscDeviceRegistration<RustGuessDevice>,
 }
 
-impl Drop for RustGuess {
-    fn drop(&mut self) {
-        pr_info!("rustguess: module unloaded (game ended)\n");
+impl kernel::InPlaceModule for RustGuess {
+    fn init(_module: &'static ThisModule) -> impl PinInit<Self, Error> {
+        pr_info!("module loaded (secret picked, get guessing!)\n");
+        // SAFETY: Called exactly once during module init.
+        unsafe { GAME.init() };
+        // Seed the welcome message into the global state.
+        if let Ok(welcome) = build_message(
+            b"Welcome! Guess a number between 1 and 100. \
+              `echo N > /dev/rustguess`, then `cat /dev/rustguess`.\n",
+        ) {
+            let mut g = GAME.lock();
+            g.last_message = welcome;
+            g.consumed = false;
+        }
+        let opts = MiscDeviceOptions { name: c"rustguess" };
+        try_pin_init!(Self {
+            _miscdev <- MiscDeviceRegistration::register(opts),
+        })
     }
 }
 ```
 
-The `build_message` helper centralizes the fallible "byte literal → owned Vec" allocation pattern. Every message produced by the game goes through it, so allocation failures propagate via `?` rather than panicking.
+The `build_message` helper centralizes the fallible "byte literal → owned `KVec`" allocation pattern. Every message produced by the game goes through it, so allocation failures propagate via `?` rather than panicking.
 
-#### `write()` — parse a guess, update state
+#### Per-open device + `open()`
+
+Like `rustqueue`, each `open()` of `/dev/rustguess` gets a fresh `RustGuessDevice` whose only per-open state is a `served` flag — used to avoid `cat` looping on a fully-streamed message:
 
 ```rust
+#[pin_data]
+struct RustGuessDevice {
+    #[pin]
+    served: Mutex<bool>,
+}
+
 #[vtable]
-impl file::Operations for RustGuessDevice {
-    fn write(this: &Self, _file: &file::File, data: &mut impl IoBufferReader) -> Result<usize> {
-        let len = data.len();
-        let mut buf = Vec::new();
-        buf.try_reserve(len)?;
-        data.read_all(&mut buf)?;
+impl MiscDevice for RustGuessDevice {
+    type Ptr = Pin<KBox<Self>>;
 
-        let s = core::str::from_utf8(&buf).unwrap_or("");
-        let guess: Option<u64> = s.trim().parse().ok();
-
-        let mut state = this.state.lock();
-
-        if state.won {
-            state.last_message = build_message(
-                b"You already won! `rmmod rustguess && insmod rustguess.ko` to play again.\n"
-            )?;
-            state.consumed = false;
-            return Ok(len);
-        }
-
-        let response_bytes = match guess {
-            None => build_message(b"Couldn't parse your input as a number. Try again.\n")?,
-            Some(g) if g == 0 || g > MAX_GUESS => build_message(
-                b"Out of range — pick a number between 1 and 100.\n"
-            )?,
-            Some(g) => {
-                state.tries += 1;
-                let formatted = if g < SECRET {
-                    CString::try_from_fmt(fmt!("{} is too low — guess higher.\n", g))?
-                } else if g > SECRET {
-                    CString::try_from_fmt(fmt!("{} is too high — guess lower.\n", g))?
-                } else {
-                    state.won = true;
-                    CString::try_from_fmt(fmt!("Correct! You got it in {} tries.\n", state.tries))?
-                };
-                build_message(formatted.as_bytes())?
-            }
-        };
-
-        state.last_message = response_bytes;
-        state.consumed = false;
-
-        pr_info!("rustguess: tries={}, won={}\n", state.tries, state.won);
-        Ok(len)
+    fn open(_file: &File, _misc: &MiscDeviceRegistration<Self>) -> Result<Pin<KBox<Self>>> {
+        KBox::try_pin_init(
+            try_pin_init! { RustGuessDevice { served <- new_mutex!(false) } },
+            GFP_KERNEL,
+        )
     }
-    // read() below
+    // write_iter() and read_iter() below
+}
+```
+
+#### `write_iter()` — parse a guess, update game state
+
+```rust
+fn write_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterSource<'_>) -> Result<usize> {
+    let mut buf: KVec<u8> = KVec::new();
+    let len = iov.copy_from_iter_vec(&mut buf, GFP_KERNEL)?;
+
+    let s = core::str::from_utf8(&buf).unwrap_or("");
+    let guess: Option<u64> = s.trim().parse().ok();
+
+    let mut state = GAME.lock();
+
+    if state.won {
+        state.last_message = build_message(
+            b"You already won! `rmmod rustguess && insmod rustguess.ko` to play again.\n",
+        )?;
+        state.consumed = false;
+        *kiocb.ki_pos_mut() = 0;
+        return Ok(len);
+    }
+
+    let response_bytes = match guess {
+        None => build_message(b"Couldn't parse your input as a number. Try again.\n")?,
+        Some(g) if g == 0 || g > MAX_GUESS => {
+            build_message(b"Out of range -- pick a number between 1 and 100.\n")?
+        }
+        Some(g) => {
+            state.tries += 1;
+            let formatted = if g < SECRET {
+                CString::try_from_fmt(fmt!("{g} is too low -- guess higher.\n"))?
+            } else if g > SECRET {
+                CString::try_from_fmt(fmt!("{g} is too high -- guess lower.\n"))?
+            } else {
+                state.won = true;
+                CString::try_from_fmt(fmt!("Correct! You got it in {} tries.\n", state.tries))?
+            };
+            build_message(formatted.to_bytes())?
+        }
+    };
+
+    state.last_message = response_bytes;
+    state.consumed = false;
+    *kiocb.ki_pos_mut() = 0;
+
+    pr_info!("tries={}, won={}\n", state.tries, state.won);
+    Ok(len)
 }
 ```
 
 Walk through it:
 
-1. Drain the user's bytes into `buf`.
+1. **`iov.copy_from_iter_vec(...)`** drains the user's bytes into a fresh `KVec` buffer.
 2. **`core::str::from_utf8(&buf).unwrap_or("")`** parses the bytes as UTF-8 and falls back to an empty string on failure (so non-UTF-8 input becomes "couldn't parse").
 3. **`.trim().parse().ok()`** trims whitespace (so `echo 50 > /dev/rustguess` works — `echo` adds a trailing newline) and tries to parse as `u64`. `.ok()` converts the `Result` into an `Option`.
-4. Lock the state. After this point, only this code path can read or write state until the lock guard goes out of scope.
+4. **`GAME.lock()`** acquires the global game mutex. After this point, only this code path can read or write game state until the guard goes out of scope.
 5. **Win check first.** If the player has already won, return a friendly message and don't process the guess.
 6. **Match on the parsed guess.** Three arms: parse failure, out of range, in range.
 7. For an in-range guess, increment `tries`, compare to `SECRET`, and pick a response. The winning response sets `state.won = true`.
@@ -781,43 +861,55 @@ Walk through it:
 
 The `match` is exhaustive — Rust's type system requires you to handle every `Option` variant. There is no path where you forget the "parse failed" case and dereference an uninitialized guess.
 
-#### `read()` — return the latest message
+#### `read_iter()` — return the latest message
 
 ```rust
-fn read(this: &Self, _file: &file::File, data: &mut impl IoBufferWriter) -> Result<usize> {
-    let mut state = this.state.lock();
+fn read_iter(mut kiocb: Kiocb<'_, Self::Ptr>, iov: &mut IovIterDest<'_>) -> Result<usize> {
+    let me = kiocb.file();
+    let mut served = me.served.lock();
 
-    if state.consumed {
+    let state = GAME.lock();
+    if state.consumed && *served {
         return Ok(0);
     }
-
-    let to_write = core::cmp::min(data.len(), state.last_message.len());
-    data.write_slice(&state.last_message[..to_write])?;
-    state.consumed = true;
-    Ok(to_write)
+    let n = iov.simple_read_from_buffer(kiocb.ki_pos_mut(), &state.last_message)?;
+    if n == 0 {
+        *served = true;
+    }
+    Ok(n)
 }
 ```
 
-Same EOF dance as `rustcounter` — the first `read()` after a `write()` returns the message; subsequent reads return EOF until the next `write()` produces a new message.
+Walk through it:
+
+1. **`me.served`** is the per-open "have I shown the latest message yet?" flag.
+2. **`GAME.lock()`** acquires the global game state.
+3. The "already-served" check returns EOF when this open already streamed the current message. Without it, `cat` would loop forever on the same message.
+4. **`iov.simple_read_from_buffer(...)`** copies the message bytes back to user space and advances `ki_pos`. When `ki_pos` reaches `last_message.len()`, this returns `0`, we mark this open as `served`, and `cat` exits cleanly.
 
 #### Test session
+
+Same `0600 root:root` story as the other two paths — every interaction needs `sudo`.
 
 ```bash
 make clean && make
 sudo insmod rustguess.ko
+ls -la /dev/rustguess
 
-cat /dev/rustguess              # welcome message
-echo 50 > /dev/rustguess
-cat /dev/rustguess              # "50 is too high — guess lower." (or higher)
-echo 25 > /dev/rustguess
-cat /dev/rustguess              # response
-echo 42 > /dev/rustguess
-cat /dev/rustguess              # "Correct! You got it in 3 tries."
-echo 50 > /dev/rustguess
-cat /dev/rustguess              # "You already won!..."
+sudo cat /dev/rustguess                       # welcome message
+echo 50 | sudo tee /dev/rustguess > /dev/null
+sudo cat /dev/rustguess                       # "50 is too high -- guess lower."
+echo 25 | sudo tee /dev/rustguess > /dev/null
+sudo cat /dev/rustguess                       # "25 is too low -- guess higher."
+echo 42 | sudo tee /dev/rustguess > /dev/null
+sudo cat /dev/rustguess                       # "Correct! You got it in 3 tries."
+echo 50 | sudo tee /dev/rustguess > /dev/null
+sudo cat /dev/rustguess                       # "You already won!..."
 
 sudo rmmod rustguess
-sudo insmod rustguess.ko        # new game (still secret 42 in this build)
+sudo insmod rustguess.ko                      # new game (still secret 42 in this build)
+sudo cat /dev/rustguess                       # welcome message again
+sudo rmmod rustguess
 ```
 
 > **🎲 About the secret.** This base version uses a hardcoded `SECRET = 42` for simplicity — every load of the module picks the same secret. Your **first future-work item** in the README should be: *"Use the kernel RNG to pick a fresh secret at module load."* Rust-for-Linux exposes `kernel::random::getrandom(&mut bytes)` (the exact module path may vary by RFL version) which is the same kernel call you traced in LN23 when reading from `/dev/urandom`. Adding it is a small but meaningful upgrade.
@@ -825,7 +917,7 @@ sudo insmod rustguess.ko        # new game (still secret 42 in this build)
 #### Future work to mention in your README
 
 - **Random secret.** Use the kernel RNG (`kernel::random::getrandom`) to pick a fresh `SECRET` at module load. Direct callback to LN23.
-- **Per-open game state.** Each `open()` of the device gets its own game — multiple users can play simultaneously without sharing a secret. Use `file::Operations::Data` to attach per-open state.
+- **Per-open game state.** Each `open()` of the device gets its own game — multiple users can play simultaneously without sharing a secret. Move the `GameState` *out* of the global lock and into the per-open `RustGuessDevice` (the same way `rustqueue` keeps its `pending` slot per-open).
 - **Difficulty levels.** Write `RANGE:1000\n` to expand the search space to 1–1000 before guessing.
 - **Hint history.** Track the user's guesses and return them on a special `HISTORY\n` write — show the player how they narrowed in on the answer.
 - **Cheat code.** A debug-mode `REVEAL\n` command that prints the secret. Demonstrates conditional compilation (`#[cfg(debug_assertions)]`).
@@ -991,7 +1083,7 @@ Nothing else is required. Anything else is up to you.
 
 Unlike the other optionals in this course, this one is **not a coding project** — you've already built one of those for HW5 itself! Instead, this is a small *research and write-up* exercise: read someone else's real-world Rust kernel code, then tell me what you learned.
 
-The point is to see how the patterns you used in your own module — `module!`, `kernel::Module`, `file::Operations`, `Mutex`, atomics — show up (or don't) in modules written by people who actually ship Rust into the kernel for a living. After spending a week being the author, spend an afternoon being the reader.
+The point is to see how the patterns you used in your own module — `module!`, `kernel::InPlaceModule`, `MiscDevice`, `MiscDeviceRegistration`, `global_lock!`, atomics — show up (or don't) in modules written by people who actually ship Rust into the kernel for a living. After spending a week being the author, spend an afternoon being the reader.
 
 ### What to Read (pick at least two)
 
