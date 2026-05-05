@@ -848,7 +848,12 @@ const allEvents: CourseEvent[] = [
       "Systems Engineering Workflow",
     ],
     contentUrl: "/cmsi-3510/ln24",
-    recordings: [],
+    recordings: [
+      {
+        name: "Class Recording",
+        url: "https://lmula.zoom.us/rec/share/DjdNYUOFqx_h1flXtDV5njEv_ZP9YJy3zxY5L3bc_YBNf3wzfEK2eO5zcEfK11ZP.sH_LxlnvN_6bUxmv"
+      }
+    ],
   },
   {
     id: "3510-hw4",
